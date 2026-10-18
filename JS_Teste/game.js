@@ -918,61 +918,201 @@ function drawKnightBanner(r) {
   r(C.woodDark, 8, 24, 4, 2); r(C.woodDark, 13, 24, 4, 2);
 }
 
-// Boss 1: Golem Ancestral de Pedra (64x64 — Colosso com musgo, cara de mau, núcleo rúnico e punhos gigantes)
+// Boss 1: Golem Ancestral de Pedra (88x88 — Colosso Titânico em Pixel Art 16-bit com olhos vermelhos)
 function drawBossGolem(r, f) {
-  // 1. Ombros gigantescos e silhueta superior de granito/ardósia
-  r(C.ironDark, 4, 6, 24, 7);
-  r(C.iron, 5, 5, 22, 6);
-  r(C.steelDark, 6, 4, 20, 4);
+  // Grade 44x44 (renderizada em blocos 2x2 = 88x88 pixels)
+  // 1. CONTORNO E OMBROS CICLÓPICOS ASSIMÉTRICOS DE ROCHA ANCESTRAL
+  r(C.outline, 3, 7, 38, 13);
+  r(C.ironDark, 4, 8, 36, 12);
+  r(C.iron, 6, 7, 32, 10);
+  r(C.steelDark, 8, 6, 28, 8);
+  r(C.steel, 10, 6, 24, 3);
 
-  // 2. Cabeça de pedra maciça encravada entre os ombros
-  r(C.ironDark, 10, 3, 12, 8);
-  r(C.iron, 11, 4, 10, 7);
-  r(C.steelDark, 12, 3, 8, 2);
+  // Espigões e Cristas de Rocha nos Ombros (Relevo 3D)
+  r(C.outline, 1, 6, 6, 7);
+  r(C.ironDark, 2, 7, 5, 6);
+  r(C.steelDark, 3, 6, 3, 4);
+  r(C.steelLight, 4, 6, 1, 3);
 
-  // Sobrancelhas franzidas de pedra ("cara de mau")
-  r(C.ironDark, 11, 5, 4, 2);
-  r(C.ironDark, 17, 5, 4, 2);
+  r(C.outline, 37, 6, 6, 7);
+  r(C.ironDark, 37, 7, 5, 6);
+  r(C.steelDark, 38, 6, 3, 4);
+  r(C.steel, 39, 6, 1, 3);
 
-  // Olhos brilhantes furiosos (magma rúnico)
-  r(C.red, 12, 7, 2, 1); r(C.eye, 12, 6, 2, 1); r(C.yellow, 13, 6, 1, 1);
-  r(C.red, 18, 7, 2, 1); r(C.eye, 18, 6, 2, 1); r(C.yellow, 18, 6, 1, 1);
+  // Rachaduras tectônicas nos ombros
+  r(C.outline, 9, 9, 1, 4); r(C.outline, 10, 12, 2, 1);
+  r(C.outline, 34, 9, 1, 4); r(C.outline, 32, 12, 2, 1);
 
-  // Boca/fenda sombria rachada
-  r(C.outline, 13, 9, 6, 1);
-  r(C.darkRed, 14, 10, 4, 1);
+  // 2. CABEÇA MACIÇA DE TITÃ (Encravada no trapézio com cara de mau e olhos vermelhos)
+  r(C.outline, 13, 2, 18, 14);
+  r(C.ironDark, 14, 3, 16, 13);
+  r(C.iron, 15, 4, 14, 11);
+  r(C.steelDark, 16, 3, 12, 3);
+  r(C.steelLight, 17, 3, 8, 1);
 
-  // 3. Peito e Núcleo Rúnico no centro do tórax
-  r(C.ironDark, 7, 12, 18, 10);
-  r(C.iron, 8, 13, 16, 8);
-  r(C.steelDark, 9, 13, 14, 3);
-  r(C.darkRed, 14, 14, 4, 4);
-  r(C.red, 15, 14, 2, 4); r(C.red, 14, 15, 4, 2);
-  r(C.yellow, 15, 15, 2, 2);
-  r(C.darkRed, 13, 13, 1, 2); r(C.darkRed, 18, 13, 1, 2);
-  r(C.darkRed, 12, 17, 2, 1); r(C.darkRed, 18, 17, 2, 1);
+  // Cicatriz de rocha na testa
+  r(C.outline, 22, 3, 1, 3); r(C.outline, 23, 5, 1, 2);
 
-  // 4. Tufos de musgo ancestral nos ombros e cabeça
-  r(C.leafDark, 4, 3, 5, 3); r(C.leaf, 5, 3, 3, 2); r(C.leafLight, 6, 2, 2, 1);
-  r(C.leafDark, 23, 3, 5, 3); r(C.leaf, 24, 3, 3, 2); r(C.leafLight, 24, 2, 2, 1);
-  r(C.leafDark, 13, 1, 6, 2); r(C.leaf, 14, 1, 4, 1); r(C.leafLight, 15, 0, 2, 1);
+  // Sobrancelhas pesadas e franzidas em V ("cara de mau")
+  r(C.outline, 15, 6, 6, 3);
+  r(C.ironDark, 14, 5, 6, 2);
+  r(C.ironDark, 19, 7, 2, 2);
 
-  // 5. Braços e Punhos Colossais de Pedra
-  const armY = f === 0 ? 0 : -1;
-  r(C.ironDark, 2, 12 + armY, 6, 9); r(C.iron, 3, 13 + armY, 4, 7);
-  r(C.steelDark, 1, 21 + armY, 8, 7); r(C.ironDark, 0, 23 + armY, 10, 4); r(C.iron, 2, 24 + armY, 6, 2);
+  r(C.outline, 23, 6, 6, 3);
+  r(C.ironDark, 24, 5, 6, 2);
+  r(C.ironDark, 23, 7, 2, 2);
 
-  r(C.ironDark, 24, 12 - armY, 6, 9); r(C.iron, 25, 13 - armY, 4, 7);
-  r(C.steelDark, 23, 21 - armY, 8, 7); r(C.ironDark, 22, 23 - armY, 10, 4);
+  // OLHOS ESTRITAMENTE VERMELHOS (Brilho escarlate rubro incandescente)
+  // Olho Esquerdo
+  r(C.darkRed, 16, 9, 4, 2);
+  r(C.red, 16, 8, 4, 2);
+  r(0xff1744, 17, 8, 3, 2);
+  r(0xff5252, 18, 8, 2, 1);
+  r(0xff8a80, 18, 8, 1, 1);
 
-  // 6. Pernas de pilar rochoso
-  const legL = f === 0 ? 0 : 2;
-  const legR = f === 1 ? 0 : 2;
-  r(C.ironDark, 9, 22, 5, 6 + legL); r(C.iron, 10, 22, 3, 5 + legL); r(C.steelDark, 7, 27 + legL, 8, 3);
-  r(C.ironDark, 18, 22, 5, 6 + legR); r(C.iron, 19, 22, 3, 5 + legR); r(C.steelDark, 17, 27 + legR, 8, 3);
+  // Olho Direito
+  r(C.darkRed, 24, 9, 4, 2);
+  r(C.red, 24, 8, 4, 2);
+  r(0xff1744, 24, 8, 3, 2);
+  r(0xff5252, 24, 8, 2, 1);
+  r(0xff8a80, 25, 8, 1, 1);
+
+  // Nariz monolítico e maçãs do rosto chanfradas
+  r(C.ironDark, 21, 8, 2, 3);
+  r(C.steelDark, 15, 10, 2, 2);
+  r(C.steelDark, 27, 10, 2, 2);
+
+  // Mandíbula pesada e boca serrilhada com presas de pedra
+  r(C.outline, 16, 12, 12, 3);
+  r(C.darkRed, 18, 13, 8, 1);
+  r(C.steel, 17, 12, 1, 1);
+  r(C.steel, 20, 12, 1, 1);
+  r(C.steel, 23, 12, 1, 1);
+  r(C.steel, 26, 12, 1, 1);
+  r(C.ironDark, 15, 14, 14, 2);
+  r(C.steelDark, 17, 15, 10, 1);
+
+  // 3. CAMADAS RICAS DE MUSGO ANCESTRAL E VINHAS (Cabeça e Ombros)
+  // Coroa de musgo no crânio
+  r(C.leafDark, 16, 1, 12, 3);
+  r(C.leaf, 17, 1, 9, 2);
+  r(C.leafLight, 19, 0, 5, 2);
+
+  // Manto de musgo no ombro esquerdo com vinhas pendentes
+  r(C.leafDark, 4, 5, 8, 4);
+  r(C.leaf, 5, 4, 6, 3);
+  r(C.leafLight, 6, 3, 4, 2);
+  r(C.leafDark, 3, 9, 3, 3);
+  r(C.leaf, 4, 9, 2, 2);
+  r(C.leafDark, 8, 9, 2, 3);
+
+  // Manto de musgo no ombro direito com vinhas pendentes
+  r(C.leafDark, 32, 5, 8, 4);
+  r(C.leaf, 33, 4, 6, 3);
+  r(C.leafLight, 34, 3, 4, 2);
+  r(C.leafDark, 38, 9, 3, 3);
+  r(C.leaf, 38, 9, 2, 2);
+  r(C.leafDark, 34, 9, 2, 3);
+
+  // 4. TORSO BLINDADO DE ROCHA, PLACAS PEITORAIS E NÚCLEO RÚNICO VERMELHO
+  r(C.outline, 8, 16, 28, 14);
+  r(C.ironDark, 9, 16, 26, 13);
+  r(C.iron, 11, 17, 22, 11);
+  r(C.steelDark, 12, 17, 20, 5);
+  r(C.steel, 13, 17, 7, 2);
+  r(C.steel, 24, 17, 7, 2);
+
+  // Fendas das placas peitorais
+  r(C.outline, 21, 16, 2, 12);
+  r(C.outline, 11, 22, 7, 1);
+  r(C.outline, 26, 22, 7, 1);
+
+  // Núcleo Rúnico Carmesim no Centro do Tórax
+  r(C.outline, 18, 19, 8, 8);
+  r(C.darkRed, 19, 20, 6, 6);
+  r(C.red, 20, 20, 4, 6);
+  r(C.red, 19, 21, 6, 4);
+  r(0xff1744, 20, 21, 4, 4);
+  r(0xff5252, 21, 22, 2, 2);
+  r(0xff8a80, 21, 22, 1, 1);
+
+  // Veios rúnicos vermelhos irradiando pelo peito
+  r(C.darkRed, 17, 19, 2, 1); r(C.red, 15, 18, 2, 1);
+  r(C.darkRed, 25, 19, 2, 1); r(C.red, 27, 18, 2, 1);
+  r(C.darkRed, 17, 25, 2, 1); r(C.darkRed, 25, 25, 2, 1);
+
+  // Cinturão monolítico e quadril rochoso
+  r(C.outline, 11, 28, 22, 5);
+  r(C.ironDark, 12, 28, 20, 5);
+  r(C.iron, 14, 29, 16, 3);
+  r(C.steelDark, 16, 29, 4, 2); r(C.steelDark, 24, 29, 4, 2);
+  r(C.outline, 21, 28, 2, 4);
+
+  // 5. BRAÇOS COLOSSAIS E MANOPLAS/PUNHOS GIGANTES COM NÓS DOS DEDOS
+  const armBob = f === 0 ? 0 : -2;
+
+  // Braço Esquerdo (Frontal)
+  r(C.outline, 1, 15 + armBob, 10, 13);
+  r(C.ironDark, 2, 16 + armBob, 9, 12);
+  r(C.iron, 3, 17 + armBob, 7, 10);
+  r(C.steelDark, 4, 18 + armBob, 5, 8);
+  r(C.steel, 4, 18 + armBob, 3, 3);
+  r(C.leafDark, 1, 20 + armBob, 4, 3);
+  r(C.leaf, 2, 21 + armBob, 3, 2);
+
+  // Punho Esquerdo Gigante (com cristas e nós dos dedos)
+  r(C.outline, 0, 27 + armBob, 13, 12);
+  r(C.ironDark, 1, 28 + armBob, 11, 10);
+  r(C.iron, 2, 29 + armBob, 9, 8);
+  r(C.steelDark, 2, 29 + armBob, 8, 5);
+  r(C.steelLight, 3, 30 + armBob, 3, 2);
+  r(C.outline, 2, 34 + armBob, 9, 1);
+  r(C.steel, 2, 36 + armBob, 2, 2);
+  r(C.steel, 5, 36 + armBob, 2, 2);
+  r(C.steel, 8, 36 + armBob, 2, 2);
+
+  // Braço Direito (Traseiro)
+  r(C.outline, 33, 15 - armBob, 10, 13);
+  r(C.ironDark, 33, 16 - armBob, 9, 12);
+  r(C.iron, 34, 17 - armBob, 7, 10);
+  r(C.steelDark, 35, 18 - armBob, 5, 8);
+  r(C.leafDark, 39, 20 - armBob, 4, 3);
+  r(C.leaf, 39, 21 - armBob, 3, 2);
+
+  // Punho Direito Gigante
+  r(C.outline, 31, 27 - armBob, 13, 12);
+  r(C.ironDark, 32, 28 - armBob, 11, 10);
+  r(C.iron, 33, 29 - armBob, 9, 8);
+  r(C.steelDark, 34, 29 - armBob, 8, 5);
+  r(C.outline, 33, 34 - armBob, 9, 1);
+  r(C.steel, 34, 36 - armBob, 2, 2);
+  r(C.steel, 37, 36 - armBob, 2, 2);
+  r(C.steel, 40, 36 - armBob, 2, 2);
+
+  // 6. PERNAS DE PILAR ROCHOSO E PÉS DE LAJE
+  const legStepL = f === 0 ? 0 : 3;
+  const legStepR = f === 1 ? 0 : 3;
+
+  // Perna Esquerda
+  r(C.outline, 12, 32, 9, 8 + legStepL);
+  r(C.ironDark, 13, 32, 7, 8 + legStepL);
+  r(C.iron, 14, 33, 5, 6 + legStepL);
+  r(C.steelDark, 15, 34, 3, 4 + legStepL);
+  r(C.outline, 10, 39 + legStepL, 11, 4);
+  r(C.ironDark, 11, 40 + legStepL, 9, 3);
+  r(C.steelDark, 12, 40 + legStepL, 7, 2);
+
+  // Perna Direita
+  r(C.outline, 23, 32, 9, 8 + legStepR);
+  r(C.ironDark, 24, 32, 7, 8 + legStepR);
+  r(C.iron, 25, 33, 5, 6 + legStepR);
+  r(C.steelDark, 26, 34, 3, 4 + legStepR);
+  r(C.outline, 23, 39 + legStepR, 11, 4);
+  r(C.ironDark, 24, 40 + legStepR, 9, 3);
+  r(C.steelDark, 25, 40 + legStepR, 7, 2);
 }
 
-// Mini Golem de Pedra ("Filhotinhos" do Boss — 28x28)
+// Mini Golem de Pedra ("Filhotinhos" do Boss — 28x28, com olhos vermelhos)
 function drawMiniGolem(r, f) {
   // 1. Tufo de musgo no topo da cabeça
   r(C.leafDark, 5, 0, 4, 2); r(C.leaf, 6, 0, 2, 1); r(C.leafLight, 6, 1, 1, 1);
@@ -983,10 +1123,10 @@ function drawMiniGolem(r, f) {
   r(C.iron, 3, 3, 8, 7);
   r(C.steelDark, 4, 3, 6, 3);
 
-  // 3. Olhos bravos luminosos e boca invocada
-  r(C.ironDark, 3, 4, 3, 1); r(C.ironDark, 8, 4, 3, 1);
-  r(C.red, 4, 5, 2, 2); r(C.yellow, 4, 5, 1, 1);
-  r(C.red, 8, 5, 2, 2); r(C.yellow, 9, 5, 1, 1);
+  // 3. Olhos vermelhos bravos e boca invocada
+  r(C.outline, 3, 4, 3, 1); r(C.outline, 8, 4, 3, 1);
+  r(C.red, 4, 5, 2, 2); r(0xff5252, 4, 5, 1, 1);
+  r(C.red, 8, 5, 2, 2); r(0xff5252, 9, 5, 1, 1);
   r(C.outline, 5, 8, 4, 1);
   r(C.darkRed, 6, 9, 2, 1);
 
@@ -1074,7 +1214,7 @@ function preload() {
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
   makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
-  makeSheet(this, 'boss_golem', 64, 64, 2, drawBossGolem);
+  makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
@@ -1535,10 +1675,10 @@ function startBossFight(scene) {
 
   floatText(scene, 400, 128, '⚠ CHEFÃO: GOLEM ANCESTRAL DE PEDRA! ⚠', '#ff5252');
 
-  // Cria o Boss Golem de Pedra (64x64 — imenso, musgoso e não desaparece da arena)
+  // Cria o Boss Golem de Pedra (88x88 — Colosso Titânico em Pixel Art 16-bit)
   const boss = enemies.create(875, 325, 'boss_golem', 0);
   boss.play('boss_golem').setFlipX(true);
-  boss.body.setSize(46, 54).setOffset(9, 6);
+  boss.body.setSize(62, 74).setOffset(13, 8);
   boss.setImmovable(true);
   boss.body.pushable = false;
   boss.isBoss = true;
@@ -1642,7 +1782,7 @@ function bossThrowRocks(scene, boss) {
 
         const flyingRock = registerBossTelegraph(
           boss,
-          scene.add.image(boss.x - 22, boss.y - 18, 'rock', variant).setDepth(1600).setScale(1.18)
+          scene.add.image(boss.x - 28, boss.y - 22, 'rock', variant).setDepth(1600).setScale(1.18)
         );
 
         scene.tweens.add({
@@ -1676,24 +1816,19 @@ function bossThrowRocks(scene, boss) {
   }
 }
 
-// GOLPE 2: Soco Colossal ("Soco Bem Grande") com Alerta Vermelho em Faixa Horizontal
+// GOLPE 2: Investida / Soco Colossal Linear com Alerta Vermelho Limpo (sem texto e sem teletransporte)
 function bossColossalPunch(scene, boss) {
   if (!boss || !boss.active || gameState !== 'PLAYING') return;
   boss.isLunging = true;
   boss.setVelocity(0, 0);
 
-  // Alinha suavemente a faixa do soco próximo à altura atual
-  const laneY = Phaser.Math.Clamp(
-    player && player.active ? Phaser.Math.Linear(boss.y, player.y, 0.55) : boss.y,
-    170,
-    480
-  );
-  boss.y = laneY;
-  const laneH = 74;
+  // 1. Parte EXATAMENTE da altura atual do Boss (zero teletransporte vertical)
+  const laneY = boss.y;
+  const laneH = 76;
   const laneW = 560;
-  const laneCenterX = 395;
+  const laneCenterX = 390;
 
-  // 1. ALERTA VERMELHO NA FAIXA DO SOCO (880ms de aviso prévio para o jogador sair da linha)
+  // 2. ALERTA VERMELHO LIMPO NA FAIXA (800ms de aviso prévio, sem texto poluindo a área)
   const warnZone = registerBossTelegraph(
     boss,
     scene.add.rectangle(laneCenterX, laneY, laneW, laneH, 0xff1744, 0.22)
@@ -1702,72 +1837,79 @@ function bossColossalPunch(scene, boss) {
   );
   const warnCore = registerBossTelegraph(
     boss,
-    scene.add.rectangle(laneCenterX, laneY, laneW, 14, 0xff5252, 0.38)
+    scene.add.rectangle(laneCenterX, laneY, laneW, 14, 0xff5252, 0.42)
       .setDepth(laneY - 1)
-  );
-  const warnText = registerBossTelegraph(
-    boss,
-    scene.add.text(410, laneY, '<<< SOCO COLOSSAL! DESVIE! <<<', {
-      ...textStyle('#ff8a80', 13),
-      stroke: '#000000',
-      strokeThickness: 4
-    }).setOrigin(0.5).setDepth(1550)
   );
 
   boss.setTint(0xff7043);
   scene.tweens.add({
     targets: [warnZone, warnCore],
-    alpha: { from: 0.18, to: 0.62 },
-    duration: 175,
+    alpha: { from: 0.18, to: 0.65 },
+    duration: 160,
     yoyo: true,
     repeat: 4
   });
 
-  // 2. EXECUÇÃO DO SOCO COLOSSAL APÓS O ALERTA VERMELHO
-  scene.time.delayedCall(880, () => {
-    [warnZone, warnCore, warnText].forEach(o => { if (o && o.active) o.destroy(); });
+  // Leve e suave recuo de preparação (18px) enquanto a faixa vermelha pulsa
+  const startX = boss.x;
+  scene.tweens.add({
+    targets: boss,
+    x: startX + 18,
+    duration: 800,
+    ease: 'Sine.easeOut',
+    onUpdate: () => { if (boss && boss.body) boss.body.updateFromGameObject(); }
+  });
+
+  // 3. EXECUÇÃO LINEAR E FLUIDA DA INVESTIDA APÓS O ALERTA VERMELHO
+  scene.time.delayedCall(800, () => {
+    [warnZone, warnCore].forEach(o => { if (o && o.active) o.destroy(); });
     if (!boss || !boss.active || gameState !== 'PLAYING') return;
 
     boss.clearTint();
     sound.playEarthSmash();
-    scene.cameras.main.shake(280, 0.012);
+    scene.cameras.main.shake(260, 0.012);
 
-    // Onda de impacto do punho gigante rasgando a faixa
+    // Onda de choque frontal acompanhando a investida do Golem
     const fistWave = registerBossTelegraph(
       boss,
-      scene.add.rectangle(boss.x - 36, laneY, 76, laneH - 8, 0xffab91, 0.75)
+      scene.add.rectangle(boss.x - 36, laneY, 72, laneH - 10, 0xffab91, 0.72)
         .setStrokeStyle(3, 0xffca28, 1)
         .setDepth(laneY + 4)
     );
     scene.tweens.add({
       targets: fistWave,
       x: 155,
-      scaleX: 1.5,
-      alpha: { from: 0.9, to: 0 },
-      duration: 240,
-      ease: 'Cubic.easeOut',
+      scaleX: 1.4,
+      alpha: { from: 0.85, to: 0 },
+      duration: 360,
+      ease: 'Sine.easeOut',
       onComplete: () => { if (fistWave && fistWave.active) fistWave.destroy(); }
     });
 
-    // Investida veloz do Golem com o punho à frente e retorno à posição de guarda
+    // Avanço linear e legível (380ms com Quad.easeIn, sem saltos de posição)
     scene.tweens.add({
       targets: boss,
-      x: 205,
-      duration: 220,
-      ease: 'Back.easeIn',
+      x: 210,
+      duration: 380,
+      ease: 'Quad.easeIn',
       onUpdate: () => {
-        if (gameState === 'PLAYING' && boss.active && Math.random() < 0.65) {
-          hitFx.explode(4, boss.x - 24, boss.y + 16);
+        if (!boss || !boss.active) return;
+        if (boss.body) boss.body.updateFromGameObject();
+        if (gameState === 'PLAYING' && Math.random() < 0.55) {
+          hitFx.explode(3, boss.x - 26, boss.y + 20);
         }
       },
       onComplete: () => {
         if (!boss || !boss.active) return;
-        hitFx.explode(16, boss.x - 20, boss.y);
+        hitFx.explode(16, boss.x - 24, boss.y);
+
+        // Retorno fluido e contínuo para a posição de guarda na direita (460ms)
         scene.tweens.add({
           targets: boss,
           x: 685,
           duration: 460,
           ease: 'Sine.easeOut',
+          onUpdate: () => { if (boss && boss.body) boss.body.updateFromGameObject(); },
           onComplete: () => {
             if (!boss || !boss.active) return;
             boss.isLunging = false;

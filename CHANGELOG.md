@@ -4,6 +4,23 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.9.7] - 2026-10-18 (Upgrade Artístico do Boss Golem 88x88, Olhos Vermelhos & Investida Linear)
+### 🎨 Direção de Arte: Novo Colosso Titânico 88x88 (`drawBossGolem`)
+- **Escala Monumental (`88x88` pixels)**: O Golem Ancestral de Pedra foi ampliado de `64x64` para `88x88` (grade `44x44` em escala `2x`), ficando quase 3 vezes maior que o Cavaleiro e muito mais robusto na arena (`hitbox` ajustada para `62x74`).
+- **Composição de Pixel Art 16-bit Detalhada**:
+  - **Ombros Ciclópicos com Espigões e Rachaduras**: Placas sobrepostas de granito e ardósia com contorno escuro, chanfrados iluminados (`steelLight`) e fissuras tectônicas.
+  - **Olhos Vermelhos Incandescentes**: Olhos reestilizados em tons estritamente escarlates e rubros (`darkRed`, `red`, `0xff1744`, `0xff5252`, `0xff8a80`) sob sobrancelhas de rocha pesadas e franzidas em "V" (*cara de mau*), acompanhados pelos Mini Golems também com olhos vermelhos.
+  - **Manto de Musgo e Vinhas Pendentes**: Camadas detalhadas de musgo em 3 tons (`leafDark`, `leaf`, `leafLight`) no topo do crânio, ombros e antebraços.
+  - **Torso Blindado, Mandíbula Serrilhada e Punhos Gigantes**: Presas de pedra na mandíbula, coração rúnico vermelho irradiando veios pelo peito e manoplas/punhos maciços com nós dos dedos esculpidos.
+
+### 🛠️ Correção da Investida Linear & Limpeza Visual (`bossColossalPunch`)
+- **Fim do Teletransporte antes da Investida (`code_architect`)**:
+  - Removido o salto instantâneo de coordenada vertical (`boss.y = laneY`); agora o Golem inicia o ataque exatamente da altura (`boss.y`) em que já está caminhando.
+  - Substituído o tween brusco (`Back.easeIn` em `220ms`) por uma preparação suave de `18px` durante o aviso seguida de um avanço linear e fluido (`Quad.easeIn` em `380ms`) e retorno contínuo (`Sine.easeOut` em `460ms`), sincronizando o corpo físico (`boss.body.updateFromGameObject()`) a cada quadro.
+- **Faixa Vermelha Limpa (Sem Texto)**: Removido o texto de cima da faixa de alerta vermelha, mantendo apenas o indicador luminoso vermelho na área do ataque.
+
+---
+
 ## [v0.9.6] - 2026-10-18 (Primeira Boss Fight aos 60s: Golem Ancestral de Pedra, Mini Golems, Chão Craquelado & Alertas de Ataque)
 ### 🗿 O Primeiro Chefão: Golem Ancestral de Pedra (`boss_golem`, 60s)
 - **Aparição aos 60 Segundos (`BOSS_TRIGGER_TIME = 60`)**: Ao atingir 60 segundos de sobrevivência, o Golem Ancestral de Pedra (`64x64`, muito maior que os inimigos comuns) entra na arena com som sísmico e tremor de câmera.
