@@ -4,6 +4,28 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.5.2] - 2026-10-18
+### 🏃 Sensação de Movimento & Parallax
+- **Chão com Rolagem Contínua (TileSprite)**:
+  - Adicionado `TileSprite` texturizado com relva em pixel art. O solo agora se desloca continuamente para a esquerda com base no `worldSpeed`, criando a sensação autêntica de corrida veloz na floresta.
+  - Sincronização do movimento de parallax das árvores e arbustos com o delta de frame.
+  - Animação de corrida no Cavaleiro (leve oscilação angular de passos com seno temporal).
+
+### 🎯 Correção Física das Flechas
+- **Velocidade Imediata Restaurada**:
+  - Corrigido o bug onde as flechas (do jogador e dos elfos) ficavam paradas no ar devido à sobrescrita de velocidade pós-adrop.
+  - Flechas agora são criadas diretamente via `group.create(...)` e disparam com velocidades reais:
+    - Flecha do Cavaleiro: `750 px/s` para a frente.
+    - Flecha do Elfo: `420 px/s` para trás.
+
+### 🎨 Polimento Visual & Novos Sprites
+- **Guerreiro Sombrio Redesenhado**:
+  - Visual imponente de 34x34 pixels com elmo de chifres pontiagudos, olhos vermelhos brilhantes, ombreiras escuras, capa rasgada rubra e espada empunhada.
+- **Slash da Espada Renovado**:
+  - Efeito cortante em meia-lua curvada com núcleo branco e aura ciana energética, animado via tween suave de expansão e dissipação (`alpha` e `scale`).
+
+---
+
 ## [v0.5.1] - 2026-10-18
 ### 🧹 Refatoração & Simplificação Extrema
 - **Redução Drástica de Complexidade**:

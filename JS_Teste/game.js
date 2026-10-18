@@ -1,6 +1,5 @@
 // =============================================================================
 // A JORNADA DO CAVALEIRO: PIXEL ART EDITION (PHASER 3)
-// Código limpo, modular e simplificado
 // =============================================================================
 
 const config = {
@@ -8,7 +7,7 @@ const config = {
   width: 800,
   height: 600,
   pixelArt: true,
-  backgroundColor: '#1b381e',
+  backgroundColor: '#162b18',
   physics: {
     default: 'arcade',
     arcade: { gravity: { y: 0 }, debug: false }
@@ -18,10 +17,11 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-// --- ESTADO PRINCIPAL DO JOGO ---
+// --- ESTADO PRINCIPAL ---
 let player;
 let cursors, wasdKeys;
 let obstaclesGroup, playerProjectilesGroup, enemyProjectilesGroup, itemsGroup, slashGroup, sceneryGroup;
+let groundTile;
 let shieldSprite;
 
 let gameState = 'START'; // 'START' | 'PLAYING' | 'GAMEOVER'
@@ -29,19 +29,18 @@ let survivalTime = 0;
 let obstacleSpeed = 220;
 let spawnDelay = 1300;
 
-// Gerenciador Unificado de Power-up (Arco, Escudo ou Espada)
+// Gerenciador Unificado de Buffs
 let activeBuff = {
   type: null,        // 'bow' | 'shield' | 'sword' | null
-  timeLeft: 0,       // Duração restante em segundos
-  nextAttackTime: 0  // Controle de cadência do ataque
+  timeLeft: 0,
+  nextAttackTime: 0
 };
 
-// Textos do HUD
 let hudScoreText, hudHighScoreText, hudStatusText;
 const STORAGE_KEY = 'knight_quest_highscores';
 
 // =============================================================================
-// GERENCIADOR DE RECORDES (LOCALSTORAGE)
+// RECORDES LOCAIS
 // =============================================================================
 function getHighScores() {
   try {
@@ -67,13 +66,24 @@ function getBestScore() {
 }
 
 // =============================================================================
-// 1. PRELOAD: CRIAÇÃO PROCEDURAL DOS SPRITES EM PIXEL ART
+// 1. PRELOAD: CRIAÇÃO PROCEDURAL DE TEXTURAS PIXEL ART
 // =============================================================================
 function preload() {
   if (this.textures.exists('knight')) return;
   const g = this.make.graphics({ x: 0, y: 0, add: false });
 
-  // 1. Cavaleiro (32x32)
+  // 1. Chão Texturizado Repetível (64x64 TileSprite)
+  g.clear();
+  g.fillStyle(0x1a331c).fillRect(0, 0, 64, 64);
+  g.fillStyle(0x244727); // Relva em tons variados
+  g.fillRect(8, 10, 8, 3).fillRect(10, 8, 3, 7);
+  g.fillRect(40, 36, 8, 3).fillRect(42, 34, 3, 7);
+  g.fillRect(48, 14, 6, 2).fillRect(18, 48, 6, 2);
+  g.fillStyle(0x142916); // Pontos de terra batida
+  g.fillRect(24, 26, 4, 3).fillRect(54, 52, 4, 3);
+  g.generateTexture('ground_tile', 64, 64);
+
+  // 2. Cavaleiro (32x32)
   g.clear();
   g.fillStyle(0xd32f2f).fillRect(10, 2, 8, 6);                        // Pluma vermelha
   g.fillStyle(0xc4c8d4).fillRect(8, 8, 14, 10).fillRect(6, 18, 18, 10); // Armadura prateada
@@ -82,43 +92,63 @@ function preload() {
   g.fillStyle(0x5d3a1a).fillRect(8, 28, 5, 4).fillRect(17, 28, 5, 4); // Botas
   g.generateTexture('knight', 32, 32);
 
-  // 2. Goblin (28x28)
+  // 3. Goblin das Florestas (28x28)
   g.clear();
-  g.fillStyle(0x4caf50).fillRect(4, 4, 4, 6).fillRect(20, 4, 4, 6).fillRect(8, 6, 12, 10); // Cabeça/orelhas
-  g.fillStyle(0xfbc02d).fillRect(10, 9, 3, 3).fillRect(16, 9, 3, 3);                       // Olhos
-  g.fillStyle(0x111116).fillRect(12, 9, 2, 3).fillRect(18, 9, 2, 3);                       // Pupilas
-  g.fillStyle(0x4caf50).fillRect(10, 16, 8, 8);                                             // Corpo
-  g.fillStyle(0x8d5524).fillRect(8, 20, 12, 5);                                             // Trapos
+  g.fillStyle(0x4caf50).fillRect(4, 4, 4, 6).fillRect(20, 4, 4, 6).fillRect(8, 6, 12, 10);
+  g.fillStyle(0xfbc02d).fillRect(10, 9, 3, 3).fillRect(16, 9, 3, 3); // Olhos amarelos
+  g.fillStyle(0x111116).fillRect(12, 9, 2, 3).fillRect(18, 9, 2, 3);
+  g.fillStyle(0x4caf50).fillRect(10, 16, 8, 8);
+  g.fillStyle(0x8d5524).fillRect(8, 20, 12, 5);                       // Trapos
   g.generateTexture('goblin', 28, 28);
 
-  // 3. Guerreiro Sombrio (32x32)
+  // 4. Guerreiro Sombrio Imponente (34x34)
   g.clear();
-  g.fillStyle(0x111116).fillRect(4, 2, 4, 8).fillRect(24, 2, 4, 8);                        // Chifres
-  g.fillStyle(0x454955).fillRect(8, 8, 16, 12).fillRect(6, 20, 20, 8);                     // Metal negro
-  g.fillStyle(0xd32f2f).fillRect(12, 12, 8, 4).fillRect(10, 22, 12, 4);                    // Brasão rubro
-  g.fillStyle(0x111116).fillRect(8, 28, 6, 4).fillRect(18, 28, 6, 4);                      // Botas
-  g.generateTexture('dark_warrior', 32, 32);
+  g.fillStyle(0x111116); // Chifres curvos pontiagudos
+  g.fillRect(2, 2, 4, 10).fillRect(6, 6, 4, 4).fillRect(28, 2, 4, 10).fillRect(24, 6, 4, 4);
+  g.fillStyle(0x2a2b33).fillRect(8, 8, 18, 12);                       // Elmo de ferro negro
+  g.fillStyle(0xd32f2f).fillRect(12, 12, 4, 3).fillRect(18, 12, 4, 3); // Olhos vermelhos ferozes
+  g.fillStyle(0xb71c1c).fillRect(4, 16, 4, 14);                       // Capa rubra rasgada
+  g.fillStyle(0x3a3c46).fillRect(8, 18, 18, 10);                      // Peitoral com ombreiras
+  g.fillStyle(0xd32f2f).fillRect(14, 20, 6, 6);                       // Brasão de caveira/sangue
+  g.fillStyle(0x111116).fillRect(8, 28, 6, 6).fillRect(20, 28, 6, 6); // Botas pesadas
+  g.fillStyle(0xc4c8d4).fillRect(26, 14, 4, 18).fillRect(24, 18, 8, 3); // Espada negra empunhada
+  g.generateTexture('dark_warrior', 34, 34);
 
-  // 4. Elfo Arqueiro (28x32)
+  // 5. Elfo Arqueiro (28x32)
   g.clear();
-  g.fillStyle(0xfbc02d).fillRect(8, 4, 12, 8);  // Cabelo dourado
-  g.fillStyle(0xffcc80).fillRect(10, 8, 8, 6);  // Rosto
-  g.fillStyle(0x2e7d32).fillRect(8, 14, 12, 14); // Manto esmeralda
-  g.fillStyle(0x8d5524).fillRect(22, 6, 3, 20);  // Arco
+  g.fillStyle(0xfbc02d).fillRect(8, 4, 12, 8);                        // Cabelo dourado
+  g.fillStyle(0xffcc80).fillRect(10, 8, 8, 6);                        // Rosto
+  g.fillStyle(0x2e7d32).fillRect(8, 14, 12, 14);                      // Manto verde
+  g.fillStyle(0x8d5524).fillRect(22, 6, 3, 20);                       // Arco de madeira
   g.generateTexture('elf_archer', 28, 32);
 
-  // 5. Flechas (Jogador e Elfo)
-  g.clear().fillStyle(0x1976d2).fillRect(0, 1, 4, 4).fillStyle(0x8d5524).fillRect(4, 2, 12, 2).fillStyle(0xc4c8d4).fillRect(16, 1, 4, 4);
-  g.generateTexture('arrow_player', 20, 6);
+  // 6. Flecha do Jogador (22x6)
+  g.clear();
+  g.fillStyle(0x1976d2).fillRect(0, 1, 4, 4);                         // Penas azuis
+  g.fillStyle(0x8d5524).fillRect(4, 2, 12, 2);                        // Haste
+  g.fillStyle(0xc4c8d4).fillRect(16, 0, 6, 6).fillRect(18, 1, 4, 4);  // Ponta de ferro triangular
+  g.generateTexture('arrow_player', 22, 6);
 
-  g.clear().fillStyle(0x1b5e20).fillRect(0, 1, 4, 4).fillStyle(0x5d3a1a).fillRect(4, 2, 12, 2).fillStyle(0xba68c8).fillRect(16, 1, 4, 4);
-  g.generateTexture('arrow_elf', 20, 6);
+  // 7. Flecha do Elfo (22x6)
+  g.clear();
+  g.fillStyle(0x1b5e20).fillRect(0, 1, 4, 4);                         // Penas verdes
+  g.fillStyle(0x422915).fillRect(4, 2, 12, 2);                        // Madeira escura
+  g.fillStyle(0xba68c8).fillRect(16, 0, 6, 6).fillRect(18, 1, 4, 4);  // Ponta envenenada
+  g.generateTexture('arrow_elf', 22, 6);
 
-  // 6. Golpe Cortante da Espada (Slash)
-  g.clear().fillStyle(0x00e5ff, 0.75).fillRect(4, 2, 14, 32).fillStyle(0xffffff).fillRect(8, 6, 8, 24);
-  g.generateTexture('slash_effect', 24, 36);
+  // 8. Golpe Cortante da Espada (Slash em Meia-Lua Curvada) (32x40)
+  g.clear();
+  g.fillStyle(0x00e5ff, 0.45); // Brilho de energia externa
+  g.fillCircle(16, 20, 16);
+  g.fillStyle(0xffffff, 1);    // Lâmina cortante em meia-lua
+  g.beginPath();
+  g.arc(14, 20, 14, -Phaser.Math.PI2 / 4, Phaser.Math.PI2 / 4, false);
+  g.lineTo(10, 20);
+  g.closePath();
+  g.fillPath();
+  g.generateTexture('slash_effect', 32, 40);
 
-  // 7. Itens Coletáveis: Arco, Escudo e Espada
+  // 9. Itens Coletáveis
   g.clear().fillStyle(0x8d5524).fillRect(4, 2, 4, 18).fillRect(8, 2, 8, 3).fillRect(8, 17, 8, 3).fillStyle(0xffffff).fillRect(16, 4, 2, 14);
   g.generateTexture('item_bow', 22, 22);
 
@@ -128,7 +158,7 @@ function preload() {
   g.clear().fillStyle(0xc4c8d4).fillRect(10, 2, 4, 12).fillStyle(0xc5a059).fillRect(6, 14, 12, 3).fillStyle(0x5d3a1a).fillRect(10, 17, 4, 4);
   g.generateTexture('item_sword', 22, 22);
 
-  // 8. Cenário: Árvore e Arbusto
+  // 10. Vegetação
   g.clear().fillStyle(0x2d6a33).fillRect(4, 4, 28, 28).fillRect(8, 0, 20, 32).fillStyle(0x5d3a1a).fillRect(14, 32, 8, 18);
   g.generateTexture('scenery_tree', 36, 50);
 
@@ -139,11 +169,11 @@ function preload() {
 }
 
 // =============================================================================
-// 2. CREATE: CONSTRUÇÃO DA CENA E INTERFACES
+// 2. CREATE: MONTAGEM DO CENÁRIO E ELEMENTOS
 // =============================================================================
 function create() {
   const scene = this;
-  scene.time.removeAllEvents(); // Limpeza nativa e completa de qualquer timer anterior
+  scene.time.removeAllEvents();
 
   // Reset de Variáveis
   gameState = 'START';
@@ -153,8 +183,10 @@ function create() {
   activeBuff = { type: null, timeLeft: 0, nextAttackTime: 0 };
   scene.physics.resume();
 
-  // Fundo e Grupos
-  drawGround(scene);
+  // Chão com rolagem contínua (TileSprite que dá a sensação real de corrida)
+  groundTile = scene.add.tileSprite(400, 300, 800, 600, 'ground_tile').setDepth(0);
+
+  // Grupos Físicos
   sceneryGroup = scene.add.group();
   obstaclesGroup = scene.physics.add.group();
   playerProjectilesGroup = scene.physics.add.group();
@@ -162,54 +194,50 @@ function create() {
   itemsGroup = scene.physics.add.group();
   slashGroup = scene.physics.add.group();
 
-  // Árvores de fundo iniciais
-  for (let i = 0; i < 5; i++) {
+  // Árvores de fundo
+  for (let i = 0; i < 6; i++) {
     const tree = scene.add.sprite(Phaser.Math.Between(50, 750), Phaser.Math.Between(60, 540), 'scenery_tree').setDepth(1);
-    tree.speedFactor = 0.5;
+    tree.speedFactor = 0.55;
     sceneryGroup.add(tree);
   }
 
-  // Jogador
+  // Cavaleiro
   player = scene.physics.add.sprite(200, 300, 'knight').setDepth(10);
   player.body.setSize(22, 28).setOffset(5, 2).setCollideWorldBounds(true);
 
-  // Escudo visual (acompanha o jogador quando ativo)
+  // Escudo visual
   shieldSprite = scene.add.sprite(player.x + 16, player.y, 'item_shield').setDepth(12).setVisible(false);
 
-  // Teclado
+  // Controles
   cursors = scene.input.keyboard.createCursorKeys();
   wasdKeys = scene.input.keyboard.addKeys('W,S,A,D');
 
   // HUD
   createHUD(scene);
 
-  // Colisões
+  // Colisões do Jogador
   scene.physics.add.overlap(player, obstaclesGroup, (_, enemy) => handlePlayerHit(scene, enemy));
   scene.physics.add.overlap(player, enemyProjectilesGroup, (_, arrow) => handlePlayerHit(scene, arrow));
   scene.physics.add.overlap(player, itemsGroup, (_, item) => collectItem(item));
 
-  // Combate
-  scene.physics.add.overlap(playerProjectilesGroup, obstaclesGroup, (arrow, enemy) => destroyOverlap(arrow, enemy));
+  // Combate de Projéteis e Espada
+  scene.physics.add.overlap(playerProjectilesGroup, obstaclesGroup, (arrow, enemy) => destroyCombatOverlap(arrow, enemy));
   scene.physics.add.overlap(playerProjectilesGroup, enemyProjectilesGroup, (pA, eA) => { pA.destroy(); eA.destroy(); });
-  scene.physics.add.overlap(slashGroup, obstaclesGroup, (_, enemy) => { if (enemy.x <= 800) enemy.destroy(); });
+  scene.physics.add.overlap(slashGroup, obstaclesGroup, (_, enemy) => {
+    if (enemy.x <= 800) {
+      if (enemy.shootTimer) enemy.shootTimer.remove();
+      enemy.destroy();
+    }
+  });
   scene.physics.add.overlap(slashGroup, enemyProjectilesGroup, (_, arrow) => arrow.destroy());
 
-  // Início
+  // Tela Inicial
   showStartScreen(scene);
 }
 
 // =============================================================================
-// FUNÇÕES AUXILIARES DE INTERFACE E CENÁRIO
+// INTERFACES (HUD E MODAIS)
 // =============================================================================
-
-function drawGround(scene) {
-  const bg = scene.add.graphics();
-  bg.fillStyle(0x1a331c, 1).fillRect(0, 0, 800, 600);
-  bg.fillStyle(0x224424, 1);
-  for (let i = 0; i < 20; i++) {
-    bg.fillRect(Phaser.Math.Between(0, 780), Phaser.Math.Between(50, 590), Phaser.Math.Between(10, 40), 4);
-  }
-}
 
 function createHUD(scene) {
   const hudBg = scene.add.graphics().setDepth(50);
@@ -230,7 +258,6 @@ function updateHUDStatus() {
   hudStatusText.setText(`${icons[activeBuff.type]} (${Math.ceil(activeBuff.timeLeft)}s)`);
 }
 
-// Helper Unificado para Criação de Modais Medievais
 function createModal(scene, title, height = 450) {
   const container = scene.add.container(0, 0).setDepth(100);
   const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.82);
@@ -245,7 +272,6 @@ function createModal(scene, title, height = 450) {
   return container;
 }
 
-// Helper para Botão Medieval Interativo
 function createButton(scene, x, y, label, onClick) {
   const btn = scene.add.rectangle(x, y, 260, 46, 0x8d5524).setInteractive({ useHandCursor: true });
   btn.setStrokeStyle(2, 0xc5a059);
@@ -257,13 +283,12 @@ function createButton(scene, x, y, label, onClick) {
   return [btn, txt];
 }
 
-// Tela Inicial
 function showStartScreen(scene) {
   const modal = createModal(scene, 'A JORNADA DO CAVALEIRO', 480);
   const info = scene.add.text(400, 240,
     `★ RECORDE ATUAL: ${getBestScore()}s ★\n\n` +
-    'INIMIGOS: Goblins, Guerreiros e Elfos Arqueiros\n' +
-    'ARSENAL: 🏹 Arco | 🛡️ Escudo | ⚔️ Espada\n\n' +
+    'INIMIGOS: Goblins, Guerreiros Sombrios e Elfos Arqueiros\n' +
+    'ARSENAL: 🏹 Arco | 🛡️ Escudo de Aço | ⚔️ Espada Vorpal\n\n' +
     'Controles: WASD ou Setas do Teclado',
     { fontSize: '14px', color: '#d6c8aa', align: 'center', fontFamily: 'Courier New, monospace', lineSpacing: 5 }
   ).setOrigin(0.5);
@@ -282,11 +307,9 @@ function showStartScreen(scene) {
   scene.input.keyboard.once('keydown-ENTER', startFn);
 }
 
-// Inicia o Loop de Gameplay
 function startGameplay(scene) {
   gameState = 'PLAYING';
 
-  // 1. Cronômetro de Sobrevivência
   scene.time.addEvent({
     delay: 1000,
     callback: () => {
@@ -297,7 +320,6 @@ function startGameplay(scene) {
     loop: true
   });
 
-  // 2. Spawn Dinâmico de Inimigos
   const scheduleSpawn = () => {
     if (gameState !== 'PLAYING') return;
     spawnEnemy(scene);
@@ -305,7 +327,6 @@ function startGameplay(scene) {
   };
   scheduleSpawn();
 
-  // 3. Aceleração da dificuldade a cada 3s
   scene.time.addEvent({
     delay: 3000,
     callback: () => {
@@ -316,13 +337,12 @@ function startGameplay(scene) {
     loop: true
   });
 
-  // 4. Spawners de Itens e Cenário
   scene.time.addEvent({ delay: 5000, callback: () => spawnLootItem(scene), loop: true });
   scene.time.addEvent({ delay: 1800, callback: () => spawnScenery(scene), loop: true });
 }
 
 // =============================================================================
-// GERAÇÃO DE INIMIGOS E ENTIDADES
+// GERAÇÃO DE INIMIGOS E ITENS
 // =============================================================================
 
 function spawnEnemy(scene) {
@@ -333,20 +353,17 @@ function spawnEnemy(scene) {
   if (roll > 75) { key = 'elf_archer'; speedMod = 0.85; type = 'elf'; }
   else if (roll > 45) { key = 'dark_warrior'; speedMod = 0.95; type = 'warrior'; }
 
-  const enemy = scene.physics.add.sprite(850, y, key).setDepth(10);
+  const enemy = obstaclesGroup.create(850, y, key).setDepth(10);
   enemy.enemyType = type;
-  obstaclesGroup.add(enemy);
-  enemy.body.setVelocityX(-obstacleSpeed * speedMod).setAllowGravity(false);
+  enemy.body.setAllowGravity(false);
+  enemy.setVelocityX(-obstacleSpeed * speedMod);
 
-  // Elfo dispara flecha enquanto estiver na tela
   if (type === 'elf') {
     enemy.shootTimer = scene.time.addEvent({
       delay: 1600,
       callback: () => {
         if (enemy.active && enemy.x > 80 && enemy.x < 780 && gameState === 'PLAYING') {
-          const arrow = scene.physics.add.sprite(enemy.x - 20, enemy.y, 'arrow_elf').setDepth(9);
-          arrow.body.setSize(18, 8).setVelocityX(-380).setAllowGravity(false);
-          enemyProjectilesGroup.add(arrow);
+          shootElfArrow(scene, enemy.x, enemy.y);
         }
       },
       loop: true
@@ -354,26 +371,57 @@ function spawnEnemy(scene) {
   }
 }
 
+function shootElfArrow(scene, x, y) {
+  // Cria diretamente no grupo físico com velocidade imediata garantida
+  const arrow = enemyProjectilesGroup.create(x - 20, y, 'arrow_elf').setDepth(9);
+  arrow.body.setSize(18, 8);
+  arrow.body.setAllowGravity(false);
+  arrow.setVelocityX(-420);
+}
+
+function shootPlayerArrow(scene) {
+  // Cria diretamente no grupo físico com velocidade imediata garantida
+  const arrow = playerProjectilesGroup.create(player.x + 28, player.y, 'arrow_player').setDepth(9);
+  arrow.body.setSize(20, 8);
+  arrow.body.setAllowGravity(false);
+  arrow.setVelocityX(750);
+}
+
+function executeSwordSlash(scene) {
+  const slash = slashGroup.create(player.x + 32, player.y, 'slash_effect').setDepth(15);
+  slash.body.setAllowGravity(false);
+  slash.setScale(0.85);
+
+  scene.tweens.add({
+    targets: slash,
+    scaleX: 1.25,
+    scaleY: 1.25,
+    alpha: { from: 1, to: 0 },
+    duration: 150,
+    onComplete: () => { if (slash.active) slash.destroy(); }
+  });
+}
+
 function spawnLootItem(scene) {
   if (gameState !== 'PLAYING') return;
   const types = ['bow', 'shield', 'sword'];
   const type = types[Phaser.Math.Between(0, 2)];
-  const item = scene.physics.add.sprite(850, Phaser.Math.Between(80, 530), `item_${type}`).setDepth(11);
+  const item = itemsGroup.create(850, Phaser.Math.Between(80, 530), `item_${type}`).setDepth(11);
   item.lootType = type;
-  itemsGroup.add(item);
-  item.body.setVelocityX(-150).setAllowGravity(false);
+  item.body.setAllowGravity(false);
+  item.setVelocityX(-150);
 }
 
 function spawnScenery(scene) {
   if (gameState !== 'PLAYING') return;
   const isTree = Phaser.Math.Between(0, 1) === 0;
   const dec = scene.add.sprite(860, Phaser.Math.Between(50, 550), isTree ? 'scenery_tree' : 'scenery_bush').setDepth(2);
-  dec.speedFactor = isTree ? 0.6 : 0.8;
+  dec.speedFactor = isTree ? 0.6 : 0.85;
   sceneryGroup.add(dec);
 }
 
 // =============================================================================
-// COMBATE E POWER-UPS
+// COMBATE E MORTE
 // =============================================================================
 
 function collectItem(item) {
@@ -388,7 +436,6 @@ function collectItem(item) {
 function handlePlayerHit(scene, hazard) {
   if (gameState !== 'PLAYING') return;
 
-  // Escudo absorve 1 impacto
   if (activeBuff.type === 'shield') {
     activeBuff.type = null;
     activeBuff.timeLeft = 0;
@@ -399,33 +446,15 @@ function handlePlayerHit(scene, hazard) {
     return;
   }
 
-  // Morte / Fim de Jogo
   triggerGameOver(scene);
 }
 
-function destroyOverlap(arrow, enemy) {
+function destroyCombatOverlap(arrow, enemy) {
   if (enemy.x > 800) return;
   arrow.destroy();
   if (enemy.shootTimer) enemy.shootTimer.remove();
   enemy.destroy();
 }
-
-function shootPlayerArrow(scene) {
-  const arrow = scene.physics.add.sprite(player.x + 28, player.y, 'arrow_player').setDepth(9);
-  arrow.body.setSize(20, 8).setVelocityX(640).setAllowGravity(false);
-  playerProjectilesGroup.add(arrow);
-}
-
-function executeSwordSlash(scene) {
-  const slash = scene.physics.add.sprite(player.x + 34, player.y, 'slash_effect').setDepth(15);
-  slashGroup.add(slash);
-  slash.body.setAllowGravity(false);
-  scene.time.delayedCall(140, () => { if (slash.active) slash.destroy(); });
-}
-
-// =============================================================================
-// GAME OVER E RECORDE ARCADE
-// =============================================================================
 
 function triggerGameOver(scene) {
   gameState = 'GAMEOVER';
@@ -498,12 +527,16 @@ function showLeaderboardModal(scene, topScores, currentName) {
 }
 
 // =============================================================================
-// 3. UPDATE: MOVIMENTO, COMBATE E LIMPEZA
+// 3. UPDATE: MOVIMENTO CONTÍNUO E FLUXO DO MUNDO
 // =============================================================================
 function update(time, delta) {
   if (gameState !== 'PLAYING') return;
 
-  // 1. Movimento do Cavaleiro
+  // 1. Movimento Contínuo do Cenário (Sensação Real de Corrida na Floresta)
+  const worldSpeed = obstacleSpeed * 0.9;
+  groundTile.tilePositionX += (worldSpeed * (delta / 1000));
+
+  // 2. Movimento do Cavaleiro
   const speed = 280;
   player.body.setVelocity(0);
   let dirX = 0, dirY = 0;
@@ -516,15 +549,19 @@ function update(time, delta) {
   player.body.setVelocity(dirX * speed, dirY * speed);
   player.body.velocity.normalize().scale(speed);
 
+  // Espelhamento horizontal de acordo com o movimento
   if (dirX < 0) player.setFlipX(true);
   else if (dirX > 0) player.setFlipX(false);
 
-  // Escudo acompanha o herói
+  // Leve oscilação de passos ao correr
+  player.setAngle(Math.sin(time * 0.018) * 3);
+
+  // Escudo acompanha o jogador
   if (shieldSprite.visible) {
     shieldSprite.setPosition(player.x + (player.flipX ? -16 : 16), player.y);
   }
 
-  // 2. Gerenciamento do Power-up Ativo
+  // 3. Gerenciador de Buff Ativo
   if (activeBuff.type) {
     activeBuff.timeLeft -= delta / 1000;
     if (activeBuff.timeLeft <= 0) {
@@ -544,12 +581,12 @@ function update(time, delta) {
     }
   }
 
-  // 3. Movimento do Cenário Parallax
+  // 4. Parallax de Árvores e Arbustos
   sceneryGroup.getChildren().forEach(sc => {
-    sc.x -= (obstacleSpeed * 0.35 * (sc.speedFactor || 0.5)) * 0.016;
+    sc.x -= (worldSpeed * (sc.speedFactor || 0.6)) * (delta / 1000);
   });
 
-  // 4. Limpeza Limpa de Memória (Garbage Collection)
+  // 5. Limpeza de Memória (Garbage Collection)
   const cleanGroup = (grp, minX, maxX) => {
     grp.getChildren().forEach(ent => {
       if ((minX !== undefined && ent.x < minX) || (maxX !== undefined && ent.x > maxX)) {
