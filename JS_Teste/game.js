@@ -48,11 +48,11 @@ const C = {
 // ESTADO
 // =============================================================================
 let player, shieldSprite, cursors, keys;
-let ground, road, forestTop, forestBottom, shadows, hitFx;
+let ground, road, forestTop, forestBottom, shadows, hitFx, playerBuffBar;
 let enemies, trees, items, playerArrows, enemyArrows, slashes;
 let hudContainer, hudGloryText, hudBestText;
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
-let menuContainer;
+let menuContainer, pauseModal;
 let gameState, survivalTime, enemySpeed, spawnDelay, buff;
 
 // =============================================================================
@@ -185,9 +185,24 @@ class SoundSystem {
 
   stopBGM() {
     this.bgmPlaying = false;
+    if (this.bgmGain && this.ctx && !this.muted) {
+      this.bgmGain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+    }
     if (this.bgmTimer) {
       clearTimeout(this.bgmTimer);
       this.bgmTimer = null;
+    }
+  }
+
+  pauseBGM() {
+    if (this.bgmGain && this.ctx && !this.muted) {
+      this.bgmGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+    }
+  }
+
+  resumeBGM() {
+    if (this.bgmGain && this.ctx && !this.muted) {
+      this.bgmGain.gain.setValueAtTime(0.14, this.ctx.currentTime);
     }
   }
 
@@ -844,6 +859,12 @@ function create() {
   cursors = scene.input.keyboard.createCursorKeys();
   keys = scene.input.keyboard.addKeys('W,A,S,D');
 
+  pauseModal = null;
+  playerBuffBar = scene.add.graphics().setDepth(2500);
+
+  // Tecla ESC para pausar ou despausar a aventura
+  scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene));
+
   // Partículas para impactos e mortes
   hitFx = scene.add.particles(0, 0, 'spark', {
     lifespan: 400, speed: { min: 60, max: 180 }, scale: { start: 1.5, end: 0 },
@@ -939,7 +960,7 @@ function updateGameplay(scene, time, dt) {
 // Profundidade por altura (quem está mais embaixo fica na frente) + sombras
 function sortAndShade() {
   shadows.clear().fillStyle(0x000000, 0.28);
-  const entities = gameState === 'PLAYING'
+  const entities = (gameState === 'PLAYING' || gameState === 'PAUSED')
     ? [player, ...enemies.getChildren(), ...trees.getChildren(), ...items.getChildren()]
     : [...trees.getChildren()];
 
@@ -969,6 +990,7 @@ function startGameplay(scene) {
     player.setPosition(160, 330).setVisible(true);
     player.play('knight');
   }
+  if (playerBuffBar) playerBuffBar.clear();
   if (hudContainer) hudContainer.setVisible(true);
   sound.startBGM();
 
@@ -1071,6 +1093,7 @@ function collectItem(scene, item) {
 function endBuff() {
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
   shieldSprite.setVisible(false);
+  if (playerBuffBar) playerBuffBar.clear();
 }
 
 function shootArrow() {
@@ -1113,6 +1136,11 @@ function playerHit(scene, hazard) {
 
 function gameOver(scene) {
   gameState = 'GAMEOVER';
+  if (playerBuffBar) playerBuffBar.clear();
+  if (pauseModal) {
+    pauseModal.destroy();
+    pauseModal = null;
+  }
   sound.stopBGM();
   sound.playGameOver();
   if (hudContainer) hudContainer.setVisible(false);
@@ -1207,7 +1235,8 @@ function createHUD(scene) {
   scene.input.keyboard.on('keydown-M', () => {
     if (gameState === 'GAMEOVER') return; // evita mutar enquanto digita iniciais com M
     sound.toggleMute();
-    hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+    if (pauseModal && pauseModal.updateAudio) pauseModal.updateAudio();
   });
 
   hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea]);
@@ -1220,6 +1249,7 @@ function updateItemHUD() {
     hudItemName.setText('SEM RELÍQUIA').setColor('#7a7265');
     hudItemTime.setText('');
     hudItemBar.clear();
+    if (playerBuffBar) playerBuffBar.clear();
     return;
   }
 
@@ -1246,6 +1276,26 @@ function updateItemHUD() {
   // Barra fica rubra nos 2 segundos finais
   const barColor = remaining <= 2 ? 0xd83a3a : (buff.type === 'shield' ? 0x26a69a : 0xf2c14e);
   hudItemBar.fillStyle(barColor, 1).fillRect(barX + 1, barY + 1, Math.max(0, (barW - 2) * pct), barH - 2);
+
+  // Barrinha flutuante de duração sobre o cavaleiro (overhead buff bar)
+  if (playerBuffBar && player && player.visible && (gameState === 'PLAYING' || gameState === 'PAUSED')) {
+    playerBuffBar.clear();
+    const pW = 32;
+    const pH = 5;
+    const pX = Math.round(player.x - pW / 2);
+    const pY = Math.round(player.y - 25);
+
+    // Contorno e fundo escuro
+    playerBuffBar.fillStyle(0x0e0b08, 0.95).fillRect(pX - 1, pY - 1, pW + 2, pH + 2);
+    playerBuffBar.fillStyle(0x221a14, 0.95).fillRect(pX, pY, pW, pH);
+
+    // Cor por tipo com alerta vermelho em <= 1.8s
+    const overheadColor = remaining <= 1.8 ? 0xff3030 : (
+      buff.type === 'shield' ? 0x7fe7ff : (buff.type === 'bow' ? 0xffeb3b : 0xffffff)
+    );
+    const fillW = Math.max(0, Math.round(pW * pct));
+    playerBuffBar.fillStyle(overheadColor, 1).fillRect(pX, pY, fillW, pH);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -1492,6 +1542,139 @@ function createModal(scene, title, height) {
   ]).setDepth(3000);
 }
 
+// -----------------------------------------------------------------------------
+// SISTEMA DE PAUSA (ESC)
+// -----------------------------------------------------------------------------
+function handleEscPress(scene) {
+  if (gameState === 'PLAYING') {
+    pauseGame(scene);
+  } else if (gameState === 'PAUSED') {
+    resumeGame(scene);
+  } else if (gameState === 'MENU' && menuContainer) {
+    showMainMenu(scene);
+  }
+}
+
+function pauseGame(scene) {
+  if (gameState !== 'PLAYING') return;
+  gameState = 'PAUSED';
+  scene.physics.pause();
+  scene.time.paused = true;
+  scene.tweens.pauseAll();
+  [player, ...enemies.getChildren()].forEach(s => {
+    if (s && s.anims) s.anims.pause();
+  });
+  if (player && player.body) {
+    player.setVelocity(0, 0);
+  }
+  sound.pauseBGM();
+  sound.playButtonClick();
+  showPauseModal(scene);
+}
+
+function resumeGame(scene) {
+  if (gameState !== 'PAUSED') return;
+  if (pauseModal) {
+    pauseModal.destroy();
+    pauseModal = null;
+  }
+  gameState = 'PLAYING';
+  scene.physics.resume();
+  scene.time.paused = false;
+  scene.tweens.resumeAll();
+  [player, ...enemies.getChildren()].forEach(s => {
+    if (s && s.anims) s.anims.resume();
+  });
+  sound.resumeBGM();
+  sound.playButtonClick();
+}
+
+function showPauseModal(scene) {
+  if (pauseModal) pauseModal.destroy();
+
+  const height = 430;
+  const top = (600 - height) / 2;
+  pauseModal = createModal(scene, 'JOGO PAUSADO', height);
+
+  const subtitle = scene.add.text(400, top + 72, '★ JORNADA EM ESPERA ★', textStyle('#c5a059', 12)).setOrigin(0.5);
+
+  // Status de sobrevivência e relíquia
+  const statsBox = scene.add.graphics();
+  statsBox.fillStyle(0x221a13, 0.9).fillRoundedRect(190, top + 92, 420, 62, 6);
+  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(190, top + 92, 420, 62, 6);
+
+  const timeTxt = scene.add.text(210, top + 107, `TEMPO EM COMBATE: ${survivalTime}s`, textStyle('#ffca28', 13));
+  const relicName = buff.type ? `${BUFF_NAMES[buff.type]} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
+  const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
+  const relicTxt = scene.add.text(210, top + 130, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 13));
+
+  // Botão 1: Continuar
+  const continueBtn = createButton(scene, 400, top + 182, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 280, 40);
+
+  // Botão 2: Alternar Áudio
+  const audioBtn = scene.add.rectangle(400, top + 232, 280, 40, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const audioTxt = scene.add.text(400, top + 232, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 13))
+    .setOrigin(0.5);
+
+  const updateAudioUI = () => {
+    audioBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
+    audioTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
+    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+  };
+
+  audioBtn.on('pointerdown', () => {
+    sound.toggleMute();
+    sound.playButtonClick();
+    updateAudioUI();
+  });
+
+  pauseModal.updateAudio = updateAudioUI;
+
+  // Botão 3: Reiniciar Missão
+  const restartBtn = createButton(scene, 400, top + 282, 'REINICIAR MISSÃO', () => {
+    if (pauseModal) {
+      pauseModal.destroy();
+      pauseModal = null;
+    }
+    sound.stopBGM();
+    scene.physics.resume();
+    scene.time.paused = false;
+    scene.scene.restart();
+    scene.events.once('create', () => {
+      if (menuContainer) menuContainer.destroy();
+      startGameplay(scene);
+    });
+  }, 280, 40);
+
+  // Botão 4: Menu Principal
+  const menuBtn = createButton(scene, 400, top + 332, 'MENU PRINCIPAL', () => {
+    if (pauseModal) {
+      pauseModal.destroy();
+      pauseModal = null;
+    }
+    sound.stopBGM();
+    scene.physics.resume();
+    scene.time.paused = false;
+    scene.scene.restart();
+  }, 280, 40);
+
+  const footerHint = scene.add.text(400, top + 390, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
+
+  pauseModal.add([
+    subtitle, statsBox, timeTxt, relicTxt,
+    ...continueBtn,
+    audioBtn, audioTxt,
+    ...restartBtn,
+    ...menuBtn,
+    footerHint
+  ]);
+}
+
+// -----------------------------------------------------------------------------
+// GAME OVER (INICIAIS E REGISTRO)
+// -----------------------------------------------------------------------------
+
 function showInitials(scene) {
   let name = '', done = false;
   const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 430);
@@ -1593,6 +1776,8 @@ function showLeaderboard(scene, topScores, currentName) {
     restarting = true;
     sound.playButtonClick();
     modal.destroy();
+    scene.physics.resume();
+    scene.time.paused = false;
     scene.scene.restart();
     scene.events.once('create', () => {
       if (menuContainer) menuContainer.destroy();
@@ -1605,6 +1790,8 @@ function showLeaderboard(scene, topScores, currentName) {
     restarting = true;
     sound.playButtonClick();
     modal.destroy();
+    scene.physics.resume();
+    scene.time.paused = false;
     scene.scene.restart();
   };
 

@@ -4,6 +4,39 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.9.1] - 2026-10-18 (Entrada Raiz index.html & Guia de Compartilhamento)
+### 🚀 Distribuição & Execução Rápida
+- **Arquivo Raiz `index.html`**: Criado ponto de entrada principal na raiz do repositório, permitindo que qualquer pessoa que baixe o projeto execute o jogo instantaneamente com apenas dois cliques, sem necessidade de VS Code, Live Server ou ferramentas de desenvolvedor.
+- **Pronto para GitHub Pages**: Estrutura agora 100% compatível com a raiz (`/`) do GitHub Pages para publicação online imediata via link web.
+- **Guia de Compartilhamento no README**: Documentadas detalhadamente as duas formas de distribuição para amigos: via link direto (GitHub Pages) ou mantendo o repositório 100% privado (convite de colaboradores e download do ZIP).
+
+---
+
+## [v0.9.0] - 2026-10-18 (Sistema de Pausa ESC & Barra Flutuante de Duração de Habilidade)
+### ⏸️ Sistema de Pausa (Tecla ESC)
+- **Congelamento Completo de Estado (`pauseGame` / `resumeGame`)**: Pressionar a tecla `ESC` a qualquer momento durante o combate pausa a simulação física do Phaser 3, os timers de spawn, os tweens ativos e as animações do cavaleiro e inimigos sem qualquer dessincronização.
+- **Atenuação da Trilha Sonora**: Volume da música de fundo (BGM) reduzido suavemente para nível atmosférico (~0.04) durante a pausa, restaurando o volume épico integral (~0.14) ao retornar.
+- **Modal Medieval de Pausa**: Painel nobre em carvalho e bronze contendo:
+  1. *Tempo de Combate*: Segundos sobrevividos até o momento do congelamento.
+  2. *Relíquia Ativa*: Nome e tempo restante exato da arma/habilidade em uso.
+  3. *Continuar Jornada*: Retoma a aventura imediatamente (ou através de outro toque na tecla `ESC`).
+  4. *Controle de Áudio*: Alterna o som (Ativado/Mutado) com sincronização em tempo real à tecla `M` e ao ícone de corneta no HUD.
+  5. *Reiniciar Missão*: Reinicia a batalha do início sem passar por telas intermediárias.
+  6. *Menu Principal*: Retorno direto à tela inicial do cavaleiro.
+- **Navegação Intuitiva em Menus**: A tecla `ESC` também retorna ao menu principal caso pressionada enquanto estiver nas telas secundárias de Recordes ou Configurações.
+
+### ⏳ Barra Flutuante de Duração sobre o Cavaleiro (Overhead Buff Bar)
+- **Indicador Direto sobre o Personagem**: Adicionada barra gráfica de duração centralizada a ~9px acima da pluma do elmo do cavaleiro, acompanhando sua movimentação em tempo real.
+- **Conveniência de Gameplay**: O jogador agora sabe com precisão o tempo restante de seu item sem precisar desviar o olhar para o topo da tela, mantendo o foco total nas esquivas e no combate.
+- **Cores Temáticas por Relíquia**:
+  - 🏹 **Arco Real**: Preenchimento dourado reluzente (`#ffeb3b`).
+  - 🛡️ **Escudo de Aço**: Preenchimento ciano radiante (`#7fe7ff`).
+  - 🗡️ **Espada Vorpal**: Preenchimento prateado reluzente (`#ffffff`).
+- **Alerta Crítico de Fim de Efeito**: A barra transiciona para vermelho pulsante de emergência (`#ff3030`) nos últimos 1.8 segundos, alertando instantaneamente sobre o término da proteção ou poder.
+- **Gerenciamento de Visibilidade**: A barra é limpa imediatamente ao expirar o tempo, ao ter o escudo quebrado por impacto, ou em caso de derrota.
+
+---
+
 ## [v0.8.1] - 2026-10-18 (Campo de Entrada & Placeholder de Iniciais)
 ### ⌨️ Interface & Usabilidade
 - **Moldura Visual de Input**: Adicionada caixa de texto estilizada em madeira escura e bordas duplas de bronze/ouro no modal de derrota, deixando claro que há um campo interativo de digitação.

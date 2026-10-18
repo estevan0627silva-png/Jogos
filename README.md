@@ -6,9 +6,10 @@ Jogo de ação e sobrevivência em **Pixel Art 16-bit** com temática de fantasi
 
 ## 🕹️ Como Jogar
 
-1. Abra o arquivo `JS_Teste/index.html` em qualquer navegador web moderno.
-2. Controle o **Cavaleiro** através da floresta mística e sobreviva às hordas de inimigos pelo maior tempo possível.
-3. Colete relíquias e armas lendárias pelo caminho para virar o jogo a seu favor!
+- **No Computador (Offline / Sem Instalação)**: Basta descompactar o projeto e dar **dois cliques em `index.html`** (abre instantaneamente no Chrome, Edge, Firefox ou Opera sem precisar de VS Code, Live Server ou qualquer programa extra!).
+- **Online (Navegador Web)**: Acesse o link direto do GitHub Pages pelo computador ou celular.
+- Controle o **Cavaleiro** através da floresta mística e sobreviva às hordas de inimigos pelo maior tempo possível.
+- Colete relíquias e armas lendárias pelo caminho para virar o jogo a seu favor!
 
 ### ⌨️ Controles
 
@@ -16,9 +17,32 @@ Jogo de ação e sobrevivência em **Pixel Art 16-bit** com temática de fantasi
 | :--- | :--- |
 | **Mover Cavaleiro** | `W`, `A`, `S`, `D` ou Setas Direcionais |
 | **Mover na Diagonal** | Combinação de duas direções (vetor normalizado) |
+| **Pausar / Despausar Jogo** | Tecla `ESC` |
 | **Silenciar / Ativar Som** | Tecla `M` ou Botão no HUD (`Corneta Medieval`) |
 | **Iniciar Partida / Confirmar** | `Barra de Espaço`, `Enter` ou Clique do Mouse |
 | **Voltar ao Menu Principal** | Botão `VOLTAR AO MENU` ou `MENU INICIAL` |
+
+---
+
+## ⏸️ Sistema de Pausa (Tecla ESC)
+
+A qualquer momento durante o combate, pressionar a tecla `ESC` congela a partida:
+- **Pausa Total**: Pausa a física, o relógio de spawn, os tweens e as animações de sprites.
+- **Áudio Ambiente Suavizado**: A trilha sonora chiptune reduz para volume atmosférico (~0.04) enquanto o menu de pausa estiver ativo.
+- **Menu Nobre de Pausa**: Permite **Continuar a Jornada** (ou tocar `ESC`), **Alternar Som** (Ativado/Mutado), **Reiniciar a Missão** imediatamente ou retornar ao **Menu Principal**.
+- Também funciona para retornar ao menu principal caso pressionado nas abas secundárias (Recordes e Configurações).
+
+---
+
+## ⏳ Barrinha Flutuante de Duração (Overhead Buff Bar)
+
+Além do cronômetro detalhado no HUD superior, uma **barra gráfica de duração** posiciona-se diretamente sobre o capacete do cavaleiro:
+- Acompanha o personagem em todos os movimentos.
+- Exibe o tempo restante com cores temáticas de cada relíquia:
+  - 🏹 Dourado para o **Arco Real**
+  - 🛡️ Ciano para o **Escudo de Aço**
+  - 🗡️ Branco/Prata para a **Espada Vorpal**
+- Transiciona para vermelho de alerta nos **1.8 segundos finais**, dando percepção instantânea para o jogador agir antes que o efeito acabe.
 
 ---
 
@@ -94,17 +118,32 @@ O jogo conta com um motor de áudio procedural construído com a **Web Audio API
 
 ```text
 Jogos/
+├── index.html          # Entrada principal (executa com dois cliques ou via GitHub Pages)
 ├── .gitignore          # Arquivos ignorados pelo Git
 ├── CHANGELOG.md        # Histórico de versões (SemVer)
 ├── README.md           # Documentação completa da aventura
 └── JS_Teste/
-    ├── index.html      # Página web e importação do Phaser 3 CDN
+    ├── index.html      # Página web alternativa
     ├── style.css       # Centralização do canvas e estilo da janela
-    └── game.js         # Toda a lógica: gerador de pixel art, física, inimigos e combate
+    └── game.js         # Toda a lógica: gerador de pixel art, áudio chiptune, combate e menus
 ```
 
 ---
 
-## 🔒 Privacidade
+## 🌐 Como Compartilhar com Amigos
 
-Projeto pessoal e 100% privado mantido localmente.
+### Método 1: Jogar Online Direto no Navegador (GitHub Pages)
+1. No repositório no GitHub, clique na aba **Settings** (Configurações).
+2. No menu lateral esquerdo, clique em **Pages**.
+3. Em *Build and deployment* > *Branch*, selecione **`main`** (ou `master`) e pasta **`/ (root)`**.
+4. Clique em **Save**.
+5. Em 1 a 2 minutos, o GitHub disponibilizará um link público direto (ex: `https://seu-usuario.github.io/Jogos/`).
+6. Seus amigos só precisam clicar no link pelo computador ou celular para jogar!
+*(Nota: No plano gratuito do GitHub, o GitHub Pages requer que o repositório seja Público).*
+
+### Método 2: Mantendo o Repositório 100% PRIVADO (Download do ZIP)
+1. No seu repositório no GitHub, vá em **Settings** > **Collaborators** > **Add people**.
+2. Adicione os nomes de usuário ou e-mails do GitHub dos seus amigos (eles receberão acesso exclusivo).
+3. Eles entram no link do repositório, clicam no botão verde **`<> Code`** e selecionam **`Download ZIP`**.
+4. Ao extrair a pasta, basta dar **dois cliques em `index.html`**!
+5. O jogo roda instantaneamente em qualquer navegador moderno, **sem precisar de VS Code, sem Live Server e sem instalar nenhum programa**, pois todo o visual e som foram programados nativamente sem dependências de arquivos externos!
