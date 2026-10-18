@@ -4,6 +4,30 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.6.0] - 2026-10-18 (Reformulação Gráfica)
+### 🎨 Visual
+- **Sprites animados com contorno**: Cavaleiro, Goblin, Guerreiro Sombrio e Elfo ganharam 2 quadros de caminhada (pernas alternando) e contorno escuro de 1px para destacar do chão.
+- **Balanço de passos** em todos os inimigos (cada um num ritmo diferente).
+- **Sombras** elípticas sob personagens, árvores e itens.
+- **Profundidade (Y-sort)**: quem está mais embaixo na tela aparece na frente — o cavaleiro passa por trás/frente das árvores corretamente.
+- **Cenário em camadas**: grama, estrada de terra, floresta ao fundo (topo) e arbustos em primeiro plano (base), todos rolando. Chão e árvores agora andam na **mesma velocidade** (nada desliza).
+- **Itens com cara de item**: aura brilhante colorida, borda dourada, flutuação e pulsação. Texto flutuante ao coletar.
+- **Golpe de espada real**: a espada gira no punho do cavaleiro com rastro em meia-lua.
+- **Feedbacks**: partículas ao matar inimigos, flash ao quebrar escudo, tremor de câmera e pausa curta ao morrer.
+
+### ⚔️ Mecânicas
+- **Árvores com colisão no tronco**, sem nascer uma em cima da outra e fora da estrada.
+- **Árvores bloqueiam flechas** (suas e dos elfos) — servem de cobertura.
+- **Elfos miram no cavaleiro** e piscam em rosa antes de atirar (aviso visual).
+- Arco e espada atacam na direção em que o cavaleiro está virado.
+
+### 🐛 Correções
+- Clicar em "INICIAR" disparava o início 2 vezes (spawns e timers em dobro).
+- A limpeza de entidades pulava itens ao destruir durante o loop.
+- Nomes padrão do placar tinham 4 letras (agora 3).
+
+---
+
 ## [v0.5.2] - 2026-10-18
 ### 🏃 Sensação de Movimento & Parallax
 - **Chão com Rolagem Contínua (TileSprite)**:
