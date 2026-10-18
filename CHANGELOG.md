@@ -4,6 +4,15 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.8.1] - 2026-10-18 (Campo de Entrada & Placeholder de Iniciais)
+### ⌨️ Interface & Usabilidade
+- **Moldura Visual de Input**: Adicionada caixa de texto estilizada em madeira escura e bordas duplas de bronze/ouro no modal de derrota, deixando claro que há um campo interativo de digitação.
+- **Placeholder Temático (`EX: ART`)**: Exibição de placeholder sutil e esmaecido quando o jogador ainda não começou a digitar, indicando claramente a expectativa de 3 letras maiúsculas.
+- **Cursor Animado**: Cursor pulsante dourado (`|`) indicando prontidão de escrita.
+- **Dica de Digitação**: Adicionada legenda indicativa inferior (`⌨️ Digite 3 letras no teclado`).
+
+---
+
 ## [v0.8.0] - 2026-10-18 (Menu Principal Medieval & HUD Modular em Pixel Art)
 ### 🏰 Menu Principal Medieval & Game Feel
 - **Ilustração do Cavaleiro Heróico**: Adicionada imagem em pixel art em destaque do Cavaleiro (`knight_banner`), com animação contínua de respiração/flutuação suave sobre sombra elíptica.

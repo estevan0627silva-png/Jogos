@@ -1494,10 +1494,55 @@ function createModal(scene, title, height) {
 
 function showInitials(scene) {
   let name = '', done = false;
-  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 410);
-  const info = scene.add.text(400, 185, `Tempo de bravura em combate: ${survivalTime}s\n\nDigite suas 3 iniciais de honra:`,
-    { ...textStyle('#e8dcbe', 15), align: 'center', lineSpacing: 6 }).setOrigin(0.5);
-  const display = scene.add.text(400, 265, '_ _ _', textStyle('#ffca28', 34)).setOrigin(0.5);
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 430);
+  const info = scene.add.text(400, 175, `Tempo de bravura em combate: ${survivalTime}s\n\nDigite suas 3 iniciais de honra:`,
+    { ...textStyle('#e8dcbe', 15), align: 'center', lineSpacing: 5 }).setOrigin(0.5);
+
+  // Moldura visual do campo de input (estilo caixa de entrada arcade)
+  const inputBg = scene.add.graphics();
+  inputBg.fillStyle(0x0e0b08, 0.95).fillRoundedRect(260, 220, 280, 56, 6);
+  inputBg.lineStyle(2, 0xc5a059).strokeRoundedRect(260, 220, 280, 56, 6);
+  inputBg.lineStyle(1, 0x4a3b2c).strokeRoundedRect(263, 223, 274, 50, 4);
+
+  // Placeholder esmaecido quando vazio
+  const placeholder = scene.add.text(400, 248, 'EX: ART', {
+    ...textStyle('#736148', 24),
+    fontStyle: 'bold',
+    fontFamily: 'Courier New, monospace'
+  }).setOrigin(0.5);
+
+  // Texto real digitado (dourado reluzente)
+  const display = scene.add.text(400, 248, '', {
+    ...textStyle('#ffca28', 30),
+    fontStyle: 'bold',
+    fontFamily: 'Courier New, monospace'
+  }).setOrigin(0.5);
+
+  // Cursor piscante
+  const cursor = scene.add.text(465, 248, '|', { ...textStyle('#ffca28', 26) }).setOrigin(0.5);
+  const cursorTween = scene.tweens.add({
+    targets: cursor,
+    alpha: { from: 1, to: 0 },
+    duration: 500,
+    yoyo: true,
+    repeat: -1
+  });
+
+  // Dica visual de que se trata de digitação por teclado
+  const inputHint = scene.add.text(400, 290, '⌨️ Digite 3 letras no teclado', textStyle('#a8987b', 12)).setOrigin(0.5);
+
+  const updateDisplay = () => {
+    if (name.length === 0) {
+      placeholder.setVisible(true);
+      display.setText('');
+      cursor.setVisible(true).setX(465);
+    } else {
+      placeholder.setVisible(false);
+      display.setText(name.padEnd(3, '_').split('').join(' '));
+      cursor.setVisible(name.length < 3).setX(400 + (name.length - 1) * 22 + 16);
+    }
+  };
+  updateDisplay();
 
   const onKey = (e) => {
     if (e.key === 'Backspace') {
@@ -1509,20 +1554,24 @@ function showInitials(scene) {
       name += e.key.toUpperCase();
       sound.playButtonClick();
     }
-    display.setText(name.padEnd(3, '_').split('').join(' '));
+    updateDisplay();
   };
 
   const submit = () => {
     if (done) return;
     done = true;
     sound.playButtonClick();
+    cursorTween.stop();
     scene.input.keyboard.off('keydown', onKey);
     modal.destroy();
     const finalName = name.padEnd(3, 'A');
     showLeaderboard(scene, saveHighScore(finalName, survivalTime), finalName);
   };
 
-  modal.add([info, display, ...createButton(scene, 400, 345, 'CONFIRMAR HONRA', submit, 260, 46)]);
+  modal.add([
+    info, inputBg, placeholder, display, cursor, inputHint,
+    ...createButton(scene, 400, 350, 'CONFIRMAR HONRA', submit, 260, 46)
+  ]);
   scene.input.keyboard.on('keydown', onKey);
 }
 
