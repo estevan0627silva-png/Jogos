@@ -1447,7 +1447,7 @@ function startGameplay(scene) {
     });
   });
 
-  // Relíquias e árvores das bordas (rochas não nascem mais aleatoriamente — são ataques do Golem!)
+  // Relíquias e árvores das bordas (rochas não nascem mais aleatoriamente — são ataques do Golem!
   every(4600, () => spawnItem(scene));
   every(900, () => spawnTree());
 
