@@ -4,6 +4,30 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.8.0] - 2026-10-18 (Menu Principal Medieval & HUD Modular em Pixel Art)
+### 🏰 Menu Principal Medieval & Game Feel
+- **Ilustração do Cavaleiro Heróico**: Adicionada imagem em pixel art em destaque do Cavaleiro (`knight_banner`), com animação contínua de respiração/flutuação suave sobre sombra elíptica.
+- **Moldura Nobre de Madeira e Bronze**: Caixa central com bordas duplas em bronze e ouro, acabamento de carvalho escuro e rebites metálicos nos quatro cantos.
+- **Título Régio**: Tipografia clássica com sombra profunda projetada e estandarte imperial (*"CRÔNICAS DE SOBREVIVÊNCIA"*).
+- **Três Telas de Navegação Integradas**:
+  1. **Começar o Jogo**: Transição imediata para a jogabilidade, revelando o HUD e iniciando a trilha sonora.
+  2. **Tábula dos Campeões (Recordes)**: Exibição do Top 5 com placas nobres, medalhas (Coroa, Prata, Bronze), pontuações em segundos e botão *Voltar ao Menu*.
+  3. **Configurações do Reino**: Ajuste interativo de áudio (botão liga/desliga com feedback sonoro) e *Pergaminho de Combate* com dicas táticas (cobertura em árvores, deflexão de flechas com a espada e escudo).
+- **Fundo Vivo**: O cenário da floresta rola em marcha lenta ao fundo durante o menu, criando profundidade visual e atmosfera antes da partida.
+
+### 🛡️ HUD Modular em Pixel Art (Sem Emojis)
+- **Eliminação Total de Emojis Genéricos**: Substituição de emojis de texto por 4 módulos visuais independentes com texturas de pixel art desenhadas à mão:
+  1. **Painel de Glória (Top-Left)**: Placa entalhada com ícone da **Ampulheta Mística** (`hud_hourglass`) e contador de tempo de sobrevivência.
+  2. **Slot de Equipamento Central (Top-Center)**: Moldura de ferro e bronze com o ícone da arma em uso (`ARCO REAL`, `ESCUDO DE AÇO`, `ESPADA VORPAL`), nome nobre e **barra gráfica de duração** com preenchimento dinâmico que fica rubra nos 2 segundos finais.
+  3. **Painel de Recorde (Top-Right)**: Placa nobre com a **Coroa Imperial de Ouro e Rubis** (`hud_crown`) e pontuação máxima do reino.
+  4. **Medalhão de Áudio (Extremo Top-Right)**: Botão compacto com ícone de **Corneta Medieval** (`hud_horn` ativo/mudo) com hover dourado e atalho `M`.
+- **Visibilidade Inteligente**: O HUD permanece oculto durante os menus e telas de derrota, aparecendo apenas durante o gameplay ativo.
+
+### 🕹️ Fluxo Arcade de Fim de Jogo
+- A tela de derrota agora oferece dois botões: **`NOVA JORNADA`** (reinício imediato para jogar sem pausas) e **`MENU INICIAL`** (retorno à tela de título do cavaleiro).
+
+---
+
 ## [v0.7.0] - 2026-10-18 (Trilha Sonora e Efeitos Sonoros Chiptune)
 ### 🎵 Trilha Sonora & Sequenciador (BGM)
 - **Música Procedural Medieval Chiptune**: Trilha de aventura contínua em Lá menor (Am) inspirada em clássicos retrô (estilo *Castlevania*, *Golden Axe*, *Ghosts 'n Goblins* e *Zelda*).

@@ -16,8 +16,29 @@ Jogo de ação e sobrevivência em **Pixel Art 16-bit** com temática de fantasi
 | :--- | :--- |
 | **Mover Cavaleiro** | `W`, `A`, `S`, `D` ou Setas Direcionais |
 | **Mover na Diagonal** | Combinação de duas direções (vetor normalizado) |
-| **Silenciar / Ativar Som** | Tecla `M` ou Botão no HUD (`🔊 SOM / 🔇 MUDO`) |
-| **Iniciar / Reiniciar** | `Barra de Espaço`, `Enter` ou Clique do Mouse |
+| **Silenciar / Ativar Som** | Tecla `M` ou Botão no HUD (`Corneta Medieval`) |
+| **Iniciar Partida / Confirmar** | `Barra de Espaço`, `Enter` ou Clique do Mouse |
+| **Voltar ao Menu Principal** | Botão `VOLTAR AO MENU` ou `MENU INICIAL` |
+
+---
+
+## 🏰 Menu Principal Medieval
+
+O jogo conta com uma tela de título rica em atmosfera e *game feel*:
+- **Retrato do Cavaleiro**: Ilustração em pixel art do herói com armadura polida, espada e animação suave de respiração.
+- **Começar o Jogo**: Transição limpa para a batalha, revelando o HUD e dando início à trilha sonora.
+- **Recordes**: Consulta rápida ao Top 5 Campeões do Reino com medalhas de ouro, prata e bronze.
+- **Configurações**: Controle interativo de áudio (ativar/mutar com feedback sonoro) e *Pergaminho de Combate* com dicas essenciais para sobrevivência.
+
+---
+
+## 🛡️ HUD Modular em Pixel Art (Sem Emojis)
+
+O painel de jogo foi totalmente reformulado em 4 módulos visuais independentes com molduras medievais de carvalho e ouro:
+1. **Painel de Glória (Superior Esquerdo)**: Ícone em pixel art da **Ampulheta Mística** com o tempo de sobrevivência em segundos.
+2. **Slot de Equipamento (Centro Superior)**: Moldura de ferro forjado que exibe o ícone da arma em uso (`ARCO REAL`, `ESCUDO DE AÇO`, `ESPADA VORPAL`) e uma **barra gráfica de duração** dinâmica com preenchimento em tempo real que fica rubra nos 2 segundos finais.
+3. **Painel de Recorde (Superior Direito)**: Ícone da **Coroa Imperial de Ouro e Rubis** com a maior marca do reino.
+4. **Medalhão de Áudio (Extremo Direito)**: Botão de alternância com ícone de corneta de guerra medieval.
 
 ---
 
@@ -64,7 +85,8 @@ O jogo conta com um motor de áudio procedural construído com a **Web Audio API
 
 - Ao tombar em batalha, o jogo solicita o registro das **3 iniciais maiúsculas** do cavaleiro diretamente pelo teclado.
 - Registra e exibe o **Top 5 Campeões do Reino** em uma moldura medieval em madeira nobre e bronze, com persistência no `localStorage`.
-- O maior recorde histórico é exibido no HUD superior (`👑 RECORDE: Xs`) durante as partidas.
+- O maior recorde histórico é exibido no HUD superior (`RECORDE: Xs`) durante as partidas.
+- Ao final, o jogador pode escolher entre reiniciar de imediato (**`NOVA JORNADA`**) ou retornar ao **`MENU INICIAL`**.
 
 ---
 

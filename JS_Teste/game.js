@@ -22,7 +22,7 @@ const game = new Phaser.Game(config);
 const PLAYER_SPEED = 280;
 const BUFF_TIME = { bow: 6, shield: 8, sword: 6 };   // duração de cada item (s)
 const ATTACK_RATE = { bow: 320, sword: 300 };        // intervalo entre ataques (ms)
-const BUFF_NAMES = { bow: '🏹 ARCO', shield: '🛡️ ESCUDO', sword: '🗡️ ESPADA' };
+const BUFF_NAMES = { bow: 'ARCO REAL', shield: 'ESCUDO DE AÇO', sword: 'ESPADA VORPAL' };
 const ENEMIES = {                                    // velocidade relativa e hitbox
   goblin:  { speed: 1.15, w: 16, h: 20 },
   warrior: { speed: 0.9,  w: 20, h: 26 },
@@ -50,7 +50,9 @@ const C = {
 let player, shieldSprite, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx;
 let enemies, trees, items, playerArrows, enemyArrows, slashes;
-let hudScore, hudStatus;
+let hudContainer, hudGloryText, hudBestText;
+let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
+let menuContainer;
 let gameState, survivalTime, enemySpeed, spawnDelay, buff;
 
 // =============================================================================
@@ -651,6 +653,73 @@ const arrowDrawer = (feather, tip) => (r) => {
   r(tip, 10, 1, 1, 3); r(tip, 11, 2, 1, 1);                                // ponta
 };
 
+// Ícones de Pixel Art para o novo HUD
+function drawHourglass(r) {
+  r(C.woodDark, 1, 0, 8, 1); r(C.wood, 2, 1, 6, 1);
+  r(C.woodDark, 1, 11, 8, 1); r(C.wood, 2, 10, 6, 1);
+  r(C.cyan, 2, 2, 6, 2);
+  r(C.cyan, 3, 4, 4, 3);
+  r(C.cyan, 2, 7, 6, 3);
+  r(C.gold, 3, 3, 4, 1);
+  r(C.yellow, 4, 4, 2, 3);
+  r(C.gold, 3, 8, 4, 2);
+  r(C.white, 2, 2, 1, 1); r(C.white, 2, 9, 1, 1);
+}
+
+function drawCrown(r) {
+  r(C.gold, 1, 6, 9, 2);
+  r(C.woodDark, 1, 8, 9, 1);
+  r(C.gold, 1, 3, 1, 3);
+  r(C.gold, 3, 2, 1, 4);
+  r(C.gold, 5, 1, 1, 5);
+  r(C.gold, 7, 2, 1, 4);
+  r(C.gold, 9, 3, 1, 3);
+  r(C.gold, 2, 5, 7, 1);
+  r(C.red, 5, 3, 1, 1);
+  r(C.blue, 3, 4, 1, 1);
+  r(C.blue, 7, 4, 1, 1);
+  r(C.white, 5, 1, 1, 1);
+}
+
+function drawHorn(r, f) {
+  r(C.gold, 1, 3, 2, 2);
+  r(C.gold, 3, 2, 3, 4);
+  r(C.gold, 6, 1, 3, 6);
+  r(C.gold, 9, 0, 2, 8);
+  r(C.woodDark, 10, 1, 1, 6);
+  if (f === 0) {
+    r(C.cyan, 12, 1, 1, 2);
+    r(C.cyan, 13, 3, 1, 2);
+    r(C.cyan, 12, 5, 1, 2);
+  } else {
+    r(C.red, 2, 0, 2, 2); r(C.red, 4, 2, 2, 2);
+    r(C.red, 6, 4, 2, 2); r(C.red, 8, 6, 2, 2);
+  }
+}
+
+function drawKnightBanner(r) {
+  r(C.red, 10, 1, 5, 2); r(C.red, 9, 2, 6, 2); r(C.darkRed, 14, 3, 3, 2);
+  r(C.steel, 9, 4, 7, 6); r(C.steelLight, 10, 4, 3, 2);
+  r(C.steelDark, 9, 9, 7, 1);
+  r(C.outline, 11, 7, 4, 1); r(C.outline, 12, 8, 2, 2);
+  r(C.darkRed, 5, 10, 4, 14); r(C.red, 6, 12, 3, 10);
+  r(C.steel, 6, 10, 4, 3); r(C.steelLight, 7, 10, 2, 1);
+  r(C.steel, 15, 10, 4, 3); r(C.steelLight, 16, 10, 2, 1);
+  r(C.steel, 9, 10, 7, 8);
+  r(C.blue, 10, 10, 5, 8);
+  r(C.gold, 12, 11, 1, 6); r(C.gold, 11, 13, 3, 1);
+  r(C.woodDark, 9, 17, 7, 2); r(C.gold, 12, 17, 1, 2);
+  r(C.steelDark, 6, 13, 3, 4); r(C.steel, 6, 17, 3, 2);
+  r(C.steelDark, 16, 13, 3, 4); r(C.steel, 16, 17, 3, 2);
+  r(C.steelLight, 19, 4, 2, 17); r(C.steel, 20, 4, 1, 17);
+  r(C.gold, 17, 10, 5, 2);
+  r(C.woodDark, 19, 8, 2, 2);
+  r(C.gold, 19, 7, 2, 1);
+  r(C.steelDark, 9, 19, 3, 6); r(C.steelLight, 9, 20, 1, 3);
+  r(C.steelDark, 13, 19, 3, 6); r(C.steelLight, 13, 20, 1, 3);
+  r(C.woodDark, 8, 24, 4, 2); r(C.woodDark, 13, 24, 4, 2);
+}
+
 // Cenário (chão, estrada, florestas das bordas) e efeitos
 function makeWorldTextures(scene) {
   const g = scene.make.graphics({ add: false });
@@ -715,6 +784,10 @@ function preload() {
   makeSheet(this, 'sword_blade', 12, 40, 1, drawBlade);
   makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blue, C.steelLight));
   makeSheet(this, 'arrow_elf', 26, 10, 1, arrowDrawer(C.elfCloak, C.purple));
+  makeSheet(this, 'hud_hourglass', 22, 26, 1, drawHourglass);
+  makeSheet(this, 'hud_crown', 24, 22, 1, drawCrown);
+  makeSheet(this, 'hud_horn', 30, 20, 2, drawHorn);
+  makeSheet(this, 'knight_banner', 48, 56, 1, drawKnightBanner);
   makeItem(this, 'item_bow', 0xffe082, drawBowIcon);
   makeItem(this, 'item_shield', 0x80deea, drawShieldIcon);
   makeItem(this, 'item_sword', 0xffffff, drawSwordIcon);
@@ -727,7 +800,7 @@ function preload() {
 function create() {
   const scene = this;
   sound.stopBGM();
-  gameState = 'START';
+  gameState = 'MENU';
   survivalTime = 0;
   enemySpeed = 220;
   spawnDelay = 1300;
@@ -764,6 +837,7 @@ function create() {
   player = scene.physics.add.sprite(160, 330, 'knight', 0);
   player.body.setSize(16, 22).setOffset(8, 8);
   player.setCollideWorldBounds(true);
+  player.setVisible(false); // Oculto enquanto estiver nos menus
   shieldSprite = scene.add.image(0, 0, 'shield_worn').setVisible(false);
 
   // Controles
@@ -794,15 +868,27 @@ function create() {
   scene.physics.add.overlap(playerArrows, trees, (a) => { sound.playWoodHit(); a.destroy(); });
   scene.physics.add.overlap(enemyArrows, trees, (a) => { sound.playWoodHit(); a.destroy(); });
 
-  showStartScreen(scene);
+  showMainMenu(scene);
 }
 
 // =============================================================================
 // CENA: UPDATE — roda a cada frame
 // =============================================================================
 function update(time, delta) {
-  if (gameState === 'PLAYING') updateGameplay(this, time, delta / 1000);
+  const dt = delta / 1000;
+  if (gameState === 'PLAYING') updateGameplay(this, time, dt);
+  else if (gameState === 'MENU') updateMenuBackground(dt);
   sortAndShade();
+}
+
+// Fundo rolando suavemente no menu inicial (efeito vivo de viagem)
+function updateMenuBackground(dt) {
+  const scrollSpeed = 35;
+  ground.tilePositionX += scrollSpeed * dt;
+  road.tilePositionX += scrollSpeed * dt;
+  forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
+  forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
+  trees.setVelocityX(-scrollSpeed);
 }
 
 function updateGameplay(scene, time, dt) {
@@ -839,7 +925,7 @@ function updateGameplay(scene, time, dt) {
       buff.nextAttack = time + ATTACK_RATE[buff.type];
     }
   }
-  hudStatus.setText(buff.type ? `${BUFF_NAMES[buff.type]} (${Math.ceil(buff.timeLeft)}s)` : '');
+  updateItemHUD();
 
   // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir)
   const cull = (group, isOut) => group.getChildren().slice().forEach(s => { if (isOut(s)) removeEntity(s); });
@@ -853,7 +939,11 @@ function updateGameplay(scene, time, dt) {
 // Profundidade por altura (quem está mais embaixo fica na frente) + sombras
 function sortAndShade() {
   shadows.clear().fillStyle(0x000000, 0.28);
-  [player, ...enemies.getChildren(), ...trees.getChildren(), ...items.getChildren()].forEach(s => {
+  const entities = gameState === 'PLAYING'
+    ? [player, ...enemies.getChildren(), ...trees.getChildren(), ...items.getChildren()]
+    : [...trees.getChildren()];
+
+  entities.forEach(s => {
     const feet = s.groundY ?? s.y + s.displayHeight / 2;
     s.setDepth(feet);
     shadows.fillEllipse(s.x, feet - 2, s.displayWidth * 0.7, 8);
@@ -861,7 +951,9 @@ function sortAndShade() {
   [...playerArrows.getChildren(), ...enemyArrows.getChildren()].forEach(a => a.setDepth(a.y + 16));
 
   // Escudo e golpe de espada acompanham o cavaleiro
-  shieldSprite.setPosition(player.x + (player.flipX ? -12 : 12), player.y + 4).setDepth(player.depth + 1);
+  if (player && player.visible) {
+    shieldSprite.setPosition(player.x + (player.flipX ? -12 : 12), player.y + 4).setDepth(player.depth + 1);
+  }
   slashes.getChildren().forEach(s => {
     s.setPosition(player.x + s.dir * 30, player.y).setDepth(player.depth + 3);
     s.blade.setPosition(player.x + s.dir * 8, player.y + 4).setDepth(player.depth + 2);
@@ -873,11 +965,21 @@ function sortAndShade() {
 // =============================================================================
 function startGameplay(scene) {
   gameState = 'PLAYING';
-  player.play('knight');
+  if (player) {
+    player.setPosition(160, 330).setVisible(true);
+    player.play('knight');
+  }
+  if (hudContainer) hudContainer.setVisible(true);
   sound.startBGM();
 
   const every = (delay, fn) => scene.time.addEvent({ delay, loop: true, callback: () => gameState === 'PLAYING' && fn() });
-  every(1000, () => { survivalTime++; hudScore.setText(`⚔️ GLÓRIA: ${survivalTime}s`); });
+  every(1000, () => {
+    survivalTime++;
+    if (hudGloryText) hudGloryText.setText(`${survivalTime}s`);
+    if (survivalTime > getBestScore() && hudBestText) {
+      hudBestText.setText(`${survivalTime}s`);
+    }
+  });
   every(3000, () => { enemySpeed += 25; spawnDelay = Math.max(380, spawnDelay - 70); });
   every(5000, () => spawnItem(scene));
   every(900, () => spawnTree());
@@ -1013,6 +1115,7 @@ function gameOver(scene) {
   gameState = 'GAMEOVER';
   sound.stopBGM();
   sound.playGameOver();
+  if (hudContainer) hudContainer.setVisible(false);
   scene.physics.pause();
   scene.time.removeAllEvents();
   scene.tweens.pauseAll();
@@ -1024,9 +1127,14 @@ function gameOver(scene) {
 }
 
 // =============================================================================
-// INTERFACE (HUD, textos flutuantes, modais e botões)
+// INTERFACE (HUD MODULAR, MENUS MEDIEVAIS, RECORDES E CONFIGURAÇÕES)
 // =============================================================================
-const textStyle = (color, size = 17) => ({ fontSize: size + 'px', fontStyle: 'bold', color, fontFamily: 'Courier New, monospace' });
+const textStyle = (color, size = 17, weight = 'bold') => ({
+  fontSize: size + 'px',
+  fontStyle: weight,
+  color,
+  fontFamily: 'Courier New, monospace'
+});
 
 function floatText(scene, x, y, msg, color) {
   const t = scene.add.text(x, y, msg, { ...textStyle(color, 15), stroke: '#000000', strokeThickness: 4 })
@@ -1034,47 +1142,129 @@ function floatText(scene, x, y, msg, color) {
   scene.tweens.add({ targets: t, y: y - 40, alpha: 0, duration: 900, onComplete: () => t.destroy() });
 }
 
+// -----------------------------------------------------------------------------
+// NOVO HUD MEDIEVAL EM PIXEL ART (SEM EMOJIS, 4 MÓDULOS SEPARADOS)
+// -----------------------------------------------------------------------------
 function createHUD(scene) {
-  const bg = scene.add.graphics().setDepth(2000);
-  bg.fillStyle(0x12100d, 0.9).fillRoundedRect(10, 10, 780, 42, 6);
-  bg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 780, 42, 6);
-  hudScore = scene.add.text(25, 20, '⚔️ GLÓRIA: 0s', textStyle('#e8dcbe')).setDepth(2001);
-  scene.add.text(210, 20, `👑 RECORDE: ${getBestScore()}s`, textStyle('#ffca28')).setDepth(2001);
-  hudStatus = scene.add.text(480, 20, '', textStyle('#7fe7ff', 16)).setOrigin(0.5, 0).setDepth(2001);
+  hudContainer = scene.add.container(0, 0).setDepth(2000).setVisible(false);
 
-  const muteBtn = scene.add.text(775, 20, sound.isMuted() ? '🔇 MUDO [M]' : '🔊 SOM [M]', textStyle(sound.isMuted() ? '#ff5555' : '#e8dcbe', 14))
-    .setOrigin(1, 0).setDepth(2001).setInteractive({ useHandCursor: true });
-  const updateMuteBtn = () => {
-    muteBtn.setText(sound.isMuted() ? '🔇 MUDO [M]' : '🔊 SOM [M]');
-    muteBtn.setColor(sound.isMuted() ? '#ff5555' : '#e8dcbe');
+  // 1. PAINEL DE GLÓRIA (Tempo Sobrevivido) — Canto Superior Esquerdo
+  const gloryBg = scene.add.graphics();
+  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(12, 10, 160, 48, 6);
+  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(12, 10, 160, 48, 6);
+  const hourglass = scene.add.image(30, 34, 'hud_hourglass');
+  const gloryLabel = scene.add.text(50, 17, 'GLÓRIA', textStyle('#a89260', 10));
+  hudGloryText = scene.add.text(50, 28, '0s', textStyle('#f5e6c8', 19));
+  hudContainer.add([gloryBg, hourglass, gloryLabel, hudGloryText]);
+
+  // 2. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro Superior
+  const itemBg = scene.add.graphics();
+  itemBg.fillStyle(0x16120e, 0.94).fillRoundedRect(275, 10, 235, 48, 6);
+  itemBg.lineStyle(2, 0xc5a059).strokeRoundedRect(275, 10, 235, 48, 6);
+
+  const slotFrame = scene.add.graphics();
+  slotFrame.fillStyle(0x221a14, 1).fillRoundedRect(283, 16, 36, 36, 4);
+  slotFrame.lineStyle(1, 0x8d5524).strokeRoundedRect(283, 16, 36, 36, 4);
+
+  hudItemIcon = scene.add.image(301, 34, 'item_bow').setVisible(false);
+  hudItemName = scene.add.text(328, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 12));
+  hudItemBar = scene.add.graphics();
+  hudItemTime = scene.add.text(485, 33, '', textStyle('#ffca28', 11)).setOrigin(0, 0.5);
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime]);
+
+  // 3. PAINEL DE RECORDE DO REINO — Canto Superior Direito
+  const bestBg = scene.add.graphics();
+  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(525, 10, 185, 48, 6);
+  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(525, 10, 185, 48, 6);
+  const crown = scene.add.image(547, 34, 'hud_crown');
+  const bestLabel = scene.add.text(572, 17, 'RECORDE', textStyle('#a89260', 10));
+  hudBestText = scene.add.text(572, 28, `${getBestScore()}s`, textStyle('#ffca28', 19));
+  hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
+
+  // 4. BOTÃO DE SOM RÁPIDO — Extremo Superior Direito
+  const soundBtnBg = scene.add.graphics();
+  const drawSoundBtn = (hover = false) => {
+    soundBtnBg.clear();
+    soundBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(725, 10, 48, 48, 6);
+    soundBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(725, 10, 48, 48, 6);
   };
-  muteBtn.on('pointerdown', () => { sound.toggleMute(); updateMuteBtn(); sound.playButtonClick(); });
-  muteBtn.on('pointerover', () => muteBtn.setColor('#ffca28'));
-  muteBtn.on('pointerout', () => updateMuteBtn());
+  drawSoundBtn(false);
+
+  hudHornIcon = scene.add.image(749, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
+  const soundHitArea = scene.add.rectangle(749, 34, 48, 48, 0x000000, 0)
+    .setInteractive({ useHandCursor: true });
+
+  const toggleAudio = () => {
+    sound.toggleMute();
+    sound.playButtonClick();
+    hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+  };
+
+  soundHitArea.on('pointerover', () => drawSoundBtn(true));
+  soundHitArea.on('pointerout', () => drawSoundBtn(false));
+  soundHitArea.on('pointerdown', toggleAudio);
+
   scene.input.keyboard.on('keydown-M', () => {
     if (gameState === 'GAMEOVER') return; // evita mutar enquanto digita iniciais com M
     sound.toggleMute();
-    updateMuteBtn();
+    hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   });
+
+  hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea]);
 }
 
-function createModal(scene, title, height) {
-  const top = (600 - height) / 2;
-  const card = scene.add.graphics();
-  card.fillStyle(0x1a1510, 0.98).fillRoundedRect(160, top, 480, height, 14);
-  card.lineStyle(3, 0xc5a059).strokeRoundedRect(160, top, 480, height, 14);
-  return scene.add.container(0, 0, [
-    scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.75),
-    card,
-    scene.add.text(400, top + 40, title, { ...textStyle('#ffca28', 26), fontFamily: 'Georgia, serif' }).setOrigin(0.5)
-  ]).setDepth(3000);
+// Atualiza o slot e a barra de duração gráfica do item ativo
+function updateItemHUD() {
+  if (!buff.type) {
+    hudItemIcon.setVisible(false);
+    hudItemName.setText('SEM RELÍQUIA').setColor('#7a7265');
+    hudItemTime.setText('');
+    hudItemBar.clear();
+    return;
+  }
+
+  const texKey = buff.type === 'shield' ? 'shield_worn' : 'item_' + buff.type;
+  hudItemIcon.setTexture(texKey).setVisible(true);
+
+  const names = { bow: 'ARCO REAL', shield: 'ESCUDO DE AÇO', sword: 'ESPADA VORPAL' };
+  hudItemName.setText(names[buff.type] || 'RELÍQUIA').setColor('#7fe7ff');
+
+  const remaining = Math.max(0, buff.timeLeft);
+  hudItemTime.setText(`${remaining.toFixed(1)}s`);
+
+  const maxTime = BUFF_TIME[buff.type] || 6;
+  const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
+  const barW = 92;
+  const barH = 7;
+  const barX = 328;
+  const barY = 32;
+
+  hudItemBar.clear();
+  hudItemBar.fillStyle(0x100e0b, 1).fillRect(barX, barY, barW, barH);
+  hudItemBar.lineStyle(1, 0x4a3b2c).strokeRect(barX, barY, barW, barH);
+
+  // Barra fica rubra nos 2 segundos finais
+  const barColor = remaining <= 2 ? 0xd83a3a : (buff.type === 'shield' ? 0x26a69a : 0xf2c14e);
+  hudItemBar.fillStyle(barColor, 1).fillRect(barX + 1, barY + 1, Math.max(0, (barW - 2) * pct), barH - 2);
 }
 
-function createButton(scene, x, y, label, onClick) {
-  const btn = scene.add.rectangle(x, y, 260, 46, 0x8d5524).setStrokeStyle(2, 0xc5a059).setInteractive({ useHandCursor: true });
-  const txt = scene.add.text(x, y, label, { ...textStyle('#ffffff'), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  btn.on('pointerover', () => btn.setFillStyle(0xb06c2e));
-  btn.on('pointerout', () => btn.setFillStyle(0x8d5524));
+// -----------------------------------------------------------------------------
+// BOTÕES NOBRES MEDIEVAIS EM CARVALHO & OURO
+// -----------------------------------------------------------------------------
+function createButton(scene, x, y, label, onClick, w = 260, h = 46) {
+  const btn = scene.add.rectangle(x, y, w, h, 0x6e3d1b).setStrokeStyle(2, 0xc5a059).setInteractive({ useHandCursor: true });
+  const txt = scene.add.text(x, y, label, { ...textStyle('#ffffff', 15), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+
+  btn.on('pointerover', () => {
+    btn.setFillStyle(0x945324);
+    btn.setStrokeStyle(2, 0xffeb3b);
+    txt.setColor('#ffeb3b');
+  });
+  btn.on('pointerout', () => {
+    btn.setFillStyle(0x6e3d1b);
+    btn.setStrokeStyle(2, 0xc5a059);
+    txt.setColor('#ffffff');
+  });
   btn.once('pointerdown', () => {
     sound.playButtonClick();
     onClick();
@@ -1082,41 +1272,231 @@ function createButton(scene, x, y, label, onClick) {
   return [btn, txt];
 }
 
-function showStartScreen(scene) {
-  const modal = createModal(scene, 'A JORNADA DO CAVALEIRO', 510);
-  const info = scene.add.text(400, 260,
-    `★ RECORDE: ${getBestScore()}s ★\n\n` +
-    'INIMIGOS: Goblins, Guerreiros Sombrios e Elfos\n' +
-    'Elfos brilham em rosa antes de atirar!\n\n' +
-    'ITENS: círculos brilhantes no chão\n' +
-    '🏹 Arco  |  🛡️ Escudo  |  🗡️ Espada\n\n' +
-    'Árvores bloqueiam o caminho e as flechas.\n' +
-    'Mover: WASD ou Setas  |  M: Alternar Som',
-    { ...textStyle('#d6c8aa', 14), fontStyle: 'normal', align: 'center', lineSpacing: 5 }
-  ).setOrigin(0.5);
+// -----------------------------------------------------------------------------
+// MENU PRINCIPAL (TELA INICIAL COM CAVALEIRO HERÓICO)
+// -----------------------------------------------------------------------------
+function showMainMenu(scene) {
+  if (menuContainer) menuContainer.destroy();
+  menuContainer = scene.add.container(0, 0).setDepth(3000);
 
-  let started = false; // evita iniciar 2x (clique no botão também é clique na tela)
-  const start = () => {
-    if (started) return;
-    started = true;
+  // Fundo atmosférico escuro
+  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.65);
+
+  // Moldura central de madeira nobre talhada e bronze
+  const frame = scene.add.graphics();
+  frame.fillStyle(0x16120e, 0.96).fillRoundedRect(140, 40, 520, 520, 14);
+  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(140, 40, 520, 520, 14);
+  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(144, 44, 512, 512, 11);
+
+  // Rebites nos 4 cantos
+  [[154, 54], [646, 54], [154, 546], [646, 546]].forEach(([rx, ry]) => {
+    frame.fillStyle(0xc5a059, 1).fillCircle(rx, ry, 3.5);
+    frame.fillStyle(0x3a2818, 1).fillCircle(rx, ry, 1.5);
+  });
+
+  // Título régio com sombra
+  const titleShadow = scene.add.text(402, 77, 'A JORNADA DO CAVALEIRO', { ...textStyle('#080604', 25), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const title = scene.add.text(400, 75, 'A JORNADA DO CAVALEIRO', { ...textStyle('#ffca28', 25), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const subtitle = scene.add.text(400, 104, '★ CRÔNICAS DE SOBREVIVÊNCIA ★', textStyle('#c5a059', 11)).setOrigin(0.5);
+  frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(210, 118, 590, 118);
+
+  // Ilustração do Cavaleiro Heróico com respiração animada
+  frame.fillStyle(0x000000, 0.4).fillEllipse(400, 240, 64, 14);
+  const heroBanner = scene.add.image(400, 182, 'knight_banner').setScale(1.4);
+  scene.tweens.add({
+    targets: heroBanner,
+    y: 178,
+    duration: 1200,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+
+  // Botões principais de navegação
+  const startBtn = createButton(scene, 400, 285, 'COMEÇAR O JOGO', () => {
     sound.ensureContext();
-    sound.playButtonClick();
-    modal.destroy();
+    menuContainer.destroy();
     startGameplay(scene);
+  }, 280, 46);
+
+  const recordsBtn = createButton(scene, 400, 345, 'RECORDES', () => {
+    sound.ensureContext();
+    menuContainer.destroy();
+    showRecordsMenu(scene);
+  }, 280, 46);
+
+  const settingsBtn = createButton(scene, 400, 405, 'CONFIGURAÇÕES', () => {
+    sound.ensureContext();
+    menuContainer.destroy();
+    showSettingsMenu(scene);
+  }, 280, 46);
+
+  // Rodapé de instruções
+  const hint1 = scene.add.text(400, 480, 'Mover: WASD ou Setas   |   Áudio: Tecla M', textStyle('#a8987b', 12)).setOrigin(0.5);
+  const hint2 = scene.add.text(400, 508, 'Pressione ESPAÇO ou ENTER para iniciar', textStyle('#c5a059', 11)).setOrigin(0.5);
+
+  menuContainer.add([
+    overlay, frame, titleShadow, title, subtitle, heroBanner,
+    ...startBtn, ...recordsBtn, ...settingsBtn, hint1, hint2
+  ]);
+
+  const onKeyStart = (e) => {
+    if (gameState !== 'MENU') return;
+    if (e.code === 'Space' || e.code === 'Enter') {
+      scene.input.keyboard.off('keydown-SPACE', onKeyStart);
+      scene.input.keyboard.off('keydown-ENTER', onKeyStart);
+      sound.ensureContext();
+      sound.playButtonClick();
+      menuContainer.destroy();
+      startGameplay(scene);
+    }
+  };
+  scene.input.keyboard.once('keydown-SPACE', onKeyStart);
+  scene.input.keyboard.once('keydown-ENTER', onKeyStart);
+}
+
+// -----------------------------------------------------------------------------
+// TELA DE RECORDES (TÁBULA DOS CAMPEÕES)
+// -----------------------------------------------------------------------------
+function showRecordsMenu(scene) {
+  if (menuContainer) menuContainer.destroy();
+  menuContainer = scene.add.container(0, 0).setDepth(3000);
+
+  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
+
+  const frame = scene.add.graphics();
+  frame.fillStyle(0x16120e, 0.98).fillRoundedRect(140, 40, 520, 520, 14);
+  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(140, 40, 520, 520, 14);
+  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(144, 44, 512, 512, 11);
+
+  const title = scene.add.text(400, 78, 'TÁBULA DOS CAMPEÕES', { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const subtitle = scene.add.text(400, 108, 'Os maiores guerreiros imortalizados pelas eras', textStyle('#d6c8aa', 12)).setOrigin(0.5);
+  frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(200, 122, 600, 122);
+
+  menuContainer.add([overlay, frame, title, subtitle]);
+
+  const scores = getHighScores();
+  const ranks = ['1º LUGAR', '2º LUGAR', '3º LUGAR', '4º LUGAR', '5º LUGAR'];
+  const colors = ['#ffca28', '#e8e8e8', '#cd7f32', '#d6c8aa', '#a8987b'];
+
+  scores.forEach((entry, i) => {
+    const rowY = 175 + i * 50;
+    const rowBg = scene.add.graphics();
+    rowBg.fillStyle(i === 0 ? 0x2e2314 : 0x1d1611, 0.9).fillRoundedRect(170, rowY - 18, 460, 38, 4);
+    rowBg.lineStyle(1, i === 0 ? 0xc5a059 : 0x4a3b2c).strokeRoundedRect(170, rowY - 18, 460, 38, 4);
+
+    const rankTxt = scene.add.text(190, rowY, ranks[i], textStyle(colors[i], 12)).setOrigin(0, 0.5);
+    const nameTxt = scene.add.text(370, rowY, entry.name, textStyle('#ffffff', 18)).setOrigin(0.5);
+    const scoreTxt = scene.add.text(595, rowY, `${entry.score}s de glória`, textStyle(colors[i], 14)).setOrigin(1, 0.5);
+
+    menuContainer.add([rowBg, rankTxt, nameTxt, scoreTxt]);
+  });
+
+  const backBtn = createButton(scene, 400, 485, 'VOLTAR AO MENU', () => {
+    menuContainer.destroy();
+    showMainMenu(scene);
+  }, 260, 44);
+
+  menuContainer.add(backBtn);
+}
+
+// -----------------------------------------------------------------------------
+// TELA DE CONFIGURAÇÕES (ÁUDIO E PERGAMINHO DE COMBATE)
+// -----------------------------------------------------------------------------
+function showSettingsMenu(scene) {
+  if (menuContainer) menuContainer.destroy();
+  menuContainer = scene.add.container(0, 0).setDepth(3000);
+
+  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
+
+  const frame = scene.add.graphics();
+  frame.fillStyle(0x16120e, 0.98).fillRoundedRect(140, 40, 520, 520, 14);
+  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(140, 40, 520, 520, 14);
+  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(144, 44, 512, 512, 11);
+
+  const title = scene.add.text(400, 75, 'CONFIGURAÇÕES DO REINO', { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const subtitle = scene.add.text(400, 105, 'Ajustes sonoros e pergaminho de batalha', textStyle('#d6c8aa', 12)).setOrigin(0.5);
+  frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(200, 118, 600, 118);
+
+  menuContainer.add([overlay, frame, title, subtitle]);
+
+  // Seção 1: Áudio
+  const audioBox = scene.add.graphics();
+  audioBox.fillStyle(0x221a13, 0.9).fillRoundedRect(170, 132, 460, 82, 6);
+  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(170, 132, 460, 82, 6);
+
+  const audioTitle = scene.add.text(190, 146, 'ÁUDIO & EFEITOS SONOROS', textStyle('#ffca28', 12));
+  const audioHint = scene.add.text(190, 192, 'Atalho rápido: pressione a tecla M durante o jogo', textStyle('#a8987b', 11));
+
+  const audioToggleBtn = scene.add.rectangle(510, 172, 180, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const audioToggleTxt = scene.add.text(510, 172, sound.isMuted() ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ATIVADO', textStyle('#ffffff', 13))
+    .setOrigin(0.5);
+
+  const updateAudioUI = () => {
+    audioToggleBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
+    audioToggleTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ATIVADO');
+    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   };
 
-  const hint = scene.add.text(400, 500, 'ESPAÇO, ENTER ou CLIQUE para começar', textStyle('#a8987b', 12)).setOrigin(0.5);
-  modal.add([info, ...createButton(scene, 400, 445, 'INICIAR MISSÃO', start), hint]);
-  scene.input.once('pointerdown', start);
-  scene.input.keyboard.once('keydown-SPACE', start);
-  scene.input.keyboard.once('keydown-ENTER', start);
+  audioToggleBtn.on('pointerdown', () => {
+    sound.toggleMute();
+    sound.playButtonClick();
+    updateAudioUI();
+  });
+
+  menuContainer.add([audioBox, audioTitle, audioHint, audioToggleBtn, audioToggleTxt]);
+
+  // Seção 2: Pergaminho de Dicas
+  const guideBox = scene.add.graphics();
+  guideBox.fillStyle(0x1d1611, 0.9).fillRoundedRect(170, 226, 460, 215, 6);
+  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(170, 226, 460, 215, 6);
+
+  const guideTitle = scene.add.text(400, 244, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
+  const guideLines = [
+    '• Árvores protegem contra todas as flechas (cobertura).',
+    '• Suas flechas e golpes anulam projéteis inimigos no ar.',
+    '• O Escudo de Aço resiste a 1 impacto mortal.',
+    '• A Espada Vorpal executa golpe giratório à queima-roupa.',
+    '• Elfos brilham em rosa antes de atirar flechas guiadas.',
+    '• Colete relíquias douradas para renovar suas habilidades.'
+  ];
+  const guideTexts = guideLines.map((txt, i) =>
+    scene.add.text(190, 270 + i * 26, txt, { ...textStyle('#d6c8aa', 12, 'normal'), lineSpacing: 4 })
+  );
+
+  menuContainer.add([guideBox, guideTitle, ...guideTexts]);
+
+  // Botão Voltar
+  const backBtn = createButton(scene, 400, 495, 'VOLTAR AO MENU', () => {
+    menuContainer.destroy();
+    showMainMenu(scene);
+  }, 260, 44);
+
+  menuContainer.add(backBtn);
+}
+
+// -----------------------------------------------------------------------------
+// GAME OVER (INICIAIS E REGISTRO)
+// -----------------------------------------------------------------------------
+function createModal(scene, title, height) {
+  const top = (600 - height) / 2;
+  const card = scene.add.graphics();
+  card.fillStyle(0x16120e, 0.98).fillRoundedRect(160, top, 480, height, 14);
+  card.lineStyle(3, 0x8d5524).strokeRoundedRect(160, top, 480, height, 14);
+  card.lineStyle(1.5, 0xc5a059).strokeRoundedRect(164, top + 4, 472, height - 8, 11);
+  return scene.add.container(0, 0, [
+    scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.75),
+    card,
+    scene.add.text(400, top + 40, title, { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5)
+  ]).setDepth(3000);
 }
 
 function showInitials(scene) {
   let name = '', done = false;
-  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 400);
-  const info = scene.add.text(400, 190, `Tempo em combate: ${survivalTime}s\n\nDigite suas 3 iniciais:`,
-    { ...textStyle('#e8dcbe'), align: 'center' }).setOrigin(0.5);
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 410);
+  const info = scene.add.text(400, 185, `Tempo de bravura em combate: ${survivalTime}s\n\nDigite suas 3 iniciais de honra:`,
+    { ...textStyle('#e8dcbe', 15), align: 'center', lineSpacing: 6 }).setOrigin(0.5);
   const display = scene.add.text(400, 265, '_ _ _', textStyle('#ffca28', 34)).setOrigin(0.5);
 
   const onKey = (e) => {
@@ -1142,20 +1522,20 @@ function showInitials(scene) {
     showLeaderboard(scene, saveHighScore(finalName, survivalTime), finalName);
   };
 
-  modal.add([info, display, ...createButton(scene, 400, 345, 'CONFIRMAR HONRA', submit)]);
+  modal.add([info, display, ...createButton(scene, 400, 345, 'CONFIRMAR HONRA', submit, 260, 46)]);
   scene.input.keyboard.on('keydown', onKey);
 }
 
 function showLeaderboard(scene, topScores, currentName) {
-  const modal = createModal(scene, '⚔️ CAMPEÕES DO REINO ⚔️', 450);
+  const modal = createModal(scene, 'CAMPEÕES DO REINO', 470);
   let marked = false;
 
   topScores.forEach((entry, i) => {
     const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
     if (isMine) marked = true;
-    const medal = ['👑', '🥈', '🥉', '4º', '5º'][i];
-    modal.add(scene.add.text(400, 170 + i * 42, `${medal}   ${entry.name}   -   ${entry.score}s`,
-      { ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 18), fontStyle: isMine ? 'bold' : 'normal' }).setOrigin(0.5));
+    const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
+    modal.add(scene.add.text(400, 160 + i * 40, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`,
+      { ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 17), fontStyle: isMine ? 'bold' : 'normal' }).setOrigin(0.5));
   });
 
   let restarting = false;
@@ -1163,12 +1543,27 @@ function showLeaderboard(scene, topScores, currentName) {
     if (restarting) return;
     restarting = true;
     sound.playButtonClick();
+    modal.destroy();
+    scene.scene.restart();
+    scene.events.once('create', () => {
+      if (menuContainer) menuContainer.destroy();
+      startGameplay(scene);
+    });
+  };
+
+  const toMenu = () => {
+    if (restarting) return;
+    restarting = true;
+    sound.playButtonClick();
+    modal.destroy();
     scene.scene.restart();
   };
 
-  modal.add(createButton(scene, 400, 430, 'NOVA JORNADA', restart));
+  modal.add(createButton(scene, 285, 420, 'NOVA JORNADA', restart, 200, 44));
+  modal.add(createButton(scene, 515, 420, 'MENU INICIAL', toMenu, 200, 44));
+
   scene.time.delayedCall(200, () => {
-    scene.input.keyboard.once('keydown-SPACE', () => { sound.playButtonClick(); restart(); });
-    scene.input.keyboard.once('keydown-ENTER', () => { sound.playButtonClick(); restart(); });
+    scene.input.keyboard.once('keydown-SPACE', restart);
+    scene.input.keyboard.once('keydown-ENTER', restart);
   });
 }
