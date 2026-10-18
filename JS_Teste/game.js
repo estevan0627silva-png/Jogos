@@ -60,21 +60,27 @@ function update() {
   // Zera a velocidade atual a cada frame.
   // Se nenhuma tecla for pressionada, o personagem para imediatamente.
   player.body.setVelocity(0);
+  let dirX = 0;
+  let dirY = 0;
 
   // Leitura horizontal (Esquerda / Direita)
   if (cursors.left.isDown || wasdKeys.left.isDown) {
-    player.body.setVelocityX(-speed);
-  } else if (cursors.right.isDown || wasdKeys.right.isDown) {
-    player.body.setVelocityX(speed);
+    dirX -= 1; // Pressionou esquerda: subtrai 1
+  }
+  if (cursors.right.isDown || wasdKeys.right.isDown) {
+    dirX += 1; // Pressionou direita: soma 1
   }
 
   // Leitura vertical (Cima / Baixo)
-  if (cursors.up.isDown || wasdKeys.up.isDown) {
-    player.body.setVelocityY(-speed);
-  } else if (cursors.down.isDown || wasdKeys.down.isDown) {
-    player.body.setVelocityY(speed);
+ if (cursors.up.isDown || wasdKeys.up.isDown) {
+    dirY -= 1; // Pressionou cima: subtrai 1 (topo da tela é Y negativo)
+  }
+  if (cursors.down.isDown || wasdKeys.down.isDown) {
+    dirY += 1; // Pressionou baixo: soma 1 (base da tela é Y positivo)
   }
 
+  player.body.setVelocityX(dirX * speed);
+  player.body.setVelocityY(dirY * speed);
   // Normalização vetorial:
   // Se o jogador andar na diagonal, mantém a velocidade exatamente em 280,
   // impedindo a vantagem de ~41% de aceleração pela hipotenusa.
