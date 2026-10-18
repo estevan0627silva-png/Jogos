@@ -4,6 +4,41 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.9.5] - 2026-10-18 (Tela de Capa 800x600, Música de Menu, Rochas Arredondadas & Ajuste de HUD)
+### 🎨 Menu Principal de Tela Completa ("Capa de Jogo" 800x600)
+- **Cena Épica de Capa (`showMainMenu`)**: Substituído o modal pop-up por uma ilustração completa de tela inteira (`800x600`) digna de capa de RPG medieval:
+  - **O Reino ao Horizonte**: Céu crepuscular em degradê com constelações, Lua Cheia dourada, cordilheira de montanhas e a silhueta imperial do **Castelo do Reino** com torres, estandartes e janelas acesas.
+  - **Caminho Sinuoso & Elementos de Mapa**: Estrada real que serpenteia dos portões do castelo até o primeiro plano, com trilha cartográfica tracejada, marcos de batalha e placa de encruzilhada.
+  - **Cavaleiro com as 3 Relíquias (`drawKnightBanner`)**: O Cavaleiro Heróico agora exibe simultaneamente a **Espada Vorpal** erguida, o **Escudo de Aço** empunhado no braço e o **Arco Real** com aljava nas costas, além de uma vitrine das 3 relíquias na base da capa.
+  - **Inimigos Derrotados no Caminho**: Um Guerreiro de Armadura e um Goblin caídos à beira da estrada com uma flecha cravada, contando a história do combate.
+- **Trilha Sonora Medieval de Menu (`MENU_MELODY` & `startMenuBGM`)**:
+  - Nova composição sintetizada via Web Audio API em Lá Dórico/Menor com timbre suave de harpa/alaúde real (~88 BPM) exclusiva para os menus, transicionando automaticamente para a marcha heróica de batalha ao iniciar o jogo.
+
+### 🪨 Rochas Arredondadas em 2 Versões (`drawRock`)
+- **Design Arredondado (Direção de Arte)**: Eliminada a base reta chapada das pedras em favor de um contorno oval/esférico com chanfrado nas bordas inferiores e brilho zenital no topo.
+- **Duas Variantes na Mesma Spritesheet (`rock`, 2 frames)**:
+  - **Frame 0**: Rocha arredondada **lisa** (mineral polido com fissuras).
+  - **Frame 1**: Rocha arredondada **com musgo** (vegetação de fantasia medieval nos relevos).
+
+### ⏱️ Centralização do Contador de Segundos no HUD (`createHUD` / `updateItemHUD`)
+- **Alinhamento Harmônico no Painel de Relíquias**: Barra gráfica ampliada para `114px` (`x: 328..442`) e contador numérico reposicionado em `x = 474, y = 35.5` com origem centralizada (`0.5, 0.5`), garantindo margem interna confortável sem nunca encostar na borda direita do painel.
+
+---
+
+## [v0.9.4] - 2026-10-18 (Desvio Suave de Obstáculos & Rochas Medievais no Caminho)
+### 🛡️ Física Suave & Fim da "Cuspida" (`separatePlayerFromObstacle`)
+- **Deslocamento Gradual e Contínuo**: Substituído o salto instantâneo de posição (`oy + 2`) por um passo de esmagamento suave (`squeezeStep = Math.min(oy, 2.4)` pixels por quadro). O jogador agora sente a pressão física do obstáculo empurrando-o aos poucos para o lado, sem sobressaltos ou perda de controle.
+- **Prioridade e Autonomia do Jogador**: Se o jogador estiver pressionando `W` / `Seta Cima` ou `S` / `Seta Baixo`, o sistema direciona o desvio para a direção desejada pelo próprio jogador, permitindo direcionar ativamente a fuga.
+- **Proteção Completa contra Empurrar Obstáculos**: Obstáculos mantêm seu eixo vertical travado (`lockedY`) e continuam seu percurso pela tela sem nunca serem parados ou carregados pelo cavaleiro.
+
+### 🪨 Novos Obstáculos: Rochas Medievais com Musgo (`drawRock` & `spawnRock`)
+- **Arte em Pixel Art 16-bit**: Novas rochas desenhadas proceduralmente com tons de ardósia mineral, facetas lapidadas iluminadas e tufos de musgo verde de fantasia medieval.
+- **Obstáculo no Caminho Central**: As rochas nascem periodicamente no caminho/estrada (`y: 290-370`), preenchendo a área central do mapa e criando percursos dinâmicos de navegação.
+- **Cobertura Tática de Combate**: Assim como as árvores, as rochas bloqueiam projéteis de ambos os lados. Flechas que colidem com uma rocha produzem faíscas e o som metálico/mineral de bloqueio (`playShieldBlock`), servindo de escudo estratégico contra arqueiros élficos.
+- **Integração Unificada (`obstacles`)**: Árvores e rochas foram unificadas no grupo físico `obstacles`, otimizando a lógica de colisão, culling e renderização de sombras.
+
+---
+
 ## [v0.9.3] - 2026-10-18 (Correção de Colisão de Árvores, Postura do Cavaleiro & Polimento de Jogabilidade)
 ### 🐛 Correções Críticas de Jogabilidade
 - **Eliminação do Bug de "Carregar Árvores" (`separatePlayerFromTree`)**:

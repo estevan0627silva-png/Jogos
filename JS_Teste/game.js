@@ -51,7 +51,7 @@ const C = {
 // =============================================================================
 let player, shieldSprite, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, playerBuffBar, enemyHpBars;
-let enemies, trees, items, playerArrows, enemyArrows, slashes;
+let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes;
 let hudContainer, hudGloryText, hudBestText;
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
 let menuContainer, pauseModal;
@@ -112,6 +112,25 @@ const BGM_BASS = [
   82.41, 82.41, 123.47, 82.41, 82.41, 103.83, 110.00, 164.81
 ];
 
+// Tema Medieval do Menu Principal (Harpa & Alaúde Real em Lá Dórico/Menor)
+const MENU_MELODY = [
+  // Compasso 1 (Am) - O Reino ao Horizonte
+  329.63, 440.00, 523.25, 659.25, 587.33, 523.25, 493.88, 0,
+  // Compasso 2 (G / Em) - Brisa nas Montanhas
+  392.00, 493.88, 587.33, 493.88, 440.00, 392.00, 329.63, 0,
+  // Compasso 3 (F / Dm) - As Três Relíquias Sagradas
+  349.23, 440.00, 523.25, 698.46, 659.25, 587.33, 523.25, 493.88,
+  // Compasso 4 (E / Am) - O Juramento do Cavaleiro
+  440.00, 329.63, 415.30, 493.88, 440.00, 0, 440.00, 0
+];
+
+const MENU_BASS = [
+  110.00, 0, 164.81, 0, 110.00, 0, 164.81, 0,
+  98.00,  0, 146.83, 0, 82.41,  0, 123.47, 0,
+  87.31,  0, 130.81, 0, 73.42,  0, 110.00, 0,
+  82.41,  0, 123.47, 0, 110.00, 0, 110.00, 0
+];
+
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -122,6 +141,7 @@ class SoundSystem {
     this.noiseBuffer = null;
     this.bgmTimer = null;
     this.bgmPlaying = false;
+    this.bgmMode = 'battle';
     this.nextStepTime = 0;
     this.currentStep = 0;
 
@@ -133,6 +153,17 @@ class SoundSystem {
           if (this.ctx && this.ctx.state === 'suspended' && this.bgmPlaying) this.ctx.resume();
         }
       });
+
+      // Destrava o AudioContext do navegador no primeiro clique ou tecla na tela de menu
+      const unlockAudio = () => {
+        if (gameState === 'MENU' && !this.bgmPlaying) {
+          this.startMenuBGM();
+        } else if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      };
+      window.addEventListener('pointerdown', unlockAudio);
+      window.addEventListener('keydown', unlockAudio);
     }
   }
 
@@ -183,14 +214,26 @@ class SoundSystem {
     return this.noiseBuffer;
   }
 
-  // --- TRILHA SONORA (BGM) ---
-  startBGM() {
-    if (this.bgmPlaying) return;
+  // --- TRILHA SONORA (BGM DE BATALHA & BGM DE MENU) ---
+  startBGM(mode = 'battle') {
+    if (this.bgmPlaying && this.bgmMode === mode) return;
     if (!this.ensureContext()) return;
+    if (this.bgmTimer) {
+      clearTimeout(this.bgmTimer);
+      this.bgmTimer = null;
+    }
+    this.bgmMode = mode;
     this.bgmPlaying = true;
     this.currentStep = 0;
+    if (this.bgmGain && !this.muted) {
+      this.bgmGain.gain.setValueAtTime(mode === 'menu' ? 0.12 : 0.14, this.ctx.currentTime);
+    }
     this.nextStepTime = this.ctx.currentTime + 0.05;
     this.scheduleBGM();
+  }
+
+  startMenuBGM() {
+    this.startBGM('menu');
   }
 
   stopBGM() {
@@ -222,7 +265,7 @@ class SoundSystem {
       this.nextStepTime = this.ctx.currentTime + 0.05;
     }
     const lookahead = 0.25;
-    const stepDur = 0.23; // ritmo de marcha heróica (~130 BPM)
+    const stepDur = this.bgmMode === 'menu' ? 0.34 : 0.23; // menu sereno (~88 BPM) vs marcha de combate (~130 BPM)
 
     while (this.nextStepTime < this.ctx.currentTime + lookahead) {
       this.playBGMStep(this.currentStep, this.nextStepTime, stepDur);
@@ -235,9 +278,12 @@ class SoundSystem {
 
   playBGMStep(step, time, dur) {
     if (this.muted) return;
+    const isMenu = this.bgmMode === 'menu';
+    const melodyArr = isMenu ? MENU_MELODY : BGM_MELODY;
+    const bassArr = isMenu ? MENU_BASS : BGM_BASS;
 
-    // 1. Melodia (onda triangular aveludada com filtro retrô)
-    const note = BGM_MELODY[step];
+    // 1. Melodia (harpa/alaúde ressonante no menu; onda triangular heróica na batalha)
+    const note = melodyArr[step];
     if (note > 0) {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -245,65 +291,69 @@ class SoundSystem {
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(note, time);
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(2200, time);
+      filter.frequency.setValueAtTime(isMenu ? 1700 : 2200, time);
+      const noteDur = isMenu ? dur * 1.45 : dur * 0.9;
       gain.gain.setValueAtTime(0.001, time);
-      gain.gain.linearRampToValueAtTime(0.32, time + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.9);
+      gain.gain.linearRampToValueAtTime(isMenu ? 0.28 : 0.32, time + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + noteDur);
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.bgmGain);
       osc.start(time);
-      osc.stop(time + dur * 0.95);
+      osc.stop(time + noteDur + 0.02);
     }
 
-    // 2. Baixo pulsante (sawtooth com filtro passa-baixas quente)
-    const bass = BGM_BASS[step];
+    // 2. Baixo (bordão suave de alaúde no menu; sawtooth pulsante na batalha)
+    const bass = bassArr[step];
     if (bass > 0) {
       const bOsc = this.ctx.createOscillator();
       const bGain = this.ctx.createGain();
       const bFilter = this.ctx.createBiquadFilter();
-      bOsc.type = 'sawtooth';
+      bOsc.type = isMenu ? 'sine' : 'sawtooth';
       bOsc.frequency.setValueAtTime(bass, time);
       bFilter.type = 'lowpass';
-      bFilter.frequency.setValueAtTime(400, time);
+      bFilter.frequency.setValueAtTime(isMenu ? 320 : 400, time);
+      const bassDur = isMenu ? dur * 1.7 : dur * 0.85;
       bGain.gain.setValueAtTime(0.001, time);
-      bGain.gain.linearRampToValueAtTime(0.28, time + 0.01);
-      bGain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.85);
+      bGain.gain.linearRampToValueAtTime(isMenu ? 0.30 : 0.28, time + 0.015);
+      bGain.gain.exponentialRampToValueAtTime(0.001, time + bassDur);
       bOsc.connect(bFilter);
       bFilter.connect(bGain);
       bGain.connect(this.bgmGain);
       bOsc.start(time);
-      bOsc.stop(time + dur * 0.9);
+      bOsc.stop(time + bassDur + 0.02);
     }
 
-    // 3. Percussão retrô (bumbo nos tempos fortes, caixa nos contratempos)
-    if (step % 4 === 0) {
-      const kick = this.ctx.createOscillator();
-      const kGain = this.ctx.createGain();
-      kick.type = 'sine';
-      kick.frequency.setValueAtTime(110, time);
-      kick.frequency.exponentialRampToValueAtTime(30, time + 0.07);
-      kGain.gain.setValueAtTime(0.3, time);
-      kGain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
-      kick.connect(kGain);
-      kGain.connect(this.bgmGain);
-      kick.start(time);
-      kick.stop(time + 0.07);
-    } else if (step % 4 === 2) {
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = this.getNoiseBuffer();
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(1400, time);
-      filter.Q.setValueAtTime(1.8, time);
-      const sGain = this.ctx.createGain();
-      sGain.gain.setValueAtTime(0.16, time);
-      sGain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
-      noise.connect(filter);
-      filter.connect(sGain);
-      sGain.connect(this.bgmGain);
-      noise.start(time);
-      noise.stop(time + 0.06);
+    // 3. Percussão retrô (apenas durante o combate)
+    if (!isMenu) {
+      if (step % 4 === 0) {
+        const kick = this.ctx.createOscillator();
+        const kGain = this.ctx.createGain();
+        kick.type = 'sine';
+        kick.frequency.setValueAtTime(110, time);
+        kick.frequency.exponentialRampToValueAtTime(30, time + 0.07);
+        kGain.gain.setValueAtTime(0.3, time);
+        kGain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+        kick.connect(kGain);
+        kGain.connect(this.bgmGain);
+        kick.start(time);
+        kick.stop(time + 0.07);
+      } else if (step % 4 === 2) {
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = this.getNoiseBuffer();
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1400, time);
+        filter.Q.setValueAtTime(1.8, time);
+        const sGain = this.ctx.createGain();
+        sGain.gain.setValueAtTime(0.16, time);
+        sGain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+        noise.connect(filter);
+        filter.connect(sGain);
+        sGain.connect(this.bgmGain);
+        noise.start(time);
+        noise.stop(time + 0.06);
+      }
     }
   }
 
@@ -651,6 +701,49 @@ function drawTree(r) {
   r(C.leafLight, 7, 4, 5, 2); r(C.leafLight, 5, 7, 3, 2); r(C.leafLight, 14, 6, 3, 2); // brilhos
 }
 
+function drawRock(r, f) {
+  // 1. Sombra e base arredondada (estreita na base, sem linha reta chapada)
+  r(C.ironDark, 4, 10, 8, 1);  // base inferior curvada
+  r(C.ironDark, 3, 9, 10, 1);   // transição inferior
+  r(C.ironDark, 2, 7, 12, 2);   // base sombreada
+
+  // 2. Corpo rochoso médio arredondado (ardósia/granito)
+  r(C.iron, 2, 4, 12, 3);
+  r(C.iron, 1, 5, 1, 3);        // curvatura esquerda
+  r(C.iron, 14, 5, 1, 3);       // curvatura direita
+
+  // 3. Meia-luz e relevo superior arredondado
+  r(C.steelDark, 3, 2, 10, 3);
+  r(C.steelDark, 2, 3, 1, 2);
+  r(C.steelDark, 13, 3, 1, 2);
+
+  // 4. Domo superior e brilho zenital esférico
+  r(C.steel, 4, 1, 8, 2);
+  r(C.steelLight, 6, 1, 4, 1);  // ponto alto de luz
+  r(C.white, 7, 2, 2, 1);       // brilho especular sutil
+
+  // 5. Fissuras e veios minerais escuros
+  r(C.ironDark, 6, 4, 1, 3);
+  r(C.ironDark, 7, 6, 2, 1);
+  r(C.ironDark, 11, 6, 1, 2);
+
+  // Frame 1: Versão com Musgo de Fantasia Medieval (Frame 0 é a pedra lisa arredondada)
+  if (f === 1) {
+    r(C.leafDark, 2, 3, 3, 2);
+    r(C.leaf, 3, 3, 2, 2);
+    r(C.leafLight, 3, 2, 1, 1);
+
+    r(C.leafDark, 9, 2, 4, 2);
+    r(C.leaf, 10, 2, 3, 1);
+    r(C.leafLight, 11, 1, 2, 1);
+
+    r(C.leafDark, 1, 6, 2, 2);
+    r(C.leaf, 1, 7, 1, 1);
+    r(C.leafDark, 13, 6, 2, 2);
+    r(C.leaf, 13, 7, 1, 1);
+  }
+}
+
 function drawShieldIcon(r) {
   r(C.gold, 1, 1, 7, 6); r(C.gold, 2, 7, 5, 2); r(C.gold, 3, 9, 3, 1);
   r(C.blue, 2, 2, 5, 5); r(C.blue, 3, 7, 3, 1);
@@ -725,24 +818,44 @@ function drawHorn(r, f) {
   }
 }
 
+// Cavaleiro Heróico para a Capa (equipado com Arco Real nas costas, Escudo de Aço e Espada Vorpal)
 function drawKnightBanner(r) {
+  // Arco Real e aljava presos às costas (visíveis sobre o ombro esquerdo)
+  r(C.wood, 4, 3, 2, 1); r(C.wood, 3, 4, 1, 5); r(C.gold, 4, 2, 1, 1);
+  r(C.white, 5, 4, 1, 5); // corda do arco
+  r(C.woodDark, 6, 5, 2, 4); r(C.red, 6, 3, 1, 2); r(C.red, 8, 4, 1, 1); // aljava e penas das flechas
+
+  // Pluma e Elmo Real
   r(C.red, 10, 1, 5, 2); r(C.red, 9, 2, 6, 2); r(C.darkRed, 14, 3, 3, 2);
   r(C.steel, 9, 4, 7, 6); r(C.steelLight, 10, 4, 3, 2);
   r(C.steelDark, 9, 9, 7, 1);
   r(C.outline, 11, 7, 4, 1); r(C.outline, 12, 8, 2, 2);
-  r(C.darkRed, 5, 10, 4, 14); r(C.red, 6, 12, 3, 10);
+
+  // Capa esvoaçante e Armadura
+  r(C.darkRed, 4, 10, 5, 14); r(C.red, 5, 12, 4, 10);
   r(C.steel, 6, 10, 4, 3); r(C.steelLight, 7, 10, 2, 1);
   r(C.steel, 15, 10, 4, 3); r(C.steelLight, 16, 10, 2, 1);
   r(C.steel, 9, 10, 7, 8);
   r(C.blue, 10, 10, 5, 8);
   r(C.gold, 12, 11, 1, 6); r(C.gold, 11, 13, 3, 1);
   r(C.woodDark, 9, 17, 7, 2); r(C.gold, 12, 17, 1, 2);
+
+  // Braços
   r(C.steelDark, 6, 13, 3, 4); r(C.steel, 6, 17, 3, 2);
   r(C.steelDark, 16, 13, 3, 4); r(C.steel, 16, 17, 3, 2);
-  r(C.steelLight, 19, 4, 2, 17); r(C.steel, 20, 4, 1, 17);
-  r(C.gold, 17, 10, 5, 2);
+
+  // Escudo de Aço Sagrado empunhado no braço esquerdo
+  r(C.gold, 2, 12, 6, 6); r(C.gold, 3, 18, 4, 2);
+  r(C.blue, 3, 13, 4, 5); r(C.blue, 4, 18, 2, 1);
+  r(C.white, 4, 13, 2, 5); r(C.cyan, 3, 15, 4, 1);
+
+  // Espada Vorpal erguida na mão direita
+  r(C.steelLight, 19, 3, 2, 16); r(C.cyan, 19, 3, 1, 14); r(C.steel, 20, 4, 1, 15);
+  r(C.gold, 17, 10, 6, 2);
   r(C.woodDark, 19, 8, 2, 2);
   r(C.gold, 19, 7, 2, 1);
+
+  // Grevas e Botas
   r(C.steelDark, 9, 19, 3, 6); r(C.steelLight, 9, 20, 1, 3);
   r(C.steelDark, 13, 19, 3, 6); r(C.steelLight, 13, 20, 1, 3);
   r(C.woodDark, 8, 24, 4, 2); r(C.woodDark, 13, 24, 4, 2);
@@ -808,6 +921,7 @@ function preload() {
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
+  makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
   makeSheet(this, 'sword_blade', 12, 40, 1, drawBlade);
   makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blue, C.steelLight));
@@ -856,14 +970,16 @@ function create(data) {
 
   // Grupos físicos
   enemies = scene.physics.add.group();
-  trees = scene.physics.add.group({ immovable: true });
+  obstacles = trees = scene.physics.add.group({ immovable: true });
   items = scene.physics.add.group();
   playerArrows = scene.physics.add.group();
   enemyArrows = scene.physics.add.group();
   slashes = scene.physics.add.group();
 
-  // Árvores iniciais espalhadas
+  // Obstáculos iniciais espalhados (árvores nas bordas e pedras lisa/musgo na estrada)
   for (let x = 320; x <= 800; x += 120) spawnTree(x);
+  spawnRock(460, 0);
+  spawnRock(700, 1);
 
   // Jogador (limitado à área entre as florestas)
   scene.physics.world.setBounds(0, 95, 800, 455);
@@ -903,8 +1019,8 @@ function create(data) {
 
   createHUD(scene);
 
-  // Colisões do jogador (separação customizada nas árvores impede empurrar/carregar árvores)
-  scene.physics.add.overlap(player, trees, (p, t) => separatePlayerFromTree(p, t));
+  // Colisões do jogador (separação suave nos obstáculos sem trancos ou cuspidas)
+  scene.physics.add.overlap(player, obstacles, (p, o) => separatePlayerFromObstacle(p, o));
   scene.physics.add.overlap(player, enemies, (p, e) => playerHit(scene, e));
   scene.physics.add.overlap(player, enemyArrows, (p, a) => playerHit(scene, a));
   scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
@@ -925,17 +1041,22 @@ function create(data) {
   scene.physics.add.overlap(slashes, enemyArrows, (s, a) => { sound.playShieldBlock(); a.destroy(); });
   scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => { sound.playShieldBlock(); a.destroy(); b.destroy(); });
 
-  // Árvores servem de cobertura: bloqueiam flechas (som só quando visível na tela)
-  const hitTree = (arrow, tree) => {
+  // Obstáculos (árvores e rochas) servem de cobertura: bloqueiam flechas
+  const hitObstacle = (arrow, obs) => {
     if (!arrow.active) return;
-    if (arrow.x > 0 && arrow.x < 800 && tree.x < 810) {
-      sound.playWoodHit();
-      hitFx.explode(4, arrow.x, arrow.y);
+    if (arrow.x > 0 && arrow.x < 800 && obs.x < 810) {
+      if (obs.obstacleType === 'rock') {
+        sound.playShieldBlock();
+        hitFx.explode(6, arrow.x, arrow.y);
+      } else {
+        sound.playWoodHit();
+        hitFx.explode(4, arrow.x, arrow.y);
+      }
     }
     arrow.destroy();
   };
-  scene.physics.add.overlap(playerArrows, trees, hitTree);
-  scene.physics.add.overlap(enemyArrows, trees, hitTree);
+  scene.physics.add.overlap(playerArrows, obstacles, hitObstacle);
+  scene.physics.add.overlap(enemyArrows, obstacles, hitObstacle);
 
   if (data && data.autoStart) {
     startGameplay(scene);
@@ -961,17 +1082,17 @@ function updateMenuBackground(dt) {
   road.tilePositionX += scrollSpeed * dt;
   forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
   forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
-  trees.setVelocityX(-scrollSpeed);
+  obstacles.setVelocityX(-scrollSpeed);
 }
 
 function updateGameplay(scene, time, dt) {
-  // 1. Mundo rolando: chão, estrada e árvores andam JUNTOS (nada desliza)
+  // 1. Mundo rolando: chão, estrada e obstáculos andam JUNTOS (nada desliza)
   const worldSpeed = enemySpeed * 0.6;
   ground.tilePositionX += worldSpeed * dt;
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
   forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
-  trees.setVelocityX(-worldSpeed);
+  obstacles.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
 
   // 2. Cavaleiro: 8 direções com velocidade normalizada, SEMPRE olhando para a frente
@@ -1008,32 +1129,48 @@ function updateGameplay(scene, time, dt) {
   // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir)
   const cull = (group, isOut) => group.getChildren().slice().forEach(s => { if (isOut(s)) removeEntity(s); });
   cull(enemies, s => s.x < -60);
-  cull(trees, s => s.x < -60);
+  cull(obstacles, s => s.x < -60);
   cull(items, s => s.x < -60);
   cull(playerArrows, s => s.x < 0 || s.x > 800);
   cull(enemyArrows, s => s.x < -40 || s.y < 0 || s.y > 620);
 }
 
-// Impede o jogador de atravessar o tronco E impede que a árvore seja movida/carregada
-function separatePlayerFromTree(p, t) {
-  if (!p.active || !t.active) return;
-  if (t.lockedY !== undefined) t.y = t.lockedY;
-  t.body.velocity.y = 0;
+// Impede o jogador de atravessar obstáculos e resolve prensamento de forma suave (sem trancos ou cuspidas)
+function separatePlayerFromObstacle(p, obs) {
+  if (!p.active || !obs.active) return;
+  if (obs.lockedY !== undefined) obs.y = obs.lockedY;
+  obs.body.velocity.y = 0;
 
-  const pb = p.body, tb = t.body;
-  const ox = Math.min(pb.right, tb.right) - Math.max(pb.left, tb.left);
-  const oy = Math.min(pb.bottom, tb.bottom) - Math.max(pb.top, tb.top);
+  const pb = p.body, ob = obs.body;
+  const ox = Math.min(pb.right, ob.right) - Math.max(pb.left, ob.left);
+  const oy = Math.min(pb.bottom, ob.bottom) - Math.max(pb.top, ob.top);
   if (ox <= 0 || oy <= 0) return;
 
-  // Se o jogador ficar prensado entre o limite esquerdo da tela e a árvore,
-  // desliza o cavaleiro verticalmente para contornar o tronco sem nunca carregar a árvore
-  if (pb.left <= 16 && pb.center.x <= tb.center.x) {
-    const slideDir = pb.center.y < tb.center.y ? -1 : 1;
-    p.y = Phaser.Math.Clamp(p.y + slideDir * (oy + 2), 106, 539);
+  // Direção do desvio: respeita a intenção do jogador (W/S) ou desvia pelo lado mais próximo do centro
+  let slideDir = (keys.W.isDown || cursors.up.isDown) ? -1 :
+                 (keys.S.isDown || cursors.down.isDown) ? 1 :
+                 (pb.center.y < ob.center.y ? -1 : 1);
+  if (p.y <= 112) slideDir = 1;
+  else if (p.y >= 533) slideDir = -1;
+
+  // 1. Jogador espremido contra a borda esquerda pelo obstáculo que avança
+  if (pb.left <= 18 && pb.center.x <= ob.center.x) {
+    // Espreme e empurra aos poucos para o lado de forma suave (sem teleportar/cuspir o jogador)
+    const squeezeStep = Math.min(oy, 2.4);
+    p.y = Phaser.Math.Clamp(p.y + slideDir * squeezeStep, 106, 539);
+    p.x = Math.max(16, pb.width / 2);
   } else if (ox < oy) {
-    p.x = Phaser.Math.Clamp(p.x + (pb.center.x < tb.center.x ? -ox : ox), 8, 792);
+    // 2. Colisão horizontal padrão
+    if (pb.center.x < ob.center.x) {
+      p.x = Phaser.Math.Clamp(p.x - ox, 16, 792);
+      // Leve arredondamento suave ao encostar na frente do obstáculo
+      if (oy > 2) p.y = Phaser.Math.Clamp(p.y + slideDir * Math.min(oy, 1.4), 106, 539);
+    } else {
+      p.x = Phaser.Math.Clamp(p.x + ox, 16, 792);
+    }
   } else {
-    p.y = Phaser.Math.Clamp(p.y + (pb.center.y < tb.center.y ? -oy : oy), 106, 539);
+    // 3. Colisão vertical padrão
+    p.y = Phaser.Math.Clamp(p.y + (pb.center.y < ob.center.y ? -oy : oy), 106, 539);
   }
   pb.updateFromGameObject();
 }
@@ -1050,9 +1187,9 @@ function sortAndShade() {
     shadows.fillEllipse(s.x, feet - 2, s.displayWidth * 0.7, 8);
   };
 
-  trees.getChildren().forEach(t => {
-    if (t.lockedY !== undefined) t.y = t.lockedY;
-    shadeEntity(t);
+  obstacles.getChildren().forEach(o => {
+    if (o.lockedY !== undefined) o.y = o.lockedY;
+    shadeEntity(o);
   });
 
   if (gameState === 'PLAYING' || gameState === 'PAUSED') {
@@ -1124,6 +1261,7 @@ function startGameplay(scene) {
   });
   every(5000, () => spawnItem(scene));
   every(900, () => spawnTree());
+  every(2400, () => spawnRock());
 
   const nextEnemy = () => {
     if (gameState !== 'PLAYING') return;
@@ -1189,30 +1327,49 @@ function elfShoot(scene, elf) {
   });
 }
 
-// Árvores nascem fora da estrada e sem encostar umas nas outras
+// Árvores nascem na vegetação fora da estrada
 function spawnTree(x = 880) {
   for (let i = 0; i < 6; i++) {
     const y = Phaser.Math.Between(150, 510);
-    const onRoad = y > 255 && y < 365;
-    const crowded = trees.getChildren().some(t => Math.abs(t.x - x) < 110 && Math.abs(t.y - y) < 100);
+    const onRoad = y > 265 && y < 395;
+    const crowded = obstacles.getChildren().some(o => Math.abs(o.x - x) < 110 && Math.abs(o.y - y) < 90);
     if (onRoad || crowded) continue;
-    const tree = trees.create(x, y, 'tree');
+    const tree = obstacles.create(x, y, 'tree');
     tree.setImmovable(true);
     tree.body.pushable = false;
     tree.lockedY = y;
+    tree.obstacleType = 'tree';
     tree.body.setSize(12, 14).setOffset(18, 46); // colisão firme no tronco
     return;
   }
 }
 
-// Item flutua e pulsa para chamar atenção (evita nascer preso em tronco de árvore)
+// Rochas medievais arredondadas no caminho/estrada (Frame 0: lisa | Frame 1: com musgo)
+function spawnRock(x = 880, variant) {
+  for (let i = 0; i < 6; i++) {
+    const y = Phaser.Math.Between(290, 370);
+    const crowded = obstacles.getChildren().some(o => Math.abs(o.x - x) < 130 && Math.abs(o.y - y) < 40);
+    if (crowded) continue;
+    const frame = variant !== undefined ? variant : (Math.random() < 0.5 ? 0 : 1);
+    const rock = obstacles.create(x, y, 'rock', frame);
+    rock.setImmovable(true);
+    rock.body.pushable = false;
+    rock.lockedY = y;
+    rock.groundY = y + 7;
+    rock.obstacleType = 'rock';
+    rock.body.setSize(20, 14).setOffset(6, 8);
+    return;
+  }
+}
+
+// Item flutua e pulsa para chamar atenção (evita nascer dentro de obstáculos)
 function spawnItem(scene) {
   const type = Phaser.Utils.Array.GetRandom(['bow', 'shield', 'sword']);
   let y = Phaser.Math.Between(140, 510);
   for (let i = 0; i < 6; i++) {
     const candidate = Phaser.Math.Between(140, 510);
-    const nearTree = trees.getChildren().some(t => Math.abs(t.x - 860) < 95 && Math.abs((t.y + 20) - candidate) < 48);
-    if (!nearTree) { y = candidate; break; }
+    const nearObstacle = obstacles.getChildren().some(o => Math.abs(o.x - 860) < 90 && Math.abs(o.y - candidate) < 42);
+    if (!nearObstacle) { y = candidate; break; }
   }
   const item = items.create(860, y, 'item_' + type);
   item.lootType = type;
@@ -1406,7 +1563,8 @@ function createHUD(scene) {
   hudItemIcon = scene.add.image(301, 34, 'item_bow').setVisible(false);
   hudItemName = scene.add.text(328, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 12));
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(485, 33, '', textStyle('#ffca28', 11)).setOrigin(0, 0.5);
+  // Centralizado na área direita interna do painel (entre o fim da barra em 442 e a borda em 506)
+  hudItemTime = scene.add.text(474, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
   hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime]);
 
   // 3. PAINEL DE RECORDE DO REINO — Canto Superior Direito
@@ -1435,6 +1593,7 @@ function createHUD(scene) {
     sound.toggleMute();
     sound.playButtonClick();
     hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+    if (menuContainer && menuContainer.updateMenuHorn) menuContainer.updateMenuHorn();
   };
 
   soundHitArea.on('pointerover', () => drawSoundBtn(true));
@@ -1446,6 +1605,7 @@ function createHUD(scene) {
     sound.toggleMute();
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
     if (pauseModal && pauseModal.updateAudio) pauseModal.updateAudio();
+    if (menuContainer && menuContainer.updateMenuHorn) menuContainer.updateMenuHorn();
   });
 
   hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea]);
@@ -1473,7 +1633,7 @@ function updateItemHUD() {
 
   const maxTime = BUFF_TIME[buff.type] || 6;
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
-  const barW = 92;
+  const barW = 114;
   const barH = 7;
   const barX = 328;
   const barY = 32;
@@ -1585,23 +1745,241 @@ function restartScene(scene, autoStart = false) {
 }
 
 // -----------------------------------------------------------------------------
-// MENU PRINCIPAL (TELA INICIAL COM CAVALEIRO HERÓICO)
+// MENU PRINCIPAL DE TELA COMPLETA (CAPA DE JOGO 800x600)
 // -----------------------------------------------------------------------------
 function showMainMenu(scene) {
   if (menuContainer) menuContainer.destroy();
-  menuContainer = createModal(scene, 'A JORNADA DO CAVALEIRO', 520, '★ CRÔNICAS DE SOBREVIVÊNCIA ★', 520);
+  sound.startMenuBGM();
 
-  // Sombra e ilustração do Cavaleiro Heróico com respiração animada
-  const pedShadow = scene.add.graphics().fillStyle(0x000000, 0.4).fillEllipse(400, 240, 64, 14);
-  const heroBanner = scene.add.image(400, 182, 'knight_banner').setScale(1.4);
+  menuContainer = scene.add.container(0, 0).setDepth(3000);
+  const art = scene.add.graphics();
+
+  // 1. CÉU CREPUSCULAR DO REINO (Degradê em faixas de Pixel Art)
+  const skyBands = [
+    [0, 55, 0x090d1c],
+    [55, 50, 0x121b36],
+    [105, 45, 0x1f2247],
+    [150, 45, 0x38234a],
+    [195, 40, 0x5e2f3d],
+    [235, 35, 0x8c492b],
+    [270, 30, 0xb86b35]
+  ];
+  skyBands.forEach(([y, h, color]) => art.fillStyle(color, 1).fillRect(0, y, 800, h));
+
+  // Estrelas e Constelação da Espada no céu
+  const starCoords = [
+    [55, 30], [115, 65], [180, 28], [260, 48], [340, 25], [440, 42], [510, 70],
+    [690, 35], [750, 68], [85, 118], [155, 102], [295, 95], [480, 108], [735, 115]
+  ];
+  starCoords.forEach(([sx, sy], i) => {
+    art.fillStyle(i % 3 === 0 ? 0xffeb3b : 0xffffff, 0.85).fillRect(sx, sy, i % 2 === 0 ? 3 : 2, i % 2 === 0 ? 3 : 2);
+  });
+  // Linhas de constelação estilo mapa astral
+  art.lineStyle(1, 0x7fe7ff, 0.22);
+  art.lineBetween(55, 30, 115, 65);
+  art.lineBetween(115, 65, 180, 28);
+  art.lineBetween(180, 28, 260, 48);
+
+  // Lua Cheia Dourada atrás do Castelo Real
+  art.fillStyle(0xffca28, 0.12).fillCircle(610, 145, 76);
+  art.fillStyle(0xffca28, 0.24).fillCircle(610, 145, 54);
+  art.fillStyle(0xfff3c4, 0.96).fillCircle(610, 145, 36);
+  art.fillStyle(0xf2c14e, 0.45).fillCircle(622, 136, 8).fillCircle(598, 154, 11);
+
+  // 2. CORDILHEIRA DE MONTANHAS & CASTELO DO REINO AO HORIZONTE
+  // Montanhas distantes
+  art.fillStyle(0x1b152b, 1);
+  art.fillTriangle(-20, 285, 130, 155, 290, 285);
+  art.fillTriangle(190, 285, 355, 170, 510, 285);
+  art.fillTriangle(430, 285, 605, 140, 770, 285);
+  art.fillTriangle(640, 285, 760, 180, 840, 285);
+
+  // Face iluminada das montanhas
+  art.fillStyle(0x2c2240, 1);
+  art.fillTriangle(130, 155, 210, 285, 290, 285);
+  art.fillTriangle(355, 170, 430, 285, 510, 285);
+
+  // Silhueta Imperial do Castelo do Reino (no topo da montanha direita, x: 545..675)
+  const cx = 555, cy = 148;
+  art.fillStyle(0x120d1d, 1);
+  art.fillRect(cx, cy + 32, 110, 65);          // muralha principal
+  art.fillRect(cx - 12, cy + 16, 24, 80);      // torre oeste
+  art.fillRect(cx + 98, cy + 16, 24, 80);      // torre leste
+  art.fillRect(cx + 35, cy - 12, 40, 108);     // torre de menagem central
+  art.fillRect(cx + 18, cy + 6, 18, 90);       // torre interna esquerda
+  art.fillRect(cx + 74, cy + 6, 18, 90);       // torre interna direita
+
+  // Telhados cônicos reais e ameias
+  art.fillStyle(0x2f6fd6, 1);
+  art.fillTriangle(cx - 16, cy + 16, cx, cy - 6, cx + 16, cy + 16);
+  art.fillTriangle(cx + 94, cy + 16, cx + 110, cy - 6, cx + 126, cy + 16);
+  art.fillTriangle(cx + 30, cy - 12, cx + 55, cy - 44, cx + 80, cy - 12);
+
+  // Estandartes reais vermelhos e dourados no topo das torres
+  art.lineStyle(2, 0xc5a059, 1);
+  art.lineBetween(cx + 55, cy - 44, cx + 55, cy - 58);
+  art.fillStyle(0xd83a3a, 1).fillTriangle(cx + 55, cy - 58, cx + 73, cy - 53, cx + 55, cy - 48);
+
+  // Janelas iluminadas e portão do castelo
+  art.fillStyle(0xffeb3b, 0.95);
+  art.fillRect(cx + 51, cy - 2, 8, 14);
+  art.fillRect(cx + 46, cy + 20, 6, 10);
+  art.fillRect(cx + 58, cy + 20, 6, 10);
+  art.fillRect(cx - 3, cy + 28, 6, 10);
+  art.fillRect(cx + 107, cy + 28, 6, 10);
+  // Portão em arco do castelo
+  art.fillStyle(0x3a2414, 1).fillRect(cx + 45, cy + 58, 20, 32);
+  art.fillStyle(0xffa726, 0.7).fillRect(cx + 49, cy + 64, 12, 24);
+
+  // 3. COLINAS VERDES, FLORESTA E O CAMINHO REAL SINUOSO (Com Elementos de Mapa)
+  art.fillStyle(0x16331a, 1).fillRect(0, 265, 800, 335);
+  // Colina intermediária
+  art.fillStyle(0x1f4724, 1);
+  art.fillEllipse(210, 340, 560, 150);
+  art.fillEllipse(620, 355, 520, 140);
+  // Colina frontal
+  art.fillStyle(0x2a5c2f, 1);
+  art.fillEllipse(400, 495, 920, 270);
+
+  // O Caminho Sinuoso saindo do Castelo até o Primeiro Plano
+  const roadPolys = [
+    // Trecho distante (saindo do portão do castelo)
+    { y1: 242, y2: 285, x1L: 602, x1R: 618, x2L: 520, x2R: 552 },
+    // Curva média pelas colinas
+    { y1: 285, y2: 345, x1L: 520, x1R: 552, x2L: 370, x2R: 425 },
+    // Curva chegando ao cavaleiro
+    { y1: 345, y2: 430, x1L: 370, x1R: 425, x2L: 285, x2R: 380 },
+    // Primeiro plano largo da estrada
+    { y1: 430, y2: 600, x1L: 285, x1R: 380, x2L: 160, x2R: 470 }
+  ];
+  roadPolys.forEach(s => {
+    art.fillStyle(0x6e5233, 1).fillPoints([
+      { x: s.x1L - 5, y: s.y1 }, { x: s.x1R + 5, y: s.y1 },
+      { x: s.x2R + 7, y: s.y2 }, { x: s.x2L - 7, y: s.y2 }
+    ], true);
+    art.fillStyle(0x9b7b4f, 1).fillPoints([
+      { x: s.x1L, y: s.y1 }, { x: s.x1R, y: s.y1 },
+      { x: s.x2R, y: s.y2 }, { x: s.x2L, y: s.y2 }
+    ], true);
+  });
+
+  // Elementos de Mapa Cartográfico sobre o Caminho (trilha tracejada + marcos de jornada)
+  const mapWaypoints = [
+    [325, 515], [332, 465], [342, 415], [382, 368],
+    [438, 332], [495, 304], [545, 276], [592, 252]
+  ];
+  mapWaypoints.forEach(([wx, wy], idx) => {
+    art.fillStyle(0xf5e6c8, 0.75).fillCircle(wx, wy, 3);
+    if (idx === 3 || idx === 6) {
+      // Marco de Batalha no Caminho (estilo mapa de RPG)
+      art.lineStyle(1.5, 0xffca28, 0.9).strokeCircle(wx, wy, 7);
+      art.fillStyle(0xd83a3a, 0.9).fillCircle(wx, wy, 3.5);
+    }
+  });
+
+  // Placa de Madeira na Encruzilhada ("REINO ⬆")
+  art.fillStyle(0x4a2e16, 1).fillRect(438, 350, 5, 26);
+  art.fillStyle(0x8d5524, 1).fillRect(422, 346, 36, 12);
+  art.lineStyle(1, 0xc5a059, 0.8).strokeRect(422, 346, 36, 12);
+
+  // Pedestal Rochoso Heróico no Primeiro Plano Esquerdo (onde está o Cavaleiro)
+  art.fillStyle(0x1f2126, 1).fillEllipse(215, 455, 195, 56);
+  art.fillStyle(0x373a42, 1).fillEllipse(215, 446, 180, 46);
+  art.fillStyle(0x525763, 1).fillEllipse(215, 440, 155, 34);
+  art.fillStyle(0x000000, 0.45).fillEllipse(215, 436, 86, 18); // sombra do herói
+
+  // Sombra do Inimigo Derrotado e das Árvores
+  art.fillStyle(0x000000, 0.38).fillEllipse(358, 472, 56, 14);
+  art.fillStyle(0x000000, 0.35).fillEllipse(72, 430, 62, 14);
+  art.fillStyle(0x000000, 0.35).fillEllipse(485, 315, 42, 10);
+
+  menuContainer.add(art);
+
+  // 4. ELEMENTOS VIVOS DO CENÁRIO (Árvores, Rochas Lisa/Musgo, Inimigo Derrotado e Cavaleiro)
+  const treeFar = scene.add.image(485, 290, 'tree').setScale(0.75);
+  const treeLeft = scene.add.image(68, 390, 'tree').setScale(1.25);
+  const treeRight = scene.add.image(748, 360, 'tree').setScale(1.1);
+  const rockMossy = scene.add.image(135, 462, 'rock', 1).setScale(1.25);
+  const rockSmooth = scene.add.image(418, 492, 'rock', 0).setScale(1.1);
+  const rockFar = scene.add.image(468, 368, 'rock', 1).setScale(0.85);
+
+  // Inimigo Derrotado no Caminho (Guerreiro caído + flecha do Arco Real cravada)
+  const defeatedEnemy = scene.add.image(356, 465, 'warrior', 0)
+    .setAngle(84).setFlipX(true).setScale(1.25).setTint(0x9ea89e);
+  const stuckArrow = scene.add.image(348, 452, 'arrow_player')
+    .setAngle(52).setScale(1.15);
+  const defeatedGoblin = scene.add.image(392, 444, 'goblin', 0)
+    .setAngle(-78).setScale(1.05).setTint(0x889988);
+
+  // O Cavaleiro Heróico em Destaque (com Espada Vorpal, Escudo de Aço e Arco Real)
+  const heroSprite = scene.add.image(215, 378, 'knight_banner').setScale(2.15);
   scene.tweens.add({
-    targets: heroBanner,
-    y: 178,
-    duration: 1200,
+    targets: heroSprite,
+    y: 372,
+    duration: 1300,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut'
   });
+
+  // Vitrine das 3 Relíquias Sagradas na base esquerda (Espada, Arco e Escudo)
+  const relicsBox = scene.add.graphics();
+  relicsBox.fillStyle(0x14100c, 0.88).fillRoundedRect(42, 492, 330, 54, 8);
+  relicsBox.lineStyle(1.5, 0xc5a059, 0.9).strokeRoundedRect(42, 492, 330, 54, 8);
+
+  const rBow = scene.add.image(76, 519, 'item_bow').setScale(0.95);
+  const rBowTxt = scene.add.text(98, 519, 'ARCO', textStyle('#ffe082', 11)).setOrigin(0, 0.5);
+  const rShield = scene.add.image(168, 519, 'item_shield').setScale(0.95);
+  const rShieldTxt = scene.add.text(190, 519, 'ESCUDO', textStyle('#7fe7ff', 11)).setOrigin(0, 0.5);
+  const rSword = scene.add.image(272, 519, 'item_sword').setScale(0.95);
+  const rSwordTxt = scene.add.text(294, 519, 'ESPADA', textStyle('#ffffff', 11)).setOrigin(0, 0.5);
+
+  // 5. BRASÃO DE TÍTULO NO TOPO E PAINEL DE COMANDOS À DIREITA
+  const headerBanner = scene.add.graphics();
+  headerBanner.fillStyle(0x14100c, 0.90).fillRoundedRect(105, 16, 590, 82, 10);
+  headerBanner.lineStyle(2.5, 0x8d5524, 1).strokeRoundedRect(105, 16, 590, 82, 10);
+  headerBanner.lineStyle(1.2, 0xc5a059, 0.9).strokeRoundedRect(110, 21, 580, 72, 8);
+
+  const titleShadow = scene.add.text(402, 46, 'A JORNADA DO CAVALEIRO', {
+    ...textStyle('#060403', 27), fontFamily: 'Georgia, serif'
+  }).setOrigin(0.5);
+  const titleMain = scene.add.text(400, 44, 'A JORNADA DO CAVALEIRO', {
+    ...textStyle('#ffca28', 27), fontFamily: 'Georgia, serif'
+  }).setOrigin(0.5);
+  const subtitleTxt = scene.add.text(400, 75, '★ CRÔNICAS DO REINO & SOBREVIVÊNCIA ★', textStyle('#e0c088', 11)).setOrigin(0.5);
+
+  // Botão rápido de Som no canto superior direito da Capa
+  const menuSoundBg = scene.add.graphics();
+  const drawMenuSound = (hover = false) => {
+    menuSoundBg.clear();
+    menuSoundBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.92).fillRoundedRect(722, 22, 52, 52, 8);
+    menuSoundBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(722, 22, 52, 52, 8);
+  };
+  drawMenuSound(false);
+  const menuHorn = scene.add.image(748, 48, 'hud_horn', sound.isMuted() ? 1 : 0);
+  const menuSoundHit = scene.add.rectangle(748, 48, 52, 52, 0x000000, 0).setInteractive({ useHandCursor: true });
+  menuContainer.updateMenuHorn = () => {
+    if (menuHorn && menuHorn.active) menuHorn.setFrame(sound.isMuted() ? 1 : 0);
+  };
+  menuSoundHit.on('pointerover', () => drawMenuSound(true));
+  menuSoundHit.on('pointerout', () => drawMenuSound(false));
+  menuSoundHit.on('pointerdown', () => {
+    sound.toggleMute();
+    sound.playButtonClick();
+    if (!sound.isMuted()) sound.startMenuBGM();
+    menuContainer.updateMenuHorn();
+    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+  });
+
+  // Painel de Ações à Direita (Deixa a arte do Reino e do Cavaleiro livre!)
+  const menuPanel = scene.add.graphics();
+  menuPanel.fillStyle(0x14100c, 0.90).fillRoundedRect(442, 272, 326, 274, 12);
+  menuPanel.lineStyle(2.5, 0x8d5524, 1).strokeRoundedRect(442, 272, 326, 274, 12);
+  menuPanel.lineStyle(1.2, 0xc5a059, 0.85).strokeRoundedRect(447, 277, 316, 264, 9);
+
+  const crownIcon = scene.add.image(525, 304, 'hud_crown').setScale(0.95);
+  const bestBannerTxt = scene.add.text(545, 304, `RECORDE DO REINO: ${getBestScore()}s`, textStyle('#ffca28', 13)).setOrigin(0, 0.5);
+  menuPanel.lineStyle(1, 0xc5a059, 0.4).lineBetween(468, 324, 742, 324);
 
   const clearMenuKeys = () => {
     scene.input.keyboard.off('keydown-SPACE', onKeyStart);
@@ -1616,22 +1994,39 @@ function showMainMenu(scene) {
     startGameplay(scene);
   };
 
-  const startBtn = createButton(scene, 400, 285, 'COMEÇAR O JOGO', launchGame, 280, 46);
-  const recordsBtn = createButton(scene, 400, 345, 'RECORDES', () => {
+  const startBtn = createButton(scene, 605, 362, 'COMEÇAR O JOGO', launchGame, 276, 46);
+  const recordsBtn = createButton(scene, 605, 420, 'RECORDES', () => {
     clearMenuKeys();
     sound.ensureContext();
+    sound.startMenuBGM();
     showRecordsMenu(scene);
-  }, 280, 46);
-  const settingsBtn = createButton(scene, 400, 405, 'CONFIGURAÇÕES', () => {
+  }, 276, 46);
+  const settingsBtn = createButton(scene, 605, 478, 'CONFIGURAÇÕES', () => {
     clearMenuKeys();
     sound.ensureContext();
+    sound.startMenuBGM();
     showSettingsMenu(scene);
-  }, 280, 46);
+  }, 276, 46);
 
-  const hint1 = scene.add.text(400, 480, 'Mover: WASD ou Setas   |   Pausa: ESC   |   Áudio: M', textStyle('#a8987b', 11)).setOrigin(0.5);
-  const hint2 = scene.add.text(400, 508, 'Pressione ESPAÇO ou ENTER para iniciar', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const startHint = scene.add.text(605, 522, '[ESPAÇO] ou [ENTER] para iniciar', textStyle('#c5a059', 11)).setOrigin(0.5);
 
-  menuContainer.add([pedShadow, heroBanner, ...startBtn, ...recordsBtn, ...settingsBtn, hint1, hint2]);
+  // Faixa de Rodapé Completa
+  const footerBg = scene.add.rectangle(400, 578, 800, 32, 0x0c0907, 0.92);
+  const footerLine = scene.add.graphics().lineStyle(1, 0x8d5524, 0.8).lineBetween(0, 562, 800, 562);
+  const footerTxt = scene.add.text(400, 578, 'Mover: WASD ou Setas   |   Pausar: ESC   |   Alternar Áudio: M', textStyle('#d6c8aa', 11)).setOrigin(0.5);
+
+  menuContainer.add([
+    treeFar, rockFar,
+    defeatedGoblin, defeatedEnemy, stuckArrow,
+    treeLeft, treeRight, rockMossy, rockSmooth,
+    heroSprite,
+    relicsBox, rBow, rBowTxt, rShield, rShieldTxt, rSword, rSwordTxt,
+    headerBanner, titleShadow, titleMain, subtitleTxt,
+    menuSoundBg, menuHorn, menuSoundHit,
+    menuPanel, crownIcon, bestBannerTxt,
+    ...startBtn, ...recordsBtn, ...settingsBtn, startHint,
+    footerBg, footerLine, footerTxt
+  ]);
 
   function onKeyStart(e) {
     if (gameState !== 'MENU') return;
