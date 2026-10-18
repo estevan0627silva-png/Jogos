@@ -4,6 +4,21 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.9.8] - 2026-10-18 (Saída dos Portões da Vila Inicial & Disparo Garantido dos Arqueiros)
+### 🏡 A Partida da Vila & O Grande Portão (`spawnStartingVillage`)
+- **Largada Imersiva na Vila**: Toda partida agora começa com o Cavaleiro iniciando sua jornada a partir de sua vila natal (*Vale Dourado*), com o cenário exibindo:
+  - **Cabanas Rústicas com Chaminé e Fumaça (`village_house`, `72x64`)**: Telhados de palha e carvalho, vigas de sustentação e janelinhas iluminadas nas bordas superior e inferior.
+  - **Paliçada de Toras Pontiagudas (`village_fence`, `48x32`)**: Cerca defensiva de madeira reforçada protegendo as laterais do vilarejo.
+  - **O Grande Portão da Vila (`village_gate_tower`, `48x96`)**: Duas torres de vigia com ameias, estandartes reais em azul e ouro e tochas acesas flanqueando a estrada.
+- **Transição Suave para a Floresta**: O jogador tem controle imediato para correr e se posicionar enquanto as estruturas da vila deslizam suavemente para trás.
+- **Spawn de Monstros Após a Travessia**: Os monstros começam a surgir apenas aos `3.5 segundos` de partida, quando o Cavaleiro cruza os portões e adentra a perigosa Floresta Proibida!
+
+### 🏹 Correção do Disparo Garantido dos Arqueiros Élficos (`elfShoot`)
+- **Primeiro Disparo Garantido aos 650ms**: Eliminado o atraso e a restrição de distância que impedia os elfos de atirar quando o jogador avançava. Agora, todo arqueiro que surge na tela prepara e dispara sua primeira flecha após `650ms` (logo na entrada da tela), continuando o loop a cada `1700ms` enquanto permanecer vivo.
+- **Critério de Linha Justa e Abrangente**: Ajustada a verificação para `elf.x > player.x + 25` e `elf.x <= 790`, garantindo que o arqueiro atire independentemente da posição do cavaleiro no caminho.
+
+---
+
 ## [v0.9.7] - 2026-10-18 (Upgrade Artístico do Boss Golem 88x88, Olhos Vermelhos & Investida Linear)
 ### 🎨 Direção de Arte: Novo Colosso Titânico 88x88 (`drawBossGolem`)
 - **Escala Monumental (`88x88` pixels)**: O Golem Ancestral de Pedra foi ampliado de `64x64` para `88x88` (grade `44x44` em escala `2x`), ficando quase 3 vezes maior que o Cavaleiro e muito mais robusto na arena (`hitbox` ajustada para `62x74`).

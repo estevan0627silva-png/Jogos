@@ -58,7 +58,7 @@ let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes;
 let hudContainer, hudGloryText, hudBestText;
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
-let menuContainer, pauseModal;
+let villageDecor, menuContainer, pauseModal;
 let gameState, survivalTime, enemySpeed, spawnDelay, buff, slashCounter = 0;
 
 // =============================================================================
@@ -1204,6 +1204,109 @@ function makeWorldTextures(scene) {
   g.destroy();
 }
 
+// 1. Cabana Rústica da Vila (72x64 pixels — matriz 36x32 a escala 2x)
+function drawVillageHouse(r) {
+  // Chaminé de pedra com fumaça
+  r(C.ironDark, 26, 2, 5, 8);
+  r(C.iron, 27, 3, 3, 7);
+  r(C.steelDark, 27, 2, 3, 1);
+  r(C.steelLight, 27, 0, 2, 2);
+  r(C.bone, 28, 0, 2, 1);
+
+  // Telhado em duas águas de palha/madeira
+  for (let row = 0; row < 12; row++) {
+    const w = 12 + row * 2;
+    const x = 18 - row;
+    r(C.woodDark, x, 6 + row, w, 1);
+    r(C.wood, x + 1, 6 + row, w - 2, 1);
+    r(C.rag, x + 2, 6 + row, w - 4, 1);
+  }
+  r(C.woodDark, 4, 18, 28, 2);
+
+  // Paredes de vigas de madeira e estuque
+  r(C.woodDark, 6, 20, 24, 11);
+  r(C.bone, 8, 21, 20, 9);
+  r(C.woodDark, 6, 20, 2, 11);
+  r(C.woodDark, 28, 20, 2, 11);
+  r(C.woodDark, 17, 20, 2, 11);
+
+  // Porta de carvalho em arco
+  r(C.woodDark, 10, 24, 5, 7);
+  r(C.wood, 11, 25, 3, 6);
+  r(C.gold, 13, 27, 1, 1);
+
+  // Janela com luz acesa
+  r(C.woodDark, 21, 23, 5, 5);
+  r(C.yellow, 22, 24, 3, 3);
+  r(C.woodDark, 23, 24, 1, 3);
+  r(C.woodDark, 22, 25, 3, 1);
+
+  // Rodapé de pedra e tufos de erva
+  r(C.ironDark, 5, 30, 26, 2);
+  r(C.leafDark, 5, 29, 2, 2);
+  r(C.leaf, 29, 29, 2, 2);
+}
+
+// 2. Paliçada / Cerca de Toras Fortificadas da Vila (48x32 — matriz 24x16 a escala 2x)
+function drawVillageFence(r) {
+  for (let i = 0; i < 4; i++) {
+    const tx = i * 6 + 1;
+    r(C.woodDark, tx + 1, 1, 2, 1);
+    r(C.woodDark, tx, 2, 4, 1);
+    r(C.woodDark, tx, 3, 4, 12);
+    r(C.wood, tx + 1, 3, 2, 11);
+    r(C.rag, tx + 1, 4, 1, 10);
+  }
+  r(C.woodDark, 0, 5, 24, 2);
+  r(C.wood, 0, 6, 24, 1);
+  r(C.ironDark, 2, 5, 1, 1); r(C.ironDark, 8, 5, 1, 1); r(C.ironDark, 14, 5, 1, 1); r(C.ironDark, 20, 5, 1, 1);
+
+  r(C.woodDark, 0, 11, 24, 2);
+  r(C.wood, 0, 12, 24, 1);
+  r(C.ironDark, 2, 11, 1, 1); r(C.ironDark, 8, 11, 1, 1); r(C.ironDark, 14, 11, 1, 1); r(C.ironDark, 20, 11, 1, 1);
+}
+
+// 3. Torre e Pilar do Grande Portão da Vila (48x96 — matriz 24x48 a escala 2x)
+function drawGateTower(r) {
+  // Base de alvenaria e pedras ciclópicas com musgo
+  r(C.ironDark, 2, 36, 20, 12);
+  r(C.iron, 4, 38, 16, 9);
+  r(C.steelDark, 5, 38, 14, 3);
+  r(C.leafDark, 2, 44, 4, 3);
+  r(C.leaf, 3, 44, 2, 2);
+
+  // Coluna de troncos colossais entrelaçados
+  r(C.woodDark, 4, 12, 16, 25);
+  r(C.wood, 6, 13, 12, 23);
+  r(C.rag, 8, 14, 4, 21);
+
+  // Braçadeiras de ferro forjado reforçado com rebites
+  [15, 24, 33].forEach(by => {
+    r(C.ironDark, 3, by, 18, 3);
+    r(C.steelDark, 4, by + 1, 16, 1);
+    r(C.gold, 6, by + 1, 1, 1);
+    r(C.gold, 17, by + 1, 1, 1);
+  });
+
+  // Guarita superior com ameias
+  r(C.woodDark, 1, 8, 22, 5);
+  r(C.wood, 2, 9, 20, 3);
+  r(C.woodDark, 2, 5, 4, 4); r(C.wood, 3, 6, 2, 3);
+  r(C.woodDark, 10, 5, 4, 4); r(C.wood, 11, 6, 2, 3);
+  r(C.woodDark, 18, 5, 4, 4); r(C.wood, 19, 6, 2, 3);
+
+  // Estandarte do Reino dependurado
+  r(C.blue, 7, 18, 6, 10);
+  r(C.gold, 9, 20, 2, 4); r(C.gold, 8, 21, 4, 1);
+  r(C.darkRed, 7, 27, 6, 1);
+
+  // Tocha acesa com chamas crepitantes
+  r(C.ironDark, 11, 2, 2, 4);
+  r(C.darkRed, 10, 0, 4, 3);
+  r(C.red, 11, 0, 2, 3);
+  r(C.yellow, 11, 1, 2, 2);
+}
+
 // =============================================================================
 // CENA: PRELOAD — cria todas as texturas (só na primeira vez)
 // =============================================================================
@@ -1215,6 +1318,9 @@ function preload() {
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
   makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
   makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
+  makeSheet(this, 'village_house', 72, 64, 1, drawVillageHouse);
+  makeSheet(this, 'village_fence', 48, 32, 1, drawVillageFence);
+  makeSheet(this, 'village_gate_tower', 48, 96, 1, drawGateTower);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
@@ -1268,6 +1374,7 @@ function create(data) {
   bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
 
   // Grupos físicos
+  villageDecor = scene.physics.add.group({ immovable: true });
   enemies = scene.physics.add.group();
   obstacles = trees = scene.physics.add.group({ immovable: true });
   items = scene.physics.add.group();
@@ -1275,8 +1382,8 @@ function create(data) {
   enemyArrows = scene.physics.add.group();
   slashes = scene.physics.add.group();
 
-  // Árvores iniciais nas bordas (as rochas agora só surgem arremessadas pelo Boss Golem)
-  for (let x = 320; x <= 800; x += 120) spawnTree(x);
+  // Árvores nas bordas a partir de além dos portões da vila
+  for (let x = 620; x <= 980; x += 120) spawnTree(x);
 
   // Jogador (limitado à área entre as florestas)
   scene.physics.world.setBounds(0, 95, 800, 455);
@@ -1390,6 +1497,7 @@ function updateGameplay(scene, time, dt) {
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
   forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
   obstacles.setVelocityX(-worldSpeed);
+  villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
 
   // 2. Cavaleiro: 8 direções com velocidade normalizada, SEMPRE olhando para a frente
@@ -1446,6 +1554,7 @@ function updateGameplay(scene, time, dt) {
 
   // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
   const cull = (group, isOut) => group.getChildren().slice().forEach(s => { if (isOut(s)) removeEntity(s); });
+  cull(villageDecor, s => s.x < -160);
   cull(enemies, s => !s.isBoss && s.x < -60);
   cull(obstacles, s => s.x < -60);
   cull(items, s => s.x < -60);
@@ -1513,6 +1622,13 @@ function sortAndShade() {
     shadeEntity(o);
   });
 
+  if (villageDecor) {
+    villageDecor.getChildren().forEach(v => {
+      if (v.lockedY !== undefined) v.y = v.lockedY;
+      shadeEntity(v);
+    });
+  }
+
   if (gameState === 'PLAYING' || gameState === 'PAUSED') {
     shadeEntity(player);
     items.getChildren().forEach(shadeEntity);
@@ -1553,6 +1669,35 @@ function sortAndShade() {
 // =============================================================================
 // SPAWNS & BOSS FIGHT (60 SEGUNDOS)
 // =============================================================================
+function spawnStartingVillage(scene) {
+  if (villageDecor) villageDecor.clear(true, true);
+
+  // 1. Cabanas da Vila nas margens da estrada (fora do caminho)
+  const h1 = villageDecor.create(40, 160, 'village_house');
+  h1.lockedY = 160; h1.groundY = 188;
+
+  const h2 = villageDecor.create(170, 505, 'village_house');
+  h2.lockedY = 505; h2.groundY = 533;
+
+  // 2. Paliçada / Cerca de Toras de Madeira da Vila
+  const f1 = villageDecor.create(135, 175, 'village_fence');
+  f1.lockedY = 175; f1.groundY = 188;
+
+  const f2 = villageDecor.create(85, 495, 'village_fence');
+  f2.lockedY = 495; f2.groundY = 508;
+
+  // 3. O Grande Portão da Vila (Torre Norte e Torre Sul flanqueando a estrada)
+  // Estrada passa livremente entre y = 290 e y = 370
+  const gateTop = villageDecor.create(390, 225, 'village_gate_tower');
+  gateTop.lockedY = 225; gateTop.groundY = 270;
+
+  const gateBottom = villageDecor.create(390, 435, 'village_gate_tower');
+  gateBottom.lockedY = 435; gateBottom.groundY = 480;
+
+  // Anúncio nobre de partida da jornada
+  floatText(scene, 400, 150, '★ SAINDO DA VILA DE VALE DOURADO ★', '#ffca28');
+}
+
 function startGameplay(scene) {
   gameState = 'PLAYING';
   if (player) {
@@ -1563,6 +1708,9 @@ function startGameplay(scene) {
   if (enemyHpBars) enemyHpBars.clear();
   if (hudContainer) hudContainer.setVisible(true);
   sound.startBGM('normal');
+
+  // Constrói a vila inicial com o Grande Portão
+  spawnStartingVillage(scene);
 
   const every = (delay, fn) => scene.time.addEvent({ delay, loop: true, callback: () => gameState === 'PLAYING' && fn() });
   every(1000, () => {
@@ -1587,7 +1735,7 @@ function startGameplay(scene) {
     });
   });
 
-  // Relíquias e árvores das bordas (rochas não nascem mais aleatoriamente — são ataques do Golem!
+  // Relíquias e árvores das bordas (rochas não nascem mais aleatoriamente — são ataques do Golem!)
   every(4600, () => spawnItem(scene));
   every(900, () => spawnTree());
 
@@ -1597,7 +1745,14 @@ function startGameplay(scene) {
     const currentDelay = (activeBoss && activeBoss.active) ? Math.max(980, spawnDelay + 220) : spawnDelay;
     scene.time.delayedCall(currentDelay, nextEnemy);
   };
-  nextEnemy();
+
+  // O jogador atravessa os portões da vila primeiro (3.5 segundos de largada antes dos monstros surgirem)
+  scene.time.delayedCall(3500, () => {
+    if (gameState === 'PLAYING') {
+      floatText(scene, 400, 130, 'ADENTRANDO A FLORESTA PROIBIDA...', '#7fe7ff');
+      nextEnemy();
+    }
+  });
 }
 
 function spawnEnemy(scene, forcedType, customY) {
@@ -1633,7 +1788,16 @@ function spawnEnemy(scene, forcedType, customY) {
   enemy.hp = cfg.hp;
 
   if (type === 'elf') {
-    enemy.shootTimer = scene.time.addEvent({ delay: 1850, loop: true, callback: () => elfShoot(scene, enemy) });
+    // Primeiro tiro garantido após 650ms (assim que entra na tela) + loop periódico a cada 1700ms
+    enemy.shootTimer = scene.time.delayedCall(650, () => {
+      if (!enemy.active || gameState !== 'PLAYING') return;
+      elfShoot(scene, enemy);
+      enemy.shootTimer = scene.time.addEvent({
+        delay: 1700,
+        loop: true,
+        callback: () => elfShoot(scene, enemy)
+      });
+    });
   }
 }
 
@@ -2004,7 +2168,8 @@ function defeatBoss(scene, boss) {
 // Elfo brilha e concentra energia (360ms de aviso justo) antes de disparar
 function elfShoot(scene, elf) {
   if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
-  if (elf.x > 780 || elf.x < player.x + 140) return; // distância mínima justa de reação
+  // Dispara com garantia enquanto estiver na tela visível e à frente do cavaleiro
+  if (elf.x > 790 || elf.x < player.x + 25) return;
 
   elf.setTint(0xff80ff);
   if (elf.chargeRing && elf.chargeRing.active) elf.chargeRing.destroy();
