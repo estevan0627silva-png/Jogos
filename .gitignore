@@ -1,0 +1,16 @@
+# Arquivos do Sistema Operacional
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs e arquivos temporários
+*.log
+*.tmp
