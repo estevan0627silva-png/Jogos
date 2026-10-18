@@ -76,6 +76,451 @@ function saveHighScore(name, score) {
 const getBestScore = () => getHighScores()[0]?.score ?? 0;
 
 // =============================================================================
+// SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
+// =============================================================================
+const BGM_MELODY = [
+  // Compasso 1 (Am) - Marcha heroica do cavaleiro
+  440.00, 0, 523.25, 587.33, 659.25, 0, 523.25, 440.00,
+  // Compasso 2 (F) - Perigos da floresta
+  349.23, 392.00, 440.00, 493.88, 523.25, 0, 493.88, 440.00,
+  // Compasso 3 (Dm) - Embate com os inimigos
+  587.33, 0, 698.46, 659.25, 587.33, 523.25, 493.88, 392.00,
+  // Compasso 4 (E / Am) - Vitória e bravura
+  440.00, 493.88, 523.25, 493.88, 415.30, 0, 440.00, 0
+];
+
+const BGM_BASS = [
+  // Am
+  110.00, 110.00, 164.81, 110.00, 110.00, 110.00, 164.81, 110.00,
+  // F
+  87.31, 87.31, 130.81, 87.31, 87.31, 87.31, 130.81, 87.31,
+  // Dm
+  73.42, 73.42, 110.00, 73.42, 73.42, 73.42, 110.00, 73.42,
+  // E / Am
+  82.41, 82.41, 123.47, 82.41, 82.41, 103.83, 110.00, 164.81
+];
+
+class SoundSystem {
+  constructor() {
+    this.ctx = null;
+    this.masterGain = null;
+    this.sfxGain = null;
+    this.bgmGain = null;
+    this.muted = false;
+    this.noiseBuffer = null;
+    this.bgmTimer = null;
+    this.bgmPlaying = false;
+    this.nextStepTime = 0;
+    this.currentStep = 0;
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (this.ctx && this.ctx.state === 'running') this.ctx.suspend();
+        } else {
+          if (this.ctx && this.ctx.state === 'suspended' && this.bgmPlaying) this.ctx.resume();
+        }
+      });
+    }
+  }
+
+  ensureContext() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return false;
+      this.ctx = new AudioCtx();
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.7, this.ctx.currentTime);
+      this.masterGain.connect(this.ctx.destination);
+
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+      this.sfxGain.connect(this.masterGain);
+
+      this.bgmGain = this.ctx.createGain();
+      this.bgmGain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+      this.bgmGain.connect(this.masterGain);
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+    return true;
+  }
+
+  isMuted() {
+    return this.muted;
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.7, this.ctx.currentTime);
+    }
+    return this.muted;
+  }
+
+  getNoiseBuffer() {
+    if (!this.ctx) return null;
+    if (!this.noiseBuffer) {
+      const len = Math.floor(this.ctx.sampleRate * 0.4);
+      const buffer = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+      this.noiseBuffer = buffer;
+    }
+    return this.noiseBuffer;
+  }
+
+  // --- TRILHA SONORA (BGM) ---
+  startBGM() {
+    if (this.bgmPlaying) return;
+    if (!this.ensureContext()) return;
+    this.bgmPlaying = true;
+    this.currentStep = 0;
+    this.nextStepTime = this.ctx.currentTime + 0.05;
+    this.scheduleBGM();
+  }
+
+  stopBGM() {
+    this.bgmPlaying = false;
+    if (this.bgmTimer) {
+      clearTimeout(this.bgmTimer);
+      this.bgmTimer = null;
+    }
+  }
+
+  scheduleBGM() {
+    if (!this.bgmPlaying || !this.ctx) return;
+    const lookahead = 0.25;
+    const stepDur = 0.23; // ritmo de marcha heróica (~130 BPM)
+
+    while (this.nextStepTime < this.ctx.currentTime + lookahead) {
+      this.playBGMStep(this.currentStep, this.nextStepTime, stepDur);
+      this.nextStepTime += stepDur;
+      this.currentStep = (this.currentStep + 1) % 32;
+    }
+
+    this.bgmTimer = setTimeout(() => this.scheduleBGM(), 50);
+  }
+
+  playBGMStep(step, time, dur) {
+    if (this.muted) return;
+
+    // 1. Melodia (onda triangular aveludada com filtro retrô)
+    const note = BGM_MELODY[step];
+    if (note > 0) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(note, time);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2200, time);
+      gain.gain.setValueAtTime(0.001, time);
+      gain.gain.linearRampToValueAtTime(0.32, time + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.9);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.bgmGain);
+      osc.start(time);
+      osc.stop(time + dur * 0.95);
+    }
+
+    // 2. Baixo pulsante (sawtooth com filtro passa-baixas quente)
+    const bass = BGM_BASS[step];
+    if (bass > 0) {
+      const bOsc = this.ctx.createOscillator();
+      const bGain = this.ctx.createGain();
+      const bFilter = this.ctx.createBiquadFilter();
+      bOsc.type = 'sawtooth';
+      bOsc.frequency.setValueAtTime(bass, time);
+      bFilter.type = 'lowpass';
+      bFilter.frequency.setValueAtTime(400, time);
+      bGain.gain.setValueAtTime(0.001, time);
+      bGain.gain.linearRampToValueAtTime(0.28, time + 0.01);
+      bGain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.85);
+      bOsc.connect(bFilter);
+      bFilter.connect(bGain);
+      bGain.connect(this.bgmGain);
+      bOsc.start(time);
+      bOsc.stop(time + dur * 0.9);
+    }
+
+    // 3. Percussão retrô (bumbo nos tempos fortes, caixa nos contratempos)
+    if (step % 4 === 0) {
+      const kick = this.ctx.createOscillator();
+      const kGain = this.ctx.createGain();
+      kick.type = 'sine';
+      kick.frequency.setValueAtTime(110, time);
+      kick.frequency.exponentialRampToValueAtTime(30, time + 0.07);
+      kGain.gain.setValueAtTime(0.3, time);
+      kGain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+      kick.connect(kGain);
+      kGain.connect(this.bgmGain);
+      kick.start(time);
+      kick.stop(time + 0.07);
+    } else if (step % 4 === 2) {
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = this.getNoiseBuffer();
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1400, time);
+      filter.Q.setValueAtTime(1.8, time);
+      const sGain = this.ctx.createGain();
+      sGain.gain.setValueAtTime(0.16, time);
+      sGain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+      noise.connect(filter);
+      filter.connect(sGain);
+      sGain.connect(this.bgmGain);
+      noise.start(time);
+      noise.stop(time + 0.06);
+    }
+  }
+
+  // --- EFEITOS SONOROS (SFX) ---
+
+  // Disparo de flecha pelo jogador (corda do arco vibrando + silvo)
+  playBow() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(580, now);
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.1);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.1);
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.getNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(2200, now);
+    filter.Q.setValueAtTime(3, now);
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.25, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain);
+    noise.start(now);
+    noise.stop(now + 0.08);
+  }
+
+  // Flecha mágica dos elfos (assobio místico)
+  playElfShot() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(1320, now + 0.04);
+    osc.frequency.exponentialRampToValueAtTime(420, now + 0.14);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.14);
+  }
+
+  // Golpe de espada (corte sibilante + ressonância metálica da lâmina)
+  playSword() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.getNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(2600, now);
+    filter.frequency.exponentialRampToValueAtTime(450, now + 0.12);
+    filter.Q.setValueAtTime(2, now);
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.5, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain);
+    noise.start(now);
+    noise.stop(now + 0.12);
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(780, now);
+    osc.frequency.exponentialRampToValueAtTime(320, now + 0.11);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.11);
+  }
+
+  // Morte/acerto em inimigo (impacto retrô com crunch)
+  playEnemyHit() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.12);
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.getNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900, now);
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.35, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain);
+    noise.start(now);
+    noise.stop(now + 0.08);
+  }
+
+  // Bloqueio do escudo / desvio de golpe (impacto metálico ressonante "CLANG!")
+  playShieldBlock() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    [520, 1080].forEach(f => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(now);
+      osc.stop(now + 0.32);
+    });
+
+    const click = this.ctx.createOscillator();
+    const cGain = this.ctx.createGain();
+    click.type = 'square';
+    click.frequency.setValueAtTime(1400, now);
+    click.frequency.exponentialRampToValueAtTime(180, now + 0.04);
+    cGain.gain.setValueAtTime(0.4, now);
+    cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    click.connect(cGain);
+    cGain.connect(this.sfxGain);
+    click.start(now);
+    click.stop(now + 0.04);
+  }
+
+  // Coleta de item (arpeggio ascendente brilhante de conquista)
+  playItemCollect() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const notes = [659.25, 830.61, 987.77, 1318.51]; // Mi5, Sol#5, Si5, Mi6
+    notes.forEach((freq, i) => {
+      const t = now + i * 0.045;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    });
+  }
+
+  // Flecha bate em tronco de árvore (som sordo de madeira)
+  playWoodHit() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(50, now + 0.06);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  }
+
+  // O Cavaleiro tombou (Game Over dramático com notas menores descendentes e baque)
+  playGameOver() {
+    if (this.muted || !this.ensureContext()) return;
+    this.stopBGM();
+    const now = this.ctx.currentTime;
+    const notes = [293.66, 261.63, 233.08, 220.00]; // Ré4, Dó4, Sib3, Lá3
+    notes.forEach((freq, i) => {
+      const t = now + i * 0.16;
+      const dur = i === notes.length - 1 ? 0.6 : 0.18;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, t);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, t);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + dur);
+    });
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.getNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(250, now);
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.45, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain);
+    noise.start(now);
+    noise.stop(now + 0.5);
+  }
+
+  // Clique de confirmação na interface
+  playButtonClick() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(1050, now);
+    osc.frequency.exponentialRampToValueAtTime(750, now + 0.04);
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  }
+}
+
+const sound = new SoundSystem();
+
+// =============================================================================
 // ARTE: FERRAMENTAS DE PIXEL ART
 // Cada "pixel" do desenho vira um bloco 2x2. Antes das cores, o desenho é
 // carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
@@ -281,6 +726,7 @@ function preload() {
 // =============================================================================
 function create() {
   const scene = this;
+  sound.stopBGM();
   gameState = 'START';
   survivalTime = 0;
   enemySpeed = 220;
@@ -341,12 +787,12 @@ function create() {
   // Combate (só mata inimigos já visíveis na tela)
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => { if (e.x < 800) { a.destroy(); killEnemy(e); } });
   scene.physics.add.overlap(slashes, enemies, (s, e) => { if (e.x < 800) killEnemy(e); });
-  scene.physics.add.overlap(slashes, enemyArrows, (s, a) => a.destroy());
-  scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => { a.destroy(); b.destroy(); });
+  scene.physics.add.overlap(slashes, enemyArrows, (s, a) => { sound.playShieldBlock(); a.destroy(); });
+  scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => { sound.playShieldBlock(); a.destroy(); b.destroy(); });
 
   // Árvores servem de cobertura: bloqueiam flechas
-  scene.physics.add.overlap(playerArrows, trees, (a) => a.destroy());
-  scene.physics.add.overlap(enemyArrows, trees, (a) => a.destroy());
+  scene.physics.add.overlap(playerArrows, trees, (a) => { sound.playWoodHit(); a.destroy(); });
+  scene.physics.add.overlap(enemyArrows, trees, (a) => { sound.playWoodHit(); a.destroy(); });
 
   showStartScreen(scene);
 }
@@ -428,6 +874,7 @@ function sortAndShade() {
 function startGameplay(scene) {
   gameState = 'PLAYING';
   player.play('knight');
+  sound.startBGM();
 
   const every = (delay, fn) => scene.time.addEvent({ delay, loop: true, callback: () => gameState === 'PLAYING' && fn() });
   every(1000, () => { survivalTime++; hudScore.setText(`⚔️ GLÓRIA: ${survivalTime}s`); });
@@ -464,6 +911,7 @@ function elfShoot(scene, elf) {
   scene.time.delayedCall(180, () => {
     if (!elf.active || gameState !== 'PLAYING') return;
     elf.clearTint();
+    sound.playElfShot();
     const arrow = enemyArrows.create(elf.x - 14, elf.y, 'arrow_elf');
     arrow.body.setSize(8, 8);
     arrow.rotation = scene.physics.moveToObject(arrow, player, 380);
@@ -505,6 +953,7 @@ function removeEntity(obj) {
 
 function killEnemy(enemy) {
   if (!enemy.active) return;
+  sound.playEnemyHit();
   hitFx.explode(12, enemy.x, enemy.y);
   removeEntity(enemy);
 }
@@ -512,6 +961,7 @@ function killEnemy(enemy) {
 function collectItem(scene, item) {
   buff = { type: item.lootType, timeLeft: BUFF_TIME[item.lootType], nextAttack: 0 };
   shieldSprite.setVisible(buff.type === 'shield');
+  sound.playItemCollect();
   floatText(scene, item.x, item.y - 20, BUFF_NAMES[buff.type] + '!', '#ffca28');
   removeEntity(item);
 }
@@ -522,6 +972,7 @@ function endBuff() {
 }
 
 function shootArrow() {
+  sound.playBow();
   const dir = player.flipX ? -1 : 1;
   const arrow = playerArrows.create(player.x + dir * 20, player.y + 2, 'arrow_player').setFlipX(dir < 0);
   arrow.body.setSize(18, 6);
@@ -530,6 +981,7 @@ function shootArrow() {
 
 // Espada gira no punho do cavaleiro + rastro em meia-lua (a hitbox)
 function swingSword(scene) {
+  sound.playSword();
   const dir = player.flipX ? -1 : 1;
   const slash = slashes.create(player.x + dir * 30, player.y, 'slash_arc').setFlipX(dir < 0);
   slash.body.setSize(36, 60);
@@ -548,6 +1000,7 @@ function playerHit(scene, hazard) {
 
   if (buff.type === 'shield') {                        // escudo absorve 1 golpe
     endBuff();
+    sound.playShieldBlock();
     scene.cameras.main.flash(150, 120, 220, 255);
     floatText(scene, player.x, player.y - 30, 'ESCUDO QUEBROU!', '#7fe7ff');
     enemies.contains(hazard) ? killEnemy(hazard) : hazard.destroy();
@@ -558,6 +1011,8 @@ function playerHit(scene, hazard) {
 
 function gameOver(scene) {
   gameState = 'GAMEOVER';
+  sound.stopBGM();
+  sound.playGameOver();
   scene.physics.pause();
   scene.time.removeAllEvents();
   scene.tweens.pauseAll();
@@ -584,8 +1039,23 @@ function createHUD(scene) {
   bg.fillStyle(0x12100d, 0.9).fillRoundedRect(10, 10, 780, 42, 6);
   bg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 780, 42, 6);
   hudScore = scene.add.text(25, 20, '⚔️ GLÓRIA: 0s', textStyle('#e8dcbe')).setDepth(2001);
-  scene.add.text(230, 20, `👑 RECORDE: ${getBestScore()}s`, textStyle('#ffca28')).setDepth(2001);
-  hudStatus = scene.add.text(775, 20, '', textStyle('#7fe7ff', 16)).setOrigin(1, 0).setDepth(2001);
+  scene.add.text(210, 20, `👑 RECORDE: ${getBestScore()}s`, textStyle('#ffca28')).setDepth(2001);
+  hudStatus = scene.add.text(480, 20, '', textStyle('#7fe7ff', 16)).setOrigin(0.5, 0).setDepth(2001);
+
+  const muteBtn = scene.add.text(775, 20, sound.isMuted() ? '🔇 MUDO [M]' : '🔊 SOM [M]', textStyle(sound.isMuted() ? '#ff5555' : '#e8dcbe', 14))
+    .setOrigin(1, 0).setDepth(2001).setInteractive({ useHandCursor: true });
+  const updateMuteBtn = () => {
+    muteBtn.setText(sound.isMuted() ? '🔇 MUDO [M]' : '🔊 SOM [M]');
+    muteBtn.setColor(sound.isMuted() ? '#ff5555' : '#e8dcbe');
+  };
+  muteBtn.on('pointerdown', () => { sound.toggleMute(); updateMuteBtn(); sound.playButtonClick(); });
+  muteBtn.on('pointerover', () => muteBtn.setColor('#ffca28'));
+  muteBtn.on('pointerout', () => updateMuteBtn());
+  scene.input.keyboard.on('keydown-M', () => {
+    if (gameState === 'GAMEOVER') return; // evita mutar enquanto digita iniciais com M
+    sound.toggleMute();
+    updateMuteBtn();
+  });
 }
 
 function createModal(scene, title, height) {
@@ -605,20 +1075,23 @@ function createButton(scene, x, y, label, onClick) {
   const txt = scene.add.text(x, y, label, { ...textStyle('#ffffff'), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
   btn.on('pointerover', () => btn.setFillStyle(0xb06c2e));
   btn.on('pointerout', () => btn.setFillStyle(0x8d5524));
-  btn.once('pointerdown', onClick);
+  btn.once('pointerdown', () => {
+    sound.playButtonClick();
+    onClick();
+  });
   return [btn, txt];
 }
 
 function showStartScreen(scene) {
-  const modal = createModal(scene, 'A JORNADA DO CAVALEIRO', 500);
-  const info = scene.add.text(400, 265,
+  const modal = createModal(scene, 'A JORNADA DO CAVALEIRO', 510);
+  const info = scene.add.text(400, 260,
     `★ RECORDE: ${getBestScore()}s ★\n\n` +
     'INIMIGOS: Goblins, Guerreiros Sombrios e Elfos\n' +
     'Elfos brilham em rosa antes de atirar!\n\n' +
     'ITENS: círculos brilhantes no chão\n' +
     '🏹 Arco  |  🛡️ Escudo  |  🗡️ Espada\n\n' +
     'Árvores bloqueiam o caminho e as flechas.\n' +
-    'Mover: WASD ou Setas',
+    'Mover: WASD ou Setas  |  M: Alternar Som',
     { ...textStyle('#d6c8aa', 14), fontStyle: 'normal', align: 'center', lineSpacing: 5 }
   ).setOrigin(0.5);
 
@@ -626,12 +1099,14 @@ function showStartScreen(scene) {
   const start = () => {
     if (started) return;
     started = true;
+    sound.ensureContext();
+    sound.playButtonClick();
     modal.destroy();
     startGameplay(scene);
   };
 
-  const hint = scene.add.text(400, 495, 'ESPAÇO, ENTER ou CLIQUE para começar', textStyle('#a8987b', 12)).setOrigin(0.5);
-  modal.add([info, ...createButton(scene, 400, 440, 'INICIAR MISSÃO', start), hint]);
+  const hint = scene.add.text(400, 500, 'ESPAÇO, ENTER ou CLIQUE para começar', textStyle('#a8987b', 12)).setOrigin(0.5);
+  modal.add([info, ...createButton(scene, 400, 445, 'INICIAR MISSÃO', start), hint]);
   scene.input.once('pointerdown', start);
   scene.input.keyboard.once('keydown-SPACE', start);
   scene.input.keyboard.once('keydown-ENTER', start);
@@ -645,15 +1120,22 @@ function showInitials(scene) {
   const display = scene.add.text(400, 265, '_ _ _', textStyle('#ffca28', 34)).setOrigin(0.5);
 
   const onKey = (e) => {
-    if (e.key === 'Backspace') name = name.slice(0, -1);
-    else if (e.key === 'Enter') return submit();
-    else if (/^[a-zA-Z]$/.test(e.key) && name.length < 3) name += e.key.toUpperCase();
+    if (e.key === 'Backspace') {
+      name = name.slice(0, -1);
+      sound.playButtonClick();
+    } else if (e.key === 'Enter') {
+      return submit();
+    } else if (/^[a-zA-Z]$/.test(e.key) && name.length < 3) {
+      name += e.key.toUpperCase();
+      sound.playButtonClick();
+    }
     display.setText(name.padEnd(3, '_').split('').join(' '));
   };
 
   const submit = () => {
     if (done) return;
     done = true;
+    sound.playButtonClick();
     scene.input.keyboard.off('keydown', onKey);
     modal.destroy();
     const finalName = name.padEnd(3, 'A');
@@ -680,12 +1162,13 @@ function showLeaderboard(scene, topScores, currentName) {
   const restart = () => {
     if (restarting) return;
     restarting = true;
+    sound.playButtonClick();
     scene.scene.restart();
   };
 
   modal.add(createButton(scene, 400, 430, 'NOVA JORNADA', restart));
   scene.time.delayedCall(200, () => {
-    scene.input.keyboard.once('keydown-SPACE', restart);
-    scene.input.keyboard.once('keydown-ENTER', restart);
+    scene.input.keyboard.once('keydown-SPACE', () => { sound.playButtonClick(); restart(); });
+    scene.input.keyboard.once('keydown-ENTER', () => { sound.playButtonClick(); restart(); });
   });
 }

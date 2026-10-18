@@ -4,6 +4,35 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.7.0] - 2026-10-18 (Trilha Sonora e Efeitos Sonoros Chiptune)
+### 🎵 Trilha Sonora & Sequenciador (BGM)
+- **Música Procedural Medieval Chiptune**: Trilha de aventura contínua em Lá menor (Am) inspirada em clássicos retrô (estilo *Castlevania*, *Golden Axe*, *Ghosts 'n Goblins* e *Zelda*).
+- **Sequenciador Lookahead com Web Audio API**: 3 canais sincronizados diretamente no relógio de hardware do navegador (`AudioContext.currentTime`), com zero travamentos ou descompassos:
+  - *Lead melódico*: sintetizador em onda triangular com filtro passa-baixas aveludado tocando a marcha heróica.
+  - *Baixo pulsante*: sintetizador em onda sawtooth filtrada com progressão harmônica medieval de 4 compassos (Am → F → Dm → E/Am).
+  - *Bateria 8-bit*: bumbo de onda senoidal decadente e caixa/chimbal sintetizados em rajadas de ruído filtrado.
+- **Mixagem Equilibrada**: volume da música em segundo plano (~0.14) permitindo que os efeitos sonoros de ação se destaquem com máxima clareza.
+- **Ciclo de Vida Musical**: a música começa automaticamente ao clicar em "INICIAR MISSÃO" e cessa no momento da derrota ("O Cavaleiro Tombou").
+
+### 🔊 Efeitos Sonoros 100% Sintetizados (SFX)
+- **Disparo de Arco (`playBow`)**: estalo da corda do arco com sweep descendente de frequência combinado a silvo de vento.
+- **Flecha dos Elfos (`playElfShot`)**: assobio místico e agudo cintilante em chirp senoidal duplo.
+- **Golpe de Espada (`playSword`)**: rajada cortante de ruído em banda com corte sibilante somado à ressonância da lâmina de aço.
+- **Morte / Impacto em Inimigo (`playEnemyHit`)**: estalo retrô "crunch" com varredura quadrada descendente e burst de impacto.
+- **Bloqueio de Escudo / Deflexão (`playShieldBlock`)**: som metálico ressonante "CLANG!" de aço temperado ao absorver golpe ou rebater projéteis em pleno ar.
+- **Impacto em Árvores (`playWoodHit`)**: baque sordo percussivo quando flechas atingem os troncos.
+- **Coleta de Item / Buff (`playItemCollect`)**: jingle triunfante em arpeggio ascendente de 4 notas brilhantes (Mi5 → Sol#5 → Si5 → Mi6).
+- **Queda do Cavaleiro / Game Over (`playGameOver`)**: frase solene dramática em escala menor descendente com estrondo grave e sombrio.
+- **Cliques de Interface (`playButtonClick`)**: feedback auditivo em todos os botões, navegação e digitação das 3 iniciais do recorde.
+
+### 🎛️ Controles & Acessibilidade
+- **Botão de Som no HUD**: botão interativo no canto superior direito (`🔊 SOM [M]` / `🔇 MUDO [M]`) com destaque dourado ao passar o mouse.
+- **Atalho de Teclado `M`**: alterna mudo/som a qualquer instante da partida (com proteção para não mutar se o jogador digitar 'M' no placar de honra).
+- **Pausa Automática em Segundo Plano**: áudio é suspenso se a aba do navegador for minimizada e retoma ao voltar.
+- **Zero Arquivos Externos**: 100% sintetizado via Web Audio API, eliminando erros de CORS, arquivos 404 e latência de carregamento.
+
+---
+
 ## [v0.6.0] - 2026-10-18 (Reformulação Gráfica)
 ### 🎨 Visual
 - **Sprites animados com contorno**: Cavaleiro, Goblin, Guerreiro Sombrio e Elfo ganharam 2 quadros de caminhada (pernas alternando) e contorno escuro de 1px para destacar do chão.
