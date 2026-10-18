@@ -20,14 +20,16 @@ const game = new Phaser.Game(config);
 // AJUSTES DO JOGO (mude aqui para balancear)
 // =============================================================================
 const PLAYER_SPEED = 280;
-const BUFF_TIME = { bow: 6, shield: 8, sword: 6 };   // duração de cada item (s)
-const ATTACK_RATE = { bow: 320, sword: 300 };        // intervalo entre ataques (ms)
+const BUFF_TIME = { bow: 6, shield: 9, sword: 6 };   // duração de cada item (s)
+const ATTACK_RATE = { bow: 340, sword: 280 };        // intervalo entre ataques (ms)
 const BUFF_NAMES = { bow: 'ARCO REAL', shield: 'ESCUDO DE AÇO', sword: 'ESPADA VORPAL' };
-const ENEMIES = {                                    // velocidade relativa e hitbox
-  goblin:  { speed: 1.15, w: 16, h: 20 },
-  warrior: { speed: 0.9,  w: 20, h: 26 },
-  elf:     { speed: 0.85, w: 16, h: 24 }
+const ENEMIES = {                                    // vida, velocidade relativa e hitbox
+  goblin:  { hp: 1, speed: 1.15, w: 16, h: 20 },
+  warrior: { hp: 2, speed: 0.88, w: 20, h: 26 },
+  elf:     { hp: 1, speed: 0.85, w: 16, h: 24 }
 };
+const MAX_ENEMY_SPEED = 380;                         // teto máximo justo de velocidade
+const MIN_SPAWN_DELAY = 500;                         // intervalo mínimo de spawn (ms)
 const STORAGE_KEY = 'knight_quest_highscores';
 
 // Paleta de cores da pixel art
@@ -48,22 +50,28 @@ const C = {
 // ESTADO
 // =============================================================================
 let player, shieldSprite, cursors, keys;
-let ground, road, forestTop, forestBottom, shadows, hitFx, playerBuffBar;
+let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, playerBuffBar, enemyHpBars;
 let enemies, trees, items, playerArrows, enemyArrows, slashes;
 let hudContainer, hudGloryText, hudBestText;
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
 let menuContainer, pauseModal;
-let gameState, survivalTime, enemySpeed, spawnDelay, buff;
+let gameState, survivalTime, enemySpeed, spawnDelay, buff, slashCounter = 0;
 
 // =============================================================================
 // RECORDES (salvos no navegador com localStorage)
 // =============================================================================
 function getHighScores() {
+  const defaults = [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
+  if (typeof localStorage === 'undefined') return defaults;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return defaults;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch (e) {}
-  return [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : defaults;
+  } catch (err) {
+    console.warn('Dados de recordes corrompidos, restaurando padrão:', err);
+    return defaults;
+  }
 }
 
 function saveHighScore(name, score) {
@@ -71,7 +79,9 @@ function saveHighScore(name, score) {
   scores.push({ name, score });
   scores.sort((a, b) => b.score - a.score);
   const top = scores.slice(0, 5);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(top)); } catch (e) {}
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(top));
+  }
   return top;
 }
 
@@ -208,6 +218,9 @@ class SoundSystem {
 
   scheduleBGM() {
     if (!this.bgmPlaying || !this.ctx) return;
+    if (this.nextStepTime < this.ctx.currentTime) {
+      this.nextStepTime = this.ctx.currentTime + 0.05;
+    }
     const lookahead = 0.25;
     const stepDur = 0.23; // ritmo de marcha heróica (~130 BPM)
 
@@ -812,14 +825,19 @@ function preload() {
 // =============================================================================
 // CENA: CREATE — monta camadas, grupos, jogador, colisões e HUD
 // =============================================================================
-function create() {
+function create(data) {
   const scene = this;
   sound.stopBGM();
   gameState = 'MENU';
   survivalTime = 0;
-  enemySpeed = 220;
-  spawnDelay = 1300;
+  enemySpeed = 200;
+  spawnDelay = 1250;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
+
+  // Limpa todos os listeners de teclado ao encerrar/reiniciar a cena (evita duplicação)
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    scene.input.keyboard.removeAllListeners();
+  });
 
   // Animações de caminhada (2 quadros) — criadas uma única vez
   const fps = { knight: 10, goblin: 12, warrior: 6, elf: 8 };
@@ -860,10 +878,22 @@ function create() {
   keys = scene.input.keyboard.addKeys('W,A,S,D');
 
   pauseModal = null;
+  enemyHpBars = scene.add.graphics().setDepth(2400);
   playerBuffBar = scene.add.graphics().setDepth(2500);
 
   // Tecla ESC para pausar ou despausar a aventura
   scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene));
+
+  // Partículas de poeira nos passos do cavaleiro
+  dustFx = scene.add.particles(0, 0, 'spark', {
+    lifespan: 320,
+    speedX: { min: -70, max: -20 },
+    speedY: { min: -18, max: 6 },
+    scale: { start: 1.0, end: 0 },
+    alpha: { start: 0.45, end: 0 },
+    tint: [0xd6c8aa, 0xb89a6c, 0x9b7b4f],
+    emitting: false
+  }).setDepth(5);
 
   // Partículas para impactos e mortes
   hitFx = scene.add.particles(0, 0, 'spark', {
@@ -873,23 +903,45 @@ function create() {
 
   createHUD(scene);
 
-  // Colisões do jogador
-  scene.physics.add.collider(player, trees);
+  // Colisões do jogador (separação customizada nas árvores impede empurrar/carregar árvores)
+  scene.physics.add.overlap(player, trees, (p, t) => separatePlayerFromTree(p, t));
   scene.physics.add.overlap(player, enemies, (p, e) => playerHit(scene, e));
   scene.physics.add.overlap(player, enemyArrows, (p, a) => playerHit(scene, a));
   scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
 
-  // Combate (só mata inimigos já visíveis na tela)
-  scene.physics.add.overlap(playerArrows, enemies, (a, e) => { if (e.x < 800) { a.destroy(); killEnemy(e); } });
-  scene.physics.add.overlap(slashes, enemies, (s, e) => { if (e.x < 800) killEnemy(e); });
+  // Combate (só atinge inimigos visíveis na tela; suporta múltiplos pontos de vida)
+  scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
+    if (e.x < 800 && a.active && e.active) {
+      a.destroy();
+      damageEnemy(scene, e, 1);
+    }
+  });
+  scene.physics.add.overlap(slashes, enemies, (s, e) => {
+    if (e.x < 800 && s.active && e.active && e.lastSlashId !== s.slashId) {
+      e.lastSlashId = s.slashId;
+      damageEnemy(scene, e, 2); // Espada Vorpal corta armadura pesada de uma vez
+    }
+  });
   scene.physics.add.overlap(slashes, enemyArrows, (s, a) => { sound.playShieldBlock(); a.destroy(); });
   scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => { sound.playShieldBlock(); a.destroy(); b.destroy(); });
 
-  // Árvores servem de cobertura: bloqueiam flechas
-  scene.physics.add.overlap(playerArrows, trees, (a) => { sound.playWoodHit(); a.destroy(); });
-  scene.physics.add.overlap(enemyArrows, trees, (a) => { sound.playWoodHit(); a.destroy(); });
+  // Árvores servem de cobertura: bloqueiam flechas (som só quando visível na tela)
+  const hitTree = (arrow, tree) => {
+    if (!arrow.active) return;
+    if (arrow.x > 0 && arrow.x < 800 && tree.x < 810) {
+      sound.playWoodHit();
+      hitFx.explode(4, arrow.x, arrow.y);
+    }
+    arrow.destroy();
+  };
+  scene.physics.add.overlap(playerArrows, trees, hitTree);
+  scene.physics.add.overlap(enemyArrows, trees, hitTree);
 
-  showMainMenu(scene);
+  if (data && data.autoStart) {
+    startGameplay(scene);
+  } else {
+    showMainMenu(scene);
+  }
 }
 
 // =============================================================================
@@ -922,16 +974,21 @@ function updateGameplay(scene, time, dt) {
   trees.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
 
-  // 2. Cavaleiro: 8 direções com velocidade normalizada
+  // 2. Cavaleiro: 8 direções com velocidade normalizada, SEMPRE olhando para a frente
   let dirX = 0, dirY = 0;
   if (cursors.left.isDown || keys.A.isDown) dirX -= 1;
   if (cursors.right.isDown || keys.D.isDown) dirX += 1;
   if (cursors.up.isDown || keys.W.isDown) dirY -= 1;
   if (cursors.down.isDown || keys.S.isDown) dirY += 1;
   player.setVelocity(dirX, dirY).body.velocity.normalize().scale(PLAYER_SPEED);
-  if (dirX !== 0) player.setFlipX(dirX < 0);
-  player.anims.timeScale = dirX > 0 ? 1.6 : 1;         // corre mais rápido indo para frente
-  player.setAngle(Math.sin(time * 0.02) * 3);          // balanço dos passos
+  player.setFlipX(false);                                               // sempre olhando para o caminho à frente
+  player.anims.timeScale = dirX > 0 ? 1.5 : (dirX < 0 ? 0.85 : 1);      // ritmo dos passos (avanço vs recuo)
+  player.setAngle(Math.sin(time * 0.02) * 3);                           // balanço dos passos
+
+  // Poeira sutil nos passos do cavaleiro
+  if (Math.random() < 0.28) {
+    dustFx.emitParticleAt(player.x - 6, player.y + 14, 1);
+  }
 
   // 3. Inimigos balançando enquanto andam
   enemies.getChildren().forEach(e => e.setAngle(Math.sin(time * 0.015 + e.phase) * 5));
@@ -957,27 +1014,81 @@ function updateGameplay(scene, time, dt) {
   cull(enemyArrows, s => s.x < -40 || s.y < 0 || s.y > 620);
 }
 
-// Profundidade por altura (quem está mais embaixo fica na frente) + sombras
+// Impede o jogador de atravessar o tronco E impede que a árvore seja movida/carregada
+function separatePlayerFromTree(p, t) {
+  if (!p.active || !t.active) return;
+  if (t.lockedY !== undefined) t.y = t.lockedY;
+  t.body.velocity.y = 0;
+
+  const pb = p.body, tb = t.body;
+  const ox = Math.min(pb.right, tb.right) - Math.max(pb.left, tb.left);
+  const oy = Math.min(pb.bottom, tb.bottom) - Math.max(pb.top, tb.top);
+  if (ox <= 0 || oy <= 0) return;
+
+  // Se o jogador ficar prensado entre o limite esquerdo da tela e a árvore,
+  // desliza o cavaleiro verticalmente para contornar o tronco sem nunca carregar a árvore
+  if (pb.left <= 16 && pb.center.x <= tb.center.x) {
+    const slideDir = pb.center.y < tb.center.y ? -1 : 1;
+    p.y = Phaser.Math.Clamp(p.y + slideDir * (oy + 2), 106, 539);
+  } else if (ox < oy) {
+    p.x = Phaser.Math.Clamp(p.x + (pb.center.x < tb.center.x ? -ox : ox), 8, 792);
+  } else {
+    p.y = Phaser.Math.Clamp(p.y + (pb.center.y < tb.center.y ? -oy : oy), 106, 539);
+  }
+  pb.updateFromGameObject();
+}
+
+// Profundidade por altura (quem está mais embaixo fica na frente) + sombras + barras de HP
 function sortAndShade() {
   shadows.clear().fillStyle(0x000000, 0.28);
-  const entities = (gameState === 'PLAYING' || gameState === 'PAUSED')
-    ? [player, ...enemies.getChildren(), ...trees.getChildren(), ...items.getChildren()]
-    : [...trees.getChildren()];
+  enemyHpBars.clear();
 
-  entities.forEach(s => {
+  const shadeEntity = (s) => {
+    if (!s || !s.active || !s.visible) return;
     const feet = s.groundY ?? s.y + s.displayHeight / 2;
     s.setDepth(feet);
     shadows.fillEllipse(s.x, feet - 2, s.displayWidth * 0.7, 8);
-  });
-  [...playerArrows.getChildren(), ...enemyArrows.getChildren()].forEach(a => a.setDepth(a.y + 16));
+  };
 
-  // Escudo e golpe de espada acompanham o cavaleiro
+  trees.getChildren().forEach(t => {
+    if (t.lockedY !== undefined) t.y = t.lockedY;
+    shadeEntity(t);
+  });
+
+  if (gameState === 'PLAYING' || gameState === 'PAUSED') {
+    shadeEntity(player);
+    items.getChildren().forEach(shadeEntity);
+    enemies.getChildren().forEach(e => {
+      shadeEntity(e);
+      if (e.chargeRing && e.chargeRing.active) {
+        e.chargeRing.setPosition(e.x - 12, e.y).setDepth(e.depth + 2);
+      }
+      // Desenha barra de vida/armadura para inimigos com mais de 1 HP
+      if (e.active && e.maxHp > 1) {
+        const bw = 22, bh = 4;
+        const bx = Math.round(e.x - bw / 2);
+        const by = Math.round(e.y - e.displayHeight / 2 - 8);
+        enemyHpBars.fillStyle(0x0e0b08, 0.9).fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+        enemyHpBars.fillStyle(0x2a1d17, 0.9).fillRect(bx, by, bw, bh);
+        const pct = Phaser.Math.Clamp(e.hp / e.maxHp, 0, 1);
+        const hpColor = e.hp < e.maxHp ? 0xff5252 : 0xffca28;
+        enemyHpBars.fillStyle(hpColor, 1).fillRect(bx, by, Math.round(bw * pct), bh);
+      }
+    });
+  }
+
+  playerArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
+  enemyArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
+
+  // Escudo e golpe de espada acompanham o cavaleiro (sempre voltados para a frente)
   if (player && player.visible) {
-    shieldSprite.setPosition(player.x + (player.flipX ? -12 : 12), player.y + 4).setDepth(player.depth + 1);
+    shieldSprite.setPosition(player.x + 12, player.y + 4).setDepth(player.depth + 1);
   }
   slashes.getChildren().forEach(s => {
-    s.setPosition(player.x + s.dir * 30, player.y).setDepth(player.depth + 3);
-    s.blade.setPosition(player.x + s.dir * 8, player.y + 4).setDepth(player.depth + 2);
+    s.setPosition(player.x + 30, player.y).setDepth(player.depth + 3);
+    if (s.blade && s.blade.active) {
+      s.blade.setPosition(player.x + 8, player.y + 4).setDepth(player.depth + 2);
+    }
   });
 }
 
@@ -987,10 +1098,11 @@ function sortAndShade() {
 function startGameplay(scene) {
   gameState = 'PLAYING';
   if (player) {
-    player.setPosition(160, 330).setVisible(true);
+    player.setPosition(160, 330).setFlipX(false).setVisible(true);
     player.play('knight');
   }
   if (playerBuffBar) playerBuffBar.clear();
+  if (enemyHpBars) enemyHpBars.clear();
   if (hudContainer) hudContainer.setVisible(true);
   sound.startBGM();
 
@@ -1002,7 +1114,14 @@ function startGameplay(scene) {
       hudBestText.setText(`${survivalTime}s`);
     }
   });
-  every(3000, () => { enemySpeed += 25; spawnDelay = Math.max(380, spawnDelay - 70); });
+  // Progressão balanceada com teto de velocidade e limite mínimo de spawn
+  every(4000, () => {
+    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 14);
+    spawnDelay = Math.max(MIN_SPAWN_DELAY, spawnDelay - 55);
+    enemies.getChildren().forEach(e => {
+      if (e.active && e.enemyType) e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
+    });
+  });
   every(5000, () => spawnItem(scene));
   every(900, () => spawnTree());
 
@@ -1017,28 +1136,56 @@ function startGameplay(scene) {
 function spawnEnemy(scene) {
   const roll = Math.random();
   const type = roll < 0.45 ? 'goblin' : roll < 0.75 ? 'warrior' : 'elf';
-  const enemy = enemies.create(860, Phaser.Math.Between(130, 520), type, 0);
+  const cfg = ENEMIES[type];
+
+  // Evita nascer exatamente em cima de outro inimigo recém-gerado
+  let y = Phaser.Math.Between(130, 520);
+  for (let i = 0; i < 5; i++) {
+    const candidate = Phaser.Math.Between(130, 520);
+    const stacked = enemies.getChildren().some(e => e.x > 770 && Math.abs(e.y - candidate) < 34);
+    if (!stacked) { y = candidate; break; }
+  }
+
+  const enemy = enemies.create(860, y, type, 0);
   enemy.play({ key: type, startFrame: Phaser.Math.Between(0, 1) }).setFlipX(true);
-  enemy.body.setSize(ENEMIES[type].w, ENEMIES[type].h);
-  enemy.setVelocityX(-enemySpeed * ENEMIES[type].speed);
+  enemy.body.setSize(cfg.w, cfg.h);
+  enemy.setVelocityX(-enemySpeed * cfg.speed);
   enemy.phase = Math.random() * 10; // cada um balança num ritmo diferente
+  enemy.enemyType = type;
+  enemy.maxHp = cfg.hp;
+  enemy.hp = cfg.hp;
 
   if (type === 'elf') {
-    enemy.shootTimer = scene.time.addEvent({ delay: 1700, loop: true, callback: () => elfShoot(scene, enemy) });
+    enemy.shootTimer = scene.time.addEvent({ delay: 1850, loop: true, callback: () => elfShoot(scene, enemy) });
   }
 }
 
-// Elfo pisca em rosa (aviso) e atira mirando no cavaleiro
+// Elfo brilha e concentra energia (360ms de aviso justo) antes de disparar
 function elfShoot(scene, elf) {
-  if (!elf.active || gameState !== 'PLAYING' || elf.x > 780 || elf.x < player.x + 60) return;
-  elf.setTint(0xff9cff);
-  scene.time.delayedCall(180, () => {
-    if (!elf.active || gameState !== 'PLAYING') return;
+  if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
+  if (elf.x > 780 || elf.x < player.x + 140) return; // distância mínima justa de reação
+
+  elf.setTint(0xff80ff);
+  if (elf.chargeRing && elf.chargeRing.active) elf.chargeRing.destroy();
+  const chargeRing = scene.add.circle(elf.x - 12, elf.y, 12, 0xc36bff, 0.35)
+    .setStrokeStyle(1.5, 0xffeb3b).setDepth(elf.depth + 2);
+  elf.chargeRing = chargeRing;
+
+  scene.tweens.add({
+    targets: chargeRing,
+    scale: { from: 1.3, to: 0.2 },
+    alpha: { from: 0.9, to: 0 },
+    duration: 360,
+    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
+  });
+
+  scene.time.delayedCall(360, () => {
+    if (!elf.active || !player || !player.active || !player.body || gameState !== 'PLAYING') return;
     elf.clearTint();
     sound.playElfShot();
     const arrow = enemyArrows.create(elf.x - 14, elf.y, 'arrow_elf');
     arrow.body.setSize(8, 8);
-    arrow.rotation = scene.physics.moveToObject(arrow, player, 380);
+    arrow.rotation = scene.physics.moveToObject(arrow, player, 360);
   });
 }
 
@@ -1049,15 +1196,24 @@ function spawnTree(x = 880) {
     const onRoad = y > 255 && y < 365;
     const crowded = trees.getChildren().some(t => Math.abs(t.x - x) < 110 && Math.abs(t.y - y) < 100);
     if (onRoad || crowded) continue;
-    trees.create(x, y, 'tree').body.setSize(12, 8).setOffset(18, 52); // colisão só no tronco
+    const tree = trees.create(x, y, 'tree');
+    tree.setImmovable(true);
+    tree.body.pushable = false;
+    tree.lockedY = y;
+    tree.body.setSize(12, 14).setOffset(18, 46); // colisão firme no tronco
     return;
   }
 }
 
-// Item flutua e pulsa para chamar atenção
+// Item flutua e pulsa para chamar atenção (evita nascer preso em tronco de árvore)
 function spawnItem(scene) {
   const type = Phaser.Utils.Array.GetRandom(['bow', 'shield', 'sword']);
-  const y = Phaser.Math.Between(140, 510);
+  let y = Phaser.Math.Between(140, 510);
+  for (let i = 0; i < 6; i++) {
+    const candidate = Phaser.Math.Between(140, 510);
+    const nearTree = trees.getChildren().some(t => Math.abs(t.x - 860) < 95 && Math.abs((t.y + 20) - candidate) < 48);
+    if (!nearTree) { y = candidate; break; }
+  }
   const item = items.create(860, y, 'item_' + type);
   item.lootType = type;
   item.groundY = y + 18; // sombra fica no chão enquanto o item flutua
@@ -1069,14 +1225,32 @@ function spawnItem(scene) {
 // COMBATE
 // =============================================================================
 function removeEntity(obj) {
-  if (!obj.active) return;
+  if (!obj || !obj.active) return;
   obj.scene.tweens.killTweensOf(obj);
   if (obj.shootTimer) obj.shootTimer.remove();
+  if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
   obj.destroy();
 }
 
+function damageEnemy(scene, enemy, dmg = 1) {
+  if (!enemy || !enemy.active) return;
+  enemy.hp = (enemy.hp ?? 1) - dmg;
+  if (enemy.hp <= 0) {
+    killEnemy(enemy);
+  } else {
+    // Inimigo de armadura absorveu o primeiro impacto
+    sound.playShieldBlock();
+    hitFx.explode(7, enemy.x, enemy.y);
+    enemy.x = Math.min(785, enemy.x + 22);
+    enemy.setTint(0xffca28);
+    scene.time.delayedCall(140, () => {
+      if (enemy && enemy.active) enemy.clearTint();
+    });
+  }
+}
+
 function killEnemy(enemy) {
-  if (!enemy.active) return;
+  if (!enemy || !enemy.active) return;
   sound.playEnemyHit();
   hitFx.explode(12, enemy.x, enemy.y);
   removeEntity(enemy);
@@ -1098,37 +1272,71 @@ function endBuff() {
 
 function shootArrow() {
   sound.playBow();
-  const dir = player.flipX ? -1 : 1;
-  const arrow = playerArrows.create(player.x + dir * 20, player.y + 2, 'arrow_player').setFlipX(dir < 0);
+  const arrow = playerArrows.create(player.x + 20, player.y + 2, 'arrow_player');
   arrow.body.setSize(18, 6);
-  arrow.setVelocityX(750 * dir);
+  arrow.setVelocityX(750);
 }
 
-// Espada gira no punho do cavaleiro + rastro em meia-lua (a hitbox)
+// Espada gira no punho do cavaleiro + rastro em meia-lua (sempre voltada para a frente)
 function swingSword(scene) {
   sound.playSword();
-  const dir = player.flipX ? -1 : 1;
-  const slash = slashes.create(player.x + dir * 30, player.y, 'slash_arc').setFlipX(dir < 0);
+  const slash = slashes.create(player.x + 30, player.y, 'slash_arc');
   slash.body.setSize(36, 60);
-  slash.dir = dir;
-  slash.blade = scene.add.image(player.x, player.y, 'sword_blade').setOrigin(0.5, 0.78).setFlipX(dir < 0);
+  slash.slashId = ++slashCounter;
+  slash.blade = scene.add.image(player.x, player.y, 'sword_blade').setOrigin(0.5, 0.78);
 
-  scene.tweens.add({ targets: slash.blade, angle: { from: -60 * dir, to: 120 * dir }, duration: 150, ease: 'Cubic.easeOut' });
+  slash.on('destroy', () => {
+    if (slash.blade && slash.blade.active) slash.blade.destroy();
+  });
+
+  scene.tweens.add({ targets: slash.blade, angle: { from: -60, to: 120 }, duration: 150, ease: 'Cubic.easeOut' });
   scene.tweens.add({
     targets: slash, alpha: { from: 1, to: 0 }, duration: 200,
-    onComplete: () => { slash.blade.destroy(); slash.destroy(); }
+    onComplete: () => slash.destroy()
   });
 }
 
 function playerHit(scene, hazard) {
   if (gameState !== 'PLAYING' || !hazard.active) return;
 
-  if (buff.type === 'shield') {                        // escudo absorve 1 golpe
+  if (buff.type === 'shield') {
+    // 1. Flechas inimigas são rebatidas sem quebrar o escudo!
+    if (enemyArrows.contains(hazard)) {
+      sound.playShieldBlock();
+      hitFx.explode(8, hazard.x, hazard.y);
+      floatText(scene, player.x, player.y - 28, 'FLECHA REBATIDA!', '#7fe7ff');
+      hazard.destroy();
+      return;
+    }
+
+    // 2. Impacto corpo a corpo quebra o escudo em uma Onda de Choque Sagrada!
     endBuff();
     sound.playShieldBlock();
-    scene.cameras.main.flash(150, 120, 220, 255);
-    floatText(scene, player.x, player.y - 30, 'ESCUDO QUEBROU!', '#7fe7ff');
-    enemies.contains(hazard) ? killEnemy(hazard) : hazard.destroy();
+    scene.cameras.main.flash(160, 120, 220, 255);
+    scene.cameras.main.shake(180, 0.008);
+    floatText(scene, player.x, player.y - 32, 'ONDA DE CHOQUE!', '#7fe7ff');
+
+    const wave = scene.add.circle(player.x, player.y, 16, 0x7fe7ff, 0.35)
+      .setStrokeStyle(3, 0xffffff).setDepth(1600);
+    scene.tweens.add({
+      targets: wave,
+      radius: 135,
+      alpha: 0,
+      duration: 320,
+      ease: 'Cubic.easeOut',
+      onComplete: () => wave.destroy()
+    });
+
+    enemies.getChildren().slice().forEach(e => {
+      if (e.active && Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y) <= 135) {
+        killEnemy(e);
+      }
+    });
+    enemyArrows.getChildren().slice().forEach(a => {
+      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= 135) {
+        a.destroy();
+      }
+    });
     return;
   }
   gameOver(scene);
@@ -1137,6 +1345,7 @@ function playerHit(scene, hazard) {
 function gameOver(scene) {
   gameState = 'GAMEOVER';
   if (playerBuffBar) playerBuffBar.clear();
+  if (enemyHpBars) enemyHpBars.clear();
   if (pauseModal) {
     pauseModal.destroy();
     pauseModal = null;
@@ -1323,35 +1532,67 @@ function createButton(scene, x, y, label, onClick, w = 260, h = 46) {
 }
 
 // -----------------------------------------------------------------------------
-// MENU PRINCIPAL (TELA INICIAL COM CAVALEIRO HERÓICO)
+// FÁBRICA UNIFICADA DE JANELAS E MODAIS MEDIEVAIS
 // -----------------------------------------------------------------------------
-function showMainMenu(scene) {
-  if (menuContainer) menuContainer.destroy();
-  menuContainer = scene.add.container(0, 0).setDepth(3000);
+function createModal(scene, titleText, height, subtitleText = '', width = 520) {
+  const left = (800 - width) / 2;
+  const top = (600 - height) / 2;
+  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.72);
 
-  // Fundo atmosférico escuro
-  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.65);
-
-  // Moldura central de madeira nobre talhada e bronze
   const frame = scene.add.graphics();
-  frame.fillStyle(0x16120e, 0.96).fillRoundedRect(140, 40, 520, 520, 14);
-  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(140, 40, 520, 520, 14);
-  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(144, 44, 512, 512, 11);
+  frame.fillStyle(0x16120e, 0.97).fillRoundedRect(left, top, width, height, 14);
+  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(left, top, width, height, 14);
+  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(left + 4, top + 4, width - 8, height - 8, 11);
 
-  // Rebites nos 4 cantos
-  [[154, 54], [646, 54], [154, 546], [646, 546]].forEach(([rx, ry]) => {
+  // Rebites ornamentais nos 4 cantos
+  const rOff = 14;
+  [
+    [left + rOff, top + rOff],
+    [left + width - rOff, top + rOff],
+    [left + rOff, top + height - rOff],
+    [left + width - rOff, top + height - rOff]
+  ].forEach(([rx, ry]) => {
     frame.fillStyle(0xc5a059, 1).fillCircle(rx, ry, 3.5);
     frame.fillStyle(0x3a2818, 1).fillCircle(rx, ry, 1.5);
   });
 
-  // Título régio com sombra
-  const titleShadow = scene.add.text(402, 77, 'A JORNADA DO CAVALEIRO', { ...textStyle('#080604', 25), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const title = scene.add.text(400, 75, 'A JORNADA DO CAVALEIRO', { ...textStyle('#ffca28', 25), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const subtitle = scene.add.text(400, 104, '★ CRÔNICAS DE SOBREVIVÊNCIA ★', textStyle('#c5a059', 11)).setOrigin(0.5);
-  frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(210, 118, 590, 118);
+  const titleShadow = scene.add.text(402, top + 37, titleText, { ...textStyle('#080604', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const title = scene.add.text(400, top + 35, titleText, { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
 
-  // Ilustração do Cavaleiro Heróico com respiração animada
-  frame.fillStyle(0x000000, 0.4).fillEllipse(400, 240, 64, 14);
+  const children = [overlay, frame, titleShadow, title];
+  if (subtitleText) {
+    const sub = scene.add.text(400, top + 65, subtitleText, textStyle('#c5a059', 12)).setOrigin(0.5);
+    frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(left + 60, top + 80, left + width - 60, top + 80);
+    children.push(sub);
+  }
+
+  return scene.add.container(0, 0, children).setDepth(3000);
+}
+
+function restartScene(scene, autoStart = false) {
+  if (pauseModal) {
+    pauseModal.destroy();
+    pauseModal = null;
+  }
+  if (menuContainer) {
+    menuContainer.destroy();
+    menuContainer = null;
+  }
+  sound.stopBGM();
+  scene.physics.resume();
+  scene.time.paused = false;
+  scene.scene.restart({ autoStart });
+}
+
+// -----------------------------------------------------------------------------
+// MENU PRINCIPAL (TELA INICIAL COM CAVALEIRO HERÓICO)
+// -----------------------------------------------------------------------------
+function showMainMenu(scene) {
+  if (menuContainer) menuContainer.destroy();
+  menuContainer = createModal(scene, 'A JORNADA DO CAVALEIRO', 520, '★ CRÔNICAS DE SOBREVIVÊNCIA ★', 520);
+
+  // Sombra e ilustração do Cavaleiro Heróico com respiração animada
+  const pedShadow = scene.add.graphics().fillStyle(0x000000, 0.4).fillEllipse(400, 240, 64, 14);
   const heroBanner = scene.add.image(400, 182, 'knight_banner').setScale(1.4);
   scene.tweens.add({
     targets: heroBanner,
@@ -1362,45 +1603,43 @@ function showMainMenu(scene) {
     ease: 'Sine.easeInOut'
   });
 
-  // Botões principais de navegação
-  const startBtn = createButton(scene, 400, 285, 'COMEÇAR O JOGO', () => {
-    sound.ensureContext();
-    menuContainer.destroy();
-    startGameplay(scene);
-  }, 280, 46);
+  const clearMenuKeys = () => {
+    scene.input.keyboard.off('keydown-SPACE', onKeyStart);
+    scene.input.keyboard.off('keydown-ENTER', onKeyStart);
+  };
 
-  const recordsBtn = createButton(scene, 400, 345, 'RECORDES', () => {
+  const launchGame = () => {
+    clearMenuKeys();
     sound.ensureContext();
     menuContainer.destroy();
+    menuContainer = null;
+    startGameplay(scene);
+  };
+
+  const startBtn = createButton(scene, 400, 285, 'COMEÇAR O JOGO', launchGame, 280, 46);
+  const recordsBtn = createButton(scene, 400, 345, 'RECORDES', () => {
+    clearMenuKeys();
+    sound.ensureContext();
     showRecordsMenu(scene);
   }, 280, 46);
-
   const settingsBtn = createButton(scene, 400, 405, 'CONFIGURAÇÕES', () => {
+    clearMenuKeys();
     sound.ensureContext();
-    menuContainer.destroy();
     showSettingsMenu(scene);
   }, 280, 46);
 
-  // Rodapé de instruções
-  const hint1 = scene.add.text(400, 480, 'Mover: WASD ou Setas   |   Áudio: Tecla M', textStyle('#a8987b', 12)).setOrigin(0.5);
+  const hint1 = scene.add.text(400, 480, 'Mover: WASD ou Setas   |   Pausa: ESC   |   Áudio: M', textStyle('#a8987b', 11)).setOrigin(0.5);
   const hint2 = scene.add.text(400, 508, 'Pressione ESPAÇO ou ENTER para iniciar', textStyle('#c5a059', 11)).setOrigin(0.5);
 
-  menuContainer.add([
-    overlay, frame, titleShadow, title, subtitle, heroBanner,
-    ...startBtn, ...recordsBtn, ...settingsBtn, hint1, hint2
-  ]);
+  menuContainer.add([pedShadow, heroBanner, ...startBtn, ...recordsBtn, ...settingsBtn, hint1, hint2]);
 
-  const onKeyStart = (e) => {
+  function onKeyStart(e) {
     if (gameState !== 'MENU') return;
     if (e.code === 'Space' || e.code === 'Enter') {
-      scene.input.keyboard.off('keydown-SPACE', onKeyStart);
-      scene.input.keyboard.off('keydown-ENTER', onKeyStart);
-      sound.ensureContext();
       sound.playButtonClick();
-      menuContainer.destroy();
-      startGameplay(scene);
+      launchGame();
     }
-  };
+  }
   scene.input.keyboard.once('keydown-SPACE', onKeyStart);
   scene.input.keyboard.once('keydown-ENTER', onKeyStart);
 }
@@ -1410,20 +1649,7 @@ function showMainMenu(scene) {
 // -----------------------------------------------------------------------------
 function showRecordsMenu(scene) {
   if (menuContainer) menuContainer.destroy();
-  menuContainer = scene.add.container(0, 0).setDepth(3000);
-
-  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
-
-  const frame = scene.add.graphics();
-  frame.fillStyle(0x16120e, 0.98).fillRoundedRect(140, 40, 520, 520, 14);
-  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(140, 40, 520, 520, 14);
-  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(144, 44, 512, 512, 11);
-
-  const title = scene.add.text(400, 78, 'TÁBULA DOS CAMPEÕES', { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const subtitle = scene.add.text(400, 108, 'Os maiores guerreiros imortalizados pelas eras', textStyle('#d6c8aa', 12)).setOrigin(0.5);
-  frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(200, 122, 600, 122);
-
-  menuContainer.add([overlay, frame, title, subtitle]);
+  menuContainer = createModal(scene, 'TÁBULA DOS CAMPEÕES', 520, 'Os maiores guerreiros imortalizados pelas eras', 520);
 
   const scores = getHighScores();
   const ranks = ['1º LUGAR', '2º LUGAR', '3º LUGAR', '4º LUGAR', '5º LUGAR'];
@@ -1442,12 +1668,7 @@ function showRecordsMenu(scene) {
     menuContainer.add([rowBg, rankTxt, nameTxt, scoreTxt]);
   });
 
-  const backBtn = createButton(scene, 400, 485, 'VOLTAR AO MENU', () => {
-    menuContainer.destroy();
-    showMainMenu(scene);
-  }, 260, 44);
-
-  menuContainer.add(backBtn);
+  menuContainer.add(createButton(scene, 400, 485, 'VOLTAR AO MENU', () => showMainMenu(scene), 260, 44));
 }
 
 // -----------------------------------------------------------------------------
@@ -1455,20 +1676,7 @@ function showRecordsMenu(scene) {
 // -----------------------------------------------------------------------------
 function showSettingsMenu(scene) {
   if (menuContainer) menuContainer.destroy();
-  menuContainer = scene.add.container(0, 0).setDepth(3000);
-
-  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
-
-  const frame = scene.add.graphics();
-  frame.fillStyle(0x16120e, 0.98).fillRoundedRect(140, 40, 520, 520, 14);
-  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(140, 40, 520, 520, 14);
-  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(144, 44, 512, 512, 11);
-
-  const title = scene.add.text(400, 75, 'CONFIGURAÇÕES DO REINO', { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const subtitle = scene.add.text(400, 105, 'Ajustes sonoros e pergaminho de batalha', textStyle('#d6c8aa', 12)).setOrigin(0.5);
-  frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(200, 118, 600, 118);
-
-  menuContainer.add([overlay, frame, title, subtitle]);
+  menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', 520, 'Ajustes sonoros e pergaminho de batalha', 520);
 
   // Seção 1: Áudio
   const audioBox = scene.add.graphics();
@@ -1483,19 +1691,13 @@ function showSettingsMenu(scene) {
   const audioToggleTxt = scene.add.text(510, 172, sound.isMuted() ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ATIVADO', textStyle('#ffffff', 13))
     .setOrigin(0.5);
 
-  const updateAudioUI = () => {
-    audioToggleBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
-    audioToggleTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ATIVADO');
-    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
-  };
-
   audioToggleBtn.on('pointerdown', () => {
     sound.toggleMute();
     sound.playButtonClick();
-    updateAudioUI();
+    audioToggleBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
+    audioToggleTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ATIVADO');
+    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   });
-
-  menuContainer.add([audioBox, audioTitle, audioHint, audioToggleBtn, audioToggleTxt]);
 
   // Seção 2: Pergaminho de Dicas
   const guideBox = scene.add.graphics();
@@ -1505,41 +1707,21 @@ function showSettingsMenu(scene) {
   const guideTitle = scene.add.text(400, 244, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
     '• Árvores protegem contra todas as flechas (cobertura).',
-    '• Suas flechas e golpes anulam projéteis inimigos no ar.',
-    '• O Escudo de Aço resiste a 1 impacto mortal.',
-    '• A Espada Vorpal executa golpe giratório à queima-roupa.',
-    '• Elfos brilham em rosa antes de atirar flechas guiadas.',
-    '• Colete relíquias douradas para renovar suas habilidades.'
+    '• Guerreiros de Armadura exigem 2 flechas ou 1 golpe de espada.',
+    '• O Escudo de Aço rebate flechas e explode em Onda de Choque.',
+    '• A Espada Vorpal corta armaduras e projéteis à queima-roupa.',
+    '• Elfos concentram energia mágica antes de disparar.',
+    '• Pressione ESC a qualquer momento para pausar a partida.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
     scene.add.text(190, 270 + i * 26, txt, { ...textStyle('#d6c8aa', 12, 'normal'), lineSpacing: 4 })
   );
 
-  menuContainer.add([guideBox, guideTitle, ...guideTexts]);
-
-  // Botão Voltar
-  const backBtn = createButton(scene, 400, 495, 'VOLTAR AO MENU', () => {
-    menuContainer.destroy();
-    showMainMenu(scene);
-  }, 260, 44);
-
-  menuContainer.add(backBtn);
-}
-
-// -----------------------------------------------------------------------------
-// GAME OVER (INICIAIS E REGISTRO)
-// -----------------------------------------------------------------------------
-function createModal(scene, title, height) {
-  const top = (600 - height) / 2;
-  const card = scene.add.graphics();
-  card.fillStyle(0x16120e, 0.98).fillRoundedRect(160, top, 480, height, 14);
-  card.lineStyle(3, 0x8d5524).strokeRoundedRect(160, top, 480, height, 14);
-  card.lineStyle(1.5, 0xc5a059).strokeRoundedRect(164, top + 4, 472, height - 8, 11);
-  return scene.add.container(0, 0, [
-    scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.75),
-    card,
-    scene.add.text(400, top + 40, title, { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5)
-  ]).setDepth(3000);
+  menuContainer.add([
+    audioBox, audioTitle, audioHint, audioToggleBtn, audioToggleTxt,
+    guideBox, guideTitle, ...guideTexts,
+    ...createButton(scene, 400, 495, 'VOLTAR AO MENU', () => showMainMenu(scene), 260, 44)
+  ]);
 }
 
 // -----------------------------------------------------------------------------
@@ -1594,9 +1776,7 @@ function showPauseModal(scene) {
 
   const height = 430;
   const top = (600 - height) / 2;
-  pauseModal = createModal(scene, 'JOGO PAUSADO', height);
-
-  const subtitle = scene.add.text(400, top + 72, '★ JORNADA EM ESPERA ★', textStyle('#c5a059', 12)).setOrigin(0.5);
+  pauseModal = createModal(scene, 'JOGO PAUSADO', height, '★ JORNADA EM ESPERA ★', 480);
 
   // Status de sobrevivência e relíquia
   const statsBox = scene.add.graphics();
@@ -1608,10 +1788,8 @@ function showPauseModal(scene) {
   const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
   const relicTxt = scene.add.text(210, top + 130, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 13));
 
-  // Botão 1: Continuar
   const continueBtn = createButton(scene, 400, top + 182, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 280, 40);
 
-  // Botão 2: Alternar Áudio
   const audioBtn = scene.add.rectangle(400, top + 232, 280, 40, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
   const audioTxt = scene.add.text(400, top + 232, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 13))
@@ -1631,38 +1809,12 @@ function showPauseModal(scene) {
 
   pauseModal.updateAudio = updateAudioUI;
 
-  // Botão 3: Reiniciar Missão
-  const restartBtn = createButton(scene, 400, top + 282, 'REINICIAR MISSÃO', () => {
-    if (pauseModal) {
-      pauseModal.destroy();
-      pauseModal = null;
-    }
-    sound.stopBGM();
-    scene.physics.resume();
-    scene.time.paused = false;
-    scene.scene.restart();
-    scene.events.once('create', () => {
-      if (menuContainer) menuContainer.destroy();
-      startGameplay(scene);
-    });
-  }, 280, 40);
-
-  // Botão 4: Menu Principal
-  const menuBtn = createButton(scene, 400, top + 332, 'MENU PRINCIPAL', () => {
-    if (pauseModal) {
-      pauseModal.destroy();
-      pauseModal = null;
-    }
-    sound.stopBGM();
-    scene.physics.resume();
-    scene.time.paused = false;
-    scene.scene.restart();
-  }, 280, 40);
-
+  const restartBtn = createButton(scene, 400, top + 282, 'REINICIAR MISSÃO', () => restartScene(scene, true), 280, 40);
+  const menuBtn = createButton(scene, 400, top + 332, 'MENU PRINCIPAL', () => restartScene(scene, false), 280, 40);
   const footerHint = scene.add.text(400, top + 390, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
 
   pauseModal.add([
-    subtitle, statsBox, timeTxt, relicTxt,
+    statsBox, timeTxt, relicTxt,
     ...continueBtn,
     audioBtn, audioTxt,
     ...restartBtn,
@@ -1674,34 +1826,29 @@ function showPauseModal(scene) {
 // -----------------------------------------------------------------------------
 // GAME OVER (INICIAIS E REGISTRO)
 // -----------------------------------------------------------------------------
-
 function showInitials(scene) {
   let name = '', done = false;
-  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 430);
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 430, '', 480);
   const info = scene.add.text(400, 175, `Tempo de bravura em combate: ${survivalTime}s\n\nDigite suas 3 iniciais de honra:`,
     { ...textStyle('#e8dcbe', 15), align: 'center', lineSpacing: 5 }).setOrigin(0.5);
 
-  // Moldura visual do campo de input (estilo caixa de entrada arcade)
   const inputBg = scene.add.graphics();
   inputBg.fillStyle(0x0e0b08, 0.95).fillRoundedRect(260, 220, 280, 56, 6);
   inputBg.lineStyle(2, 0xc5a059).strokeRoundedRect(260, 220, 280, 56, 6);
   inputBg.lineStyle(1, 0x4a3b2c).strokeRoundedRect(263, 223, 274, 50, 4);
 
-  // Placeholder esmaecido quando vazio
   const placeholder = scene.add.text(400, 248, 'EX: ART', {
     ...textStyle('#736148', 24),
     fontStyle: 'bold',
     fontFamily: 'Courier New, monospace'
   }).setOrigin(0.5);
 
-  // Texto real digitado (dourado reluzente)
   const display = scene.add.text(400, 248, '', {
     ...textStyle('#ffca28', 30),
     fontStyle: 'bold',
     fontFamily: 'Courier New, monospace'
   }).setOrigin(0.5);
 
-  // Cursor piscante
   const cursor = scene.add.text(465, 248, '|', { ...textStyle('#ffca28', 26) }).setOrigin(0.5);
   const cursorTween = scene.tweens.add({
     targets: cursor,
@@ -1711,7 +1858,6 @@ function showInitials(scene) {
     repeat: -1
   });
 
-  // Dica visual de que se trata de digitação por teclado
   const inputHint = scene.add.text(400, 290, '⌨️ Digite 3 letras no teclado', textStyle('#a8987b', 12)).setOrigin(0.5);
 
   const updateDisplay = () => {
@@ -1759,7 +1905,7 @@ function showInitials(scene) {
 }
 
 function showLeaderboard(scene, topScores, currentName) {
-  const modal = createModal(scene, 'CAMPEÕES DO REINO', 470);
+  const modal = createModal(scene, 'CAMPEÕES DO REINO', 470, '', 480);
   let marked = false;
 
   topScores.forEach((entry, i) => {
@@ -1771,35 +1917,27 @@ function showLeaderboard(scene, topScores, currentName) {
   });
 
   let restarting = false;
-  const restart = () => {
+  const finishAndRestart = (autoStart) => {
     if (restarting) return;
     restarting = true;
-    sound.playButtonClick();
+    scene.input.keyboard.off('keydown-SPACE', onQuickRestart);
+    scene.input.keyboard.off('keydown-ENTER', onQuickRestart);
     modal.destroy();
-    scene.physics.resume();
-    scene.time.paused = false;
-    scene.scene.restart();
-    scene.events.once('create', () => {
-      if (menuContainer) menuContainer.destroy();
-      startGameplay(scene);
-    });
+    restartScene(scene, autoStart);
   };
 
-  const toMenu = () => {
-    if (restarting) return;
-    restarting = true;
+  const onQuickRestart = () => {
     sound.playButtonClick();
-    modal.destroy();
-    scene.physics.resume();
-    scene.time.paused = false;
-    scene.scene.restart();
+    finishAndRestart(true);
   };
 
-  modal.add(createButton(scene, 285, 420, 'NOVA JORNADA', restart, 200, 44));
-  modal.add(createButton(scene, 515, 420, 'MENU INICIAL', toMenu, 200, 44));
+  modal.add(createButton(scene, 285, 420, 'NOVA JORNADA', () => finishAndRestart(true), 200, 44));
+  modal.add(createButton(scene, 515, 420, 'MENU INICIAL', () => finishAndRestart(false), 200, 44));
 
   scene.time.delayedCall(200, () => {
-    scene.input.keyboard.once('keydown-SPACE', restart);
-    scene.input.keyboard.once('keydown-ENTER', restart);
+    if (!restarting) {
+      scene.input.keyboard.once('keydown-SPACE', onQuickRestart);
+      scene.input.keyboard.once('keydown-ENTER', onQuickRestart);
+    }
   });
 }

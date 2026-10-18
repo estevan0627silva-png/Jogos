@@ -68,23 +68,24 @@ O painel de jogo foi totalmente reformulado em 4 módulos visuais independentes 
 
 ## 🌲 Inimigos da Floresta
 
-- 🧌 **Goblins**: Criaturas verdes, ágeis e velozes que avançam em bandos para cercar o cavaleiro.
-- 🛡️ **Guerreiros Sombrios**: Soldados pesados com elmos de chifres e armaduras negras impenetráveis.
-- 🧝 **Elfos Arqueiros**: Mestres da arquearia que disparam flechas mágicas de longa distância em direção ao herói!
+- 🧌 **Goblins (1 HP)**: Criaturas verdes, ágeis e velozes que avançam em bandos para cercar o cavaleiro.
+- 🛡️ **Guerreiros Sombrios (2 HP)**: Soldados blindados com elmos de chifres e barra de armadura própria. Resistem ao primeiro disparo de flecha (com impacto metálico e recuo), exigindo 2 flechas ou 1 corte direto da Espada Vorpal!
+- 🧝 **Elfos Arqueiros (1 HP)**: Mestres da arquearia que concentram um anel de energia mágica por 360ms antes de disparar flechas guiadas contra o herói!
 
 ---
 
 ## ⚔️ Arsenal Medieval (Power-ups)
 
-- 🏹 **Arco e Flecha (Loot Dourado)**:
+- 🏹 **Arco Real (Loot Dourado)**:
   - Dura **6 segundos**.
-  - Dispara rajadas rápidas de flechas a cada 320ms, aniquilando inimigos na tela e interceptando flechas élficas.
+  - Dispara rajadas rápidas de flechas a cada 340ms (1 de dano por flecha), abatendo inimigos à distância e interceptando flechas élficas no ar.
 - 🛡️ **Escudo de Aço (Loot Ciano/Azul)**:
-  - Dura até **8 segundos** (com contagem regressiva no HUD).
-  - Posiciona-se fisicamente ao lado do herói e absorve **1 golpe fatal** (corpo a corpo ou flecha).
+  - Dura até **9 segundos**.
+  - **Deflexão Ativa**: Rebate todas as flechas inimigas gratuitamente sem quebrar!
+  - **Onda de Choque Sagrada**: Ao bloquear uma colisão direta com um inimigo, o escudo se estilhaça liberando uma explosão radial de 135px que destrói todos os inimigos e projéteis próximos!
 - 🗡️ **Espada Vorpal (Loot Prateado)**:
   - Dura **6 segundos**.
-  - Desfere sequências de golpes de espada em arco (*Slash*) à queima-roupa na frente do cavaleiro, fatiando inimigos e rebatendo projéteis instantaneamente!
+  - Desfere golpes giratórios em arco (*Slash*) a cada 280ms (2 de dano por corte), partindo a armadura dos Guerreiros Sombrios em um único golpe e rebatendo projéteis instantaneamente!
 
 ---
 

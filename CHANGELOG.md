@@ -4,6 +4,43 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.9.3] - 2026-10-18 (Correção de Colisão de Árvores, Postura do Cavaleiro & Polimento de Jogabilidade)
+### 🐛 Correções Críticas de Jogabilidade
+- **Eliminação do Bug de "Carregar Árvores" (`separatePlayerFromTree`)**:
+  - Substituído o solver padrão de colisão física entre jogador e árvores por uma resolução customizada (`separatePlayerFromTree`).
+  - As árvores agora possuem eixo vertical travado (`lockedY`) e `pushable = false`, garantindo que **jamais** tenham sua posição ou velocidade alteradas pelo jogador.
+  - Quando o cavaleiro fica prensado entre o limite esquerdo da tela e um tronco de árvore em movimento, ele desliza suavemente na vertical para cima ou para baixo ao redor do tronco, permitindo que a árvore siga seu caminho e saia da tela normalmente sem prender o jogador.
+- **Postura de Combate Sempre Voltada para a Frente (`flipX = false`)**:
+  - Ao recuar para a esquerda (`A` ou `Seta Esquerda`), o cavaleiro agora mantém o olhar, a armadura, o escudo, o arco e os golpes de espada **sempre voltados para a frente (direita)** na direção da estrada e dos inimigos, recuando em passo tático (*kiting*) sem virar de costas para a batalha.
+- **Correções Adicionais de Jogabilidade**:
+  - **Anel de Concentração Élfica (`chargeRing`)**: Agora acompanha a posição do Elfo em tempo real enquanto ele caminha e é destruído imediatamente caso o Elfo seja abatido durante o carregamento.
+  - **Prevenção de Sobreposição de Inimigos (`spawnEnemy`)**: Verificação de distância vertical no momento do spawn impede que dois inimigos nasçam exatamente na mesma coordenada empilhados um sobre o outro.
+  - **Prevenção de Relíquias Presas em Troncos (`spawnItem`)**: Os itens agora verificam a posição das árvores próximas ao surgir, evitando nascer dentro da hitbox de um tronco.
+  - **Filtro de Áudio Fora da Tela (`hitTree`)**: Flechas que atingem árvores fora dos limites visíveis da tela não disparam mais som ou partículas de madeira desnecessariamente.
+  - **Sincronização de Velocidade e Limite de Knockback**: Inimigos ativos na tela sincronizam sua velocidade quando a dificuldade sobe, e o empurrão (*knockback*) nos Guerreiros de Armadura respeita o limite visível da tela (`x <= 785`).
+
+---
+
+## [v0.9.2] - 2026-10-18 (Estabilização Técnica, Nivelamento de Combate & Refinamento Visual)
+### 🛠️ Arquitetura & Correção de Bugs (`code_architect`)
+- **Prevenção de Duplicação de Listeners no Restart**: Adicionado evento de `SHUTDOWN` da cena para limpar todos os ouvintes de teclado (`removeAllListeners`), eliminando o bug onde pressionar `ESC` ou `M` disparava múltiplos eventos após reiniciar partidas.
+- **Proteção contra Dessincronização da Web Audio API**: O agendador `scheduleBGM` agora ressincroniza `nextStepTime` caso a aba tenha ficado em segundo plano, prevenindo travamentos ou rajadas sonoras ao retornar para a aba.
+- **Ciclo de Vida Seguro da Espada (`slash.blade`)**: A destruição da lâmina visual agora está vinculada ao evento `destroy` da hitbox do golpe e possui validação de `active`, impedindo erros caso o jogo termine no meio de um ataque.
+- **Fábrica Unificada de Modais (`createModal`) e `restartScene`**: Unificada a construção de janelas medievais (molduras duplas, cantos com rebites, sombras de título e divisórias) e transição de cena via `restart({ autoStart })`, enxugando mais de 70 linhas redundantes.
+
+### ⚖️ Nivelamento & Game Design (`gameplay_balancer`)
+- **Curva de Dificuldade Justa com Teto (*Hard Cap*)**: Velocidade inicial ajustada para `200`, escalonamento a cada `4s` e teto máximo fixado em `380 px/s` (com intervalo mínimo de spawn de `500ms`), impedindo que inimigos atinjam velocidades impossíveis em partidas longas.
+- **Guerreiro de Armadura (Tank de 2 HP)**: Agora possui **2 pontos de vida** e barra de integridade própria acima do elmo. Resiste a 1 flecha com som metálico e recuo, ou é abatido de uma só vez pelo corte da **Espada Vorpal** (2 de dano).
+- **Disparo Élfico Legível e Justo**: Tempo de aviso ampliado de `180ms` para `360ms` com anel de concentração mágica visível e distância mínima de segurança (`140px`), garantindo tempo real de reação humana.
+- **Rework do Escudo de Aço**: Duração ampliada para `9s`. Agora **rebate flechas inimigas gratuitamente** sem quebrar, e ao colidir contra um inimigo libera uma **Onda de Choque Sagrada** de `135px` que elimina ameaças ao redor.
+
+### 🎨 Direção de Arte & Game Feel (`art_director`)
+- **Partículas de Poeira de Caminhada (`dustFx`)**: Emissão sutil de poeira da estrada sob os pés do cavaleiro em movimento.
+- **Anel Mágico dos Elfos & Onda de Choque**: Efeitos visuais procedurais para o carregamento de flecha élfica e explosão radial ciano do escudo.
+- **Barras de Vida/Armadura de Inimigos (`enemyHpBars`)**: Indicador visual acima de inimigos blindados (pronto para suportar futuros Chefes/Bosses).
+
+---
+
 ## [v0.9.1] - 2026-10-18 (Entrada Raiz index.html & Guia de Compartilhamento)
 ### 🚀 Distribuição & Execução Rápida
 - **Arquivo Raiz `index.html`**: Criado ponto de entrada principal na raiz do repositório, permitindo que qualquer pessoa que baixe o projeto execute o jogo instantaneamente com apenas dois cliques, sem necessidade de VS Code, Live Server ou ferramentas de desenvolvedor.
