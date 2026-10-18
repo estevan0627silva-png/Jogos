@@ -4,6 +4,23 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.5.1] - 2026-10-18
+### 🧹 Refatoração & Simplificação Extrema
+- **Redução Drástica de Complexidade**:
+  - Código reduzido em mais de 62% (de 1.215 para ~450 linhas), mantendo 100% das mecânicas ativas.
+  - Substituição de centenas de linhas de matrizes de caracteres por renderizador geométrico nativo em pixel art via `generateTexture`.
+- **Gerenciador Unificado de Buffs (`activeBuff`)**:
+  - Eliminação de 9 temporizadores e dezenas de variáveis redundantes para Arco, Escudo e Espada.
+  - Controle de tempo e cadência determinístico baseado no `delta` nativo do ciclo `update()`.
+- **Limpeza Nativa de Timers**:
+  - Adoção de `scene.time.removeAllEvents()`, eliminando chamadas manuais repetitivas e prevenindo vazamentos de memória.
+- **Componentização Visual Reutilizável**:
+  - Helpers modulares `createModal()` e `createButton()` unificando a estética da Tela Inicial, Registro de Iniciais e Tabela de Recordes.
+- **Coleta de Lixo Unificada (`cleanGroup`)**:
+  - Função única e limpa para descarte seguro de entidades fora da tela.
+
+---
+
 ## [v0.5.0] - 2026-10-18 (Edição Fantasia Medieval Pixel Art)
 ### 🎨 Visual & Arte Pixel Art
 - **Motor Gráfico com Suporte a Pixel Art**:

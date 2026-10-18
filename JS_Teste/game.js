@@ -1,104 +1,63 @@
 // =============================================================================
 // A JORNADA DO CAVALEIRO: PIXEL ART EDITION (PHASER 3)
+// Código limpo, modular e simplificado
 // =============================================================================
 
 const config = {
   type: Phaser.AUTO,
   width: 800,
   height: 600,
-  pixelArt: true,              // Ativa renderização estrita de Pixel Art (sem interpolação borrada)
-  backgroundColor: '#1b381e',  // Verde floresta escuro da clareira
+  pixelArt: true,
+  backgroundColor: '#1b381e',
   physics: {
     default: 'arcade',
-    arcade: {
-      gravity: { y: 0 },
-      debug: false
-    }
+    arcade: { gravity: { y: 0 }, debug: false }
   },
-  scene: {
-    preload: preload,
-    create: create,
-    update: update
-  }
+  scene: { preload, create, update }
 };
 
 const game = new Phaser.Game(config);
 
-// =============================================================================
-// VARIÁVEIS DE ESTADO DO JOGO
-// =============================================================================
+// --- ESTADO PRINCIPAL DO JOGO ---
 let player;
 let cursors, wasdKeys;
-let obstaclesGroup, playerProjectilesGroup, enemyProjectilesGroup, itemsGroup, slashGroup;
-let sceneryGroup;
+let obstaclesGroup, playerProjectilesGroup, enemyProjectilesGroup, itemsGroup, slashGroup, sceneryGroup;
+let shieldSprite;
 
-// Estado do Jogo: 'START' | 'PLAYING' | 'GAMEOVER'
-let gameState = 'START';
-
-// Dificuldade e Spawners
+let gameState = 'START'; // 'START' | 'PLAYING' | 'GAMEOVER'
+let survivalTime = 0;
 let obstacleSpeed = 220;
 let spawnDelay = 1300;
-let spawnTimerEvent = null;
-let difficultyEvent = null;
-let itemSpawnEvent = null;
-let scenerySpawnEvent = null;
 
-// Pontuação e Sobrevivência
-let survivalTime = 0;
-let scoreTimerEvent = null;
+// Gerenciador Unificado de Power-up (Arco, Escudo ou Espada)
+let activeBuff = {
+  type: null,        // 'bow' | 'shield' | 'sword' | null
+  timeLeft: 0,       // Duração restante em segundos
+  nextAttackTime: 0  // Controle de cadência do ataque
+};
 
-// Power-up 1: Escudo Medieval (8 segundos)
-let hasShield = false;
-let shieldTimeRemaining = 0;
-let shieldSprite = null;
-let shieldCountdownEvent = null;
-let shieldExpireEvent = null;
-
-// Power-up 2: Arco e Flecha (6 segundos)
-let hasBow = false;
-let bowTimeRemaining = 0;
-let bowShooterEvent = null;
-let bowCountdownEvent = null;
-let bowExpireEvent = null;
-
-// Power-up 3: Espada & Golpe Slash (6 segundos)
-let hasSword = false;
-let swordTimeRemaining = 0;
-let swordAttackEvent = null;
-let swordCountdownEvent = null;
-let swordExpireEvent = null;
-
-// HUD
-let hudScoreText;
-let hudHighScoreText;
-let hudStatusText;
-
+// Textos do HUD
+let hudScoreText, hudHighScoreText, hudStatusText;
 const STORAGE_KEY = 'knight_quest_highscores';
 
 // =============================================================================
-// SISTEMA DE RECORDES (LOCALSTORAGE)
+// GERENCIADOR DE RECORDES (LOCALSTORAGE)
 // =============================================================================
 function getHighScores() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
   } catch (e) {}
-  return [
-    { name: 'ARTH', score: 40 },
-    { name: 'LANC', score: 28 },
-    { name: 'GWEN', score: 18 }
-  ];
+  return [{ name: 'ARTH', score: 40 }, { name: 'LANC', score: 28 }, { name: 'GWEN', score: 18 }];
 }
 
 function saveHighScore(name, score) {
   const scores = getHighScores();
   const cleanName = (name || 'HER').toUpperCase().slice(0, 3);
-  scores.push({ name: cleanName, score: score });
+  scores.push({ name: cleanName, score });
   scores.sort((a, b) => b.score - a.score);
   const topScores = scores.slice(0, 5);
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(topScores));
-  } catch (e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(topScores)); } catch (e) {}
   return { topScores, currentName: cleanName };
 }
 
@@ -108,320 +67,94 @@ function getBestScore() {
 }
 
 // =============================================================================
-// 1. PRELOAD: GERAÇÃO PROCEDURAL DAS TEXTURAS PIXEL ART
+// 1. PRELOAD: CRIAÇÃO PROCEDURAL DOS SPRITES EM PIXEL ART
 // =============================================================================
 function preload() {
-  const scene = this;
-  generatePixelArtTextures(scene);
-}
+  if (this.textures.exists('knight')) return;
+  const g = this.make.graphics({ x: 0, y: 0, add: false });
 
-// Cria texturas nativas em Pixel Art sem depender de arquivos de imagem externos
-function generatePixelArtTextures(scene) {
-  // Paleta de cores em formato retro 16-bit
-  const P = {
-    '.': null,      // Transparência
-    'K': '#111116', // Contorno escuro / metal negro
-    'S': '#c4c8d4', // Armadura de aço / prata
-    'W': '#ffffff', // Brilho puro / lâmina
-    'D': '#6e7484', // Sombra de metal
-    'R': '#d32f2f', // Pluma rubra do elmo / sangue
-    'B': '#1976d2', // Túnica azul real
-    'F': '#ffcc80', // Tom de pele
-    'G': '#4caf50', // Pele de Goblin
-    'g': '#2e7d32', // Sombra de Goblin
-    'Y': '#fbc02d', // Cabelo loiro élfico / Ouro nobre
-    'O': '#8d5524', // Madeira de carvalho / couro
-    'L': '#5d3a1a', // Madeira escura / tronco
-    'E': '#2e7d32', // Túnica élfica verde
-    'e': '#1b5e20', // Capa élfica escura
-    'V': '#ba68c8', // Magia púrpura / veneno
-    'C': '#00e5ff', // Magia ciana / brilho arcano
-    'T': '#2d6a33', // Folhagem de árvore
-    't': '#1b4320'  // Folhagem escura
-  };
+  // 1. Cavaleiro (32x32)
+  g.clear();
+  g.fillStyle(0xd32f2f).fillRect(10, 2, 8, 6);                        // Pluma vermelha
+  g.fillStyle(0xc4c8d4).fillRect(8, 8, 14, 10).fillRect(6, 18, 18, 10); // Armadura prateada
+  g.fillStyle(0x111116).fillRect(14, 10, 8, 4);                       // Viseira
+  g.fillStyle(0x1976d2).fillRect(10, 20, 10, 8);                      // Túnica azul
+  g.fillStyle(0x5d3a1a).fillRect(8, 28, 5, 4).fillRect(17, 28, 5, 4); // Botas
+  g.generateTexture('knight', 32, 32);
 
-  // Função auxiliar para desenhar matrizes de caracteres no Canvas do Phaser
-  function makeSprite(key, map, pixelSize = 2) {
-    const h = map.length;
-    const w = map[0].length;
-    const canvasTex = scene.textures.createCanvas(key, w * pixelSize, h * pixelSize);
-    const ctx = canvasTex.getContext();
+  // 2. Goblin (28x28)
+  g.clear();
+  g.fillStyle(0x4caf50).fillRect(4, 4, 4, 6).fillRect(20, 4, 4, 6).fillRect(8, 6, 12, 10); // Cabeça/orelhas
+  g.fillStyle(0xfbc02d).fillRect(10, 9, 3, 3).fillRect(16, 9, 3, 3);                       // Olhos
+  g.fillStyle(0x111116).fillRect(12, 9, 2, 3).fillRect(18, 9, 2, 3);                       // Pupilas
+  g.fillStyle(0x4caf50).fillRect(10, 16, 8, 8);                                             // Corpo
+  g.fillStyle(0x8d5524).fillRect(8, 20, 12, 5);                                             // Trapos
+  g.generateTexture('goblin', 28, 28);
 
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const color = P[map[y][x]];
-        if (color) {
-          ctx.fillStyle = color;
-          ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-        }
-      }
-    }
-    canvasTex.refresh();
-  }
+  // 3. Guerreiro Sombrio (32x32)
+  g.clear();
+  g.fillStyle(0x111116).fillRect(4, 2, 4, 8).fillRect(24, 2, 4, 8);                        // Chifres
+  g.fillStyle(0x454955).fillRect(8, 8, 16, 12).fillRect(6, 20, 20, 8);                     // Metal negro
+  g.fillStyle(0xd32f2f).fillRect(12, 12, 8, 4).fillRect(10, 22, 12, 4);                    // Brasão rubro
+  g.fillStyle(0x111116).fillRect(8, 28, 6, 4).fillRect(18, 28, 6, 4);                      // Botas
+  g.generateTexture('dark_warrior', 32, 32);
 
-  // 1. Cavaleiro Protagonista (16x16 -> 32x32)
-  makeSprite('knight', [
-    '.....RRRR.......',
-    '....RRRRRR......',
-    '.....SSSS.......',
-    '....SKKKKS......',
-    '....SSSSSS......',
-    '.....SSSF.......',
-    '....SSSSSS......',
-    '...SSSSSSSS.....',
-    '...SBBBBBBS.....',
-    '...SBBBBBBS.....',
-    '...SSSSSSSS.....',
-    '....SS..SS......',
-    '....OO..OO......',
-    '....SS..SS......',
-    '....SS..SS......',
-    '................'
-  ], 2);
+  // 4. Elfo Arqueiro (28x32)
+  g.clear();
+  g.fillStyle(0xfbc02d).fillRect(8, 4, 12, 8);  // Cabelo dourado
+  g.fillStyle(0xffcc80).fillRect(10, 8, 8, 6);  // Rosto
+  g.fillStyle(0x2e7d32).fillRect(8, 14, 12, 14); // Manto esmeralda
+  g.fillStyle(0x8d5524).fillRect(22, 6, 3, 20);  // Arco
+  g.generateTexture('elf_archer', 28, 32);
 
-  // 2. Inimigo 1: Goblin das Florestas (14x14)
-  makeSprite('goblin', [
-    '....G....G....',
-    '...GGg..gGG...',
-    '..GGGGGGGGGG..',
-    '..GGYGGGGYGG..',
-    '..GGKGGGGKGG..',
-    '..GGGGGGGGGG..',
-    '...GGWGGWGG...',
-    '....GGGGGG....',
-    '...LLLLLLLL...',
-    '...LLLLLLLL...',
-    '....Gg..gG....',
-    '....LL..LL....',
-    '....LL..LL....',
-    '..............'
-  ], 2);
+  // 5. Flechas (Jogador e Elfo)
+  g.clear().fillStyle(0x1976d2).fillRect(0, 1, 4, 4).fillStyle(0x8d5524).fillRect(4, 2, 12, 2).fillStyle(0xc4c8d4).fillRect(16, 1, 4, 4);
+  g.generateTexture('arrow_player', 20, 6);
 
-  // 3. Inimigo 2: Guerreiro Sombrio (16x16)
-  makeSprite('dark_warrior', [
-    '..KK......KK..',
-    '...KK....KK...',
-    '....KK..KK....',
-    '...DDDDDDDD...',
-    '..DDKKKKKKDD..',
-    '..DDDDDDDDDD..',
-    '..DDRRRRRRDD..',
-    '..DDRRRRRRDD..',
-    '..DDKKKKKKDD..',
-    '...DDDDDDDD...',
-    '....DD..DD....',
-    '....DD..DD....',
-    '....KK..KK....',
-    '....KK..KK....',
-    '..............',
-    '..............'
-  ], 2);
+  g.clear().fillStyle(0x1b5e20).fillRect(0, 1, 4, 4).fillStyle(0x5d3a1a).fillRect(4, 2, 12, 2).fillStyle(0xba68c8).fillRect(16, 1, 4, 4);
+  g.generateTexture('arrow_elf', 20, 6);
 
-  // 4. Inimigo 3: Elfo Arqueiro (16x16)
-  makeSprite('elf_archer', [
-    '.....YYYY.....O.',
-    '....YYYYYY....O.',
-    '.....FFFF.....O.',
-    '....FKYFFK....O.',
-    '.....FFFF.....O.',
-    '....EEEEEE...OO.',
-    '...EeEEEEeE..O..',
-    '...EEEEEEEE..O..',
-    '....EEEEEE..OO..',
-    '.....EeEe...O...',
-    '.....EeEe...O...',
-    '.....LLLL...O...',
-    '.....LLLL.......',
-    '................',
-    '................',
-    '................'
-  ], 2);
+  // 6. Golpe Cortante da Espada (Slash)
+  g.clear().fillStyle(0x00e5ff, 0.75).fillRect(4, 2, 14, 32).fillStyle(0xffffff).fillRect(8, 6, 8, 24);
+  g.generateTexture('slash_effect', 24, 36);
 
-  // 5. Flecha do Cavaleiro (16x6)
-  makeSprite('arrow_player', [
-    '..BB............',
-    'BBBOOOOOOOOOOOWW',
-    'BBBOOOOOOOOOOOWW',
-    '..BB............',
-    '................',
-    '................'
-  ], 2);
+  // 7. Itens Coletáveis: Arco, Escudo e Espada
+  g.clear().fillStyle(0x8d5524).fillRect(4, 2, 4, 18).fillRect(8, 2, 8, 3).fillRect(8, 17, 8, 3).fillStyle(0xffffff).fillRect(16, 4, 2, 14);
+  g.generateTexture('item_bow', 22, 22);
 
-  // 6. Flecha do Elfo Inimigo (16x6)
-  makeSprite('arrow_elf', [
-    '..ee............',
-    'eeeLLLLLLLLLLLVV',
-    'eeeLLLLLLLLLLLVV',
-    '..ee............',
-    '................',
-    '................'
-  ], 2);
+  g.clear().fillStyle(0xc5a059).fillRect(2, 2, 18, 18).fillStyle(0x1976d2).fillRect(4, 4, 14, 14).fillStyle(0xffffff).fillRect(10, 4, 2, 14).fillRect(4, 10, 14, 2);
+  g.generateTexture('item_shield', 22, 22);
 
-  // 7. Golpe Cortante da Espada (Slash em Arco) (16x20)
-  makeSprite('slash_effect', [
-    '......WWWW......',
-    '....WWCCCCWW....',
-    '...WCCCCCCCCW...',
-    '..WCCCCCCCCCCW..',
-    '.WCCCCCCCCCCCCW.',
-    'WCCCCCCCCCCCCCCW',
-    'WCCCCCCCCCCCCCCW',
-    'WCCCCCCCCCCCCCCW',
-    '.WCCCCCCCCCCCCW.',
-    '..WCCCCCCCCCCW..',
-    '...WWWWWWWWWW...',
-    '................',
-    '................',
-    '................',
-    '................',
-    '................',
-    '................',
-    '................',
-    '................',
-    '................'
-  ], 2);
+  g.clear().fillStyle(0xc4c8d4).fillRect(10, 2, 4, 12).fillStyle(0xc5a059).fillRect(6, 14, 12, 3).fillStyle(0x5d3a1a).fillRect(10, 17, 4, 4);
+  g.generateTexture('item_sword', 22, 22);
 
-  // 8. Item Coletável: Arco e Flecha (14x14)
-  makeSprite('item_bow', [
-    '....OOOOOO....',
-    '...O......W...',
-    '..O........W..',
-    '.O..........W.',
-    '.O..........W.',
-    'O...YYYYYY...W',
-    'O...YYYYYY...W',
-    '.O..........W.',
-    '.O..........W.',
-    '..O........W..',
-    '...O......W...',
-    '....OOOOOO....',
-    '..............',
-    '..............'
-  ], 2);
+  // 8. Cenário: Árvore e Arbusto
+  g.clear().fillStyle(0x2d6a33).fillRect(4, 4, 28, 28).fillRect(8, 0, 20, 32).fillStyle(0x5d3a1a).fillRect(14, 32, 8, 18);
+  g.generateTexture('scenery_tree', 36, 50);
 
-  // 9. Item Coletável: Escudo Medieval com Brasão (14x14)
-  makeSprite('item_shield', [
-    '.YYYYYYYYYYYY.',
-    'YSSSSSSSSSSSSY',
-    'YSBBBBSSBBBBYS',
-    'YSBBBBSSBBBBYS',
-    'YSSSSSSSSSSSSY',
-    'YSSSSSSSSSSSSY',
-    'YSBBBBSSBBBBYS',
-    'YSBBBBSSBBBBYS',
-    '.YSSSSSSSSSSY.',
-    '..YSSSSSSSSY..',
-    '...YSSSSSSY...',
-    '....YSSSSY....',
-    '.....YSSY.....',
-    '......YY......'
-  ], 2);
+  g.clear().fillStyle(0x2d6a33).fillRect(2, 2, 20, 12).fillRect(6, 0, 12, 16);
+  g.generateTexture('scenery_bush', 24, 16);
 
-  // 10. Item Coletável: Espada de Cavaleiro (14x14)
-  makeSprite('item_sword', [
-    '...........WW.',
-    '..........WWS.',
-    '.........WWSS.',
-    '........WWSS..',
-    '.......WWSS...',
-    '......WWSS....',
-    '..YY.WWSS.....',
-    '.YYYYYYSS.....',
-    '.YYYYYY.......',
-    '..YY.OO.......',
-    '.....OO.......',
-    '......RR......',
-    '..............',
-    '..............'
-  ], 2);
-
-  // 11. Árvore Medieval da Floresta (20x28)
-  makeSprite('scenery_tree', [
-    '........TTTT........',
-    '......TTTTTTTT......',
-    '.....TTTTTTTTTT.....',
-    '....TTTtTTTTtTTT....',
-    '...TTTTTTTTTTTTTT...',
-    '...TTtTTTTTTTTtTT...',
-    '..TTTTTTTTTTTTTTTT..',
-    '..TTtTTTtTTtTTTtTT..',
-    '.TTTTTTTTTTTTTTTTTT.',
-    '.TTTTtTTTTTTTTtTTTT.',
-    '..TTTTTTTTTTTTTTTT..',
-    '...TTTTTTTTTTTTTT...',
-    '.....TTtTTTTtTT.....',
-    '.......TTTTTT.......',
-    '.........LL.........',
-    '.........LL.........',
-    '.........LL.........',
-    '.........LL.........',
-    '........LLLL........',
-    '.......LLLLLL.......',
-    '....................',
-    '....................',
-    '....................',
-    '....................',
-    '....................',
-    '....................',
-    '....................',
-    '....................'
-  ], 2);
-
-  // 12. Arbusto do Cenário (14x10)
-  makeSprite('scenery_bush', [
-    '....TTTTTT....',
-    '..TTTTtTTTTT..',
-    '.TTTTTTTTTTTT.',
-    'TTTtTTTTTTtTTT',
-    'TTTTTTTTTTTTTT',
-    '.TTtTTTTTtTTT.',
-    '..TTTTTTTTTT..',
-    '....LL..LL....',
-    '..............',
-    '..............'
-  ], 2);
+  g.destroy();
 }
 
 // =============================================================================
-// 2. CREATE: MONTAGEM DO MUNDO MEDIEVAL
+// 2. CREATE: CONSTRUÇÃO DA CENA E INTERFACES
 // =============================================================================
 function create() {
   const scene = this;
+  scene.time.removeAllEvents(); // Limpeza nativa e completa de qualquer timer anterior
 
-  // --- Limpeza de Eventos Prévios ---
-  if (spawnTimerEvent) spawnTimerEvent.remove();
-  if (difficultyEvent) difficultyEvent.remove();
-  if (itemSpawnEvent) itemSpawnEvent.remove();
-  if (scenerySpawnEvent) scenerySpawnEvent.remove();
-  if (scoreTimerEvent) scoreTimerEvent.remove();
-  if (bowShooterEvent) bowShooterEvent.remove();
-  if (bowCountdownEvent) bowCountdownEvent.remove();
-  if (bowExpireEvent) bowExpireEvent.remove();
-  if (shieldCountdownEvent) shieldCountdownEvent.remove();
-  if (shieldExpireEvent) shieldExpireEvent.remove();
-  if (swordAttackEvent) swordAttackEvent.remove();
-  if (swordCountdownEvent) swordCountdownEvent.remove();
-  if (swordExpireEvent) swordExpireEvent.remove();
-
-  // --- Reset de Estado ---
+  // Reset de Variáveis
   gameState = 'START';
   survivalTime = 0;
   obstacleSpeed = 220;
   spawnDelay = 1300;
-  hasShield = false;
-  shieldTimeRemaining = 0;
-  shieldSprite = null;
-  hasBow = false;
-  bowTimeRemaining = 0;
-  hasSword = false;
-  swordTimeRemaining = 0;
-
+  activeBuff = { type: null, timeLeft: 0, nextAttackTime: 0 };
   scene.physics.resume();
 
-  // --- Desenho da Clareira / Gramado ---
-  drawForestGround(scene);
-
-  // --- Grupos de Entidades ---
+  // Fundo e Grupos
+  drawGround(scene);
   sceneryGroup = scene.add.group();
   obstaclesGroup = scene.physics.add.group();
   playerProjectilesGroup = scene.physics.add.group();
@@ -429,787 +162,406 @@ function create() {
   itemsGroup = scene.physics.add.group();
   slashGroup = scene.physics.add.group();
 
-  // Cria algumas árvores iniciais de fundo espalhadas
+  // Árvores de fundo iniciais
   for (let i = 0; i < 5; i++) {
-    const rx = Phaser.Math.Between(50, 750);
-    const ry = Phaser.Math.Between(60, 540);
-    const tree = scene.add.sprite(rx, ry, 'scenery_tree').setDepth(1);
+    const tree = scene.add.sprite(Phaser.Math.Between(50, 750), Phaser.Math.Between(60, 540), 'scenery_tree').setDepth(1);
     tree.speedFactor = 0.5;
     sceneryGroup.add(tree);
   }
 
-  // --- Criação do Cavaleiro ---
-  player = scene.physics.add.sprite(200, 300, 'knight');
-  player.setDepth(10);
-  player.body.setSize(22, 28);
-  player.body.setOffset(5, 2);
-  player.body.setCollideWorldBounds(true);
+  // Jogador
+  player = scene.physics.add.sprite(200, 300, 'knight').setDepth(10);
+  player.body.setSize(22, 28).setOffset(5, 2).setCollideWorldBounds(true);
 
-  // --- Controles de Teclado ---
+  // Escudo visual (acompanha o jogador quando ativo)
+  shieldSprite = scene.add.sprite(player.x + 16, player.y, 'item_shield').setDepth(12).setVisible(false);
+
+  // Teclado
   cursors = scene.input.keyboard.createCursorKeys();
-  wasdKeys = scene.input.keyboard.addKeys({
-    up: Phaser.Input.Keyboard.KeyCodes.W,
-    down: Phaser.Input.Keyboard.KeyCodes.S,
-    left: Phaser.Input.Keyboard.KeyCodes.A,
-    right: Phaser.Input.Keyboard.KeyCodes.D
-  });
+  wasdKeys = scene.input.keyboard.addKeys('W,S,A,D');
 
-  // --- Interface Superior (HUD Medieval) ---
-  createMedievalHUD();
+  // HUD
+  createHUD(scene);
 
-  // --- Colisões e Interações ---
-  // Cavaleiro vs Inimigo corpo a corpo
-  scene.physics.add.overlap(player, obstaclesGroup, onPlayerHitObstacle, null, scene);
+  // Colisões
+  scene.physics.add.overlap(player, obstaclesGroup, (_, enemy) => handlePlayerHit(scene, enemy));
+  scene.physics.add.overlap(player, enemyProjectilesGroup, (_, arrow) => handlePlayerHit(scene, arrow));
+  scene.physics.add.overlap(player, itemsGroup, (_, item) => collectItem(item));
 
-  // Cavaleiro vs Flecha do Elfo Inimigo
-  scene.physics.add.overlap(player, enemyProjectilesGroup, onPlayerHitProjectile, null, scene);
+  // Combate
+  scene.physics.add.overlap(playerProjectilesGroup, obstaclesGroup, (arrow, enemy) => destroyOverlap(arrow, enemy));
+  scene.physics.add.overlap(playerProjectilesGroup, enemyProjectilesGroup, (pA, eA) => { pA.destroy(); eA.destroy(); });
+  scene.physics.add.overlap(slashGroup, obstaclesGroup, (_, enemy) => { if (enemy.x <= 800) enemy.destroy(); });
+  scene.physics.add.overlap(slashGroup, enemyProjectilesGroup, (_, arrow) => arrow.destroy());
 
-  // Cavaleiro vs Itens Coletáveis
-  scene.physics.add.overlap(player, itemsGroup, onCollectItem, null, scene);
+  // Início
+  showStartScreen(scene);
+}
 
-  // Flecha do Jogador vs Inimigos
-  scene.physics.add.overlap(playerProjectilesGroup, obstaclesGroup, (arrow, enemy) => {
-    if (enemy.x > 800) return;
-    arrow.destroy();
-    enemy.destroy();
-  });
+// =============================================================================
+// FUNÇÕES AUXILIARES DE INTERFACE E CENÁRIO
+// =============================================================================
 
-  // Flecha do Jogador vs Flechas dos Elfos (colisão aérea de projéteis)
-  scene.physics.add.overlap(playerProjectilesGroup, enemyProjectilesGroup, (pArrow, eArrow) => {
-    pArrow.destroy();
-    eArrow.destroy();
-  });
-
-  // Golpe de Espada (Slash) vs Inimigos (corta instantaneamente)
-  scene.physics.add.overlap(slashGroup, obstaclesGroup, (slash, enemy) => {
-    if (enemy.x > 800) return;
-    enemy.destroy();
-  });
-
-  // Golpe de Espada (Slash) vs Flechas Inimigas (rebate/destrói o projétil)
-  scene.physics.add.overlap(slashGroup, enemyProjectilesGroup, (slash, eArrow) => {
-    eArrow.destroy();
-  });
-
-  // --- Apresenta Tela de Início Temática ---
-  showMedievalStartScreen();
-
-  // ===========================================================================
-  // FUNÇÕES DE CENÁRIO E INTERFACE MEDIEVAL
-  // ===========================================================================
-
-  function drawForestGround(s) {
-    const bg = s.add.graphics();
-    bg.fillStyle(0x1a331c, 1);
-    bg.fillRect(0, 0, 800, 600);
-
-    // Faixas decorativas de relva pixelada
-    bg.fillStyle(0x224424, 1);
-    for (let i = 0; i < 20; i++) {
-      const rx = Phaser.Math.Between(0, 780);
-      const ry = Phaser.Math.Between(50, 590);
-      bg.fillRect(rx, ry, Phaser.Math.Between(10, 40), 4);
-    }
+function drawGround(scene) {
+  const bg = scene.add.graphics();
+  bg.fillStyle(0x1a331c, 1).fillRect(0, 0, 800, 600);
+  bg.fillStyle(0x224424, 1);
+  for (let i = 0; i < 20; i++) {
+    bg.fillRect(Phaser.Math.Between(0, 780), Phaser.Math.Between(50, 590), Phaser.Math.Between(10, 40), 4);
   }
+}
 
-  function createMedievalHUD() {
-    const hudBg = scene.add.graphics().setDepth(50);
-    // Moldura estilo pergaminho e ferro forjado
-    hudBg.fillStyle(0x12100d, 0.92);
-    hudBg.fillRoundedRect(10, 10, 780, 42, 6);
-    hudBg.lineStyle(2, 0xc5a059, 0.85); // Dourado envelhecido
-    hudBg.strokeRoundedRect(10, 10, 780, 42, 6);
+function createHUD(scene) {
+  const hudBg = scene.add.graphics().setDepth(50);
+  hudBg.fillStyle(0x12100d, 0.92).fillRoundedRect(10, 10, 780, 42, 6);
+  hudBg.lineStyle(2, 0xc5a059, 0.85).strokeRoundedRect(10, 10, 780, 42, 6);
 
-    hudScoreText = scene.add.text(25, 20, '⚔️ GLÓRIA: 0s', {
-      fontSize: '17px',
-      fontStyle: 'bold',
-      color: '#e8dcbe',
-      fontFamily: 'Courier New, monospace'
-    }).setDepth(51);
+  hudScoreText = scene.add.text(25, 20, '⚔️ GLÓRIA: 0s', { fontSize: '17px', fontStyle: 'bold', color: '#e8dcbe', fontFamily: 'Courier New, monospace' }).setDepth(51);
+  hudHighScoreText = scene.add.text(220, 20, `👑 RECORDE: ${getBestScore()}s`, { fontSize: '17px', fontStyle: 'bold', color: '#ffca28', fontFamily: 'Courier New, monospace' }).setDepth(51);
+  hudStatusText = scene.add.text(770, 20, '', { fontSize: '16px', fontStyle: 'bold', color: '#00e5ff', fontFamily: 'Courier New, monospace' }).setOrigin(1, 0).setDepth(51);
+}
 
-    hudHighScoreText = scene.add.text(220, 20, `👑 RECORDE: ${getBestScore()}s`, {
-      fontSize: '17px',
-      fontStyle: 'bold',
-      color: '#ffca28',
-      fontFamily: 'Courier New, monospace'
-    }).setDepth(51);
-
-    hudStatusText = scene.add.text(770, 20, '', {
-      fontSize: '16px',
-      fontStyle: 'bold',
-      color: '#00e5ff',
-      fontFamily: 'Courier New, monospace'
-    }).setOrigin(1, 0).setDepth(51);
+function updateHUDStatus() {
+  if (!activeBuff.type || activeBuff.timeLeft <= 0) {
+    hudStatusText.setText('');
+    return;
   }
+  const icons = { bow: '🏹 ARCO', shield: '🛡️ ESCUDO', sword: '⚔️ ESPADA' };
+  hudStatusText.setText(`${icons[activeBuff.type]} (${Math.ceil(activeBuff.timeLeft)}s)`);
+}
 
-  function showMedievalStartScreen() {
-    const uiElements = [];
+// Helper Unificado para Criação de Modais Medievais
+function createModal(scene, title, height = 450) {
+  const container = scene.add.container(0, 0).setDepth(100);
+  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.82);
+  const card = scene.add.graphics();
+  const y = (600 - height) / 2;
 
-    const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.78).setDepth(100);
-    uiElements.push(overlay);
+  card.fillStyle(0x1a1510, 0.98).fillRoundedRect(160, y, 480, height, 14);
+  card.lineStyle(3, 0xc5a059, 1).strokeRoundedRect(160, y, 480, height, 14);
 
-    const card = scene.add.graphics().setDepth(101);
-    card.fillStyle(0x1a1510, 0.97); // Fundo madeira de taverna
-    card.fillRoundedRect(160, 60, 480, 480, 14);
-    card.lineStyle(3, 0xc5a059, 1);
-    card.strokeRoundedRect(160, 60, 480, 480, 14);
-    uiElements.push(card);
+  const titleText = scene.add.text(400, y + 40, title, { fontSize: '26px', fontStyle: 'bold', color: '#ffca28', fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  container.add([overlay, card, titleText]);
+  return container;
+}
 
-    const title = scene.add.text(400, 110, 'A JORNADA DO CAVALEIRO', {
-      fontSize: '28px',
-      fontStyle: 'bold',
-      color: '#ffca28',
-      fontFamily: 'Georgia, serif'
-    }).setOrigin(0.5).setDepth(102);
-    uiElements.push(title);
+// Helper para Botão Medieval Interativo
+function createButton(scene, x, y, label, onClick) {
+  const btn = scene.add.rectangle(x, y, 260, 46, 0x8d5524).setInteractive({ useHandCursor: true });
+  btn.setStrokeStyle(2, 0xc5a059);
+  const txt = scene.add.text(x, y, label, { fontSize: '17px', fontStyle: 'bold', color: '#ffffff', fontFamily: 'Georgia, serif' }).setOrigin(0.5);
 
-    const recordInfo = scene.add.text(400, 150, `★ MAIOR HEROÍSMO REGISTRADO: ${getBestScore()}s ★`, {
-      fontSize: '14px',
-      fontStyle: 'bold',
-      color: '#c5a059',
-      fontFamily: 'Courier New, monospace'
-    }).setOrigin(0.5).setDepth(102);
-    uiElements.push(recordInfo);
+  btn.on('pointerover', () => btn.setFillStyle(0xb06c2e));
+  btn.on('pointerout', () => btn.setFillStyle(0x8d5524));
+  btn.once('pointerdown', onClick);
+  return [btn, txt];
+}
 
-    const loreText = scene.add.text(400, 255, 
-      'INIMIGOS NA FLORESTA:\n' +
-      '• Goblins: Rápidos e sorrateiros\n' +
-      '• Guerreiros Sombrios: Blindados e pesados\n' +
-      '• Elfos Arqueiros: Atiram flechas à distância!\n\n' +
-      'ARSENAL MEDIEVAL COLETÁVEL:\n' +
-      '• 🏹 Arco e Flecha: Disparos à distância (6s)\n' +
-      '• 🛡️ Escudo de Aço: Defende 1 golpe fatal (8s)\n' +
-      '• ⚔️ Espada Vorpal: Golpe Slash em arco (6s)', {
-      fontSize: '14px',
-      color: '#d6c8aa',
-      align: 'center',
-      fontFamily: 'Courier New, monospace',
-      lineSpacing: 4
-    }).setOrigin(0.5).setDepth(102);
-    uiElements.push(loreText);
+// Tela Inicial
+function showStartScreen(scene) {
+  const modal = createModal(scene, 'A JORNADA DO CAVALEIRO', 480);
+  const info = scene.add.text(400, 240,
+    `★ RECORDE ATUAL: ${getBestScore()}s ★\n\n` +
+    'INIMIGOS: Goblins, Guerreiros e Elfos Arqueiros\n' +
+    'ARSENAL: 🏹 Arco | 🛡️ Escudo | ⚔️ Espada\n\n' +
+    'Controles: WASD ou Setas do Teclado',
+    { fontSize: '14px', color: '#d6c8aa', align: 'center', fontFamily: 'Courier New, monospace', lineSpacing: 5 }
+  ).setOrigin(0.5);
 
-    // Botão Iniciar Aventura
-    const btnBg = scene.add.rectangle(400, 430, 280, 50, 0x8d5524).setInteractive({ useHandCursor: true }).setDepth(102);
-    btnBg.setStrokeStyle(2, 0xc5a059);
-    const btnText = scene.add.text(400, 430, 'INICIAR MISSÃO', {
-      fontSize: '19px',
-      fontStyle: 'bold',
-      color: '#ffffff',
-      fontFamily: 'Georgia, serif'
-    }).setOrigin(0.5).setDepth(103);
-    uiElements.push(btnBg, btnText);
+  const startFn = () => {
+    modal.destroy();
+    startGameplay(scene);
+  };
 
-    const hint = scene.add.text(400, 495, 'Pressione ESPAÇO, ENTER ou CLIQUE para cavalgar', {
-      fontSize: '12px',
-      color: '#a8987b',
-      fontFamily: 'Courier New, monospace'
-    }).setOrigin(0.5).setDepth(102);
-    uiElements.push(hint);
+  const btn = createButton(scene, 400, 390, 'INICIAR MISSÃO', startFn);
+  const hint = scene.add.text(400, 445, 'Pressione ESPAÇO, ENTER ou CLIQUE', { fontSize: '12px', color: '#a8987b', fontFamily: 'Courier New, monospace' }).setOrigin(0.5);
 
-    btnBg.on('pointerover', () => btnBg.setFillStyle(0xb06c2e));
-    btnBg.on('pointerout', () => btnBg.setFillStyle(0x8d5524));
+  modal.add([info, btn[0], btn[1], hint]);
+  scene.input.once('pointerdown', startFn);
+  scene.input.keyboard.once('keydown-SPACE', startFn);
+  scene.input.keyboard.once('keydown-ENTER', startFn);
+}
 
-    let started = false;
-    const triggerStart = () => {
-      if (started) return;
-      started = true;
-      uiElements.forEach(el => el.destroy());
-      startKnightGameplay();
-    };
+// Inicia o Loop de Gameplay
+function startGameplay(scene) {
+  gameState = 'PLAYING';
 
-    btnBg.once('pointerdown', triggerStart);
-    scene.input.once('pointerdown', triggerStart);
-    scene.input.keyboard.once('keydown-SPACE', triggerStart);
-    scene.input.keyboard.once('keydown-ENTER', triggerStart);
-  }
-
-  function startKnightGameplay() {
-    gameState = 'PLAYING';
-
-    // Cronômetro de tempo de sobrevivência / glória
-    scoreTimerEvent = scene.time.addEvent({
-      delay: 1000,
-      callback: () => {
-        if (gameState !== 'PLAYING') return;
-        survivalTime += 1;
-        hudScoreText.setText(`⚔️ GLÓRIA: ${survivalTime}s`);
-      },
-      loop: true
-    });
-
-    // Primeiro obstáculo e loop contínuo
-    spawnEnemy();
-    scheduleNextSpawn();
-
-    // Aceleração da marcha inimiga a cada 3s
-    difficultyEvent = scene.time.addEvent({
-      delay: 3000,
-      callback: () => {
-        if (gameState !== 'PLAYING') return;
-        obstacleSpeed += 25;
-        spawnDelay = Math.max(380, spawnDelay - 70);
-      },
-      loop: true
-    });
-
-    // Primeiro item aos 3s, e depois a cada 5s
-    scene.time.delayedCall(3000, () => {
+  // 1. Cronômetro de Sobrevivência
+  scene.time.addEvent({
+    delay: 1000,
+    callback: () => {
       if (gameState !== 'PLAYING') return;
-      spawnLootItem();
-      itemSpawnEvent = scene.time.addEvent({
-        delay: 5500,
-        callback: spawnLootItem,
-        loop: true
-      });
-    });
+      survivalTime++;
+      hudScoreText.setText(`⚔️ GLÓRIA: ${survivalTime}s`);
+    },
+    loop: true
+  });
 
-    // Spawner de vegetação da floresta (rolagem suave)
-    scenerySpawnEvent = scene.time.addEvent({
-      delay: 1800,
-      callback: spawnSceneryDecor,
-      loop: true
-    });
-  }
-
-  // Gera árvores e arbustos que rolam pelo fundo
-  function spawnSceneryDecor() {
+  // 2. Spawn Dinâmico de Inimigos
+  const scheduleSpawn = () => {
     if (gameState !== 'PLAYING') return;
-    const isTree = Phaser.Math.Between(0, 1) === 0;
-    const key = isTree ? 'scenery_tree' : 'scenery_bush';
-    const ry = Phaser.Math.Between(50, 550);
+    spawnEnemy(scene);
+    scene.time.delayedCall(spawnDelay, scheduleSpawn);
+  };
+  scheduleSpawn();
 
-    const dec = scene.add.sprite(860, ry, key).setDepth(2);
-    dec.speedFactor = isTree ? 0.6 : 0.8;
-    sceneryGroup.add(dec);
-  }
+  // 3. Aceleração da dificuldade a cada 3s
+  scene.time.addEvent({
+    delay: 3000,
+    callback: () => {
+      if (gameState !== 'PLAYING') return;
+      obstacleSpeed += 25;
+      spawnDelay = Math.max(380, spawnDelay - 70);
+    },
+    loop: true
+  });
 
-  // Agenda próximo inimigo
-  function scheduleNextSpawn() {
-    if (gameState !== 'PLAYING') return;
-    spawnTimerEvent = scene.time.delayedCall(spawnDelay, () => {
-      spawnEnemy();
-      scheduleNextSpawn();
-    });
-  }
+  // 4. Spawners de Itens e Cenário
+  scene.time.addEvent({ delay: 5000, callback: () => spawnLootItem(scene), loop: true });
+  scene.time.addEvent({ delay: 1800, callback: () => spawnScenery(scene), loop: true });
+}
 
-  // Instancia Goblins, Guerreiros Sombrios ou Elfos Arqueiros
-  function spawnEnemy() {
-    if (gameState !== 'PLAYING') return;
-    const randomY = Phaser.Math.Between(70, 540);
-    const roll = Phaser.Math.Between(1, 100);
+// =============================================================================
+// GERAÇÃO DE INIMIGOS E ENTIDADES
+// =============================================================================
 
-    let enemyType, spriteKey, speedModifier;
+function spawnEnemy(scene) {
+  const y = Phaser.Math.Between(70, 540);
+  const roll = Phaser.Math.Between(1, 100);
 
-    if (roll <= 45) {
-      // 45% de chance: Goblin (rápido e ágil)
-      enemyType = 'goblin';
-      spriteKey = 'goblin';
-      speedModifier = 1.15;
-    } else if (roll <= 75) {
-      // 30% de chance: Guerreiro Sombrio (firme e resistente)
-      enemyType = 'dark_warrior';
-      spriteKey = 'dark_warrior';
-      speedModifier = 0.95;
-    } else {
-      // 25% de chance: Elfo Arqueiro (dispara flechas à distância)
-      enemyType = 'elf';
-      spriteKey = 'elf_archer';
-      speedModifier = 0.85;
-    }
+  let key = 'goblin', speedMod = 1.15, type = 'goblin';
+  if (roll > 75) { key = 'elf_archer'; speedMod = 0.85; type = 'elf'; }
+  else if (roll > 45) { key = 'dark_warrior'; speedMod = 0.95; type = 'warrior'; }
 
-    const enemy = scene.physics.add.sprite(850, randomY, spriteKey);
-    enemy.setDepth(10);
-    enemy.enemyType = enemyType;
-    obstaclesGroup.add(enemy);
-    enemy.body.setVelocityX(-obstacleSpeed * speedModifier);
-    enemy.body.setAllowGravity(false);
+  const enemy = scene.physics.add.sprite(850, y, key).setDepth(10);
+  enemy.enemyType = type;
+  obstaclesGroup.add(enemy);
+  enemy.body.setVelocityX(-obstacleSpeed * speedMod).setAllowGravity(false);
 
-    // Lógica especial do Elfo Arqueiro: atira flechas se estiver em campo
-    if (enemyType === 'elf') {
-      enemy.shootTimer = scene.time.addEvent({
-        delay: 1600,
-        callback: () => {
-          if (enemy.active && enemy.x > 80 && enemy.x < 780 && gameState === 'PLAYING') {
-            shootElfArrow(enemy.x, enemy.y);
-          }
-        },
-        loop: true
-      });
-    }
-  }
-
-  // Disparo da flecha mágica do Elfo Arqueiro
-  function shootElfArrow(x, y) {
-    const arrow = scene.physics.add.sprite(x - 20, y, 'arrow_elf');
-    arrow.setDepth(9);
-    arrow.body.setSize(18, 8);
-    enemyProjectilesGroup.add(arrow);
-    arrow.body.setVelocityX(-380);
-    arrow.body.setAllowGravity(false);
-  }
-
-  // Gera um dos 3 itens medievais: Arco, Escudo ou Espada
-  function spawnLootItem() {
-    if (gameState !== 'PLAYING') return;
-    const randomY = Phaser.Math.Between(80, 530);
-    const types = ['bow', 'shield', 'sword'];
-    const chosenType = types[Phaser.Math.Between(0, types.length - 1)];
-
-    let spriteKey = 'item_bow';
-    if (chosenType === 'shield') spriteKey = 'item_shield';
-    if (chosenType === 'sword') spriteKey = 'item_sword';
-
-    const item = scene.physics.add.sprite(850, randomY, spriteKey);
-    item.setDepth(11);
-    itemsGroup.add(item);
-    item.lootType = chosenType;
-    item.body.setVelocityX(-150);
-    item.body.setAllowGravity(false);
-  }
-
-  // ===========================================================================
-  // SISTEMA DE COMBATE & POWER-UPS
-  // ===========================================================================
-
-  function onCollectItem(playerRef, item) {
-    if (item.lootType === 'bow') activateBow();
-    else if (item.lootType === 'shield') activateShield();
-    else if (item.lootType === 'sword') activateSword();
-
-    item.destroy();
-    updateHUDStatus();
-  }
-
-  // Power-up 1: Arco e Flecha (Disparos automáticos por 6s)
-  function activateBow() {
-    hasBow = true;
-    bowTimeRemaining = 6;
-    if (bowShooterEvent) bowShooterEvent.remove();
-    if (bowExpireEvent) bowExpireEvent.remove();
-    if (bowCountdownEvent) bowCountdownEvent.remove();
-
-    bowShooterEvent = scene.time.addEvent({
-      delay: 320,
+  // Elfo dispara flecha enquanto estiver na tela
+  if (type === 'elf') {
+    enemy.shootTimer = scene.time.addEvent({
+      delay: 1600,
       callback: () => {
-        if (gameState !== 'PLAYING' || !hasBow) return;
-        const arrow = scene.physics.add.sprite(player.x + 28, player.y, 'arrow_player');
-        arrow.setDepth(9);
-        arrow.body.setSize(20, 8);
-        playerProjectilesGroup.add(arrow);
-        arrow.body.setVelocityX(640);
-      },
-      loop: true
-    });
-
-    bowCountdownEvent = scene.time.addEvent({
-      delay: 1000,
-      callback: () => {
-        bowTimeRemaining = Math.max(0, bowTimeRemaining - 1);
-        updateHUDStatus();
-      },
-      loop: true
-    });
-
-    bowExpireEvent = scene.time.delayedCall(6000, () => {
-      hasBow = false;
-      if (bowShooterEvent) bowShooterEvent.remove();
-      if (bowCountdownEvent) bowCountdownEvent.remove();
-      updateHUDStatus();
-    });
-  }
-
-  // Power-up 2: Escudo Medieval (Defende 1 impacto por até 8s)
-  function activateShield() {
-    hasShield = true;
-    shieldTimeRemaining = 8;
-    if (shieldCountdownEvent) shieldCountdownEvent.remove();
-    if (shieldExpireEvent) shieldExpireEvent.remove();
-
-    if (!shieldSprite) {
-      shieldSprite = scene.add.sprite(player.x + 16, player.y, 'item_shield').setDepth(12);
-    }
-
-    shieldCountdownEvent = scene.time.addEvent({
-      delay: 1000,
-      callback: () => {
-        shieldTimeRemaining = Math.max(0, shieldTimeRemaining - 1);
-        updateHUDStatus();
-      },
-      loop: true
-    });
-
-    shieldExpireEvent = scene.time.delayedCall(8000, () => {
-      deactivateShield();
-    });
-
-    updateHUDStatus();
-  }
-
-  function deactivateShield() {
-    hasShield = false;
-    shieldTimeRemaining = 0;
-    if (shieldSprite) {
-      shieldSprite.destroy();
-      shieldSprite = null;
-    }
-    if (shieldCountdownEvent) shieldCountdownEvent.remove();
-    if (shieldExpireEvent) shieldExpireEvent.remove();
-    updateHUDStatus();
-  }
-
-  // Power-up 3: Espada Vorpal (Golpes Slash em arco à queima-roupa por 6s)
-  function activateSword() {
-    hasSword = true;
-    swordTimeRemaining = 6;
-    if (swordAttackEvent) swordAttackEvent.remove();
-    if (swordCountdownEvent) swordCountdownEvent.remove();
-    if (swordExpireEvent) swordExpireEvent.remove();
-
-    // Desfere um golpe de espada contínuo em arco na frente do cavaleiro a cada 240ms
-    swordAttackEvent = scene.time.addEvent({
-      delay: 240,
-      callback: () => {
-        if (gameState !== 'PLAYING' || !hasSword) return;
-        executeSwordSlash();
-      },
-      loop: true
-    });
-
-    swordCountdownEvent = scene.time.addEvent({
-      delay: 1000,
-      callback: () => {
-        swordTimeRemaining = Math.max(0, swordTimeRemaining - 1);
-        updateHUDStatus();
-      },
-      loop: true
-    });
-
-    swordExpireEvent = scene.time.delayedCall(6000, () => {
-      hasSword = false;
-      if (swordAttackEvent) swordAttackEvent.remove();
-      if (swordCountdownEvent) swordCountdownEvent.remove();
-      updateHUDStatus();
-    });
-  }
-
-  function executeSwordSlash() {
-    const slash = scene.physics.add.sprite(player.x + 34, player.y, 'slash_effect');
-    slash.setDepth(15);
-    slashGroup.add(slash);
-    slash.body.setAllowGravity(false);
-
-    // O golpe dura 140ms e some
-    scene.time.delayedCall(140, () => {
-      if (slash.active) slash.destroy();
-    });
-  }
-
-  function updateHUDStatus() {
-    const statusParts = [];
-    if (hasShield) statusParts.push(`🛡️ ESCUDO (${shieldTimeRemaining}s)`);
-    if (hasBow) statusParts.push(`🏹 ARCO (${bowTimeRemaining}s)`);
-    if (hasSword) statusParts.push(`⚔️ ESPADA (${swordTimeRemaining}s)`);
-    hudStatusText.setText(statusParts.join('  |  '));
-  }
-
-  // ===========================================================================
-  // DANO, MORTE E LIVRO DOS RECORDES MEDIEVAIS
-  // ===========================================================================
-
-  function onPlayerHitObstacle(playerRef, enemy) {
-    if (gameState !== 'PLAYING') return;
-
-    if (hasShield) {
-      deactivateShield();
-      if (enemy.shootTimer) enemy.shootTimer.remove();
-      enemy.destroy();
-      return;
-    }
-
-    triggerGameOver(playerRef);
-  }
-
-  function onPlayerHitProjectile(playerRef, projectile) {
-    if (gameState !== 'PLAYING') return;
-
-    if (hasShield) {
-      deactivateShield();
-      projectile.destroy();
-      return;
-    }
-
-    triggerGameOver(playerRef);
-  }
-
-  function triggerGameOver(playerRef) {
-    gameState = 'GAMEOVER';
-
-    // Interrompe todos os temporizadores
-    if (spawnTimerEvent) spawnTimerEvent.remove();
-    if (difficultyEvent) difficultyEvent.remove();
-    if (itemSpawnEvent) itemSpawnEvent.remove();
-    if (scenerySpawnEvent) scenerySpawnEvent.remove();
-    if (scoreTimerEvent) scoreTimerEvent.remove();
-    if (bowShooterEvent) bowShooterEvent.remove();
-    if (bowCountdownEvent) bowCountdownEvent.remove();
-    if (bowExpireEvent) bowExpireEvent.remove();
-    if (shieldCountdownEvent) shieldCountdownEvent.remove();
-    if (shieldExpireEvent) shieldExpireEvent.remove();
-    if (swordAttackEvent) swordAttackEvent.remove();
-    if (swordCountdownEvent) swordCountdownEvent.remove();
-    if (swordExpireEvent) swordExpireEvent.remove();
-
-    scene.physics.pause();
-    playerRef.setTint(0xff5555); // Feedback de dano fatal
-
-    showArcadeInitialsModal();
-  }
-
-  // Modal com estética medieval para gravar as 3 iniciais
-  function showArcadeInitialsModal() {
-    const modalElements = [];
-    let enteredLetters = '';
-
-    const bgOverlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.85).setDepth(200);
-    modalElements.push(bgOverlay);
-
-    const card = scene.add.graphics().setDepth(201);
-    card.fillStyle(0x1a1510, 0.98);
-    card.fillRoundedRect(160, 100, 480, 400, 14);
-    card.lineStyle(3, 0xc5a059, 1);
-    card.strokeRoundedRect(160, 100, 480, 400, 14);
-    modalElements.push(card);
-
-    const title = scene.add.text(400, 150, 'O CAVALEIRO TOMBOU', {
-      fontSize: '28px',
-      fontStyle: 'bold',
-      color: '#ff4444',
-      fontFamily: 'Georgia, serif'
-    }).setOrigin(0.5).setDepth(202);
-
-    const resultText = scene.add.text(400, 195, `Tempo de Glória em Combate: ${survivalTime}s`, {
-      fontSize: '18px',
-      color: '#e8dcbe',
-      fontFamily: 'Courier New, monospace'
-    }).setOrigin(0.5).setDepth(202);
-
-    const promptText = scene.add.text(400, 245, 'GRAVE SUAS INICIAIS NO LIVRO DOS HERÓIS:', {
-      fontSize: '14px',
-      fontStyle: 'bold',
-      color: '#ffca28',
-      fontFamily: 'Courier New, monospace'
-    }).setOrigin(0.5).setDepth(202);
-
-    // Três brasões / caixas de iniciais
-    const letterTexts = [];
-    for (let i = 0; i < 3; i++) {
-      const x = 320 + i * 80;
-      const box = scene.add.rectangle(x, 310, 60, 60, 0x2a221b).setDepth(202);
-      box.setStrokeStyle(2, 0xc5a059);
-      const txt = scene.add.text(x, 310, '_', {
-        fontSize: '32px',
-        fontStyle: 'bold',
-        color: '#ffca28',
-        fontFamily: 'Courier New, monospace'
-      }).setOrigin(0.5).setDepth(203);
-      letterTexts.push(txt);
-      modalElements.push(box, txt);
-    }
-
-    const confirmBtn = scene.add.rectangle(400, 410, 260, 46, 0x8d5524)
-      .setInteractive({ useHandCursor: true }).setDepth(202);
-    confirmBtn.setStrokeStyle(2, 0xc5a059);
-    const confirmBtnText = scene.add.text(400, 410, 'CONFIRMAR HONRA', {
-      fontSize: '17px',
-      fontStyle: 'bold',
-      color: '#ffffff',
-      fontFamily: 'Georgia, serif'
-    }).setOrigin(0.5).setDepth(203);
-
-    confirmBtn.on('pointerover', () => confirmBtn.setFillStyle(0xb06c2e));
-    confirmBtn.on('pointerout', () => confirmBtn.setFillStyle(0x8d5524));
-
-    modalElements.push(title, resultText, promptText, confirmBtn, confirmBtnText);
-
-    const updateDisplay = () => {
-      for (let i = 0; i < 3; i++) {
-        letterTexts[i].setText(enteredLetters[i] || '_');
-      }
-    };
-
-    const submitInitials = () => {
-      const finalName = enteredLetters.padEnd(3, 'A');
-      scene.input.keyboard.off('keydown', handleKeyInput);
-      modalElements.forEach(el => el.destroy());
-
-      const { topScores, currentName } = saveHighScore(finalName, survivalTime);
-      showScoreboardModal(topScores, currentName, survivalTime);
-    };
-
-    confirmBtn.on('pointerdown', submitInitials);
-
-    const handleKeyInput = (event) => {
-      if (event.key === 'Backspace') {
-        enteredLetters = enteredLetters.slice(0, -1);
-        updateDisplay();
-      } else if (event.key === 'Enter') {
-        submitInitials();
-      } else if (event.key.length === 1 && /[a-zA-Z]/.test(event.key)) {
-        if (enteredLetters.length < 3) {
-          enteredLetters += event.key.toUpperCase();
-          updateDisplay();
+        if (enemy.active && enemy.x > 80 && enemy.x < 780 && gameState === 'PLAYING') {
+          const arrow = scene.physics.add.sprite(enemy.x - 20, enemy.y, 'arrow_elf').setDepth(9);
+          arrow.body.setSize(18, 8).setVelocityX(-380).setAllowGravity(false);
+          enemyProjectilesGroup.add(arrow);
         }
-      }
-    };
-
-    scene.input.keyboard.on('keydown', handleKeyInput);
-  }
-
-  // Tabela dos Maiores Heróis do Reino
-  function showScoreboardModal(topScores, currentName, finalScore) {
-    const scoreboardElements = [];
-
-    const bgOverlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.85).setDepth(200);
-    scoreboardElements.push(bgOverlay);
-
-    const card = scene.add.graphics().setDepth(201);
-    card.fillStyle(0x1a1510, 0.98);
-    card.fillRoundedRect(160, 70, 480, 460, 14);
-    card.lineStyle(3, 0xc5a059, 1);
-    card.strokeRoundedRect(160, 70, 480, 460, 14);
-    scoreboardElements.push(card);
-
-    const header = scene.add.text(400, 115, '⚔️ CAMPEÕES DO REINO ⚔️', {
-      fontSize: '24px',
-      fontStyle: 'bold',
-      color: '#ffca28',
-      fontFamily: 'Georgia, serif'
-    }).setOrigin(0.5).setDepth(202);
-    scoreboardElements.push(header);
-
-    let highlightedOne = false;
-    topScores.forEach((item, index) => {
-      const y = 175 + index * 44;
-      const isCurrentRun = !highlightedOne && item.name === currentName && item.score === finalScore;
-      if (isCurrentRun) highlightedOne = true;
-
-      const rowColor = isCurrentRun ? '#ffca28' : '#e8dcbe';
-      const medal = index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}º`;
-
-      if (isCurrentRun) {
-        const rowBg = scene.add.rectangle(400, y, 400, 34, 0x3d3023).setDepth(202);
-        rowBg.setStrokeStyle(1, 0xffca28);
-        scoreboardElements.push(rowBg);
-      }
-
-      const rankText = scene.add.text(220, y, medal, {
-        fontSize: '18px',
-        color: rowColor,
-        fontFamily: 'Courier New, monospace'
-      }).setOrigin(0, 0.5).setDepth(203);
-
-      const nameText = scene.add.text(370, y, item.name, {
-        fontSize: '20px',
-        fontStyle: 'bold',
-        color: rowColor,
-        fontFamily: 'Courier New, monospace'
-      }).setOrigin(0.5, 0.5).setDepth(203);
-
-      const scoreText = scene.add.text(570, y, `${item.score}s`, {
-        fontSize: '18px',
-        fontStyle: 'bold',
-        color: rowColor,
-        fontFamily: 'Courier New, monospace'
-      }).setOrigin(1, 0.5).setDepth(203);
-
-      scoreboardElements.push(rankText, nameText, scoreText);
-    });
-
-    const restartBtn = scene.add.rectangle(400, 450, 260, 48, 0x8d5524)
-      .setInteractive({ useHandCursor: true }).setDepth(202);
-    restartBtn.setStrokeStyle(2, 0xc5a059);
-    const restartBtnText = scene.add.text(400, 450, 'NOVA JORNADA', {
-      fontSize: '18px',
-      fontStyle: 'bold',
-      color: '#ffffff',
-      fontFamily: 'Georgia, serif'
-    }).setOrigin(0.5).setDepth(203);
-
-    restartBtn.on('pointerover', () => restartBtn.setFillStyle(0xb06c2e));
-    restartBtn.on('pointerout', () => restartBtn.setFillStyle(0x8d5524));
-
-    scoreboardElements.push(restartBtn, restartBtnText);
-
-    const restartGame = () => {
-      scoreboardElements.forEach(el => el.destroy());
-      scene.scene.restart();
-    };
-
-    scene.time.delayedCall(200, () => {
-      restartBtn.once('pointerdown', restartGame);
-      scene.input.keyboard.once('keydown-SPACE', restartGame);
-      scene.input.keyboard.once('keydown-ENTER', restartGame);
+      },
+      loop: true
     });
   }
 }
 
+function spawnLootItem(scene) {
+  if (gameState !== 'PLAYING') return;
+  const types = ['bow', 'shield', 'sword'];
+  const type = types[Phaser.Math.Between(0, 2)];
+  const item = scene.physics.add.sprite(850, Phaser.Math.Between(80, 530), `item_${type}`).setDepth(11);
+  item.lootType = type;
+  itemsGroup.add(item);
+  item.body.setVelocityX(-150).setAllowGravity(false);
+}
+
+function spawnScenery(scene) {
+  if (gameState !== 'PLAYING') return;
+  const isTree = Phaser.Math.Between(0, 1) === 0;
+  const dec = scene.add.sprite(860, Phaser.Math.Between(50, 550), isTree ? 'scenery_tree' : 'scenery_bush').setDepth(2);
+  dec.speedFactor = isTree ? 0.6 : 0.8;
+  sceneryGroup.add(dec);
+}
+
 // =============================================================================
-// 3. UPDATE: CICLO DE ANIMAÇÃO E MOVIMENTO
+// COMBATE E POWER-UPS
 // =============================================================================
-function update() {
+
+function collectItem(item) {
+  activeBuff.type = item.lootType;
+  activeBuff.timeLeft = item.lootType === 'shield' ? 8 : 6;
+  activeBuff.nextAttackTime = 0;
+  shieldSprite.setVisible(item.lootType === 'shield');
+  item.destroy();
+  updateHUDStatus();
+}
+
+function handlePlayerHit(scene, hazard) {
   if (gameState !== 'PLAYING') return;
 
-  // --- Movimentação do Cavaleiro com Normalização Diagonal ---
+  // Escudo absorve 1 impacto
+  if (activeBuff.type === 'shield') {
+    activeBuff.type = null;
+    activeBuff.timeLeft = 0;
+    shieldSprite.setVisible(false);
+    updateHUDStatus();
+    if (hazard.shootTimer) hazard.shootTimer.remove();
+    hazard.destroy();
+    return;
+  }
+
+  // Morte / Fim de Jogo
+  triggerGameOver(scene);
+}
+
+function destroyOverlap(arrow, enemy) {
+  if (enemy.x > 800) return;
+  arrow.destroy();
+  if (enemy.shootTimer) enemy.shootTimer.remove();
+  enemy.destroy();
+}
+
+function shootPlayerArrow(scene) {
+  const arrow = scene.physics.add.sprite(player.x + 28, player.y, 'arrow_player').setDepth(9);
+  arrow.body.setSize(20, 8).setVelocityX(640).setAllowGravity(false);
+  playerProjectilesGroup.add(arrow);
+}
+
+function executeSwordSlash(scene) {
+  const slash = scene.physics.add.sprite(player.x + 34, player.y, 'slash_effect').setDepth(15);
+  slashGroup.add(slash);
+  slash.body.setAllowGravity(false);
+  scene.time.delayedCall(140, () => { if (slash.active) slash.destroy(); });
+}
+
+// =============================================================================
+// GAME OVER E RECORDE ARCADE
+// =============================================================================
+
+function triggerGameOver(scene) {
+  gameState = 'GAMEOVER';
+  scene.physics.pause();
+  scene.time.removeAllEvents();
+  player.setTint(0xff5555);
+
+  showInitialsModal(scene);
+}
+
+function showInitialsModal(scene) {
+  let name = '';
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 400);
+
+  const info = scene.add.text(400, 180, `Tempo em Combate: ${survivalTime}s\n\nDigite suas 3 iniciais:`, {
+    fontSize: '17px', color: '#e8dcbe', align: 'center', fontFamily: 'Courier New, monospace'
+  }).setOrigin(0.5);
+
+  const display = scene.add.text(400, 260, '_ _ _', {
+    fontSize: '34px', fontStyle: 'bold', color: '#ffca28', fontFamily: 'Courier New, monospace'
+  }).setOrigin(0.5);
+
+  const submit = () => {
+    scene.input.keyboard.off('keydown', onKey);
+    modal.destroy();
+    const { topScores, currentName } = saveHighScore(name.padEnd(3, 'A'), survivalTime);
+    showLeaderboardModal(scene, topScores, currentName);
+  };
+
+  const btn = createButton(scene, 400, 340, 'CONFIRMAR HONRA', submit);
+  modal.add([info, display, btn[0], btn[1]]);
+
+  const onKey = (e) => {
+    if (e.key === 'Backspace') name = name.slice(0, -1);
+    else if (e.key === 'Enter') submit();
+    else if (e.key.length === 1 && /[a-zA-Z]/.test(e.key) && name.length < 3) name += e.key.toUpperCase();
+    display.setText(name.padEnd(3, '_').split('').join(' '));
+  };
+  scene.input.keyboard.on('keydown', onKey);
+}
+
+function showLeaderboardModal(scene, topScores, currentName) {
+  const modal = createModal(scene, '⚔️ CAMPEÕES DO REINO ⚔️', 450);
+  const rows = [];
+
+  topScores.forEach((item, i) => {
+    const y = 160 + i * 40;
+    const isCurrent = item.name === currentName && item.score === survivalTime;
+    const color = isCurrent ? '#ffca28' : '#e8dcbe';
+    const medal = ['👑', '🥈', '🥉', '4º', '5º'][i];
+
+    const row = scene.add.text(400, y, `${medal}   ${item.name}   -   ${item.score}s`, {
+      fontSize: '18px', fontStyle: isCurrent ? 'bold' : 'normal', color, fontFamily: 'Courier New, monospace'
+    }).setOrigin(0.5);
+    rows.push(row);
+  });
+
+  const restartFn = () => {
+    modal.destroy();
+    scene.scene.restart();
+  };
+
+  const btn = createButton(scene, 400, 400, 'NOVA JORNADA', restartFn);
+  modal.add([...rows, btn[0], btn[1]]);
+
+  scene.time.delayedCall(200, () => {
+    scene.input.keyboard.once('keydown-SPACE', restartFn);
+    scene.input.keyboard.once('keydown-ENTER', restartFn);
+  });
+}
+
+// =============================================================================
+// 3. UPDATE: MOVIMENTO, COMBATE E LIMPEZA
+// =============================================================================
+function update(time, delta) {
+  if (gameState !== 'PLAYING') return;
+
+  // 1. Movimento do Cavaleiro
   const speed = 280;
   player.body.setVelocity(0);
-  let dirX = 0;
-  let dirY = 0;
+  let dirX = 0, dirY = 0;
 
-  if (cursors.left.isDown || wasdKeys.left.isDown) dirX -= 1;
-  if (cursors.right.isDown || wasdKeys.right.isDown) dirX += 1;
-  if (cursors.up.isDown || wasdKeys.up.isDown) dirY -= 1;
-  if (cursors.down.isDown || wasdKeys.down.isDown) dirY += 1;
+  if (cursors.left.isDown || wasdKeys.A.isDown) dirX -= 1;
+  if (cursors.right.isDown || wasdKeys.D.isDown) dirX += 1;
+  if (cursors.up.isDown || wasdKeys.W.isDown) dirY -= 1;
+  if (cursors.down.isDown || wasdKeys.S.isDown) dirY += 1;
 
   player.body.setVelocity(dirX * speed, dirY * speed);
   player.body.velocity.normalize().scale(speed);
 
-  // Espelhamento horizontal do sprite dependendo da direção
   if (dirX < 0) player.setFlipX(true);
   else if (dirX > 0) player.setFlipX(false);
 
-  // O Escudo segue o cavaleiro
-  if (shieldSprite && shieldSprite.active) {
-    const offsetX = player.flipX ? -16 : 16;
-    shieldSprite.setPosition(player.x + offsetX, player.y);
+  // Escudo acompanha o herói
+  if (shieldSprite.visible) {
+    shieldSprite.setPosition(player.x + (player.flipX ? -16 : 16), player.y);
   }
 
-  // --- Movimento Parallax dos Elementos do Cenário (Árvores e Arbustos) ---
-  sceneryGroup.getChildren().forEach((sc) => {
-    sc.x -= (obstacleSpeed * 0.35 * (sc.speedFactor || 0.5)) * 0.016;
-    if (sc.x < -80) sc.destroy();
-  });
-
-  // --- Limpeza de Memória (Garbage Collection) ---
-  // Inimigos fora pela esquerda
-  obstaclesGroup.getChildren().forEach((enemy) => {
-    if (enemy.x < -50) {
-      if (enemy.shootTimer) enemy.shootTimer.remove();
-      enemy.destroy();
+  // 2. Gerenciamento do Power-up Ativo
+  if (activeBuff.type) {
+    activeBuff.timeLeft -= delta / 1000;
+    if (activeBuff.timeLeft <= 0) {
+      if (activeBuff.type === 'shield') shieldSprite.setVisible(false);
+      activeBuff.type = null;
+      activeBuff.timeLeft = 0;
+      updateHUDStatus();
+    } else {
+      updateHUDStatus();
+      if (activeBuff.type === 'bow' && time > activeBuff.nextAttackTime) {
+        shootPlayerArrow(this);
+        activeBuff.nextAttackTime = time + 320;
+      } else if (activeBuff.type === 'sword' && time > activeBuff.nextAttackTime) {
+        executeSwordSlash(this);
+        activeBuff.nextAttackTime = time + 240;
+      }
     }
+  }
+
+  // 3. Movimento do Cenário Parallax
+  sceneryGroup.getChildren().forEach(sc => {
+    sc.x -= (obstacleSpeed * 0.35 * (sc.speedFactor || 0.5)) * 0.016;
   });
 
-  // Itens fora pela esquerda
-  itemsGroup.getChildren().forEach((item) => {
-    if (item.x < -50) item.destroy();
-  });
+  // 4. Limpeza Limpa de Memória (Garbage Collection)
+  const cleanGroup = (grp, minX, maxX) => {
+    grp.getChildren().forEach(ent => {
+      if ((minX !== undefined && ent.x < minX) || (maxX !== undefined && ent.x > maxX)) {
+        if (ent.shootTimer) ent.shootTimer.remove();
+        ent.destroy();
+      }
+    });
+  };
 
-  // Flechas do jogador fora pela direita
-  playerProjectilesGroup.getChildren().forEach((arrow) => {
-    if (arrow.x >= 800) arrow.destroy();
-  });
-
-  // Flechas dos elfos fora pela esquerda
-  enemyProjectilesGroup.getChildren().forEach((arrow) => {
-    if (arrow.x < -40) arrow.destroy();
-  });
+  cleanGroup(sceneryGroup, -80);
+  cleanGroup(obstaclesGroup, -50);
+  cleanGroup(itemsGroup, -50);
+  cleanGroup(enemyProjectilesGroup, -40);
+  cleanGroup(playerProjectilesGroup, undefined, 800);
 }
