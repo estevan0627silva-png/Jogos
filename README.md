@@ -25,16 +25,19 @@ Jogo 2D arcade de sobrevivência e reflexos desenvolvido com **JavaScript Vanill
 - **Triângulos Vermelhos (Obstáculos)**:
   - Surgem continuamente fora da tela à direita em alturas aleatórias.
   - A cada 3 segundos, ganham `+25 px/s` de velocidade e o intervalo entre novos triângulos diminui.
+- **Tela Inicial & HUD**:
+  - Painel de boas-vindas com botão `INICIAR JOGO` e instruções na abertura da página.
+  - HUD superior com contagem de tempo de sobrevivência e status dinâmico dos power-ups em tempo real.
 - **Arma (Círculo Amarelo)**:
   - Dura **6 segundos**.
-  - Dispara rajadas de projéteis frontais automáticos a cada 180ms.
-  - Projéteis destroem os triângulos no impacto.
+  - Dispara rajadas de projéteis frontais a cada 320ms (cadência balanceada).
+  - Projéteis são limitados ao campo visual (destroem-se na borda da tela para não eliminar inimigos antes de surgirem).
 - **Escudo (Círculo Ciano)**:
   - Cria um campo de força protetor ao redor do jogador.
   - Absorve **1 colisão fatal**, destruindo o obstáculo e mantendo o jogador vivo.
-- **Tela de Game Over**:
-  - Congela a física no momento do impacto sem escudo.
-  - Exibe feedback visual e tela de reinício instantâneo.
+- **Painel de Game Over**:
+  - Congela a física no momento do impacto.
+  - Exibe tempo de sobrevivência e botão interativo `JOGAR NOVAMENTE` (com atalho na barra de espaço).
 
 ---
 

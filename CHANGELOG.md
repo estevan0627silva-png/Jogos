@@ -4,15 +4,45 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.3.1] - 2026-10-18
+### 🐛 Correções de Bugs (Fix)
+- **Spawn de Entidades Corrigido**:
+  - Corrigido problema de perda de contexto do `this` em JavaScript que interrompia a execução do `startGameplay`.
+  - Triângulos e itens agora surgem pontualmente assim que a partida é iniciada.
+  - Tela inicial melhorada com suporte a múltiplos gatilhos de início (clique no botão, clique na tela, tecla `Espaço` ou tecla `Enter`).
+  - Primeiro obstáculo instanciado imediatamente ao iniciar para ação instantânea, e primeiro item coletável garantido aos 3 segundos.
+
+---
+
+## [v0.3.0] - 2026-10-18
+### ✨ Adicionado
+- **Tela Inicial (Start Screen)**:
+  - Painel com design moderno apresentando o título `GEOMETRIC SURVIVAL`, resumo de controles e itens.
+  - Botão interativo `INICIAR JOGO` com efeito hover (mudança de cor) e suporte a tecla `Espaço`.
+  - Início controlado das mecânicas (spawns e cronômetros só disparam após o clique).
+- **HUD Superior Informativo**:
+  - Barra superior escura com cronômetro de sobrevivência em tempo real (`TEMPO: Xs`).
+  - Indicador dinâmico de status dos power-ups: `🛡️ ESCUDO` e contagem regressiva da `⚡ ARMA (Xs)`.
+- **Painel de Game Over Redesenhado**:
+  - Card centralizado com cantos arredondados e borda de destaque.
+  - Exibição do tempo total de sobrevivência na partida.
+  - Botão interativo `JOGAR NOVAMENTE` com feedback hover e atalho na tecla `Espaço`.
+
+### ⚖️ Balanceamento & Ajustes
+- **Arma Equilibrada**:
+  - Cadência de tiro ajustada de 180ms para 320ms, tornando os disparos mais espaçados e estratégicos.
+  - **Limite de Visão (Fog of War)**: Projéteis são destruídos imediatamente ao tocar a borda visível da tela ($x \ge 800$), impedindo que destruam triângulos recém-criados fora do campo visual do jogador.
+
+---
+
 ## [v0.2.0] - 2026-10-18
 ### ✨ Adicionado
 - **Item de Arma (Power-up Amarelo)**:
-  - Duração de 6 segundos.
-  - Disparo automático de tiros a cada 180ms para a direita.
+  - Duração de 6 segundos com rajadas automáticas para a direita.
   - Colisão laser vs. obstáculo eliminando ambos com `.destroy()`.
 - **Item de Escudo (Power-up Ciano)**:
   - Absorve 1 colisão fatal com triângulo.
-  - Indicador visual em contorno ciano acompanhando o jogador no `update()`.
+  - Indicador visual em contorno ciano acompanhando o jogador.
   - Destruição segura do triângulo sem ativar Game Over.
 - **Grupo de Itens**:
   - Geração temporal a cada 6 segundos sorteando Arma ou Escudo.
