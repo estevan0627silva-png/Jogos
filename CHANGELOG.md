@@ -4,6 +4,31 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.9.9] - 2026-10-18 (Vila de Vale Dourado Completa com Ferreiro, Estábulo e NPCs, Correção de Dano da Espada, Moeda de Ouro Visual & Menu Limpo)
+### 🏘️ Vila de Vale Dourado Coesa, Cheia de Vida e Unificada (`spawnStartingVillage` + `art_director`)
+- **Pátio Calçado Unificado e Caminho de Paralelepípedos (`village_plaza`, `480x440`)**: Eliminado o aspecto "em pedaços" da vila! Agora o ponto de partida possui uma praça pavimentada contínua que integra todas as construções, canteiros floridos, postes de luz aquecidos e uma avenida central de pedras calçadas com meio-fio levando até o portão.
+- **Casa do Ferreiro (`village_blacksmith`, `112x84`)**: Oficina de pedra e carvalho com chaminé fumegante, fornalha incandescente com brasas vivas, **bigorna de aço (`bigorna`)** sobre cepo de madeira e mostruário de armas (escudo e espadas).
+- **Casa do Cuidador de Cavalos / Estábulo (`village_stable`, `120x84`)**: Celeiro amplo com telhado de madeira rústica, baia com um **Cavalo (`cavalo`)** marrom de crina escura e estrela branca na testa, fardos de **feno dourado (`feno`)**, cocho de água e ferradura pendurada.
+- **Muralha Contínua e Grande Portão da Vila (`village_wall_v` + `village_gate_tower`)**: Perímetro fechado por paliçada vertical contínua conectada às duas Torres do Portão com ameias, brasões reais e tochas acesas.
+- **Moradores (NPCs) Dando Tchau e Desejando Boa Sorte (`village_npc`, `24x28`, 2 frames)**: 4 aldeões posicionados na beira do caminho acenando com o braço para o Cavaleiro e exibindo votos de boa sorte (`"Boa sorte!"`, `"Força, Herói!"`, `"Proteja o Reino!"`, `"Vá com luz!"`).
+
+### ⚔️ Correção Definitiva do Bug de Dano Imenso ao Pegar Outra Espada (`code_architect`)
+- **Causa Raiz Identificada**: Ao coletar uma segunda Espada enquanto outra já estava ativa, `collectItem` zerava `nextAttack: 0`, disparando um segundo `slash` (`200ms` de duração) simultâneo ao anterior. Como a checagem de colisão usava `e.lastSlashId !== s.slashId`, dois *slashes* ativos alternavam suas IDs no mesmo inimigo a cada frame (60 FPS), causando até **48 de dano em 0,2 segundo** e derretendo o Boss instantaneamente.
+- **Tripla Blindagem Aplicada**:
+  1. Comparação monotônica estrita `(e.lastSlashId ?? 0) < s.slashId` no overlap de `slashes`.
+  2. Limpeza imediata de qualquer `slash` residual antes de criar um novo golpe em `swingSword`.
+  3. Preservação da cadência `nextAttack` em `collectItem` ao coletar uma relíquia do mesmo tipo que já está ativa.
+
+### 🪙 Drop Visual de Peça de Ouro nos Monstros Derrotados (`gold_coin`, `16x16`)
+- **Moeda Real Cintilante (`drawGoldCoin`, 2 frames)**: Quando derrotados, os monstros agora têm chance de dropar uma peça de ouro no chão (`55%` Guerreiro, `45%` Elfo, `35%` Goblin, `30%` Mini Golem, além de uma chuva de `5 moedas` ao derrotar o Golem Boss).
+- **Efeito Puramente Visual (Preparação Roguelike)**: A moeda salta com física de *bounce*, brilha no caminho e pode ser recolhida pelo Cavaleiro com som cristalino (`playCoin`), partículas douradas e texto flutuante `✦ OURO! ✦` (sem contabilização numérica no HUD por enquanto, conforme solicitado).
+
+### 🖼️ Limpeza da Capa do Menu Principal (`showMainMenu`)
+- Removidos todos os objetos espalhados pela tela de título (inimigos caídos, flecha cravada, pedras soltas, placa de madeira, pontilhado e caixa inferior de relíquias).
+- Mantida uma composição limpa, nobre e focada: **o Castelo ao fundo, o Caminho Real passando pela Vila de Vale Dourado, o Cavaleiro Heróico em primeiro plano e os botões de ação**.
+
+---
+
 ## [v0.9.8] - 2026-10-18 (Saída dos Portões da Vila Inicial & Disparo Garantido dos Arqueiros)
 ### 🏡 A Partida da Vila & O Grande Portão (`spawnStartingVillage`)
 - **Largada Imersiva na Vila**: Toda partida agora começa com o Cavaleiro iniciando sua jornada a partir de sua vila natal (*Vale Dourado*), com o cenário exibindo:

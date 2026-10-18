@@ -58,7 +58,7 @@ let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes;
 let hudContainer, hudGloryText, hudBestText;
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
-let villageDecor, menuContainer, pauseModal;
+let villageDecor, coins, menuContainer, pauseModal;
 let gameState, survivalTime, enemySpeed, spawnDelay, buff, slashCounter = 0;
 
 // =============================================================================
@@ -653,6 +653,26 @@ class SoundSystem {
     osc.start(now);
     osc.stop(now + 0.04);
   }
+
+  // Tilintar cristalino de peça de ouro / moeda (Si5 -> Mi6)
+  playCoin() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    [987.77, 1318.51].forEach((freq, i) => {
+      const t = now + i * 0.055;
+      const dur = i === 0 ? 0.06 : 0.18;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.24, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + dur);
+    });
+  }
 }
 
 const sound = new SoundSystem();
@@ -1198,22 +1218,167 @@ function makeWorldTextures(scene) {
   g.fillStyle(C.steelDark).fillRect(11, 15, 1, 1).fillRect(43, 17, 1, 1).fillRect(33, 29, 1, 1);
   g.generateTexture('cracked_ground', 56, 40);
 
+  // Piso e Praça Unificada da Vila ("village_plaza" 480x440 — conecta pátios, caminho calçado e muralha)
+  g.clear();
+  // Base de terra batida e jardins da vila (norte e sul)
+  g.fillStyle(0x4a7331, 1).fillRect(0, 0, 468, 440);
+  g.fillStyle(0x7d6340, 0.95).fillRoundedRect(14, 18, 424, 148, 12);
+  g.fillStyle(0x7d6340, 0.95).fillRoundedRect(14, 274, 424, 148, 12);
+  // Pátios de lajotas de pedra sob a Forja do Ferreiro, o Estábulo e os Chalés
+  g.fillStyle(0x525763, 0.92).fillRoundedRect(26, 28, 396, 130, 8);
+  g.fillStyle(0x525763, 0.92).fillRoundedRect(26, 282, 396, 130, 8);
+  for (let px = 34; px < 410; px += 22) {
+    for (let py = 36; py < 150; py += 16) {
+      g.fillStyle((px + py) % 4 === 0 ? 0x676d7a : 0x3f444f, 0.9).fillRect(px, py, 18, 12);
+    }
+    for (let py = 290; py < 404; py += 16) {
+      g.fillStyle((px + py) % 4 === 0 ? 0x676d7a : 0x3f444f, 0.9).fillRect(px, py, 18, 12);
+    }
+  }
+  // Caminho Real de Paralelepípedos da Vila (centro y = 175..265, largura total até o Portão)
+  g.fillStyle(0x3a2818, 1).fillRect(0, 172, 472, 96);
+  g.fillStyle(0x525763, 1).fillRect(0, 178, 470, 84);
+  // Meio-fio de pedra talhada nas duas margens da rua da vila
+  for (let cx = 0; cx < 466; cx += 18) {
+    g.fillStyle(cx % 36 === 0 ? C.steel : C.iron, 1).fillRect(cx, 174, 16, 6).fillRect(cx, 260, 16, 6);
+  }
+  // Paralelepípedos arredondados no caminho da vila
+  for (let rx = 4; rx < 462; rx += 16) {
+    for (let ry = 184; ry < 252; ry += 14) {
+      const off = (ry % 28 === 0) ? 6 : 0;
+      g.fillStyle((rx + ry) % 3 === 0 ? 0x7b8291 : 0x626875, 1).fillRoundedRect(rx + off, ry, 13, 10, 3);
+      g.fillStyle(0x8e96a6, 0.6).fillRect(rx + off + 2, ry + 2, 7, 2);
+    }
+  }
+  // Passarelas de pedra ligando a rua à Casa do Ferreiro, ao Estábulo e aos Chalés
+  [115, 295].forEach(wx => {
+    g.fillStyle(0x676d7a, 1).fillRect(wx - 22, 152, 44, 24).fillRect(wx - 22, 264, 44, 24);
+  });
+  // Canteiros floridos e iluminação quente das lanternas da rua
+  [75, 225, 375].forEach(lx => {
+    g.fillStyle(0x2f6e35, 1).fillRoundedRect(lx - 18, 158, 36, 12, 4).fillRoundedRect(lx - 18, 270, 36, 12, 4);
+    g.fillStyle(0xffca28, 0.95).fillRect(lx - 10, 162, 4, 4).fillRect(lx + 6, 274, 4, 4);
+    g.fillStyle(0xff5252, 0.95).fillRect(lx + 4, 161, 4, 4).fillRect(lx - 8, 273, 4, 4);
+    g.fillStyle(0xffca28, 0.16).fillCircle(lx, 174, 28).fillCircle(lx, 266, 28);
+  });
+  // Base contínua da Muralha Leste da Vila (fecha o perímetro em x = 442..474)
+  g.fillStyle(C.woodDark, 1).fillRect(442, 4, 28, 170).fillRect(442, 266, 28, 170);
+  g.fillStyle(C.ironDark, 1).fillRect(446, 6, 20, 166).fillRect(446, 268, 20, 166);
+  // Arco de sombra e soleira real sob o Grande Portão da Vila (x = 440..476, y = 174..266)
+  g.fillStyle(0x2a1d17, 1).fillRect(440, 174, 34, 92);
+  g.fillStyle(C.gold, 0.85).fillRect(444, 176, 4, 88).fillRect(466, 176, 4, 88);
+  g.generateTexture('village_plaza', 480, 440);
+
   // Faísca usada nas explosões de partículas
   g.clear().fillStyle(C.white).fillRect(0, 0, 4, 4);
   g.generateTexture('spark', 4, 4);
   g.destroy();
 }
 
-// 1. Cabana Rústica da Vila (72x64 pixels — matriz 36x32 a escala 2x)
+// 1. Casa do Ferreiro da Vila (112x84 pixels — matriz 56x42 a escala 2x: Forja acesa, Bigorna e Armas)
+function drawVillageBlacksmith(r) {
+  // Chaminé robusta de pedra expelindo fumaça
+  r(C.ironDark, 5, 1, 8, 13);
+  r(C.iron, 6, 2, 6, 11);
+  r(C.steelDark, 6, 1, 6, 2);
+  r(C.steelLight, 7, 0, 4, 1);
+
+  // Telhado de telhas cerâmicas vermelho-tijolo e vigas de carvalho
+  for (let i = 0; i < 11; i++) {
+    r(C.woodDark, 9 + i, 5 + i, 44 - i * 2, 1);
+    r(C.darkRed, 10 + i, 6 + i, 42 - i * 2, 1);
+    r(C.red, 11 + i, 6 + i, 40 - i * 2, 1);
+  }
+  r(C.woodDark, 7, 17, 46, 2);
+  r(C.gold, 9, 17, 42, 1);
+
+  // Estrutura de pedra talhada e vigas de carvalho
+  r(C.ironDark, 9, 19, 42, 20);
+  r(C.iron, 11, 20, 38, 18);
+  r(C.steelDark, 12, 20, 36, 4);
+  r(C.woodDark, 9, 19, 3, 20);
+  r(C.woodDark, 48, 19, 3, 20);
+  r(C.woodDark, 28, 19, 3, 20);
+
+  // Fornalha da Forja aberta com fogo vivo (Lado Esquerdo)
+  r(C.ironDark, 13, 24, 14, 14);
+  r(C.steelDark, 14, 24, 12, 2);
+  r(C.outline, 15, 26, 10, 11);
+  r(C.darkRed, 16, 28, 8, 9);
+  r(C.red, 17, 30, 6, 7);
+  r(C.yellow, 18, 32, 4, 4);
+  r(C.white, 19, 33, 2, 2);
+
+  // Suporte de Armas (Escudo Real e Espadas forjadas) no Lado Direito
+  r(C.woodDark, 33, 22, 13, 8);
+  r(C.wood, 34, 23, 11, 6);
+  r(C.blue, 35, 24, 4, 4);
+  r(C.gold, 36, 24, 2, 4);
+  r(C.steelLight, 41, 21, 1, 7);
+  r(C.gold, 40, 26, 3, 1);
+  r(C.steelLight, 44, 21, 1, 7);
+  r(C.gold, 43, 26, 3, 1);
+
+  // Bigorna de Aço Pesada no pátio frontal + Martelo de Ferreiro
+  r(C.ironDark, 34, 33, 10, 6);
+  r(C.steelDark, 33, 32, 12, 3);
+  r(C.steel, 34, 31, 10, 2);
+  r(C.steelLight, 35, 31, 6, 1);
+  r(C.woodDark, 39, 29, 1, 3);
+  r(C.steelLight, 38, 29, 3, 1);
+}
+
+// 2. Casa do Cuidador de Cavalos / Estábulo Real (120x84 pixels — matriz 60x42 a escala 2x)
+function drawVillageStable(r) {
+  // Telhado amplo de madeira e palha dourada
+  for (let i = 0; i < 11; i++) {
+    r(C.woodDark, 3 + i, 5 + i, 54 - i * 2, 1);
+    r(C.wood, 4 + i, 6 + i, 52 - i * 2, 1);
+    r(C.rag, 6 + i, 6 + i, 48 - i * 2, 1);
+  }
+  r(C.woodDark, 2, 16, 56, 3);
+  r(C.gold, 27, 9, 6, 5); // janela do sótão de feno
+
+  // Estrutura de madeira do Estábulo
+  r(C.woodDark, 5, 19, 50, 20);
+  r(C.wood, 7, 20, 46, 18);
+  r(C.outline, 9, 21, 20, 12); // interior sombreado da baia do cavalo
+  r(C.woodDark, 5, 19, 3, 20);
+  r(C.woodDark, 29, 19, 3, 20);
+  r(C.woodDark, 52, 19, 3, 20);
+
+  // O Cavalo Marrom na Baia Esquerda (com crina, orelhas e focinho)
+  r(C.boot, 13, 24, 9, 7);       // pescoço e peito do cavalo
+  r(C.wood, 14, 25, 7, 5);
+  r(C.boot, 17, 20, 6, 5);       // cabeça
+  r(C.rag, 21, 22, 3, 3);        // focinho claro
+  r(C.white, 20, 20, 1, 2);      // mancha branca na testa
+  r(C.outline, 19, 21, 1, 1);    // olho do cavalo
+  r(C.woodDark, 15, 19, 2, 6);   // crina
+  r(C.boot, 16, 18, 2, 2);       // orelhas
+
+  // Cerca de madeira da baia do cavalo
+  r(C.woodDark, 8, 30, 21, 8);
+  r(C.rag, 9, 31, 19, 2);
+  r(C.rag, 9, 35, 19, 2);
+
+  // Fardos de Feno Dourado + Cocho de Água Límpida (Lado Direito)
+  r(C.gold, 34, 25, 16, 9);
+  r(C.yellow, 35, 26, 14, 7);
+  r(C.woodDark, 34, 29, 16, 1);
+  r(C.woodDark, 33, 34, 18, 5);
+  r(C.blue, 35, 35, 14, 2);
+  r(C.cyan, 36, 35, 8, 1);
+}
+
+// 3. Cabana Rústica da Vila (72x64 pixels — matriz 36x32 a escala 2x)
 function drawVillageHouse(r) {
-  // Chaminé de pedra com fumaça
   r(C.ironDark, 26, 2, 5, 8);
   r(C.iron, 27, 3, 3, 7);
   r(C.steelDark, 27, 2, 3, 1);
   r(C.steelLight, 27, 0, 2, 2);
   r(C.bone, 28, 0, 2, 1);
 
-  // Telhado em duas águas de palha/madeira
   for (let row = 0; row < 12; row++) {
     const w = 12 + row * 2;
     const x = 18 - row;
@@ -1223,64 +1388,52 @@ function drawVillageHouse(r) {
   }
   r(C.woodDark, 4, 18, 28, 2);
 
-  // Paredes de vigas de madeira e estuque
   r(C.woodDark, 6, 20, 24, 11);
   r(C.bone, 8, 21, 20, 9);
   r(C.woodDark, 6, 20, 2, 11);
   r(C.woodDark, 28, 20, 2, 11);
   r(C.woodDark, 17, 20, 2, 11);
 
-  // Porta de carvalho em arco
   r(C.woodDark, 10, 24, 5, 7);
   r(C.wood, 11, 25, 3, 6);
   r(C.gold, 13, 27, 1, 1);
 
-  // Janela com luz acesa
   r(C.woodDark, 21, 23, 5, 5);
   r(C.yellow, 22, 24, 3, 3);
   r(C.woodDark, 23, 24, 1, 3);
   r(C.woodDark, 22, 25, 3, 1);
 
-  // Rodapé de pedra e tufos de erva
   r(C.ironDark, 5, 30, 26, 2);
   r(C.leafDark, 5, 29, 2, 2);
   r(C.leaf, 29, 29, 2, 2);
 }
 
-// 2. Paliçada / Cerca de Toras Fortificadas da Vila (48x32 — matriz 24x16 a escala 2x)
-function drawVillageFence(r) {
-  for (let i = 0; i < 4; i++) {
-    const tx = i * 6 + 1;
-    r(C.woodDark, tx + 1, 1, 2, 1);
-    r(C.woodDark, tx, 2, 4, 1);
-    r(C.woodDark, tx, 3, 4, 12);
-    r(C.wood, tx + 1, 3, 2, 11);
-    r(C.rag, tx + 1, 4, 1, 10);
+// 4. Muralha / Paliçada Vertical Contínua da Vila (32x96 — fecha o perímetro até o Portão)
+function drawVillageWallV(r) {
+  r(C.ironDark, 2, 0, 12, 48);
+  r(C.woodDark, 3, 0, 10, 48);
+  r(C.wood, 5, 0, 6, 48);
+  r(C.rag, 6, 0, 2, 48);
+  for (let y = 4; y < 46; y += 10) {
+    r(C.ironDark, 2, y, 12, 3);
+    r(C.steelDark, 3, y + 1, 10, 1);
+    r(C.gold, 4, y + 1, 1, 1);
+    r(C.gold, 11, y + 1, 1, 1);
   }
-  r(C.woodDark, 0, 5, 24, 2);
-  r(C.wood, 0, 6, 24, 1);
-  r(C.ironDark, 2, 5, 1, 1); r(C.ironDark, 8, 5, 1, 1); r(C.ironDark, 14, 5, 1, 1); r(C.ironDark, 20, 5, 1, 1);
-
-  r(C.woodDark, 0, 11, 24, 2);
-  r(C.wood, 0, 12, 24, 1);
-  r(C.ironDark, 2, 11, 1, 1); r(C.ironDark, 8, 11, 1, 1); r(C.ironDark, 14, 11, 1, 1); r(C.ironDark, 20, 11, 1, 1);
 }
 
-// 3. Torre e Pilar do Grande Portão da Vila (48x96 — matriz 24x48 a escala 2x)
+// 5. Torre e Pilar do Grande Portão da Vila (48x96 — matriz 24x48 a escala 2x)
 function drawGateTower(r) {
-  // Base de alvenaria e pedras ciclópicas com musgo
   r(C.ironDark, 2, 36, 20, 12);
   r(C.iron, 4, 38, 16, 9);
   r(C.steelDark, 5, 38, 14, 3);
   r(C.leafDark, 2, 44, 4, 3);
   r(C.leaf, 3, 44, 2, 2);
 
-  // Coluna de troncos colossais entrelaçados
   r(C.woodDark, 4, 12, 16, 25);
   r(C.wood, 6, 13, 12, 23);
   r(C.rag, 8, 14, 4, 21);
 
-  // Braçadeiras de ferro forjado reforçado com rebites
   [15, 24, 33].forEach(by => {
     r(C.ironDark, 3, by, 18, 3);
     r(C.steelDark, 4, by + 1, 16, 1);
@@ -1288,23 +1441,61 @@ function drawGateTower(r) {
     r(C.gold, 17, by + 1, 1, 1);
   });
 
-  // Guarita superior com ameias
   r(C.woodDark, 1, 8, 22, 5);
   r(C.wood, 2, 9, 20, 3);
   r(C.woodDark, 2, 5, 4, 4); r(C.wood, 3, 6, 2, 3);
   r(C.woodDark, 10, 5, 4, 4); r(C.wood, 11, 6, 2, 3);
   r(C.woodDark, 18, 5, 4, 4); r(C.wood, 19, 6, 2, 3);
 
-  // Estandarte do Reino dependurado
   r(C.blue, 7, 18, 6, 10);
   r(C.gold, 9, 20, 2, 4); r(C.gold, 8, 21, 4, 1);
   r(C.darkRed, 7, 27, 6, 1);
 
-  // Tocha acesa com chamas crepitantes
   r(C.ironDark, 11, 2, 2, 4);
   r(C.darkRed, 10, 0, 4, 3);
   r(C.red, 11, 0, 2, 3);
   r(C.yellow, 11, 1, 2, 2);
+}
+
+// 6. Moradores NPCs da Vila dando Tchau (24x28 — 2 frames acenando para o Cavaleiro)
+function drawVillageNpc(r, f) {
+  // Cabelo / Boina medieval e Cabeça
+  r(C.woodDark, 4, 1, 4, 2);
+  r(C.skin, 4, 3, 4, 3);
+  r(C.eye, 7, 4, 1, 1); // olhando para o cavaleiro
+
+  // Túnica aldeã e avental claro
+  r(C.elfTunic, 3, 6, 6, 5);
+  r(C.bone, 5, 7, 3, 4);
+  r(C.woodDark, 3, 9, 6, 1);
+
+  // Braço esquerdo em repouso + Braço direito ACENANDO (dando tchau!)
+  r(C.skin, 2, 6, 1, 3);
+  if (f === 0) {
+    r(C.elfTunic, 9, 5, 1, 2);
+    r(C.skin, 10, 3, 2, 2); // mão erguida
+  } else {
+    r(C.elfTunic, 9, 4, 1, 2);
+    r(C.skin, 9, 1, 2, 2);  // mão acenando no alto
+  }
+
+  // Botas (paradinhos no lugar)
+  r(C.boot, 4, 11, 2, 2);
+  r(C.boot, 7, 11, 2, 2);
+}
+
+// 7. Peça de Ouro / Moeda Reluzente (16x16 — 2 frames girando e brilhando)
+function drawGoldCoin(r, f) {
+  if (f === 0) {
+    r(C.gold, 1, 1, 6, 6);
+    r(C.yellow, 2, 2, 4, 4);
+    r(C.woodDark, 3, 3, 2, 2);
+    r(C.white, 2, 1, 2, 1);
+  } else {
+    r(C.gold, 2, 1, 4, 6);
+    r(C.yellow, 3, 2, 2, 4);
+    r(C.white, 3, 1, 1, 2);
+  }
 }
 
 // =============================================================================
@@ -1318,9 +1509,13 @@ function preload() {
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
   makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
   makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
+  makeSheet(this, 'village_blacksmith', 112, 84, 1, drawVillageBlacksmith);
+  makeSheet(this, 'village_stable', 120, 84, 1, drawVillageStable);
   makeSheet(this, 'village_house', 72, 64, 1, drawVillageHouse);
-  makeSheet(this, 'village_fence', 48, 32, 1, drawVillageFence);
+  makeSheet(this, 'village_wall_v', 32, 96, 1, drawVillageWallV);
   makeSheet(this, 'village_gate_tower', 48, 96, 1, drawGateTower);
+  makeSheet(this, 'village_npc', 24, 28, 2, drawVillageNpc);
+  makeSheet(this, 'gold_coin', 16, 16, 2, drawGoldCoin);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
@@ -1357,8 +1552,8 @@ function create(data) {
     scene.input.keyboard.removeAllListeners();
   });
 
-  // Animações de caminhada (2 quadros) — criadas uma única vez
-  const fps = { knight: 10, goblin: 12, warrior: 6, elf: 8, mini_golem: 10, boss_golem: 5 };
+  // Animações de 2 quadros — criadas uma única vez
+  const fps = { knight: 10, goblin: 12, warrior: 6, elf: 8, mini_golem: 10, boss_golem: 5, village_npc: 4, gold_coin: 8 };
   Object.entries(fps).forEach(([key, frameRate]) => {
     if (!scene.anims.exists(key)) {
       scene.anims.create({ key, frameRate, repeat: -1, frames: [{ key, frame: 0 }, { key, frame: 1 }] });
@@ -1375,6 +1570,7 @@ function create(data) {
 
   // Grupos físicos
   villageDecor = scene.physics.add.group({ immovable: true });
+  coins = scene.physics.add.group();
   enemies = scene.physics.add.group();
   obstacles = trees = scene.physics.add.group({ immovable: true });
   items = scene.physics.add.group();
@@ -1428,6 +1624,7 @@ function create(data) {
   scene.physics.add.overlap(player, enemies, (p, e) => playerHit(scene, e));
   scene.physics.add.overlap(player, enemyArrows, (p, a) => playerHit(scene, a));
   scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
+  scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
 
   // Combate (só atinge inimigos visíveis na tela; suporta múltiplos pontos de vida)
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
@@ -1437,7 +1634,8 @@ function create(data) {
     }
   });
   scene.physics.add.overlap(slashes, enemies, (s, e) => {
-    if (e.x < 800 && s.active && e.active && e.lastSlashId !== s.slashId) {
+    // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
+    if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, 2); // Espada Vorpal corta armadura pesada de uma vez
     }
@@ -1499,6 +1697,7 @@ function updateGameplay(scene, time, dt) {
   obstacles.setVelocityX(-worldSpeed);
   villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
+  coins.setVelocityX(-worldSpeed);
 
   // 2. Cavaleiro: 8 direções com velocidade normalizada, SEMPRE olhando para a frente
   let dirX = 0, dirY = 0;
@@ -1554,10 +1753,11 @@ function updateGameplay(scene, time, dt) {
 
   // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
   const cull = (group, isOut) => group.getChildren().slice().forEach(s => { if (isOut(s)) removeEntity(s); });
-  cull(villageDecor, s => s.x < -160);
+  cull(villageDecor, s => s.x < -300);
   cull(enemies, s => !s.isBoss && s.x < -60);
   cull(obstacles, s => s.x < -60);
   cull(items, s => s.x < -60);
+  cull(coins, s => s.x < -60);
   cull(playerArrows, s => s.x < 0 || s.x > 800);
   cull(enemyArrows, s => s.x < -40 || s.y < 0 || s.y > 620);
 }
@@ -1625,13 +1825,21 @@ function sortAndShade() {
   if (villageDecor) {
     villageDecor.getChildren().forEach(v => {
       if (v.lockedY !== undefined) v.y = v.lockedY;
-      shadeEntity(v);
+      if (v.speechBubble && v.speechBubble.active) {
+        v.speechBubble.setPosition(v.x, v.y - 24).setDepth(v.y + 30);
+      }
+      if (v.isGroundPlaza) {
+        v.setDepth(-8.5);
+      } else {
+        shadeEntity(v);
+      }
     });
   }
 
   if (gameState === 'PLAYING' || gameState === 'PAUSED') {
     shadeEntity(player);
     items.getChildren().forEach(shadeEntity);
+    coins.getChildren().forEach(shadeEntity);
     enemies.getChildren().forEach(e => {
       shadeEntity(e);
       if (e.chargeRing && e.chargeRing.active) {
@@ -1672,27 +1880,64 @@ function sortAndShade() {
 function spawnStartingVillage(scene) {
   if (villageDecor) villageDecor.clear(true, true);
 
-  // 1. Cabanas da Vila nas margens da estrada (fora do caminho)
-  const h1 = villageDecor.create(40, 160, 'village_house');
-  h1.lockedY = 160; h1.groundY = 188;
+  // 1. Pátio Calçado Unificado da Vila (Conecta Ferreiro, Estábulo, Chalés, Caminho e Portão)
+  const plaza = villageDecor.create(235, 325, 'village_plaza');
+  plaza.lockedY = 325;
+  plaza.isGroundPlaza = true;
+  plaza.setDepth(-8.5);
 
-  const h2 = villageDecor.create(170, 505, 'village_house');
-  h2.lockedY = 505; h2.groundY = 533;
+  // 2. Ala Norte da Vila: Chalés + Casa do Ferreiro (Forja Acesa, Bigorna e Armas)
+  const hNorth1 = villageDecor.create(62, 168, 'village_house');
+  hNorth1.lockedY = 168; hNorth1.groundY = 198;
 
-  // 2. Paliçada / Cerca de Toras de Madeira da Vila
-  const f1 = villageDecor.create(135, 175, 'village_fence');
-  f1.lockedY = 175; f1.groundY = 188;
+  const blacksmith = villageDecor.create(186, 174, 'village_blacksmith');
+  blacksmith.lockedY = 174; blacksmith.groundY = 214;
 
-  const f2 = villageDecor.create(85, 495, 'village_fence');
-  f2.lockedY = 495; f2.groundY = 508;
+  const hNorth2 = villageDecor.create(306, 168, 'village_house');
+  hNorth2.lockedY = 168; hNorth2.groundY = 198;
 
-  // 3. O Grande Portão da Vila (Torre Norte e Torre Sul flanqueando a estrada)
-  // Estrada passa livremente entre y = 290 e y = 370
-  const gateTop = villageDecor.create(390, 225, 'village_gate_tower');
-  gateTop.lockedY = 225; gateTop.groundY = 270;
+  // 3. Ala Sul da Vila: Chalés + Casa do Cuidador de Cavalos / Estábulo (com Cavalo e Feno)
+  const hSouth1 = villageDecor.create(68, 482, 'village_house');
+  hSouth1.lockedY = 482; hSouth1.groundY = 512;
 
-  const gateBottom = villageDecor.create(390, 435, 'village_gate_tower');
-  gateBottom.lockedY = 435; gateBottom.groundY = 480;
+  const stable = villageDecor.create(200, 480, 'village_stable');
+  stable.lockedY = 480; stable.groundY = 520;
+
+  const hSouth2 = villageDecor.create(316, 482, 'village_house');
+  hSouth2.lockedY = 482; hSouth2.groundY = 512;
+
+  // 4. Muralha de Paliçada Contínua + O Grande Portão de Saída da Vila (x = 415)
+  const wallTop = villageDecor.create(415, 148, 'village_wall_v');
+  wallTop.lockedY = 148; wallTop.groundY = 196;
+
+  const gateTop = villageDecor.create(415, 224, 'village_gate_tower');
+  gateTop.lockedY = 224; gateTop.groundY = 270;
+
+  const gateBottom = villageDecor.create(415, 428, 'village_gate_tower');
+  gateBottom.lockedY = 428; gateBottom.groundY = 474;
+
+  const wallBottom = villageDecor.create(415, 504, 'village_wall_v');
+  wallBottom.lockedY = 504; wallBottom.groundY = 552;
+
+  // 5. Moradores (NPCs) paradinhos na beira do caminho dando tchau e desejando boa sorte!
+  const npcSpecs = [
+    { x: 186, y: 248, tint: 0xffd8b0, msg: 'Boa sorte!' },
+    { x: 345, y: 252, tint: 0xb3e5fc, msg: 'Força, Herói!' },
+    { x: 202, y: 412, tint: 0xc8e6c9, msg: 'Proteja o Reino!' },
+    { x: 345, y: 408, tint: 0xfff59d, msg: 'Vá com luz!' }
+  ];
+  npcSpecs.forEach(spec => {
+    const npc = villageDecor.create(spec.x, spec.y, 'village_npc');
+    npc.lockedY = spec.y;
+    npc.groundY = spec.y + 13;
+    npc.setTint(spec.tint);
+    npc.play('village_npc');
+    npc.speechBubble = scene.add.text(spec.x, spec.y - 24, spec.msg, {
+      ...textStyle('#fff8e1', 10),
+      stroke: '#16120e',
+      strokeThickness: 3
+    }).setOrigin(0.5).setDepth(spec.y + 30);
+  });
 
   // Anúncio nobre de partida da jornada
   floatText(scene, 400, 150, '★ SAINDO DA VILA DE VALE DOURADO ★', '#ffca28');
@@ -2162,6 +2407,9 @@ function defeatBoss(scene, boss) {
   sound.startBGM('normal');
 
   floatText(scene, 400, 150, '★ GOLEM ANCESTRAL DERROTADO! ★', '#ffca28');
+  for (let i = 0; i < 5; i++) {
+    spawnCoinDrop(scene, bx + Phaser.Math.Between(-34, 34), by + Phaser.Math.Between(-24, 24));
+  }
   spawnItem(scene);
 }
 
@@ -2239,6 +2487,7 @@ function removeEntity(obj) {
   if (obj.activeTelegraphs) clearBossTelegraphs(obj);
   if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
   if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
+  if (obj.speechBubble && obj.speechBubble.active) obj.speechBubble.destroy();
   obj.destroy();
 }
 
@@ -2277,13 +2526,67 @@ function damageEnemy(scene, enemy, dmg = 1) {
 
 function killEnemy(enemy) {
   if (!enemy || !enemy.active) return;
+  const scene = enemy.scene;
+  const ex = enemy.x, ey = enemy.y;
+  const dropRates = { warrior: 0.55, elf: 0.45, goblin: 0.35, mini_golem: 0.30 };
+  const chance = dropRates[enemy.enemyType] ?? 0.35;
+
   sound.playEnemyHit();
-  hitFx.explode(12, enemy.x, enemy.y);
+  hitFx.explode(12, ex, ey);
   removeEntity(enemy);
+
+  if (Math.random() < chance) {
+    spawnCoinDrop(scene, ex, ey);
+  }
+}
+
+// Peça de Ouro (visual): salta do monstro derrotado e brilha no caminho
+function spawnCoinDrop(scene, x, y) {
+  if (!scene || !coins) return;
+  const targetY = Phaser.Math.Clamp(y + Phaser.Math.Between(-10, 14), 130, 520);
+  const coin = coins.create(x, targetY, 'gold_coin');
+  coin.play('gold_coin');
+  coin.body.setSize(16, 16);
+  coin.groundY = targetY + 10;
+
+  scene.tweens.add({
+    targets: coin,
+    y: { from: targetY - 18, to: targetY },
+    scale: { from: 1.25, to: 1 },
+    duration: 320,
+    ease: 'Bounce.easeOut',
+    onComplete: () => {
+      if (!coin.active) return;
+      scene.tweens.add({
+        targets: coin,
+        y: targetY - 5,
+        duration: 520,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    }
+  });
+}
+
+// Coleta puramente visual da moeda de ouro (sem contador no HUD por enquanto)
+function collectCoin(scene, coin) {
+  if (!coin || !coin.active) return;
+  const cx = coin.x, cy = coin.y;
+  sound.playCoin();
+  hitFx.explode(6, cx, cy);
+  floatText(scene, cx, cy - 16, '✦ OURO! ✦', '#ffd740');
+  removeEntity(coin);
 }
 
 function collectItem(scene, item) {
-  buff = { type: item.lootType, timeLeft: BUFF_TIME[item.lootType], nextAttack: 0 };
+  // Se já estiver com a mesma relíquia ativa, apenas renova o tempo sem zerar nextAttack
+  const sameType = buff.type === item.lootType;
+  buff = {
+    type: item.lootType,
+    timeLeft: BUFF_TIME[item.lootType],
+    nextAttack: sameType ? buff.nextAttack : 0
+  };
   shieldSprite.setVisible(buff.type === 'shield');
   sound.playItemCollect();
   floatText(scene, item.x, item.y - 20, BUFF_NAMES[buff.type] + '!', '#ffca28');
@@ -2305,6 +2608,8 @@ function shootArrow() {
 
 // Espada gira no punho do cavaleiro + rastro em meia-lua (sempre voltada para a frente)
 function swingSword(scene) {
+  // Garante que nunca existam 2 slashes simultâneos (elimina bug de dano multiplicado)
+  slashes.getChildren().slice().forEach(old => old.destroy());
   sound.playSword();
   const slash = slashes.create(player.x + 30, player.y, 'slash_arc');
   slash.body.setSize(36, 60);
@@ -2748,76 +3053,39 @@ function showMainMenu(scene) {
     ], true);
   });
 
-  // Elementos de Mapa Cartográfico sobre o Caminho (trilha tracejada + marcos de jornada)
-  const mapWaypoints = [
-    [325, 515], [332, 465], [342, 415], [382, 368],
-    [438, 332], [495, 304], [545, 276], [592, 252]
-  ];
-  mapWaypoints.forEach(([wx, wy], idx) => {
-    art.fillStyle(0xf5e6c8, 0.75).fillCircle(wx, wy, 3);
-    if (idx === 3 || idx === 6) {
-      // Marco de Batalha no Caminho (estilo mapa de RPG)
-      art.lineStyle(1.5, 0xffca28, 0.9).strokeCircle(wx, wy, 7);
-      art.fillStyle(0xd83a3a, 0.9).fillCircle(wx, wy, 3.5);
-    }
-  });
-
-  // Placa de Madeira na Encruzilhada ("REINO ⬆")
-  art.fillStyle(0x4a2e16, 1).fillRect(438, 350, 5, 26);
-  art.fillStyle(0x8d5524, 1).fillRect(422, 346, 36, 12);
-  art.lineStyle(1, 0xc5a059, 0.8).strokeRect(422, 346, 36, 12);
+  // Pátio de pedra suave sob as construções da Vila no plano médio da estrada
+  art.fillStyle(0x4b4e58, 0.75).fillEllipse(370, 360, 210, 52);
 
   // Pedestal Rochoso Heróico no Primeiro Plano Esquerdo (onde está o Cavaleiro)
-  art.fillStyle(0x1f2126, 1).fillEllipse(215, 455, 195, 56);
-  art.fillStyle(0x373a42, 1).fillEllipse(215, 446, 180, 46);
-  art.fillStyle(0x525763, 1).fillEllipse(215, 440, 155, 34);
-  art.fillStyle(0x000000, 0.45).fillEllipse(215, 436, 86, 18); // sombra do herói
+  art.fillStyle(0x1f2126, 1).fillEllipse(205, 470, 200, 58);
+  art.fillStyle(0x373a42, 1).fillEllipse(205, 461, 184, 48);
+  art.fillStyle(0x525763, 1).fillEllipse(205, 455, 158, 36);
+  art.fillStyle(0x000000, 0.45).fillEllipse(205, 451, 88, 18); // sombra do herói
 
-  // Sombra do Inimigo Derrotado e das Árvores
-  art.fillStyle(0x000000, 0.38).fillEllipse(358, 472, 56, 14);
-  art.fillStyle(0x000000, 0.35).fillEllipse(72, 430, 62, 14);
-  art.fillStyle(0x000000, 0.35).fillEllipse(485, 315, 42, 10);
+  // Sombras suaves da Vila e das árvores
+  art.fillStyle(0x000000, 0.32).fillEllipse(310, 355, 84, 18);
+  art.fillStyle(0x000000, 0.32).fillEllipse(418, 344, 46, 14);
+  art.fillStyle(0x000000, 0.35).fillEllipse(68, 435, 62, 14);
 
   menuContainer.add(art);
 
-  // 4. ELEMENTOS VIVOS DO CENÁRIO (Árvores, Rochas Lisa/Musgo, Inimigo Derrotado e Cavaleiro)
-  const treeFar = scene.add.image(485, 290, 'tree').setScale(0.75);
-  const treeLeft = scene.add.image(68, 390, 'tree').setScale(1.25);
-  const treeRight = scene.add.image(748, 360, 'tree').setScale(1.1);
-  const rockMossy = scene.add.image(135, 462, 'rock', 1).setScale(1.25);
-  const rockSmooth = scene.add.image(418, 492, 'rock', 0).setScale(1.1);
-  const rockFar = scene.add.image(468, 368, 'rock', 1).setScale(0.85);
+  // 4. A VILA DE VALE DOURADO NO CAMINHO + O CAVALEIRO HERÓICO
+  const treeFar = scene.add.image(492, 292, 'tree').setScale(0.72);
+  const menuHouse = scene.add.image(235, 318, 'village_house').setScale(0.76);
+  const menuBlacksmith = scene.add.image(312, 326, 'village_blacksmith').setScale(0.78);
+  const menuGateTower = scene.add.image(416, 314, 'village_gate_tower').setScale(0.76);
+  const treeLeft = scene.add.image(68, 395, 'tree').setScale(1.2);
 
-  // Inimigo Derrotado no Caminho (Guerreiro caído + flecha do Arco Real cravada)
-  const defeatedEnemy = scene.add.image(356, 465, 'warrior', 0)
-    .setAngle(84).setFlipX(true).setScale(1.25).setTint(0x9ea89e);
-  const stuckArrow = scene.add.image(348, 452, 'arrow_player')
-    .setAngle(52).setScale(1.15);
-  const defeatedGoblin = scene.add.image(392, 444, 'goblin', 0)
-    .setAngle(-78).setScale(1.05).setTint(0x889988);
-
-  // O Cavaleiro Heróico em Destaque (com Espada Vorpal, Escudo de Aço e Arco Real)
-  const heroSprite = scene.add.image(215, 378, 'knight_banner').setScale(2.15);
+  // O Cavaleiro Heróico em Destaque
+  const heroSprite = scene.add.image(205, 392, 'knight_banner').setScale(2.2);
   scene.tweens.add({
     targets: heroSprite,
-    y: 372,
+    y: 386,
     duration: 1300,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut'
   });
-
-  // Vitrine das 3 Relíquias Sagradas na base esquerda (Espada, Arco e Escudo)
-  const relicsBox = scene.add.graphics();
-  relicsBox.fillStyle(0x14100c, 0.88).fillRoundedRect(42, 492, 330, 54, 8);
-  relicsBox.lineStyle(1.5, 0xc5a059, 0.9).strokeRoundedRect(42, 492, 330, 54, 8);
-
-  const rBow = scene.add.image(76, 519, 'item_bow').setScale(0.95);
-  const rBowTxt = scene.add.text(98, 519, 'ARCO', textStyle('#ffe082', 11)).setOrigin(0, 0.5);
-  const rShield = scene.add.image(168, 519, 'item_shield').setScale(0.95);
-  const rShieldTxt = scene.add.text(190, 519, 'ESCUDO', textStyle('#7fe7ff', 11)).setOrigin(0, 0.5);
-  const rSword = scene.add.image(272, 519, 'item_sword').setScale(0.95);
-  const rSwordTxt = scene.add.text(294, 519, 'ESPADA', textStyle('#ffffff', 11)).setOrigin(0, 0.5);
 
   // 5. BRASÃO DE TÍTULO NO TOPO E PAINEL DE COMANDOS À DIREITA
   const headerBanner = scene.add.graphics();
@@ -2856,7 +3124,7 @@ function showMainMenu(scene) {
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   });
 
-  // Painel de Ações à Direita (Deixa a arte do Reino e do Cavaleiro livre!)
+  // Painel de Ações à Direita (Deixa a arte do Reino, da Vila e do Cavaleiro limpa!)
   const menuPanel = scene.add.graphics();
   menuPanel.fillStyle(0x14100c, 0.90).fillRoundedRect(442, 272, 326, 274, 12);
   menuPanel.lineStyle(2.5, 0x8d5524, 1).strokeRoundedRect(442, 272, 326, 274, 12);
@@ -2901,11 +3169,8 @@ function showMainMenu(scene) {
   const footerTxt = scene.add.text(400, 578, 'Mover: WASD ou Setas   |   Pausar: ESC   |   Alternar Áudio: M', textStyle('#d6c8aa', 11)).setOrigin(0.5);
 
   menuContainer.add([
-    treeFar, rockFar,
-    defeatedGoblin, defeatedEnemy, stuckArrow,
-    treeLeft, treeRight, rockMossy, rockSmooth,
-    heroSprite,
-    relicsBox, rBow, rBowTxt, rShield, rShieldTxt, rSword, rSwordTxt,
+    treeFar, menuHouse, menuBlacksmith, menuGateTower,
+    treeLeft, heroSprite,
     headerBanner, titleShadow, titleMain, subtitleTxt,
     menuSoundBg, menuHorn, menuSoundHit,
     menuPanel, crownIcon, bestBannerTxt,
