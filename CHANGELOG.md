@@ -4,6 +4,22 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.4.0] - 2026-10-18
+### ✨ Adicionado
+- **Escudo com Duração Balanceada (8 segundos)**:
+  - O escudo agora possui contagem regressiva visível no HUD (`🛡️ ESCUDO (8s)`).
+  - Se o tempo expirar sem impacto, o campo de força desativa naturalmente.
+  - Se colidir antes dos 8 segundos, consome a proteção e elimina o triângulo com segurança.
+- **Sistema de Iniciais Arcade (Fliperama)**:
+  - Ao morrer, exibe tela estilizada para registrar o nome com **exatamente 3 letras maiúsculas**.
+  - Digitação interativa via teclado (letras A-Z e tecla Backspace) com 3 caixas visuais estilo fliperama.
+- **Tabela de Recordes (Hall da Fama / Leaderboard Top 5)**:
+  - Salva e recupera as 5 melhores pontuações via `localStorage`.
+  - Exibe ranking ordenado com medalhas (🥇, 🥈, 🥉) e destaque visual na linha do jogador.
+  - Indicador do melhor recorde exibido tanto na tela inicial quanto no HUD em tempo de jogo (`👑 RECORDE: Xs`).
+
+---
+
 ## [v0.3.1] - 2026-10-18
 ### 🐛 Correções de Bugs (Fix)
 - **Spawn de Entidades Corrigido**:

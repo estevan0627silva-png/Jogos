@@ -33,11 +33,12 @@ Jogo 2D arcade de sobrevivência e reflexos desenvolvido com **JavaScript Vanill
   - Dispara rajadas de projéteis frontais a cada 320ms (cadência balanceada).
   - Projéteis são limitados ao campo visual (destroem-se na borda da tela para não eliminar inimigos antes de surgirem).
 - **Escudo (Círculo Ciano)**:
-  - Cria um campo de força protetor ao redor do jogador.
-  - Absorve **1 colisão fatal**, destruindo o obstáculo e mantendo o jogador vivo.
-- **Painel de Game Over**:
+  - Dura até **8 segundos** (com contador regressivo no HUD).
+  - Absorve **1 colisão fatal**, destruindo o obstáculo que colidiu e mantendo o jogador vivo.
+- **Painel de Fim de Jogo & Recordes Arcade (Fliperama)**:
   - Congela a física no momento do impacto.
-  - Exibe tempo de sobrevivência e botão interativo `JOGAR NOVAMENTE` (com atalho na barra de espaço).
+  - Solicita as **iniciais do jogador (exatamente 3 letras)** via teclado em caixas estilizadas.
+  - Apresenta a **Tabela Top 5 (Hall da Fama)** com medalhas, pontuações salvas via `localStorage` e botão `JOGAR NOVAMENTE`.
 
 ---
 
