@@ -1469,7 +1469,7 @@ function drawVillageNpc(r, f) {
   r(C.bone, 5, 7, 3, 4);
   r(C.woodDark, 3, 9, 6, 1);
 
-  // Braço esquerdo em repouso + Braço direito ACENANDO (dando tchau!)
+  // Braço esquerdo em repouso + Braço direito ACENANDO (dando tchau!
   r(C.skin, 2, 6, 1, 3);
   if (f === 0) {
     r(C.elfTunic, 9, 5, 1, 2);
