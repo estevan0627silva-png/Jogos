@@ -4,6 +4,35 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.5.0] - 2026-10-18 (Edição Fantasia Medieval Pixel Art)
+### 🎨 Visual & Arte Pixel Art
+- **Motor Gráfico com Suporte a Pixel Art**:
+  - Ativado `pixelArt: true` e renderizador retro 16-bit nativo no Phaser.
+  - Geração procedural de texturas pixel a pixel no canvas, sem dependências de downloads externos.
+  - Cenário de floresta viva com gramado texturizado e árvores/arbustos em rolagem suave (parallax).
+- **Novo Protagonista**:
+  - Cavaleiro com elmo prateado, pluma vermelha, túnica azul real e armadura de aço, com espelhamento dinâmico de direção (`flipX`).
+- **Novos Inimigos**:
+  - **Goblins**: rápidos e ágeis, com pele verde e olhos ferozes.
+  - **Guerreiros Sombrios**: blindados, com elmos de chifres e armadura negra.
+  - **Elfos Arqueiros**: guerreiros de manto verde que atiram flechas mágicas à distância em direção ao cavaleiro.
+
+### ⚔️ Novas Mecânicas & Arsenal
+- **Novo Item: Espada Vorpal (Golpe Slash)**:
+  - Ataque corpo a corpo rápido em arco luminoso que fatia inimigos e rebate projéteis à queima-roupa.
+- **Arco e Flecha**:
+  - Substitui o disparo anterior por flechas de madeira e ponta de aço a cada 320ms por 6s.
+- **Escudo Medieval**:
+  - Escudo com brasão nobre posicionado fisicamente ao lado do cavaleiro, absorvendo 1 impacto por 8s.
+- **Flechas Élficas**:
+  - Projéteis inimigos que podem ser bloqueados pelo escudo, cortados com a espada ou desviados.
+
+### 📜 Interface Medieval
+- HUD superior temático em madeira nobre e ouro envelhecido (`⚔️ GLÓRIA: Xs` | `👑 RECORDE: Xs`).
+- Telas de início, game over e Tábula de Recordes ("Campeões do Reino") com tipografia e molduras medievais.
+
+---
+
 ## [v0.4.0] - 2026-10-18
 ### ✨ Adicionado
 - **Escudo com Duração Balanceada (8 segundos)**:

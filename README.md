@@ -1,44 +1,52 @@
-# 🎮 Geometric Survival 2D (Phaser 3)
+# ⚔️ A Jornada do Cavaleiro (Knight's Quest) - Pixel Art Edition
 
-Jogo 2D arcade de sobrevivência e reflexos desenvolvido com **JavaScript Vanilla** e **Phaser 3** (carregado via CDN), sem dependência de bundlers ou gerenciadores de pacotes externos.
+Jogo de ação e sobrevivência em **Pixel Art 16-bit** com temática de fantasia medieval, desenvolvido em **JavaScript Vanilla** e **Phaser 3** (carregado via CDN), sem necessidade de bundlers ou arquivos externos.
 
 ---
 
 ## 🕹️ Como Jogar
 
-1. Abra o arquivo `JS_Teste/index.html` em qualquer navegador moderno.
-2. Controle o jogador (quadrado verde) e sobreviva pelo maior tempo possível aos triângulos que avançam da direita para a esquerda.
-3. Colete os itens especiais para se defender e destruir os obstáculos!
+1. Abra o arquivo `JS_Teste/index.html` em qualquer navegador web moderno.
+2. Controle o **Cavaleiro** através da floresta mística e sobreviva às hordas de inimigos pelo maior tempo possível.
+3. Colete relíquias e armas lendárias pelo caminho para virar o jogo a seu favor!
 
 ### ⌨️ Controles
 
 | Ação | Teclas |
 | :--- | :--- |
-| **Mover Jogador** | `W`, `A`, `S`, `D` ou Setas Direcionais |
-| **Mover na Diagonal** | Combinação de duas direções (velocidade uniforme normalizada) |
-| **Reiniciar (Game Over)** | `Barra de Espaço` ou Clique com o Mouse |
+| **Mover Cavaleiro** | `W`, `A`, `S`, `D` ou Setas Direcionais |
+| **Mover na Diagonal** | Combinação de duas direções (vetor normalizado) |
+| **Iniciar / Reiniciar** | `Barra de Espaço`, `Enter` ou Clique do Mouse |
 
 ---
 
-## ⚡ Itens e Mecânicas
+## 🌲 Inimigos da Floresta
 
-- **Triângulos Vermelhos (Obstáculos)**:
-  - Surgem continuamente fora da tela à direita em alturas aleatórias.
-  - A cada 3 segundos, ganham `+25 px/s` de velocidade e o intervalo entre novos triângulos diminui.
-- **Tela Inicial & HUD**:
-  - Painel de boas-vindas com botão `INICIAR JOGO` e instruções na abertura da página.
-  - HUD superior com contagem de tempo de sobrevivência e status dinâmico dos power-ups em tempo real.
-- **Arma (Círculo Amarelo)**:
+- 🧌 **Goblins**: Criaturas verdes, ágeis e velozes que avançam em bandos para cercar o cavaleiro.
+- 🛡️ **Guerreiros Sombrios**: Soldados pesados com elmos de chifres e armaduras negras impenetráveis.
+- 🧝 **Elfos Arqueiros**: Mestres da arquearia que disparam flechas mágicas de longa distância em direção ao herói!
+
+---
+
+## ⚔️ Arsenal Medieval (Power-ups)
+
+- 🏹 **Arco e Flecha (Loot Dourado)**:
   - Dura **6 segundos**.
-  - Dispara rajadas de projéteis frontais a cada 320ms (cadência balanceada).
-  - Projéteis são limitados ao campo visual (destroem-se na borda da tela para não eliminar inimigos antes de surgirem).
-- **Escudo (Círculo Ciano)**:
-  - Dura até **8 segundos** (com contador regressivo no HUD).
-  - Absorve **1 colisão fatal**, destruindo o obstáculo que colidiu e mantendo o jogador vivo.
-- **Painel de Fim de Jogo & Recordes Arcade (Fliperama)**:
-  - Congela a física no momento do impacto.
-  - Solicita as **iniciais do jogador (exatamente 3 letras)** via teclado em caixas estilizadas.
-  - Apresenta a **Tabela Top 5 (Hall da Fama)** com medalhas, pontuações salvas via `localStorage` e botão `JOGAR NOVAMENTE`.
+  - Dispara rajadas rápidas de flechas a cada 320ms, aniquilando inimigos na tela e interceptando flechas élficas.
+- 🛡️ **Escudo de Aço (Loot Ciano/Azul)**:
+  - Dura até **8 segundos** (com contagem regressiva no HUD).
+  - Posiciona-se fisicamente ao lado do herói e absorve **1 golpe fatal** (corpo a corpo ou flecha).
+- 🗡️ **Espada Vorpal (Loot Prateado - NOVO!)**:
+  - Dura **6 segundos**.
+  - Desfere sequências de golpes de espada em arco (*Slash*) à queima-roupa na frente do cavaleiro, fatiando inimigos e rebatendo projéteis instantaneamente!
+
+---
+
+## 🏆 Tábula dos Heróis (Sistema de Recordes Arcade)
+
+- Ao tombar em batalha, o jogo solicita o registro das **3 iniciais maiúsculas** do cavaleiro diretamente pelo teclado.
+- Registra e exibe o **Top 5 Campeões do Reino** em uma moldura medieval em madeira nobre e bronze, com persistência no `localStorage`.
+- O maior recorde histórico é exibido no HUD superior (`👑 RECORDE: Xs`) durante as partidas.
 
 ---
 
@@ -46,17 +54,17 @@ Jogo 2D arcade de sobrevivência e reflexos desenvolvido com **JavaScript Vanill
 
 ```text
 Jogos/
-├── .gitignore          # Arquivos e pastas ignorados pelo controle de versão
-├── CHANGELOG.md        # Histórico detalhado de versões e atualizações
-├── README.md           # Documentação geral do jogo
+├── .gitignore          # Arquivos ignorados pelo Git
+├── CHANGELOG.md        # Histórico de versões (SemVer)
+├── README.md           # Documentação completa da aventura
 └── JS_Teste/
     ├── index.html      # Página web e importação do Phaser 3 CDN
-    ├── style.css       # Centralização do canvas na tela e remoção de scrolls
-    └── game.js         # Toda a lógica do jogo (preload, create, update, física e power-ups)
+    ├── style.css       # Centralização do canvas e estilo da janela
+    └── game.js         # Toda a lógica: gerador de pixel art, física, inimigos e combate
 ```
 
 ---
 
-## 🔒 Privacidade do Repositório
+## 🔒 Privacidade
 
-Este projeto é de uso pessoal e privado. Todo o controle de versão com Git/GitHub Desktop está configurado para permanecer local na máquina ou em repositório privado no GitHub.
+Projeto pessoal e 100% privado mantido localmente.
