@@ -24,10 +24,13 @@ const BUFF_TIME = { bow: 6, shield: 9, sword: 6 };   // duração de cada item (
 const ATTACK_RATE = { bow: 340, sword: 280 };        // intervalo entre ataques (ms)
 const BUFF_NAMES = { bow: 'ARCO REAL', shield: 'ESCUDO DE AÇO', sword: 'ESPADA VORPAL' };
 const ENEMIES = {                                    // vida, velocidade relativa e hitbox
-  goblin:  { hp: 1, speed: 1.15, w: 16, h: 20 },
-  warrior: { hp: 2, speed: 0.88, w: 20, h: 26 },
-  elf:     { hp: 1, speed: 0.85, w: 16, h: 24 }
+  goblin:     { hp: 1, speed: 1.15, w: 16, h: 20 },
+  warrior:    { hp: 2, speed: 0.88, w: 20, h: 26 },
+  elf:        { hp: 1, speed: 0.85, w: 16, h: 24 },
+  mini_golem: { hp: 1, speed: 0.96, w: 18, h: 20 }
 };
+const BOSS_TRIGGER_TIME = 60;                        // segundo em que o Golem de Pedra desperta
+const BOSS_MAX_HP = 40;                              // vida total do Boss Golem Ancestral
 const MAX_ENEMY_SPEED = 380;                         // teto máximo justo de velocidade
 const MIN_SPAWN_DELAY = 500;                         // intervalo mínimo de spawn (ms)
 const STORAGE_KEY = 'knight_quest_highscores';
@@ -54,6 +57,7 @@ let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, playerBuffBar
 let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes;
 let hudContainer, hudGloryText, hudBestText;
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
+let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
 let menuContainer, pauseModal;
 let gameState, survivalTime, enemySpeed, spawnDelay, buff, slashCounter = 0;
 
@@ -129,6 +133,25 @@ const MENU_BASS = [
   98.00,  0, 146.83, 0, 82.41,  0, 123.47, 0,
   87.31,  0, 130.81, 0, 73.42,  0, 110.00, 0,
   82.41,  0, 123.47, 0, 110.00, 0, 110.00, 0
+];
+
+// Tema Tenso da Boss Fight (Golem Ancestral de Pedra — Ré Menor Harmônico / Frígio)
+const BOSS_MELODY = [
+  // Compasso 1 (Dm) - O Despertar do Colosso
+  293.66, 311.13, 293.66, 0, 440.00, 466.16, 440.00, 0,
+  // Compasso 2 (Gm / Bb) - Fúria da Terra
+  392.00, 440.00, 466.16, 554.37, 587.33, 0, 554.37, 466.16,
+  // Compasso 3 (A7) - Ameaça Implacável
+  440.00, 349.23, 329.63, 293.66, 329.63, 349.23, 440.00, 554.37,
+  // Compasso 4 (Dm) - Esmagamento Sísmico
+  587.33, 0, 466.16, 440.00, 349.23, 329.63, 293.66, 0
+];
+
+const BOSS_BASS = [
+  73.42, 73.42, 110.00, 73.42, 73.42, 77.78, 73.42, 110.00,
+  98.00, 98.00, 116.54, 98.00, 98.00, 98.00, 116.54, 98.00,
+  82.41, 82.41, 110.00, 82.41, 82.41, 87.31, 110.00, 138.59,
+  73.42, 110.00, 73.42, 77.78, 73.42, 65.41, 73.42, 110.00
 ];
 
 class SoundSystem {
@@ -214,7 +237,7 @@ class SoundSystem {
     return this.noiseBuffer;
   }
 
-  // --- TRILHA SONORA (BGM DE BATALHA & BGM DE MENU) ---
+  // --- TRILHA SONORA (BGM DE BATALHA, MENU & BOSS FIGHT) ---
   startBGM(mode = 'battle') {
     if (this.bgmPlaying && this.bgmMode === mode) return;
     if (!this.ensureContext()) return;
@@ -226,7 +249,8 @@ class SoundSystem {
     this.bgmPlaying = true;
     this.currentStep = 0;
     if (this.bgmGain && !this.muted) {
-      this.bgmGain.gain.setValueAtTime(mode === 'menu' ? 0.12 : 0.14, this.ctx.currentTime);
+      const vol = mode === 'menu' ? 0.12 : (mode === 'boss' ? 0.16 : 0.14);
+      this.bgmGain.gain.setValueAtTime(vol, this.ctx.currentTime);
     }
     this.nextStepTime = this.ctx.currentTime + 0.05;
     this.scheduleBGM();
@@ -255,7 +279,8 @@ class SoundSystem {
 
   resumeBGM() {
     if (this.bgmGain && this.ctx && !this.muted) {
-      this.bgmGain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+      const vol = this.bgmMode === 'boss' ? 0.16 : 0.14;
+      this.bgmGain.gain.setValueAtTime(vol, this.ctx.currentTime);
     }
   }
 
@@ -265,7 +290,7 @@ class SoundSystem {
       this.nextStepTime = this.ctx.currentTime + 0.05;
     }
     const lookahead = 0.25;
-    const stepDur = this.bgmMode === 'menu' ? 0.34 : 0.23; // menu sereno (~88 BPM) vs marcha de combate (~130 BPM)
+    const stepDur = this.bgmMode === 'menu' ? 0.34 : (this.bgmMode === 'boss' ? 0.175 : 0.23);
 
     while (this.nextStepTime < this.ctx.currentTime + lookahead) {
       this.playBGMStep(this.currentStep, this.nextStepTime, stepDur);
@@ -279,22 +304,23 @@ class SoundSystem {
   playBGMStep(step, time, dur) {
     if (this.muted) return;
     const isMenu = this.bgmMode === 'menu';
-    const melodyArr = isMenu ? MENU_MELODY : BGM_MELODY;
-    const bassArr = isMenu ? MENU_BASS : BGM_BASS;
+    const isBoss = this.bgmMode === 'boss';
+    const melodyArr = isMenu ? MENU_MELODY : (isBoss ? BOSS_MELODY : BGM_MELODY);
+    const bassArr = isMenu ? MENU_BASS : (isBoss ? BOSS_BASS : BGM_BASS);
 
-    // 1. Melodia (harpa/alaúde ressonante no menu; onda triangular heróica na batalha)
+    // 1. Melodia (harpa no menu; square agressivo no Boss; triangle heróico na batalha)
     const note = melodyArr[step];
     if (note > 0) {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       const filter = this.ctx.createBiquadFilter();
-      osc.type = 'triangle';
+      osc.type = isBoss ? 'square' : 'triangle';
       osc.frequency.setValueAtTime(note, time);
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(isMenu ? 1700 : 2200, time);
+      filter.frequency.setValueAtTime(isMenu ? 1700 : (isBoss ? 1900 : 2200), time);
       const noteDur = isMenu ? dur * 1.45 : dur * 0.9;
       gain.gain.setValueAtTime(0.001, time);
-      gain.gain.linearRampToValueAtTime(isMenu ? 0.28 : 0.32, time + 0.018);
+      gain.gain.linearRampToValueAtTime(isMenu ? 0.28 : (isBoss ? 0.24 : 0.32), time + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.001, time + noteDur);
       osc.connect(filter);
       filter.connect(gain);
@@ -303,7 +329,7 @@ class SoundSystem {
       osc.stop(time + noteDur + 0.02);
     }
 
-    // 2. Baixo (bordão suave de alaúde no menu; sawtooth pulsante na batalha)
+    // 2. Baixo (bordão de alaúde no menu; sawtooth pesado no combate e Boss)
     const bass = bassArr[step];
     if (bass > 0) {
       const bOsc = this.ctx.createOscillator();
@@ -312,10 +338,10 @@ class SoundSystem {
       bOsc.type = isMenu ? 'sine' : 'sawtooth';
       bOsc.frequency.setValueAtTime(bass, time);
       bFilter.type = 'lowpass';
-      bFilter.frequency.setValueAtTime(isMenu ? 320 : 400, time);
+      bFilter.frequency.setValueAtTime(isMenu ? 320 : (isBoss ? 520 : 400), time);
       const bassDur = isMenu ? dur * 1.7 : dur * 0.85;
       bGain.gain.setValueAtTime(0.001, time);
-      bGain.gain.linearRampToValueAtTime(isMenu ? 0.30 : 0.28, time + 0.015);
+      bGain.gain.linearRampToValueAtTime(isMenu ? 0.30 : (isBoss ? 0.34 : 0.28), time + 0.012);
       bGain.gain.exponentialRampToValueAtTime(0.001, time + bassDur);
       bOsc.connect(bFilter);
       bFilter.connect(bGain);
@@ -324,40 +350,71 @@ class SoundSystem {
       bOsc.stop(time + bassDur + 0.02);
     }
 
-    // 3. Percussão retrô (apenas durante o combate)
+    // 3. Percussão retrô (intensa na Boss Fight; marcha durante o combate normal)
     if (!isMenu) {
-      if (step % 4 === 0) {
+      if (step % 4 === 0 || (isBoss && step % 4 === 1)) {
         const kick = this.ctx.createOscillator();
         const kGain = this.ctx.createGain();
         kick.type = 'sine';
-        kick.frequency.setValueAtTime(110, time);
-        kick.frequency.exponentialRampToValueAtTime(30, time + 0.07);
-        kGain.gain.setValueAtTime(0.3, time);
-        kGain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+        kick.frequency.setValueAtTime(isBoss ? 125 : 110, time);
+        kick.frequency.exponentialRampToValueAtTime(28, time + 0.075);
+        kGain.gain.setValueAtTime(isBoss ? 0.36 : 0.3, time);
+        kGain.gain.exponentialRampToValueAtTime(0.001, time + 0.075);
         kick.connect(kGain);
         kGain.connect(this.bgmGain);
         kick.start(time);
-        kick.stop(time + 0.07);
+        kick.stop(time + 0.075);
       } else if (step % 4 === 2) {
         const noise = this.ctx.createBufferSource();
         noise.buffer = this.getNoiseBuffer();
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(1400, time);
+        filter.frequency.setValueAtTime(isBoss ? 1100 : 1400, time);
         filter.Q.setValueAtTime(1.8, time);
         const sGain = this.ctx.createGain();
-        sGain.gain.setValueAtTime(0.16, time);
-        sGain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+        sGain.gain.setValueAtTime(isBoss ? 0.22 : 0.16, time);
+        sGain.gain.exponentialRampToValueAtTime(0.001, time + 0.065);
         noise.connect(filter);
         filter.connect(sGain);
         sGain.connect(this.bgmGain);
         noise.start(time);
-        noise.stop(time + 0.06);
+        noise.stop(time + 0.065);
       }
     }
   }
 
   // --- EFEITOS SONOROS (SFX) ---
+
+  // Estrondo sísmico de impacto do Golem de Pedra (rocha batendo no chão / Soco Colossal)
+  playEarthSmash() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(24, now + 0.32);
+    gain.gain.setValueAtTime(0.48, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.32);
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.getNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(520, now);
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.45, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain);
+    noise.start(now);
+    noise.stop(now + 0.28);
+  }
 
   // Disparo de flecha pelo jogador (corda do arco vibrando + silvo)
   playBow() {
@@ -861,6 +918,89 @@ function drawKnightBanner(r) {
   r(C.woodDark, 8, 24, 4, 2); r(C.woodDark, 13, 24, 4, 2);
 }
 
+// Boss 1: Golem Ancestral de Pedra (64x64 — Colosso com musgo, cara de mau, núcleo rúnico e punhos gigantes)
+function drawBossGolem(r, f) {
+  // 1. Ombros gigantescos e silhueta superior de granito/ardósia
+  r(C.ironDark, 4, 6, 24, 7);
+  r(C.iron, 5, 5, 22, 6);
+  r(C.steelDark, 6, 4, 20, 4);
+
+  // 2. Cabeça de pedra maciça encravada entre os ombros
+  r(C.ironDark, 10, 3, 12, 8);
+  r(C.iron, 11, 4, 10, 7);
+  r(C.steelDark, 12, 3, 8, 2);
+
+  // Sobrancelhas franzidas de pedra ("cara de mau")
+  r(C.ironDark, 11, 5, 4, 2);
+  r(C.ironDark, 17, 5, 4, 2);
+
+  // Olhos brilhantes furiosos (magma rúnico)
+  r(C.red, 12, 7, 2, 1); r(C.eye, 12, 6, 2, 1); r(C.yellow, 13, 6, 1, 1);
+  r(C.red, 18, 7, 2, 1); r(C.eye, 18, 6, 2, 1); r(C.yellow, 18, 6, 1, 1);
+
+  // Boca/fenda sombria rachada
+  r(C.outline, 13, 9, 6, 1);
+  r(C.darkRed, 14, 10, 4, 1);
+
+  // 3. Peito e Núcleo Rúnico no centro do tórax
+  r(C.ironDark, 7, 12, 18, 10);
+  r(C.iron, 8, 13, 16, 8);
+  r(C.steelDark, 9, 13, 14, 3);
+  r(C.darkRed, 14, 14, 4, 4);
+  r(C.red, 15, 14, 2, 4); r(C.red, 14, 15, 4, 2);
+  r(C.yellow, 15, 15, 2, 2);
+  r(C.darkRed, 13, 13, 1, 2); r(C.darkRed, 18, 13, 1, 2);
+  r(C.darkRed, 12, 17, 2, 1); r(C.darkRed, 18, 17, 2, 1);
+
+  // 4. Tufos de musgo ancestral nos ombros e cabeça
+  r(C.leafDark, 4, 3, 5, 3); r(C.leaf, 5, 3, 3, 2); r(C.leafLight, 6, 2, 2, 1);
+  r(C.leafDark, 23, 3, 5, 3); r(C.leaf, 24, 3, 3, 2); r(C.leafLight, 24, 2, 2, 1);
+  r(C.leafDark, 13, 1, 6, 2); r(C.leaf, 14, 1, 4, 1); r(C.leafLight, 15, 0, 2, 1);
+
+  // 5. Braços e Punhos Colossais de Pedra
+  const armY = f === 0 ? 0 : -1;
+  r(C.ironDark, 2, 12 + armY, 6, 9); r(C.iron, 3, 13 + armY, 4, 7);
+  r(C.steelDark, 1, 21 + armY, 8, 7); r(C.ironDark, 0, 23 + armY, 10, 4); r(C.iron, 2, 24 + armY, 6, 2);
+
+  r(C.ironDark, 24, 12 - armY, 6, 9); r(C.iron, 25, 13 - armY, 4, 7);
+  r(C.steelDark, 23, 21 - armY, 8, 7); r(C.ironDark, 22, 23 - armY, 10, 4);
+
+  // 6. Pernas de pilar rochoso
+  const legL = f === 0 ? 0 : 2;
+  const legR = f === 1 ? 0 : 2;
+  r(C.ironDark, 9, 22, 5, 6 + legL); r(C.iron, 10, 22, 3, 5 + legL); r(C.steelDark, 7, 27 + legL, 8, 3);
+  r(C.ironDark, 18, 22, 5, 6 + legR); r(C.iron, 19, 22, 3, 5 + legR); r(C.steelDark, 17, 27 + legR, 8, 3);
+}
+
+// Mini Golem de Pedra ("Filhotinhos" do Boss — 28x28)
+function drawMiniGolem(r, f) {
+  // 1. Tufo de musgo no topo da cabeça
+  r(C.leafDark, 5, 0, 4, 2); r(C.leaf, 6, 0, 2, 1); r(C.leafLight, 6, 1, 1, 1);
+
+  // 2. Corpo arredondado de rocha viva
+  r(C.ironDark, 3, 2, 8, 2);
+  r(C.ironDark, 2, 4, 10, 6);
+  r(C.iron, 3, 3, 8, 7);
+  r(C.steelDark, 4, 3, 6, 3);
+
+  // 3. Olhos bravos luminosos e boca invocada
+  r(C.ironDark, 3, 4, 3, 1); r(C.ironDark, 8, 4, 3, 1);
+  r(C.red, 4, 5, 2, 2); r(C.yellow, 4, 5, 1, 1);
+  r(C.red, 8, 5, 2, 2); r(C.yellow, 9, 5, 1, 1);
+  r(C.outline, 5, 8, 4, 1);
+  r(C.darkRed, 6, 9, 2, 1);
+
+  // 4. Bracinhos e perninhas de pedra
+  const armOff = f === 0 ? 0 : 1;
+  r(C.steelDark, 1, 6 + armOff, 2, 3);
+  r(C.steelDark, 11, 7 - armOff, 2, 3);
+
+  const legL = f === 0 ? 1 : 2;
+  const legR = f === 1 ? 1 : 2;
+  r(C.ironDark, 3, 10, 3, legL); r(C.steelDark, 3, 10 + legL, 3, 1);
+  r(C.ironDark, 8, 10, 3, legR); r(C.steelDark, 8, 10 + legR, 3, 1);
+}
+
 // Cenário (chão, estrada, florestas das bordas) e efeitos
 function makeWorldTextures(scene) {
   const g = scene.make.graphics({ add: false });
@@ -905,6 +1045,19 @@ function makeWorldTextures(scene) {
   g.lineStyle(5, C.white, 1).beginPath().arc(4, 36, 32, -0.95, 0.95).strokePath();
   g.generateTexture('slash_arc', 48, 72);
 
+  // Chão craquelado / rachado pelo impacto das rochas arremessadas pelo Boss Golem
+  g.clear();
+  g.fillStyle(0x3a2818, 0.78).fillEllipse(28, 20, 52, 26);
+  g.fillStyle(0x22160d, 0.92).fillEllipse(28, 20, 40, 18);
+  g.fillStyle(0x140d07, 1);
+  g.fillRect(26, 18, 3, 3).fillRect(22, 14, 4, 2).fillRect(17, 11, 5, 2).fillRect(12, 9, 5, 1);
+  g.fillRect(29, 17, 4, 3).fillRect(33, 13, 5, 2).fillRect(38, 11, 4, 2).fillRect(42, 8, 5, 1);
+  g.fillRect(25, 21, 3, 4).fillRect(20, 24, 5, 2).fillRect(14, 26, 6, 2).fillRect(9, 27, 5, 1);
+  g.fillRect(30, 21, 4, 3).fillRect(34, 23, 6, 2).fillRect(40, 25, 5, 2).fillRect(45, 26, 4, 1);
+  g.fillStyle(C.ironDark).fillRect(10, 15, 3, 2).fillRect(42, 17, 3, 2).fillRect(24, 7, 2, 2).fillRect(32, 29, 3, 2);
+  g.fillStyle(C.steelDark).fillRect(11, 15, 1, 1).fillRect(43, 17, 1, 1).fillRect(33, 29, 1, 1);
+  g.generateTexture('cracked_ground', 56, 40);
+
   // Faísca usada nas explosões de partículas
   g.clear().fillStyle(C.white).fillRect(0, 0, 4, 4);
   g.generateTexture('spark', 4, 4);
@@ -920,6 +1073,8 @@ function preload() {
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
+  makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
+  makeSheet(this, 'boss_golem', 64, 64, 2, drawBossGolem);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
@@ -947,6 +1102,9 @@ function create(data) {
   enemySpeed = 200;
   spawnDelay = 1250;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
+  activeBoss = null;
+  bossSpawned = false;
+  bossDefeated = false;
 
   // Limpa todos os listeners de teclado ao encerrar/reiniciar a cena (evita duplicação)
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -954,7 +1112,7 @@ function create(data) {
   });
 
   // Animações de caminhada (2 quadros) — criadas uma única vez
-  const fps = { knight: 10, goblin: 12, warrior: 6, elf: 8 };
+  const fps = { knight: 10, goblin: 12, warrior: 6, elf: 8, mini_golem: 10, boss_golem: 5 };
   Object.entries(fps).forEach(([key, frameRate]) => {
     if (!scene.anims.exists(key)) {
       scene.anims.create({ key, frameRate, repeat: -1, frames: [{ key, frame: 0 }, { key, frame: 1 }] });
@@ -967,6 +1125,7 @@ function create(data) {
   forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
   shadows = scene.add.graphics().setDepth(-2);
   forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
+  bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
 
   // Grupos físicos
   enemies = scene.physics.add.group();
@@ -976,10 +1135,8 @@ function create(data) {
   enemyArrows = scene.physics.add.group();
   slashes = scene.physics.add.group();
 
-  // Obstáculos iniciais espalhados (árvores nas bordas e pedras lisa/musgo na estrada)
+  // Árvores iniciais nas bordas (as rochas agora só surgem arremessadas pelo Boss Golem)
   for (let x = 320; x <= 800; x += 120) spawnTree(x);
-  spawnRock(460, 0);
-  spawnRock(700, 1);
 
   // Jogador (limitado à área entre as florestas)
   scene.physics.world.setBounds(0, 95, 800, 455);
@@ -1111,8 +1268,29 @@ function updateGameplay(scene, time, dt) {
     dustFx.emitParticleAt(player.x - 6, player.y + 14, 1);
   }
 
-  // 3. Inimigos balançando enquanto andam
-  enemies.getChildren().forEach(e => e.setAngle(Math.sin(time * 0.015 + e.phase) * 5));
+  // 3. Inimigos balançando enquanto andam + Movimentação do Boss Golem na arena
+  enemies.getChildren().forEach(e => {
+    if (!e.isBoss) e.setAngle(Math.sin(time * 0.015 + e.phase) * 5);
+  });
+
+  if (activeBoss && activeBoss.active) {
+    if (!activeBoss.isLunging) {
+      activeBoss.setAngle(Math.sin(time * 0.008) * 2.2);
+      if (activeBoss.entering) {
+        if (activeBoss.x <= 685) {
+          activeBoss.x = 685;
+          activeBoss.setVelocityX(0);
+          activeBoss.entering = false;
+          activeBoss.setVelocityY(68);
+        }
+      } else {
+        activeBoss.x = 685;
+        activeBoss.setVelocityX(0);
+        if (activeBoss.y <= 170) activeBoss.setVelocityY(72);
+        else if (activeBoss.y >= 480) activeBoss.setVelocityY(-72);
+      }
+    }
+  }
 
   // 4. Item ativo: conta o tempo e ataca na cadência certa
   if (buff.type) {
@@ -1126,9 +1304,9 @@ function updateGameplay(scene, time, dt) {
   }
   updateItemHUD();
 
-  // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir)
+  // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
   const cull = (group, isOut) => group.getChildren().slice().forEach(s => { if (isOut(s)) removeEntity(s); });
-  cull(enemies, s => s.x < -60);
+  cull(enemies, s => !s.isBoss && s.x < -60);
   cull(obstacles, s => s.x < -60);
   cull(items, s => s.x < -60);
   cull(playerArrows, s => s.x < 0 || s.x > 800);
@@ -1184,11 +1362,14 @@ function sortAndShade() {
     if (!s || !s.active || !s.visible) return;
     const feet = s.groundY ?? s.y + s.displayHeight / 2;
     s.setDepth(feet);
-    shadows.fillEllipse(s.x, feet - 2, s.displayWidth * 0.7, 8);
+    shadows.fillEllipse(s.x, feet - 2, s.displayWidth * 0.7, s.isBoss ? 14 : 8);
   };
 
   obstacles.getChildren().forEach(o => {
     if (o.lockedY !== undefined) o.y = o.lockedY;
+    if (o.crackDecal && o.crackDecal.active) {
+      o.crackDecal.setPosition(o.x, o.y + 6);
+    }
     shadeEntity(o);
   });
 
@@ -1200,8 +1381,8 @@ function sortAndShade() {
       if (e.chargeRing && e.chargeRing.active) {
         e.chargeRing.setPosition(e.x - 12, e.y).setDepth(e.depth + 2);
       }
-      // Desenha barra de vida/armadura para inimigos com mais de 1 HP
-      if (e.active && e.maxHp > 1) {
+      // Desenha barra de vida/armadura para inimigos comuns com mais de 1 HP (Boss usa o HUD dedicado)
+      if (e.active && !e.isBoss && e.maxHp > 1) {
         const bw = 22, bh = 4;
         const bx = Math.round(e.x - bw / 2);
         const by = Math.round(e.y - e.displayHeight / 2 - 8);
@@ -1230,7 +1411,7 @@ function sortAndShade() {
 }
 
 // =============================================================================
-// SPAWNS
+// SPAWNS & BOSS FIGHT (60 SEGUNDOS)
 // =============================================================================
 function startGameplay(scene) {
   gameState = 'PLAYING';
@@ -1241,7 +1422,7 @@ function startGameplay(scene) {
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (hudContainer) hudContainer.setVisible(true);
-  sound.startBGM();
+  sound.startBGM('normal');
 
   const every = (delay, fn) => scene.time.addEvent({ delay, loop: true, callback: () => gameState === 'PLAYING' && fn() });
   every(1000, () => {
@@ -1250,38 +1431,56 @@ function startGameplay(scene) {
     if (survivalTime > getBestScore() && hudBestText) {
       hudBestText.setText(`${survivalTime}s`);
     }
+    if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
+      startBossFight(scene);
+    }
   });
+
   // Progressão balanceada com teto de velocidade e limite mínimo de spawn
   every(4000, () => {
     enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 14);
     spawnDelay = Math.max(MIN_SPAWN_DELAY, spawnDelay - 55);
     enemies.getChildren().forEach(e => {
-      if (e.active && e.enemyType) e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
+      if (e.active && !e.isBoss && e.enemyType && ENEMIES[e.enemyType]) {
+        e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
+      }
     });
   });
-  every(5000, () => spawnItem(scene));
+
+  // Relíquias e árvores das bordas (rochas não nascem mais aleatoriamente — são ataques do Golem!)
+  every(4600, () => spawnItem(scene));
   every(900, () => spawnTree());
-  every(2400, () => spawnRock());
 
   const nextEnemy = () => {
     if (gameState !== 'PLAYING') return;
     spawnEnemy(scene);
-    scene.time.delayedCall(spawnDelay, nextEnemy);
+    const currentDelay = (activeBoss && activeBoss.active) ? Math.max(980, spawnDelay + 220) : spawnDelay;
+    scene.time.delayedCall(currentDelay, nextEnemy);
   };
   nextEnemy();
 }
 
-function spawnEnemy(scene) {
+function spawnEnemy(scene, forcedType, customY) {
   const roll = Math.random();
-  const type = roll < 0.45 ? 'goblin' : roll < 0.75 ? 'warrior' : 'elf';
+  let type = forcedType;
+  if (!type) {
+    if (activeBoss && activeBoss.active) {
+      // Durante a Boss Fight, os filhotinhos (mini_golem) aparecem junto aos outros inimigos
+      type = roll < 0.45 ? 'mini_golem' : roll < 0.70 ? 'goblin' : roll < 0.86 ? 'warrior' : 'elf';
+    } else {
+      type = roll < 0.45 ? 'goblin' : roll < 0.75 ? 'warrior' : 'elf';
+    }
+  }
   const cfg = ENEMIES[type];
 
   // Evita nascer exatamente em cima de outro inimigo recém-gerado
-  let y = Phaser.Math.Between(130, 520);
-  for (let i = 0; i < 5; i++) {
-    const candidate = Phaser.Math.Between(130, 520);
-    const stacked = enemies.getChildren().some(e => e.x > 770 && Math.abs(e.y - candidate) < 34);
-    if (!stacked) { y = candidate; break; }
+  let y = customY ?? Phaser.Math.Between(130, 520);
+  if (customY === undefined) {
+    for (let i = 0; i < 5; i++) {
+      const candidate = Phaser.Math.Between(130, 520);
+      const stacked = enemies.getChildren().some(e => !e.isBoss && e.x > 770 && Math.abs(e.y - candidate) < 34);
+      if (!stacked) { y = candidate; break; }
+    }
   }
 
   const enemy = enemies.create(860, y, type, 0);
@@ -1296,6 +1495,368 @@ function spawnEnemy(scene) {
   if (type === 'elf') {
     enemy.shootTimer = scene.time.addEvent({ delay: 1850, loop: true, callback: () => elfShoot(scene, enemy) });
   }
+}
+
+// =============================================================================
+// PRIMEIRA BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (AOS 60 SEGUNDOS)
+// =============================================================================
+function registerBossTelegraph(boss, obj) {
+  if (!boss || !obj) return obj;
+  if (!boss.activeTelegraphs) boss.activeTelegraphs = [];
+  boss.activeTelegraphs.push(obj);
+  return obj;
+}
+
+function clearBossTelegraphs(boss) {
+  if (!boss || !boss.activeTelegraphs) return;
+  boss.activeTelegraphs.forEach(t => {
+    if (t && t.active) {
+      if (t.scene && t.scene.tweens) t.scene.tweens.killTweensOf(t);
+      t.destroy();
+    }
+  });
+  boss.activeTelegraphs = [];
+}
+
+function startBossFight(scene) {
+  bossSpawned = true;
+  sound.startBGM('boss');
+  sound.playEarthSmash();
+  scene.cameras.main.shake(480, 0.011);
+
+  // Filtro dramático de tensão no cenário + tint nas camadas do mundo
+  if (bossFilterOverlay) {
+    scene.tweens.add({ targets: bossFilterOverlay, alpha: 0.24, duration: 1000 });
+  }
+  ground.setTint(0xd0a28c);
+  road.setTint(0xd8ae98);
+  forestTop.setTint(0x9e8278);
+  forestBottom.setTint(0x9e8278);
+
+  floatText(scene, 400, 128, '⚠ CHEFÃO: GOLEM ANCESTRAL DE PEDRA! ⚠', '#ff5252');
+
+  // Cria o Boss Golem de Pedra (64x64 — imenso, musgoso e não desaparece da arena)
+  const boss = enemies.create(875, 325, 'boss_golem', 0);
+  boss.play('boss_golem').setFlipX(true);
+  boss.body.setSize(46, 54).setOffset(9, 6);
+  boss.setImmovable(true);
+  boss.body.pushable = false;
+  boss.isBoss = true;
+  boss.enemyType = 'boss_golem';
+  boss.maxHp = BOSS_MAX_HP;
+  boss.hp = BOSS_MAX_HP;
+  boss.entering = true;
+  boss.isLunging = false;
+  boss.attackCount = 0;
+  boss.activeTelegraphs = [];
+  boss.setVelocityX(-115);
+  activeBoss = boss;
+
+  // Exibe a Barra de Vida do Boss no HUD
+  if (bossHudContainer) {
+    bossHudContainer.setVisible(true).setAlpha(0);
+    scene.tweens.add({ targets: bossHudContainer, alpha: 1, duration: 550 });
+  }
+  updateBossHUD();
+
+  // Garante uma relíquia para o jogador enfrentar o Golem e invoca os primeiros filhotinhos
+  if (!buff.type) spawnItem(scene);
+  spawnEnemy(scene, 'mini_golem', 220);
+  spawnEnemy(scene, 'mini_golem', 430);
+
+  // Ciclo de ataques do Boss (alternando Arremesso de Rochas e Soco Colossal com alerta vermelho prévio)
+  boss.attackTimer = scene.time.addEvent({
+    delay: 2800,
+    loop: true,
+    callback: () => {
+      if (gameState !== 'PLAYING' || !boss.active || boss.entering || boss.isLunging) return;
+      boss.attackCount++;
+      // Invoca um filhotinho de pedra ("mini_golem") para acompanhar os ataques
+      spawnEnemy(scene, 'mini_golem', Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-90, 90), 140, 510));
+
+      if (boss.attackCount % 2 === 1) {
+        bossThrowRocks(scene, boss);
+      } else {
+        bossColossalPunch(scene, boss);
+      }
+    }
+  });
+}
+
+// GOLPE 1: Arremesso de Rochas com Alerta Vermelho -> Chão Craquelado + Rocha como Escudo/Obstáculo
+function bossThrowRocks(scene, boss) {
+  if (!boss || !boss.active || gameState !== 'PLAYING') return;
+  const rockCount = boss.hp <= boss.maxHp * 0.5 ? 3 : 2;
+
+  for (let i = 0; i < rockCount; i++) {
+    scene.time.delayedCall(i * 260, () => {
+      if (!boss || !boss.active || !player || !player.active || gameState !== 'PLAYING') return;
+
+      // Calcula área de queda com mira próxima ao cavaleiro
+      const tx = i === 0
+        ? Phaser.Math.Clamp(player.x + Phaser.Math.Between(-25, 65), 145, 555)
+        : Phaser.Math.Clamp(player.x + Phaser.Math.Between(-85, 110), 145, 555);
+      const ty = i === 0
+        ? Phaser.Math.Clamp(player.y + Phaser.Math.Between(-35, 35), 140, 505)
+        : Phaser.Math.Clamp(player.y + Phaser.Math.Between(-105, 105), 140, 505);
+      const variant = Math.random() < 0.55 ? 1 : 0; // com musgo ou lisa
+
+      // 1. ALERTA VERMELHO NO CHÃO (950ms antes do impacto para o jogador desviar)
+      const alertRing = registerBossTelegraph(
+        boss,
+        scene.add.circle(tx, ty, 30, 0xff1744, 0.20).setStrokeStyle(2.5, 0xff5252, 0.95).setDepth(ty - 1)
+      );
+      const innerPulse = registerBossTelegraph(
+        boss,
+        scene.add.circle(tx, ty, 8, 0xff5252, 0.48).setDepth(ty)
+      );
+      const crossH = registerBossTelegraph(
+        boss,
+        scene.add.rectangle(tx, ty, 44, 2, 0xff8a80, 0.85).setDepth(ty)
+      );
+      const crossV = registerBossTelegraph(
+        boss,
+        scene.add.rectangle(tx, ty, 2, 32, 0xff8a80, 0.85).setDepth(ty)
+      );
+
+      scene.tweens.add({
+        targets: innerPulse,
+        radius: 30,
+        alpha: { from: 0.55, to: 0.85 },
+        duration: 950,
+        ease: 'Quad.easeIn'
+      });
+      scene.tweens.add({
+        targets: alertRing,
+        alpha: { from: 0.25, to: 0.7 },
+        duration: 190,
+        yoyo: true,
+        repeat: 4
+      });
+
+      // 2. Boss prepara o braço e lança a rocha pelo ar em parábola
+      boss.setTint(0xffab91);
+      scene.time.delayedCall(220, () => {
+        if (!boss || !boss.active || gameState !== 'PLAYING') return;
+        boss.clearTint();
+
+        const flyingRock = registerBossTelegraph(
+          boss,
+          scene.add.image(boss.x - 22, boss.y - 18, 'rock', variant).setDepth(1600).setScale(1.18)
+        );
+
+        scene.tweens.add({
+          targets: flyingRock,
+          x: tx,
+          y: ty,
+          angle: 360,
+          scale: { from: 1.38, to: 1.0 },
+          duration: 730,
+          ease: 'Sine.easeIn',
+          onComplete: () => {
+            [alertRing, innerPulse, crossH, crossV, flyingRock].forEach(o => { if (o && o.active) o.destroy(); });
+            if (gameState !== 'PLAYING' || !boss.active) return;
+
+            // 3. IMPACTO NO CHÃO: tremor, som sísmico, chão craquelado e rocha vira escudo/obstáculo!
+            sound.playEarthSmash();
+            scene.cameras.main.shake(170, 0.006);
+            hitFx.explode(10, tx, ty);
+
+            // Se o cavaleiro não desviou do alerta vermelho, sofre o impacto da queda
+            if (player && player.active && Phaser.Math.Distance.Between(player.x, player.y, tx, ty) <= 30) {
+              playerHit(scene, { active: true, isBossAttack: true, x: tx, y: ty, destroy: () => {} });
+            }
+
+            // Cria o chão craquelado + rocha sólida como escudo/obstáculo
+            spawnBossRockAt(scene, tx, ty, variant);
+          }
+        });
+      });
+    });
+  }
+}
+
+// GOLPE 2: Soco Colossal ("Soco Bem Grande") com Alerta Vermelho em Faixa Horizontal
+function bossColossalPunch(scene, boss) {
+  if (!boss || !boss.active || gameState !== 'PLAYING') return;
+  boss.isLunging = true;
+  boss.setVelocity(0, 0);
+
+  // Alinha suavemente a faixa do soco próximo à altura atual
+  const laneY = Phaser.Math.Clamp(
+    player && player.active ? Phaser.Math.Linear(boss.y, player.y, 0.55) : boss.y,
+    170,
+    480
+  );
+  boss.y = laneY;
+  const laneH = 74;
+  const laneW = 560;
+  const laneCenterX = 395;
+
+  // 1. ALERTA VERMELHO NA FAIXA DO SOCO (880ms de aviso prévio para o jogador sair da linha)
+  const warnZone = registerBossTelegraph(
+    boss,
+    scene.add.rectangle(laneCenterX, laneY, laneW, laneH, 0xff1744, 0.22)
+      .setStrokeStyle(2.5, 0xff5252, 0.95)
+      .setDepth(laneY - 2)
+  );
+  const warnCore = registerBossTelegraph(
+    boss,
+    scene.add.rectangle(laneCenterX, laneY, laneW, 14, 0xff5252, 0.38)
+      .setDepth(laneY - 1)
+  );
+  const warnText = registerBossTelegraph(
+    boss,
+    scene.add.text(410, laneY, '<<< SOCO COLOSSAL! DESVIE! <<<', {
+      ...textStyle('#ff8a80', 13),
+      stroke: '#000000',
+      strokeThickness: 4
+    }).setOrigin(0.5).setDepth(1550)
+  );
+
+  boss.setTint(0xff7043);
+  scene.tweens.add({
+    targets: [warnZone, warnCore],
+    alpha: { from: 0.18, to: 0.62 },
+    duration: 175,
+    yoyo: true,
+    repeat: 4
+  });
+
+  // 2. EXECUÇÃO DO SOCO COLOSSAL APÓS O ALERTA VERMELHO
+  scene.time.delayedCall(880, () => {
+    [warnZone, warnCore, warnText].forEach(o => { if (o && o.active) o.destroy(); });
+    if (!boss || !boss.active || gameState !== 'PLAYING') return;
+
+    boss.clearTint();
+    sound.playEarthSmash();
+    scene.cameras.main.shake(280, 0.012);
+
+    // Onda de impacto do punho gigante rasgando a faixa
+    const fistWave = registerBossTelegraph(
+      boss,
+      scene.add.rectangle(boss.x - 36, laneY, 76, laneH - 8, 0xffab91, 0.75)
+        .setStrokeStyle(3, 0xffca28, 1)
+        .setDepth(laneY + 4)
+    );
+    scene.tweens.add({
+      targets: fistWave,
+      x: 155,
+      scaleX: 1.5,
+      alpha: { from: 0.9, to: 0 },
+      duration: 240,
+      ease: 'Cubic.easeOut',
+      onComplete: () => { if (fistWave && fistWave.active) fistWave.destroy(); }
+    });
+
+    // Investida veloz do Golem com o punho à frente e retorno à posição de guarda
+    scene.tweens.add({
+      targets: boss,
+      x: 205,
+      duration: 220,
+      ease: 'Back.easeIn',
+      onUpdate: () => {
+        if (gameState === 'PLAYING' && boss.active && Math.random() < 0.65) {
+          hitFx.explode(4, boss.x - 24, boss.y + 16);
+        }
+      },
+      onComplete: () => {
+        if (!boss || !boss.active) return;
+        hitFx.explode(16, boss.x - 20, boss.y);
+        scene.tweens.add({
+          targets: boss,
+          x: 685,
+          duration: 460,
+          ease: 'Sine.easeOut',
+          onComplete: () => {
+            if (!boss || !boss.active) return;
+            boss.isLunging = false;
+            boss.setVelocityY(Math.random() < 0.5 ? 72 : -72);
+          }
+        });
+      }
+    });
+  });
+}
+
+// Cria o Chão Craquelado ("cracked_ground") + a Rocha sólida que fica como escudo/obstáculo
+function spawnBossRockAt(scene, x, y, variant = 1) {
+  const crack = scene.add.image(x, y + 6, 'cracked_ground').setDepth(-8).setAlpha(0.95);
+  const rock = obstacles.create(x, y, 'rock', variant);
+  rock.setImmovable(true);
+  rock.body.pushable = false;
+  rock.lockedY = y;
+  rock.groundY = y + 7;
+  rock.obstacleType = 'rock';
+  rock.crackDecal = crack;
+  rock.body.setSize(20, 14).setOffset(6, 8);
+  rock.setVelocityX(-150); // acompanha o movimento da estrada e funciona como escudo
+}
+
+function updateBossHUD() {
+  if (!bossHpBar || !bossHpText) return;
+  bossHpBar.clear();
+  if (!activeBoss || !activeBoss.active) return;
+
+  const hp = Math.max(0, activeBoss.hp);
+  const maxHp = activeBoss.maxHp || BOSS_MAX_HP;
+  const pct = Phaser.Math.Clamp(hp / maxHp, 0, 1);
+
+  const bx = 252, by = 78, bw = 296, bh = 9;
+  bossHpBar.fillStyle(0x0c0907, 1).fillRect(bx, by, bw, bh);
+  bossHpBar.lineStyle(1, 0x5c3a21).strokeRect(bx, by, bw, bh);
+
+  const fillColor = pct <= 0.35 ? 0xff1744 : pct <= 0.65 ? 0xff5252 : 0xd83a3a;
+  const fillW = Math.max(0, Math.round((bw - 2) * pct));
+  if (fillW > 0) {
+    bossHpBar.fillStyle(fillColor, 1).fillRect(bx + 1, by + 1, fillW, bh - 2);
+    bossHpBar.fillStyle(0xff8a80, 0.55).fillRect(bx + 1, by + 1, fillW, 2);
+  }
+  bossHpText.setText(`${hp}/${maxHp}`);
+}
+
+function defeatBoss(scene, boss) {
+  if (!boss) return;
+  if (boss.attackTimer) boss.attackTimer.remove();
+  clearBossTelegraphs(boss);
+
+  const bx = boss.x, by = boss.y;
+  activeBoss = null;
+  bossDefeated = true;
+
+  sound.playEarthSmash();
+  sound.playEnemyHit();
+  scene.cameras.main.flash(260, 255, 215, 110);
+  scene.cameras.main.shake(450, 0.014);
+  hitFx.explode(36, bx, by);
+  removeEntity(boss);
+
+  // Elimina mini golems restantes na onda de choque da derrota do mestre
+  enemies.getChildren().slice().forEach(e => {
+    if (e.active && e.enemyType === 'mini_golem') killEnemy(e);
+  });
+
+  if (bossHudContainer) {
+    scene.tweens.add({
+      targets: bossHudContainer,
+      alpha: 0,
+      duration: 500,
+      onComplete: () => bossHudContainer.setVisible(false)
+    });
+  }
+
+  // Restaura o filtro do cenário e a música heroica da jornada
+  if (bossFilterOverlay) {
+    scene.tweens.add({ targets: bossFilterOverlay, alpha: 0, duration: 900 });
+  }
+  ground.clearTint();
+  road.clearTint();
+  forestTop.clearTint();
+  forestBottom.clearTint();
+  sound.startBGM('normal');
+
+  floatText(scene, 400, 150, '★ GOLEM ANCESTRAL DERROTADO! ★', '#ffca28');
+  spawnItem(scene);
 }
 
 // Elfo brilha e concentra energia (360ms de aviso justo) antes de disparar
@@ -1344,24 +1905,6 @@ function spawnTree(x = 880) {
   }
 }
 
-// Rochas medievais arredondadas no caminho/estrada (Frame 0: lisa | Frame 1: com musgo)
-function spawnRock(x = 880, variant) {
-  for (let i = 0; i < 6; i++) {
-    const y = Phaser.Math.Between(290, 370);
-    const crowded = obstacles.getChildren().some(o => Math.abs(o.x - x) < 130 && Math.abs(o.y - y) < 40);
-    if (crowded) continue;
-    const frame = variant !== undefined ? variant : (Math.random() < 0.5 ? 0 : 1);
-    const rock = obstacles.create(x, y, 'rock', frame);
-    rock.setImmovable(true);
-    rock.body.pushable = false;
-    rock.lockedY = y;
-    rock.groundY = y + 7;
-    rock.obstacleType = 'rock';
-    rock.body.setSize(20, 14).setOffset(6, 8);
-    return;
-  }
-}
-
 // Item flutua e pulsa para chamar atenção (evita nascer dentro de obstáculos)
 function spawnItem(scene) {
   const type = Phaser.Utils.Array.GetRandom(['bow', 'shield', 'sword']);
@@ -1385,13 +1928,32 @@ function removeEntity(obj) {
   if (!obj || !obj.active) return;
   obj.scene.tweens.killTweensOf(obj);
   if (obj.shootTimer) obj.shootTimer.remove();
+  if (obj.attackTimer) obj.attackTimer.remove();
+  if (obj.activeTelegraphs) clearBossTelegraphs(obj);
   if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
+  if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
   obj.destroy();
 }
 
 function damageEnemy(scene, enemy, dmg = 1) {
   if (!enemy || !enemy.active) return;
   enemy.hp = (enemy.hp ?? 1) - dmg;
+
+  if (enemy.isBoss) {
+    updateBossHUD();
+    if (enemy.hp <= 0) {
+      defeatBoss(scene, enemy);
+    } else {
+      sound.playShieldBlock();
+      hitFx.explode(8, enemy.x - 16, enemy.y);
+      enemy.setTint(0xffca28);
+      scene.time.delayedCall(120, () => {
+        if (enemy && enemy.active) enemy.clearTint();
+      });
+    }
+    return;
+  }
+
   if (enemy.hp <= 0) {
     killEnemy(enemy);
   } else {
@@ -1466,7 +2028,7 @@ function playerHit(scene, hazard) {
       return;
     }
 
-    // 2. Impacto corpo a corpo quebra o escudo em uma Onda de Choque Sagrada!
+    // 2. Impacto corpo a corpo ou golpe do Boss quebra o escudo em uma Onda de Choque Sagrada!
     endBuff();
     sound.playShieldBlock();
     scene.cameras.main.flash(160, 120, 220, 255);
@@ -1485,8 +2047,12 @@ function playerHit(scene, hazard) {
     });
 
     enemies.getChildren().slice().forEach(e => {
-      if (e.active && Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y) <= 135) {
-        killEnemy(e);
+      if (e.active && Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y) <= 145) {
+        if (e.isBoss) {
+          damageEnemy(scene, e, 4);
+        } else {
+          killEnemy(e);
+        }
       }
     });
     enemyArrows.getChildren().slice().forEach(a => {
@@ -1503,6 +2069,7 @@ function gameOver(scene) {
   gameState = 'GAMEOVER';
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
+  if (activeBoss) clearBossTelegraphs(activeBoss);
   if (pauseModal) {
     pauseModal.destroy();
     pauseModal = null;
@@ -1537,7 +2104,7 @@ function floatText(scene, x, y, msg, color) {
 }
 
 // -----------------------------------------------------------------------------
-// NOVO HUD MEDIEVAL EM PIXEL ART (SEM EMOJIS, 4 MÓDULOS SEPARADOS)
+// NOVO HUD MEDIEVAL EM PIXEL ART (SEM EMOJIS, 4 MÓDULOS + BARRA DE VIDA DO BOSS)
 // -----------------------------------------------------------------------------
 function createHUD(scene) {
   hudContainer = scene.add.container(0, 0).setDepth(2000).setVisible(false);
@@ -1609,6 +2176,17 @@ function createHUD(scene) {
   });
 
   hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea]);
+
+  // 5. BARRA DE VIDA DO CHEFÃO (Oculta até os 60s da Boss Fight)
+  bossHudContainer = scene.add.container(0, 0).setVisible(false);
+  const bossBg = scene.add.graphics();
+  bossBg.fillStyle(0x160d0b, 0.94).fillRoundedRect(236, 62, 328, 30, 5);
+  bossBg.lineStyle(2, 0xd83a3a).strokeRoundedRect(236, 62, 328, 30, 5);
+  const bossTitle = scene.add.text(252, 65, 'GOLEM ANCESTRAL DE PEDRA', textStyle('#ff8a80', 10));
+  bossHpText = scene.add.text(548, 65, `${BOSS_MAX_HP}/${BOSS_MAX_HP}`, textStyle('#ffca28', 10)).setOrigin(1, 0);
+  bossHpBar = scene.add.graphics();
+  bossHudContainer.add([bossBg, bossTitle, bossHpBar, bossHpText]);
+  hudContainer.add(bossHudContainer);
 }
 
 // Atualiza o slot e a barra de duração gráfica do item ativo

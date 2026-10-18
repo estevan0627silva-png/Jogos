@@ -4,6 +4,28 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v0.9.6] - 2026-10-18 (Primeira Boss Fight aos 60s: Golem Ancestral de Pedra, Mini Golems, Chão Craquelado & Alertas de Ataque)
+### 🗿 O Primeiro Chefão: Golem Ancestral de Pedra (`boss_golem`, 60s)
+- **Aparição aos 60 Segundos (`BOSS_TRIGGER_TIME = 60`)**: Ao atingir 60 segundos de sobrevivência, o Golem Ancestral de Pedra (`64x64`, muito maior que os inimigos comuns) entra na arena com som sísmico e tremor de câmera.
+- **Pixel Art de Fantasia Medieval (`drawBossGolem`)**: Titã rochoso desenhado proceduralmente com placas de pedra rachada, tufos de musgo verde nos ombros e cabeça, sobrancelhas franzidas de "cara de mau", olhos rúnicos incandescentes, núcleo energético no peito e punhos colossais.
+- **Presença Permanente até a Derrota**: Diferente dos inimigos comuns, o Boss não desaparece pela esquerda da tela (`!s.isBoss` no *cull*); ele patrulha verticalmente a arena (`x = 685`) até seus `40 HP` serem zerados.
+- **Barra de Vida do Chefão no HUD (`bossHudContainer` / `updateBossHUD`)**: Painel dedicado no topo central da interface (`GOLEM ANCESTRAL DE PEDRA`) com barra de vida rubra dinâmica e contador numérico (`40/40`).
+
+### 🎯 Golpes com Alerta Vermelho Prévio, Chão Craquelado & Rochas como Escudo
+- **Fim do Spawn Aleatório de Rochas**: As rochas arredondadas (lisas e com musgo) não surgem mais aleatoriamente na estrada; agora elas são geradas exclusivamente pelos ataques do Golem de Pedra.
+- **Golpe 1 — Arremesso de Rochas + Chão Craquelado (`bossThrowRocks` & `spawnBossRockAt`)**:
+  - **Alerta Vermelho (`950ms` antes do impacto)**: Círculo vermelho pulsante com mira no chão avisa exatamente onde cada rocha vai cair para o jogador desviar.
+  - **Chão Craquelado (`cracked_ground`) & Rocha-Escudo**: Ao atingir o solo, a rocha causa tremor sísmico, cria uma cratera de **chão rachado/craquelado** sob ela e permanece no cenário como um obstáculo sólido que bloqueia flechas (funcionando como escudo/cobertura) e utiliza o sistema suave anti-aprisionamento.
+- **Golpe 2 — Soco Colossal (`bossColossalPunch`)**:
+  - **Alerta Vermelho em Faixa Horizontal (`880ms` de aviso)**: O Golem projeta uma faixa retangular vermelha brilhante à sua frente (`<<< SOCO COLOSSAL! DESVIE! <<<`) antes de avançar em alta velocidade com seu punho gigante e onda de impacto.
+
+### 🪨 Filhotinhos de Pedra (`mini_golem`) + Atmosfera e Música de Boss
+- **Mini Golems de Pedra (`drawMiniGolem`, `28x28`)**: Durante a Boss Fight, surgem os "filhotinhos" do Golem (criaturas compactas de pedra com musgo na cabeça e olhos brilhantes) acompanhando os demais inimigos da floresta.
+- **Filtro Dramático no Cenário (`bossFilterOverlay` + Tints)**: A chegada do Boss aplica um filtro vulcânico/terroso sobre o cenário e as florestas, que se dissipa suavemente quando o Golem é derrotado.
+- **Música Tensa de Boss Fight (`BOSS_MELODY`, `BOSS_BASS`, `playEarthSmash`)**: Nova trilha sonora sintetizada em Ré Menor Harmônico / Frígio em andamento acelerado com baixo pesado e bumbo duplo de guerra, além de efeitos sonoros sísmicos de impacto de rocha.
+
+---
+
 ## [v0.9.5] - 2026-10-18 (Tela de Capa 800x600, Música de Menu, Rochas Arredondadas & Ajuste de HUD)
 ### 🎨 Menu Principal de Tela Completa ("Capa de Jogo" 800x600)
 - **Cena Épica de Capa (`showMainMenu`)**: Substituído o modal pop-up por uma ilustração completa de tela inteira (`800x600`) digna de capa de RPG medieval:
