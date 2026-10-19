@@ -71,30 +71,30 @@ function showAchievementToast(scene, ach) {
 function createHUD(scene) {
   hudContainer = scene.add.container(0, 0).setDepth(2000).setScrollFactor(0).setVisible(false);
 
-  // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 10..154)
+  // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 10..164)
   const gloryBg = scene.add.graphics();
-  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(10, 10, 144, 48, 6);
-  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 144, 48, 6);
-  const hourglass = scene.add.image(26, 34, 'hud_hourglass');
-  const gloryLabel = scene.add.text(42, 14, 'GLÓRIA & VIDA', textStyle('#a89260', 9));
-  hudGloryText = scene.add.text(42, 26, '0s', textStyle('#f5e6c8', 15));
+  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(10, 10, 154, 48, 6);
+  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 154, 48, 6);
+  const hourglass = scene.add.image(24, 34, 'hud_hourglass');
+  const gloryLabel = scene.add.text(38, 14, 'GLÓRIA & VIDA', textStyle('#a89260', 9));
+  hudGloryText = scene.add.text(38, 25, '0s', textStyle('#f5e6c8', 14));
   hudContainer.add([gloryBg, hourglass, gloryLabel, hudGloryText]);
 
   hudHearts = [];
-  for (let i = 0; i < 4; i++) {
-    const heart = scene.add.image(92 + i * 15, 39, 'hud_heart', 0).setScale(1.0);
+  for (let i = 0; i < 6; i++) {
+    const heart = scene.add.image(74 + i * 14, 39, 'hud_heart', 0).setScale(1.0);
     hudHearts.push(heart);
     hudContainer.add(heart);
   }
   updateHeartsHUD();
 
-  // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 160..274)
+  // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 170..274)
   const silverBg = scene.add.graphics();
-  silverBg.fillStyle(0x16120e, 0.94).fillRoundedRect(160, 10, 114, 48, 6);
-  silverBg.lineStyle(2, 0xc5a059).strokeRoundedRect(160, 10, 114, 48, 6);
-  const silverIcon = scene.add.image(178, 34, 'silver_coin', 0).setScale(1.2);
-  const silverLabel = scene.add.text(194, 16, 'PRATA', textStyle('#b0bec5', 10));
-  hudSilverText = scene.add.text(194, 28, '0', textStyle('#e0f7fa', 18));
+  silverBg.fillStyle(0x16120e, 0.94).fillRoundedRect(170, 10, 104, 48, 6);
+  silverBg.lineStyle(2, 0xc5a059).strokeRoundedRect(170, 10, 104, 48, 6);
+  const silverIcon = scene.add.image(188, 34, 'silver_coin', 0).setScale(1.2);
+  const silverLabel = scene.add.text(202, 16, 'PRATA', textStyle('#b0bec5', 10));
+  hudSilverText = scene.add.text(202, 28, '0', textStyle('#e0f7fa', 18));
   hudContainer.add([silverBg, silverIcon, silverLabel, hudSilverText]);
 
   // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 280..514)

@@ -6,16 +6,23 @@ function spawnEnemy(scene, forcedType, customY) {
   let type = forcedType;
   if (!type) {
     if (activeBoss && activeBoss.active) {
-      type = roll < 0.40 ? 'mini_golem' : roll < 0.62 ? 'goblin' : roll < 0.78 ? 'gargoyle' : roll < 0.90 ? 'elf' : 'dark_mage';
-    } else if (survivalTime >= 32) {
-      type = roll < 0.28 ? 'goblin' : roll < 0.48 ? 'warrior' : roll < 0.68 ? 'elf' : roll < 0.84 ? 'gargoyle' : 'dark_mage';
-    } else if (survivalTime >= 15) {
-      type = roll < 0.38 ? 'goblin' : roll < 0.62 ? 'warrior' : roll < 0.82 ? 'elf' : 'gargoyle';
+      // Regra 6: Durante a Boss Fight, gera exclusivamente Mini-Golems
+      type = 'mini_golem';
+    } else if (bossDefeated) {
+      // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.36 ? 'goblin' : (roll < 0.62 ? 'warrior' : (roll < 0.84 ? 'elf' : 'gargoyle')));
+    } else if (survivalTime >= 40) {
+      // Fase pré-boss avançada: Goblins, guerreiros, elfos e gárgulas (SEM MAGO)
+      type = roll < 0.38 ? 'goblin' : (roll < 0.65 ? 'warrior' : (roll < 0.85 ? 'elf' : 'gargoyle'));
+    } else if (survivalTime >= 20) {
+      // Fase pré-boss intermediária
+      type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
     } else {
-      type = roll < 0.50 ? 'goblin' : roll < 0.78 ? 'warrior' : 'elf';
+      // Curva inicial suave: predominantemente goblins simples
+      type = roll < 0.80 ? 'goblin' : 'warrior';
     }
   }
-  const cfg = ENEMIES[type];
+  const cfg = ENEMIES[type] || ENEMIES.goblin;
 
   // Evita nascer exatamente em cima de outro inimigo recém-gerado
   let y = customY ?? Phaser.Math.Between(130, 520);
@@ -128,5 +135,39 @@ function mageShoot(scene, mage) {
       orb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
     });
   });
+}
+
+function teleportMage(scene, mage) {
+  if (!mage || !mage.active) return;
+  if (holyFx) holyFx.explode(14, mage.x, mage.y);
+  if (sparksFx) sparksFx.explode(8, mage.x, mage.y);
+  sound.playShieldBlock();
+
+  let targetX = Phaser.Math.Between(180, 720);
+  let targetY = Phaser.Math.Between(140, 500);
+  for (let tries = 0; tries < 8; tries++) {
+    const candidateX = Phaser.Math.Between(180, 720);
+    const candidateY = Phaser.Math.Between(140, 500);
+    if (!player || !player.active || Phaser.Math.Distance.Between(candidateX, candidateY, player.x, player.y) >= 140) {
+      targetX = candidateX;
+      targetY = candidateY;
+      break;
+    }
+  }
+
+  mage.x = targetX;
+  mage.y = targetY;
+  mage.baseY = targetY;
+  if (mage.body) mage.body.updateFromGameObject();
+
+  if (holyFx) holyFx.explode(16, targetX, targetY);
+  mage.setTint(0xb388ff);
+  scene.time.delayedCall(140, () => {
+    if (mage && mage.active) mage.clearTint();
+  });
+
+  if (typeof floatText === 'function') {
+    floatText(scene, targetX, targetY - 24, 'ESQUIVA / TELEPORTE!', '#b388ff');
+  }
 }
 

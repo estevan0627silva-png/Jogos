@@ -2,14 +2,14 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v1.5.0';
-const VERSION_TITLE = 'Mobile Web Touch & Virtual Joystick System';
-const VERSION_DESC = 'Suporte completo a dispositivos móveis no navegador web com Joystick Virtual analógico dinâmico de temática medieval, isolamento Multi-Touch por pointerId, botão dedicado de Ação/Ataque, botão de Pausa rápida no HUD e prevenção nativa de gestos indesejados no navegador.';
+const GAME_VERSION = 'v1.6.0';
+const VERSION_TITLE = 'Combat Overhaul, Stone Golem & Refined Touch Controls';
+const VERSION_DESC = 'Boss Golem aos 60s com ejeção física e despertar de Mini-Golems conforme o HP, defesa do Mago com esquiva/teletransporte contra projéteis, movimentação em zigue-zague dos Goblins, sistema de vida padronizado em Corações/Hits, progressão infinita de armas com balanceamento, escalonamento de tamanho e Knockback da Espada, joystick virtual ancorado com toggle nas configurações e remoção do botão de ação.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 
-// AJUSTES DO JOGO (Rebalanceamento v1.2.0: Nível 1 fraco -> Nível 5 muito forte)
+// AJUSTES DO JOGO (Rebalanceamento v1.6.0: Progressão Infinita e Curva Suave)
 // =============================================================================
 const PLAYER_SPEED = 280;
 const BUFF_TIME = { bow: 6.0, shield: 4.8, sword: 6.0, axe: 6.2, firestaff: 6.0 }; // duração base Nv.1 (s)
@@ -29,16 +29,17 @@ const ENEMIES = {                                    // vida, velocidade relativ
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
   mini_golem: { hp: 1, speed: 0.94, w: 18, h: 20, xp: 2 }
 };
-const BOSS_TRIGGER_TIME = 120;                       // Run estendida: Golem desperta aos 120 segundos!
+const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
 const BOSS_MAX_HP = 75;                              // HP calibrado para armas evoluídas via Level Up
 const MAX_ENEMY_SPEED = 365;                         // teto máximo justo de velocidade
-const MIN_SPAWN_DELAY = 480;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
-const MAX_WEAPON_LEVEL = 5;                          // nível máximo das armas DENTRO da partida (via XP)
+const MIN_SPAWN_DELAY = 450;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
+const MAX_WEAPON_LEVEL = Infinity;                   // Progressão infinita de armas dentro da partida (via XP)
 const STORAGE_KEY = 'knight_quest_highscores';
 const STORAGE_GOLD_KEY = 'knight_quest_gold_v1';
 const STORAGE_UPGRADES_KEY = 'knight_quest_upgrades_v1';
 const STORAGE_STATUS_KEY = 'knight_quest_status_v1';
 const STORAGE_ACHIEVEMENTS_KEY = 'knight_quest_achievements_v1';
+const STORAGE_JOYSTICK_KEY = 'knight_quest_joystick_mode_v1';
 
 // Catálogo do Ferreiro (Apenas Desbloqueio no Menu; os Níveis 1 a 5 evoluem IN-GAME via XP Level Up!)
 
@@ -298,13 +299,13 @@ const STATUS_CATALOG = {
     potionColor: 0xff5252,
     icon: 'stat_health',
     maxLevel: 4,
-    costs: [22, 48, 85, 0],
-    values: [1, 2, 3, 4],
+    costs: [25, 50, 90, 0],
+    values: [3, 4, 5, 6],
     levels: [
-      '1 Coração de Vida (Vigor inicial do Cavaleiro).',
-      '2 Corações de Vida (+1 golpe suportado com invencibilidade).',
-      '3 Corações de Vida (Sangue de Dragão — alta resistência).',
-      '4 Corações de Vida (Imortalidade Rubra do Campeão)!'
+      '3 Corações de Vida (Vigor inicial honrado do Cavaleiro).',
+      '4 Corações de Vida (+1 Coração — 4 golpes suportados).',
+      '5 Corações de Vida (Sangue de Dragão — 5 Corações).',
+      '6 Corações de Vida (Imortalidade Rubra — 6 Corações supremos)!'
     ]
   },
   moveSpeed: {
@@ -804,8 +805,22 @@ const StorageManager = {
         scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
         scene.cameras.main.setRoundPixels(true);
       }
-      this.updateFullscreenIcons(scene);
     });
+  },
+
+  getJoystickMode() {
+    try {
+      const mode = localStorage.getItem(STORAGE_JOYSTICK_KEY);
+      return mode || 'auto';
+    } catch {
+      return 'auto';
+    }
+  },
+
+  setJoystickMode(mode) {
+    try {
+      localStorage.setItem(STORAGE_JOYSTICK_KEY, mode);
+    } catch {}
   }
 };
 
@@ -836,6 +851,8 @@ function recordAchievementProgress(scene, statKey, amount = 1) { return StorageM
 function isGameFullscreen(scene) { return StorageManager.isGameFullscreen(scene); }
 function updateFullscreenIcons(scene) { return StorageManager.updateFullscreenIcons(scene); }
 function toggleFullscreen(scene) { return StorageManager.toggleFullscreen(scene); }
+function getJoystickMode() { return StorageManager.getJoystickMode(); }
+function setJoystickMode(mode) { return StorageManager.setJoystickMode(mode); }
 
 // =============================================================================
 
@@ -2100,7 +2117,11 @@ function drawBossGolem(r, f) {
 }
 
 // Mini Golem de Pedra ("Filhotinhos" do Boss — 28x28, com runas incandescentes, musgo e margem limpa)
+// Frames 0 e 1: Ativo/Perseguindo (olhos vermelhos incandescentes, passadas)
+// Frame 2: Inconsciente/Pedra (olhos apagados/fechados, imóvel como rocha fria)
 function drawMiniGolem(r, f) {
+  const isDormant = (f === 2);
+
   // 1. Tufo de Musgo Ancestral no Topo da Cabeça
   r(C.leafDeep, 5, 1, 4, 2);
   r(C.leafDark, 6, 1, 3, 1);
@@ -2114,36 +2135,60 @@ function drawMiniGolem(r, f) {
   r(C.steelShadow, 4, 3, 6, 3);
   r(C.steelBase, 5, 3, 4, 1);
 
-  // 3. Olhos Vermelhos Incandescentes (Mini Núcleo Magmático)
-  r(C.rubyDeep, 3, 4, 3, 2);
-  r(C.rubyDeep, 8, 4, 3, 2);
-  r(C.redBase, 4, 5, 2, 2);
-  r(f === 0 ? C.rubyLight : C.rubyGlow, 4, 5, 1, 1);
-  r.shine(4, 5, 0, 0, C.white);
+  if (isDormant) {
+    // 3. Olhos apagados / fechados como fendas de rocha escura
+    r(C.ironDeep, 3, 4, 3, 2);
+    r(C.ironDeep, 8, 4, 3, 2);
+    r(C.outline, 4, 5, 2, 1);
+    r(C.outline, 8, 5, 2, 1);
 
-  r(C.redBase, 8, 5, 2, 2);
-  r(f === 0 ? C.rubyLight : C.rubyGlow, 9, 5, 1, 1);
-  r.shine(9, 5, 0, 0, C.white);
+    // Fissura inativa/fria de pedra no peito
+    r(C.outline, 5, 7, 4, 1);
+    r(C.ironDeep, 6, 8, 2, 1);
 
-  // Fissura de Magma no Peito
-  r(C.outline, 5, 7, 4, 1);
-  r(C.rubyDeep, 6, 8, 2, 1);
-  r(f === 0 ? C.rubyLight : C.fireLight, 6, 7, 1, 1);
+    // 4. Braços e Punhos de Pedra repousando imóveis
+    r(C.ironDark, 1, 6, 2, 3);
+    r(C.steelShadow, 1, 6, 1, 2);
+    r(C.ironDark, 11, 6, 2, 3);
+    r(C.steelShadow, 11, 6, 1, 2);
 
-  // 4. Braços e Punhos de Pedra com Balanço de Corrida
-  const armOff = f === 0 ? 0 : 1;
-  r(C.ironDark, 1, 6 + armOff, 2, 3);
-  r(C.steelShadow, 1, 6 + armOff, 1, 2);
-  r(C.ironDark, 11, 7 - armOff, 2, 3);
-  r(C.steelShadow, 11, 7 - armOff, 1, 2);
+    // 5. Pernas de Pedra encolhidas
+    r(C.ironDark, 3, 9, 3, 1);
+    r(C.steelShadow, 3, 10, 3, 1);
+    r(C.ironDark, 8, 9, 3, 1);
+    r(C.steelShadow, 8, 10, 3, 1);
+  } else {
+    // 3. Olhos Vermelhos Incandescentes (Mini Núcleo Magmático)
+    r(C.rubyDeep, 3, 4, 3, 2);
+    r(C.rubyDeep, 8, 4, 3, 2);
+    r(C.redBase, 4, 5, 2, 2);
+    r(f === 0 ? C.rubyLight : C.rubyGlow, 4, 5, 1, 1);
+    r.shine(4, 5, 0, 0, C.white);
 
-  // 5. Pernas de Pedra Curtas com Passos
-  const legL = f === 0 ? 1 : 2;
-  const legR = f === 1 ? 1 : 2;
-  r(C.ironDark, 3, 9, 3, legL);
-  r(C.steelShadow, 3, 9 + legL, 3, 1);
-  r(C.ironDark, 8, 9, 3, legR);
-  r(C.steelShadow, 8, 9 + legR, 3, 1);
+    r(C.redBase, 8, 5, 2, 2);
+    r(f === 0 ? C.rubyLight : C.rubyGlow, 9, 5, 1, 1);
+    r.shine(9, 5, 0, 0, C.white);
+
+    // Fissura de Magma no Peito
+    r(C.outline, 5, 7, 4, 1);
+    r(C.rubyDeep, 6, 8, 2, 1);
+    r(f === 0 ? C.rubyLight : C.fireLight, 6, 7, 1, 1);
+
+    // 4. Braços e Punhos de Pedra com Balanço de Corrida
+    const armOff = f === 0 ? 0 : 1;
+    r(C.ironDark, 1, 6 + armOff, 2, 3);
+    r(C.steelShadow, 1, 6 + armOff, 1, 2);
+    r(C.ironDark, 11, 7 - armOff, 2, 3);
+    r(C.steelShadow, 11, 7 - armOff, 1, 2);
+
+    // 5. Pernas de Pedra Curtas com Passos
+    const legL = f === 0 ? 1 : 2;
+    const legR = f === 1 ? 1 : 2;
+    r(C.ironDark, 3, 9, 3, legL);
+    r(C.steelShadow, 3, 9 + legL, 3, 1);
+    r(C.ironDark, 8, 9, 3, legR);
+    r(C.steelShadow, 8, 9 + legR, 3, 1);
+  }
 }
 
 
@@ -3316,27 +3361,29 @@ const WeaponStrategies = {
     id: 'bow',
     name: BUFF_NAMES.bow,
     baseDuration: BUFF_TIME.bow,
-    attackRates: [520, 420, 350, 280, 220],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 520;
+      return Math.max(130, Math.round(540 - (lvl - 1) * 45));
     },
     attack({ player, arrows, nextProjId }) {
       sound.playBow();
       const lvl = getWeaponLevel('bow');
-      const spreads = {
-        1: [0],
-        2: [0],
-        3: [-0.09, 0.09],
-        4: [-0.18, 0, 0.18],
-        5: [-0.28, -0.14, 0, 0.14, 0.28]
-      }[lvl] || [0];
+      let spreads = [0];
+      if (lvl >= 7) {
+        spreads = [-0.32, -0.21, -0.11, 0, 0.11, 0.21, 0.32];
+      } else if (lvl >= 5) {
+        spreads = [-0.26, -0.13, 0, 0.13, 0.26];
+      } else if (lvl >= 4) {
+        spreads = [-0.18, 0, 0.18];
+      } else if (lvl >= 3) {
+        spreads = [-0.09, 0.09];
+      }
 
-      const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
-      const dmg = lvl >= 4 ? 2 : 1;
-      const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
+      const spd = Math.min(950, 520 + (lvl - 1) * 55);
+      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.4));
+      const pierce = lvl >= 4 ? Math.min(6, 2 + Math.floor((lvl - 4) * 0.6)) : 1;
       const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
 
       spreads.forEach(ang => {
@@ -3354,31 +3401,33 @@ const WeaponStrategies = {
     id: 'sword',
     name: BUFF_NAMES.sword,
     baseDuration: BUFF_TIME.sword,
-    attackRates: [480, 400, 330, 265, 210],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 480;
+      return Math.max(140, Math.round(480 - (lvl - 1) * 40));
     },
     attack({ scene, player, arrows, slashes, fx, nextProjId }) {
       slashes.getChildren().slice().forEach(old => old.destroy());
       sound.playSword();
       const lvl = getWeaponLevel('sword');
-      const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
-      const damages = [1, 1, 2, 3, 4];
-      const scale = scales[lvl - 1] || 0.72;
+
+      // Escalonamento contínuo de tamanho (hitbox) e força de repulsão (knockback)
+      const scale = 0.75 + (lvl - 1) * 0.22;
+      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
+      const knockback = 22 + (lvl - 1) * 16;
       const offsetX = Math.round(24 + (lvl - 1) * 7);
 
       const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
       slash.setScale(scale);
       slash.offsetX = offsetX;
-      slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
+      slash.body.setSize(Math.round(40 * scale), Math.round(62 * scale));
       slash.slashId = nextProjId();
-      slash.dmg = damages[lvl - 1] || 1;
+      slash.dmg = dmg;
+      slash.knockback = knockback;
       slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
         .setOrigin(0.5, 0.78)
-        .setScale(0.82 + (lvl - 1) * 0.18);
+        .setScale(0.80 + (lvl - 1) * 0.20);
 
       fx.sparks.explode(5, player.x + offsetX, player.y);
 
@@ -3392,16 +3441,18 @@ const WeaponStrategies = {
         onComplete: () => slash.destroy()
       });
 
-      // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
+      // Nv >= 5: Dispara Onda de Vento Cortante Perfurante que também escala
       if (lvl >= 5) {
+        const waveScale = 1.35 + (lvl - 5) * 0.15;
+        const waveDmg = 2 + Math.floor((lvl - 5) * 0.75);
         const waveProj = arrows.create(player.x + 34, player.y, 'arrow_player');
         waveProj.setTint(0x7fe7ff);
-        waveProj.setScale(1.45);
+        waveProj.setScale(waveScale);
         waveProj.body.setSize(22, 14);
-        waveProj.dmg = 3;
-        waveProj.pierceCount = 4;
+        waveProj.dmg = waveDmg;
+        waveProj.pierceCount = 4 + Math.floor((lvl - 5) * 0.5);
         waveProj.projId = nextProjId();
-        waveProj.setVelocityX(720);
+        waveProj.setVelocityX(720 + (lvl - 5) * 35);
         fx.holy.explode(8, player.x + 34, player.y);
       }
     }
@@ -3410,9 +3461,8 @@ const WeaponStrategies = {
     id: 'shield',
     name: BUFF_NAMES.shield,
     baseDuration: BUFF_TIME.shield,
-    attackRates: [],
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 1.65 + wisdomDur + bonusDur;
+      return this.baseDuration + (lvl - 1) * 1.50 + wisdomDur + bonusDur;
     },
     getAttackRate() { return 0; },
     attack() { /* O escudo é defensivo/reativo a impactos */ },
@@ -3435,40 +3485,42 @@ const WeaponStrategies = {
     id: 'axe',
     name: BUFF_NAMES.axe,
     baseDuration: BUFF_TIME.axe,
-    attackRates: [600, 500, 420, 340, 270],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 600;
+      return Math.max(150, Math.round(620 - (lvl - 1) * 55));
     },
     attack({ player, arrows, nextProjId }) {
       sound.playSword();
       const lvl = getWeaponLevel('axe');
-      const angles = {
-        1: [0],
-        2: [0],
-        3: [-0.16, 0.16],
-        4: [-0.24, 0, 0.24],
-        5: [-0.32, -0.11, 0.11, 0.32]
-      }[lvl] || [0];
+      let angles = [0];
+      if (lvl >= 5) {
+        angles = [-0.32, -0.11, 0.11, 0.32];
+      } else if (lvl >= 4) {
+        angles = [-0.24, 0, 0.24];
+      } else if (lvl >= 3) {
+        angles = [-0.16, 0.16];
+      }
 
-      const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
-      const damages = [1, 1, 2, 2, 3];
+      const scale = 0.80 + (lvl - 1) * 0.12;
+      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.45));
+      const spd = Math.min(780, 440 + (lvl - 1) * 40);
 
       angles.forEach(ang => {
         const axe = arrows.create(player.x + 18, player.y, 'axe_proj');
-        axe.setScale(scales[lvl - 1] || 0.82);
+        axe.setScale(scale);
         axe.body.setSize(20, 20);
         axe.isBoomerang = lvl >= 2;
-        axe.pierceCount = lvl === 1 ? 2 : 99;
+        axe.pierceCount = lvl === 1 ? 1 : 99; // Nv 1 atinge 1 inimigo sem perfurar
         axe.returning = false;
-        axe.dmg = damages[lvl - 1] || 1;
+        axe.dmg = dmg;
         axe.projId = nextProjId();
 
-        const spd = 460 + (lvl - 1) * 40;
         axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        axe.body.setAccelerationX(-680);
+        if (axe.isBoomerang) {
+          axe.body.setAccelerationX(-680);
+        }
       });
     }
   },
@@ -3476,38 +3528,36 @@ const WeaponStrategies = {
     id: 'firestaff',
     name: BUFF_NAMES.firestaff,
     baseDuration: BUFF_TIME.firestaff,
-    attackRates: [650, 540, 450, 360, 285],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 650;
+      return Math.max(160, Math.round(660 - (lvl - 1) * 60));
     },
     attack({ player, arrows, nextProjId }) {
       sound.playBow();
       const lvl = getWeaponLevel('firestaff');
-      const angles = {
-        1: [0],
-        2: [0],
-        3: [-0.13, 0.13],
-        4: [-0.15, 0.15],
-        5: [-0.24, 0, 0.24]
-      }[lvl] || [0];
+      let angles = [0];
+      if (lvl >= 5) {
+        angles = [-0.24, 0, 0.24];
+      } else if (lvl >= 3) {
+        angles = [-0.14, 0.14];
+      }
 
-      const radii = [42, 58, 74, 92, 115];
-      const damages = [1, 1, 2, 3, 4];
-      const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
+      const blastRadius = 36 + (lvl - 1) * 16;
+      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
+      const scale = 0.78 + (lvl - 1) * 0.12;
+      const spd = Math.min(720, 420 + (lvl - 1) * 35);
 
       angles.forEach(ang => {
         const fb = arrows.create(player.x + 22, player.y, 'fireball_proj');
-        fb.setScale(scales[lvl - 1] || 0.85);
+        fb.setScale(scale);
         fb.body.setSize(18, 12);
         fb.isFireball = true;
-        fb.blastRadius = radii[lvl - 1] || 42;
-        fb.dmg = damages[lvl - 1] || 1;
+        fb.blastRadius = blastRadius;
+        fb.dmg = dmg;
         fb.projId = nextProjId();
 
-        const spd = 440 + (lvl - 1) * 35;
         fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
         fb.rotation = ang;
       });
@@ -3731,6 +3781,7 @@ function swingSword(scene) {
   slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
   slash.slashId = ++slashCounter;
   slash.dmg = damages[lvl - 1] || 1;
+  slash.knockback = 22 + (lvl - 1) * 16;
   slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
     .setOrigin(0.5, 0.78)
     .setScale(0.82 + (lvl - 1) * 0.18);
@@ -4009,6 +4060,7 @@ function killEnemy(enemy) {
 
 function playerHit(scene, hazard) {
   if (gameState !== 'PLAYING' || !hazard.active) return;
+  if (hazard.golemState === 'EJECTING' || hazard.golemState === 'DORMANT') return;
 
   if (buff.type === 'shield') {
     const lvl = getWeaponLevel('shield');
@@ -4408,8 +4460,8 @@ function startGameplay(scene) {
     if (survivalTime > getBestScore() && hudBestText) {
       hudBestText.setText(`${survivalTime}s`);
     }
-    if (survivalTime === 60 && !bossSpawned) {
-      floatText(scene, 400, 132, '⚔ HORDA INTENSIFICADA! CONTINUE EVOLUINDO! ⚔', '#ffca28');
+    if (survivalTime === 35 && !bossSpawned) {
+      floatText(scene, 400, 132, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
     }
     if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
       startBossFight(scene);
@@ -4453,24 +4505,27 @@ function startGameplay(scene) {
 
 // Director Dinâmico: calcula quantos inimigos surgem por onda de acordo com o tempo da partida
 function spawnDirectorWave(scene) {
+  // Durante a Boss Fight, pausa completamente a geração de inimigos comuns!
+  // Apenas Mini-Golems expelidos pelo corpo do Golem de Pedra atuam na arena.
   if (activeBoss && activeBoss.active) {
-    spawnEnemy(scene);
-    if (Math.random() < 0.35) {
-      scene.time.delayedCall(220, () => gameState === 'PLAYING' && spawnEnemy(scene, 'mini_golem'));
-    }
     return;
   }
 
   let waveCount = 1;
   const r = Math.random();
-  if (survivalTime >= 130) {
-    waveCount = r < 0.35 ? 4 : (r < 0.80 ? 3 : 2);
-  } else if (survivalTime >= 85) {
+  if (bossDefeated || survivalTime >= 100) {
+    // Pós-Boss: escalonamento agressivo com hordas densas
+    waveCount = r < 0.38 ? 4 : (r < 0.78 ? 3 : 2);
+  } else if (survivalTime >= 70) {
     waveCount = r < 0.45 ? 3 : 2;
-  } else if (survivalTime >= 45) {
-    waveCount = r < 0.20 ? 3 : (r < 0.72 ? 2 : 1);
-  } else if (survivalTime >= 18) {
-    waveCount = r < 0.42 ? 2 : 1;
+  } else if (survivalTime >= 40) {
+    waveCount = r < 0.25 ? 3 : (r < 0.75 ? 2 : 1);
+  } else if (survivalTime >= 20) {
+    // Intermediário (20s - 40s)
+    waveCount = r < 0.40 ? 2 : 1;
+  } else {
+    // Curva inicial suave (0 - 20s): 1 inimigo por pulso para aquecimento gradual
+    waveCount = 1;
   }
 
   for (let i = 0; i < waveCount; i++) {
@@ -4529,16 +4584,23 @@ function spawnEnemy(scene, forcedType, customY) {
   let type = forcedType;
   if (!type) {
     if (activeBoss && activeBoss.active) {
-      type = roll < 0.40 ? 'mini_golem' : roll < 0.62 ? 'goblin' : roll < 0.78 ? 'gargoyle' : roll < 0.90 ? 'elf' : 'dark_mage';
-    } else if (survivalTime >= 32) {
-      type = roll < 0.28 ? 'goblin' : roll < 0.48 ? 'warrior' : roll < 0.68 ? 'elf' : roll < 0.84 ? 'gargoyle' : 'dark_mage';
-    } else if (survivalTime >= 15) {
-      type = roll < 0.38 ? 'goblin' : roll < 0.62 ? 'warrior' : roll < 0.82 ? 'elf' : 'gargoyle';
+      // Regra 6: Durante a Boss Fight, gera exclusivamente Mini-Golems
+      type = 'mini_golem';
+    } else if (bossDefeated) {
+      // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.36 ? 'goblin' : (roll < 0.62 ? 'warrior' : (roll < 0.84 ? 'elf' : 'gargoyle')));
+    } else if (survivalTime >= 40) {
+      // Fase pré-boss avançada: Goblins, guerreiros, elfos e gárgulas (SEM MAGO)
+      type = roll < 0.38 ? 'goblin' : (roll < 0.65 ? 'warrior' : (roll < 0.85 ? 'elf' : 'gargoyle'));
+    } else if (survivalTime >= 20) {
+      // Fase pré-boss intermediária
+      type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
     } else {
-      type = roll < 0.50 ? 'goblin' : roll < 0.78 ? 'warrior' : 'elf';
+      // Curva inicial suave: predominantemente goblins simples
+      type = roll < 0.80 ? 'goblin' : 'warrior';
     }
   }
-  const cfg = ENEMIES[type];
+  const cfg = ENEMIES[type] || ENEMIES.goblin;
 
   // Evita nascer exatamente em cima de outro inimigo recém-gerado
   let y = customY ?? Phaser.Math.Between(130, 520);
@@ -4653,6 +4715,40 @@ function mageShoot(scene, mage) {
   });
 }
 
+function teleportMage(scene, mage) {
+  if (!mage || !mage.active) return;
+  if (holyFx) holyFx.explode(14, mage.x, mage.y);
+  if (sparksFx) sparksFx.explode(8, mage.x, mage.y);
+  sound.playShieldBlock();
+
+  let targetX = Phaser.Math.Between(180, 720);
+  let targetY = Phaser.Math.Between(140, 500);
+  for (let tries = 0; tries < 8; tries++) {
+    const candidateX = Phaser.Math.Between(180, 720);
+    const candidateY = Phaser.Math.Between(140, 500);
+    if (!player || !player.active || Phaser.Math.Distance.Between(candidateX, candidateY, player.x, player.y) >= 140) {
+      targetX = candidateX;
+      targetY = candidateY;
+      break;
+    }
+  }
+
+  mage.x = targetX;
+  mage.y = targetY;
+  mage.baseY = targetY;
+  if (mage.body) mage.body.updateFromGameObject();
+
+  if (holyFx) holyFx.explode(16, targetX, targetY);
+  mage.setTint(0xb388ff);
+  scene.time.delayedCall(140, () => {
+    if (mage && mage.active) mage.clearTint();
+  });
+
+  if (typeof floatText === 'function') {
+    floatText(scene, targetX, targetY - 24, 'ESQUIVA / TELEPORTE!', '#b388ff');
+  }
+}
+
 
 // <<< END: src/world/enemies.js
 
@@ -4717,8 +4813,7 @@ function startBossFight(scene) {
   updateBossHUD();
 
   if (!buff.type) spawnItem(scene);
-  spawnEnemy(scene, 'mini_golem', 220);
-  spawnEnemy(scene, 'mini_golem', 430);
+  ejectMiniGolemsFromBoss(scene, boss);
 
   boss.attackTimer = scene.time.addEvent({
     delay: 2800,
@@ -4726,7 +4821,9 @@ function startBossFight(scene) {
     callback: () => {
       if (gameState !== 'PLAYING' || !boss.active || boss.entering || boss.isLunging) return;
       boss.attackCount++;
-      spawnEnemy(scene, 'mini_golem', Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-90, 90), 140, 510));
+
+      // Ejeção física dinâmica de Mini-Golems diretamente do corpo do Boss
+      ejectMiniGolemsFromBoss(scene, boss);
 
       if (boss.attackCount % 2 === 1) {
         bossThrowRocks(scene, boss);
@@ -4735,6 +4832,126 @@ function startBossFight(scene) {
       }
     }
   });
+}
+
+// EJEÇÃO DINÂMICA DE MINI-GOLEMS DO CORPO DO BOSS:
+// Quanto menor a vida do Chefão, maior o número de Mini-Golems expelidos.
+// Saltam com física/arco do torso do Boss, caem como pedra inativa, tremem e despertam com olhos vermelhos.
+function ejectMiniGolemsFromBoss(scene, boss) {
+  if (!boss || !boss.active || gameState !== 'PLAYING') return;
+
+  const hpRatio = (boss.hp ?? BOSS_MAX_HP) / (boss.maxHp || BOSS_MAX_HP);
+  let count = 1;
+  if (hpRatio <= 0.35) {
+    count = Phaser.Math.Between(3, 4);
+  } else if (hpRatio <= 0.70) {
+    count = Phaser.Math.Between(2, 3);
+  } else {
+    count = Phaser.Math.Between(1, 2);
+  }
+
+  sound.playEarthSmash();
+  scene.cameras.main.shake(160, 0.006);
+
+  // Recuo visual do torso do Boss ao desprender fragmentos
+  scene.tweens.add({
+    targets: boss,
+    x: boss.x + 6,
+    duration: 65,
+    yoyo: true,
+    repeat: 1
+  });
+
+  for (let i = 0; i < count; i++) {
+    scene.time.delayedCall(i * 180, () => {
+      if (!boss || !boss.active || gameState !== 'PLAYING') return;
+
+      const originX = boss.x - 22;
+      const originY = boss.y - 8;
+
+      if (debrisFx) debrisFx.explode(10, originX, originY);
+      if (sparksFx) sparksFx.explode(6, originX, originY);
+
+      const golem = enemies.create(originX, originY, 'mini_golem', 2);
+      const cfg = ENEMIES.mini_golem || { w: 18, h: 20, speed: 0.94, hp: 1 };
+      golem.body.setSize(cfg.w, cfg.h);
+      golem.enemyType = 'mini_golem';
+      golem.maxHp = cfg.hp;
+      golem.hp = golem.maxHp;
+      golem.setFlipX(true);
+      golem.setFrame(2); // Frame 2: Rocha inerte, olhos apagados
+
+      golem.golemState = 'EJECTING';
+      golem.setVelocity(0, 0);
+
+      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(75, 170), 160, 680);
+      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-85, 85), 140, 505);
+
+      // Trajetória em arco parabólico simulando desprendimento do corpo do Boss
+      scene.tweens.add({
+        targets: golem,
+        x: targetX,
+        duration: 440,
+        ease: 'Linear'
+      });
+
+      scene.tweens.add({
+        targets: golem,
+        y: targetY - 45,
+        duration: 210,
+        ease: 'Quad.easeOut',
+        onComplete: () => {
+          if (!golem || !golem.active) return;
+          scene.tweens.add({
+            targets: golem,
+            y: targetY,
+            duration: 230,
+            ease: 'Quad.easeIn',
+            onComplete: () => {
+              if (!golem || !golem.active) return;
+              golem.y = targetY;
+              golem.baseY = targetY;
+
+              if (debrisFx) debrisFx.explode(7, golem.x, golem.y + 10);
+              sound.playShieldBlock();
+
+              // Estado: DORMANT (Inconsciente como rocha, olhos apagados, totalmente imóvel)
+              golem.golemState = 'DORMANT';
+              golem.setFrame(2);
+              golem.setVelocity(0, 0);
+
+              // Transição de despertar após breve momento (1.1s a 1.5s)
+              const dormantTime = Phaser.Math.Between(1100, 1500);
+              scene.time.delayedCall(dormantTime, () => {
+                if (!golem || !golem.active || gameState !== 'PLAYING') return;
+
+                // Animação de tremor pré-despertar
+                scene.tweens.add({
+                  targets: golem,
+                  x: golem.x + 3,
+                  duration: 40,
+                  yoyo: true,
+                  repeat: 5,
+                  onComplete: () => {
+                    if (!golem || !golem.active || gameState !== 'PLAYING') return;
+
+                    // Despertar dos olhos vermelhos brilhantes e início da perseguição
+                    golem.golemState = 'ACTIVE';
+                    golem.play('mini_golem');
+                    if (holyFx) holyFx.explode(6, golem.x, golem.y);
+                    sound.playFireStaff();
+                    floatText(scene, golem.x, golem.y - 18, 'DESPERTOU!', '#ff5252');
+
+                    golem.setVelocityX(-enemySpeed * cfg.speed);
+                  }
+                });
+              });
+            }
+          });
+        }
+      });
+    });
+  }
 }
 
 // GOLPE 1: Arremesso de Rochas com Alerta Vermelho -> Chão Craquelado + Rocha como Escudo/Obstáculo
@@ -5080,30 +5297,30 @@ function showAchievementToast(scene, ach) {
 function createHUD(scene) {
   hudContainer = scene.add.container(0, 0).setDepth(2000).setScrollFactor(0).setVisible(false);
 
-  // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 10..154)
+  // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 10..164)
   const gloryBg = scene.add.graphics();
-  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(10, 10, 144, 48, 6);
-  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 144, 48, 6);
-  const hourglass = scene.add.image(26, 34, 'hud_hourglass');
-  const gloryLabel = scene.add.text(42, 14, 'GLÓRIA & VIDA', textStyle('#a89260', 9));
-  hudGloryText = scene.add.text(42, 26, '0s', textStyle('#f5e6c8', 15));
+  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(10, 10, 154, 48, 6);
+  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 154, 48, 6);
+  const hourglass = scene.add.image(24, 34, 'hud_hourglass');
+  const gloryLabel = scene.add.text(38, 14, 'GLÓRIA & VIDA', textStyle('#a89260', 9));
+  hudGloryText = scene.add.text(38, 25, '0s', textStyle('#f5e6c8', 14));
   hudContainer.add([gloryBg, hourglass, gloryLabel, hudGloryText]);
 
   hudHearts = [];
-  for (let i = 0; i < 4; i++) {
-    const heart = scene.add.image(92 + i * 15, 39, 'hud_heart', 0).setScale(1.0);
+  for (let i = 0; i < 6; i++) {
+    const heart = scene.add.image(74 + i * 14, 39, 'hud_heart', 0).setScale(1.0);
     hudHearts.push(heart);
     hudContainer.add(heart);
   }
   updateHeartsHUD();
 
-  // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 160..274)
+  // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 170..274)
   const silverBg = scene.add.graphics();
-  silverBg.fillStyle(0x16120e, 0.94).fillRoundedRect(160, 10, 114, 48, 6);
-  silverBg.lineStyle(2, 0xc5a059).strokeRoundedRect(160, 10, 114, 48, 6);
-  const silverIcon = scene.add.image(178, 34, 'silver_coin', 0).setScale(1.2);
-  const silverLabel = scene.add.text(194, 16, 'PRATA', textStyle('#b0bec5', 10));
-  hudSilverText = scene.add.text(194, 28, '0', textStyle('#e0f7fa', 18));
+  silverBg.fillStyle(0x16120e, 0.94).fillRoundedRect(170, 10, 104, 48, 6);
+  silverBg.lineStyle(2, 0xc5a059).strokeRoundedRect(170, 10, 104, 48, 6);
+  const silverIcon = scene.add.image(188, 34, 'silver_coin', 0).setScale(1.2);
+  const silverLabel = scene.add.text(202, 16, 'PRATA', textStyle('#b0bec5', 10));
+  hudSilverText = scene.add.text(202, 28, '0', textStyle('#e0f7fa', 18));
   hudContainer.add([silverBg, silverIcon, silverLabel, hudSilverText]);
 
   // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 280..514)
@@ -5343,18 +5560,22 @@ function rollLevelUpCards() {
   unlockedKeys.forEach(key => {
     const cfg = WEAPON_CATALOG[key];
     const currLvl = getWeaponLevel(key);
-    if (cfg && currLvl < MAX_WEAPON_LEVEL) {
+    if (cfg) {
       const nextLvl = currLvl + 1;
-      const isHeld = buff.type === key;
+      const isHeld = buff && buff.type === key;
+      const lvlDesc = (cfg.levels && cfg.levels[nextLvl - 1])
+        ? cfg.levels[nextLvl - 1]
+        : `✦ PODER TRANSCENDENTAL (NV. ${nextLvl})!\n+15% Cadência de disparo, +Dano e escala contínua de combate.`;
+
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
         category: isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA',
         title: cfg.name,
         badge: `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-        badgeColor: nextLvl === MAX_WEAPON_LEVEL ? '#ffca28' : '#7fe7ff',
-        borderColor: nextLvl === MAX_WEAPON_LEVEL ? 0xffca28 : 0x7fe7ff,
+        badgeColor: nextLvl >= 5 ? '#ffca28' : '#7fe7ff',
+        borderColor: nextLvl >= 5 ? 0xffca28 : 0x7fe7ff,
         icon: cfg.icon,
-        desc: `${cfg.levels[nextLvl - 1]}\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `${lvlDesc}\n\n✦ Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
@@ -6872,17 +7093,17 @@ function showSettingsMenu(scene) {
   menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', 540, 'Ajustes de áudio, vídeo (Tela Cheia) e pergaminho de batalha', 540);
   menuContainer.isMainMenu = false;
 
-  // Seção 1: Áudio & Tela Cheia
+  // Seção 1: Áudio, Tela Cheia & Controles Mobile
   const audioBox = scene.add.graphics();
-  audioBox.fillStyle(0x221a13, 0.92).fillRoundedRect(160, 118, 480, 108, 6);
-  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 118, 480, 108, 6);
+  audioBox.fillStyle(0x221a13, 0.92).fillRoundedRect(160, 108, 480, 134, 6);
+  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 108, 480, 134, 6);
 
-  const audioTitle = scene.add.text(180, 130, 'ÁUDIO & TELA CHEIA (FULLSCREEN)', textStyle('#ffca28', 12));
-  const audioHint = scene.add.text(180, 202, 'Atalhos rápidos: [M] Alternar Áudio   |   [F] Alternar Tela Cheia', textStyle('#a8987b', 11));
+  const audioTitle = scene.add.text(180, 118, 'ÁUDIO, TELA CHEIA & JOYSTICK VIRTUAL', textStyle('#ffca28', 12));
 
-  const audioToggleBtn = scene.add.rectangle(285, 172, 210, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+  // Botão 1: Áudio
+  const audioToggleBtn = scene.add.rectangle(285, 156, 210, 34, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioToggleTxt = scene.add.text(285, 172, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
+  const audioToggleTxt = scene.add.text(285, 156, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 11))
     .setOrigin(0.5);
 
   audioToggleBtn.on('pointerdown', () => {
@@ -6893,9 +7114,10 @@ function showSettingsMenu(scene) {
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   });
 
-  const fsToggleBtn = scene.add.rectangle(515, 172, 210, 36, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
+  // Botão 2: Tela Cheia
+  const fsToggleBtn = scene.add.rectangle(515, 156, 210, 34, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const fsToggleTxt = scene.add.text(515, 172, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
+  const fsToggleTxt = scene.add.text(515, 156, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 11))
     .setOrigin(0.5);
 
   const refreshFsBtn = () => {
@@ -6912,10 +7134,39 @@ function showSettingsMenu(scene) {
     scene.time.delayedCall(80, refreshFsBtn);
   });
 
+  // Botão 3: Ativar Joystick Virtual (Mobile / PC)
+  const getJoyLabel = () => {
+    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
+    if (m === 'enabled') return 'JOYSTICK VIRTUAL: [SEMPRE ATIVADO]';
+    if (m === 'disabled') return 'JOYSTICK VIRTUAL: [DESATIVADO]';
+    return 'JOYSTICK VIRTUAL: [DETECÇÃO AUTOMÁTICA]';
+  };
+  const getJoyColor = () => {
+    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
+    if (m === 'enabled') return 0x247a46;
+    if (m === 'disabled') return 0x8e1b1b;
+    return 0x2d3a4f;
+  };
+
+  const joyToggleBtn = scene.add.rectangle(400, 204, 440, 34, getJoyColor())
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const joyToggleTxt = scene.add.text(400, 204, getJoyLabel(), textStyle('#ffffff', 11))
+    .setOrigin(0.5);
+
+  joyToggleBtn.on('pointerdown', () => {
+    sound.playButtonClick();
+    const current = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
+    const next = current === 'auto' ? 'enabled' : (current === 'enabled' ? 'disabled' : 'auto');
+    if (typeof setJoystickMode === 'function') setJoystickMode(next);
+    joyToggleBtn.setFillStyle(getJoyColor());
+    joyToggleTxt.setText(getJoyLabel());
+    if (virtualJoystick) virtualJoystick.updateVisibility();
+  });
+
   // Seção 2: Pergaminho de Dicas
   const guideBox = scene.add.graphics();
-  guideBox.fillStyle(0x1d1611, 0.92).fillRoundedRect(160, 238, 480, 215, 6);
-  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 238, 480, 215, 6);
+  guideBox.fillStyle(0x1d1611, 0.92).fillRoundedRect(160, 250, 480, 205, 6);
+  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 250, 480, 205, 6);
 
   const guideTitle = scene.add.text(400, 256, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
@@ -6931,7 +7182,7 @@ function showSettingsMenu(scene) {
   );
 
   menuContainer.add([
-    audioBox, audioTitle, audioHint, audioToggleBtn, audioToggleTxt, fsToggleBtn, fsToggleTxt,
+    audioBox, audioTitle, audioToggleBtn, audioToggleTxt, fsToggleBtn, fsToggleTxt, joyToggleBtn, joyToggleTxt,
     guideBox, guideTitle, ...guideTexts,
     ...createButton(scene, 400, 498, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 44)
   ]);
@@ -6942,22 +7193,19 @@ function showSettingsMenu(scene) {
 
 // >>> START: src/ui/virtualJoystick.js
 // =============================================================================
-// SISTEMA DE CONTROLE POR JOYSTICK VIRTUAL & TOUCH MOBILE (MULTI-TOUCH)
+// SISTEMA DE CONTROLE POR JOYSTICK VIRTUAL MOBILE (FIXO E ANCORADO NA UI)
 // =============================================================================
 
 class VirtualJoystick {
   constructor(scene) {
     this.scene = scene;
     this.touchId = null;
-    this.actionTouchId = null;
 
-    // Posições base ergonômicas (espaço de tela do jogo 800x600)
-    this.defaultBaseX = 120;
-    this.defaultBaseY = 475;
-    this.baseX = this.defaultBaseX;
-    this.baseY = this.defaultBaseY;
-    this.knobX = this.defaultBaseX;
-    this.knobY = this.defaultBaseY;
+    // Posição padrão fixa e ancorada na interface (canto inferior esquerdo)
+    this.baseX = 110;
+    this.baseY = 485;
+    this.knobX = 110;
+    this.knobY = 485;
 
     this.maxRadius = 54;
     this.deadzone = 6;
@@ -6966,11 +7214,9 @@ class VirtualJoystick {
     this.vector = { x: 0, y: 0 };
     this.force = 0;
     this.active = false;
-    this.isFloating = true; // Permite posicionamento dinâmico onde o dedão toca
 
     // Detecção inicial de dispositivo móvel ou touch
     this.isMobile = this.detectMobile();
-    this.forceVisible = false;
     this.visible = false;
 
     // Containers e gráficos do Phaser
@@ -6978,15 +7224,18 @@ class VirtualJoystick {
     this.baseGraphics = null;
     this.lineGraphics = null;
     this.knobGraphics = null;
-    this.actionContainer = null;
-    this.actionGraphics = null;
-    this.actionIcon = null;
-    this.actionText = null;
 
     this.init();
   }
 
   detectMobile() {
+    // Respeita a preferência do usuário salva nas Configurações
+    if (typeof getJoystickMode === 'function') {
+      const mode = getJoystickMode();
+      if (mode === 'enabled') return true;
+      if (mode === 'disabled') return false;
+    }
+
     if (typeof window === 'undefined') return false;
     const hasTouch = (
       'ontouchstart' in window ||
@@ -7001,10 +7250,10 @@ class VirtualJoystick {
   init() {
     if (!this.scene) return;
 
-    // Container principal acima do jogo e abaixo de janelas modais
+    // Container principal fixado na câmera (setScrollFactor 0) e sob profundidade de HUD
     this.container = this.scene.add.container(0, 0).setDepth(2400).setScrollFactor(0);
 
-    // 1. Gráficos do Joystick (Linha de energia, Base Rúnica e Pino Central)
+    // Gráficos do Joystick: Linha de tensão, Base Rúnica Fixa e Pino Central Nobre
     this.lineGraphics = this.scene.add.graphics();
     this.baseGraphics = this.scene.add.graphics();
     this.knobGraphics = this.scene.add.graphics();
@@ -7014,20 +7263,18 @@ class VirtualJoystick {
     this.drawBase(false);
     this.drawKnob(false);
 
-    // 2. Botão de Ação / Golpe no Lado Direito (x: 695, y: 475)
-    this.createActionButton();
-
-    // 3. Ouvintes de Toque e Multi-Touch isolado
+    // Ouvintes de Toque com suporte a Multi-Touch
     this.setupTouchListeners();
 
-    // 4. Detecção dinâmica de primeiro toque para telas touch no Desktop/Emulador
-    if (!this.isMobile && typeof window !== 'undefined') {
+    // Detecção dinâmica de primeiro toque para telas touch híbridas
+    if (typeof window !== 'undefined') {
       const onFirstTouch = () => {
-        this.isMobile = true;
-        this.updateVisibility();
-        window.removeEventListener('touchstart', onFirstTouch);
+        if (typeof getJoystickMode === 'function' && getJoystickMode() !== 'disabled') {
+          this.isMobile = true;
+          this.updateVisibility();
+        }
       };
-      window.addEventListener('touchstart', onFirstTouch, { passive: true });
+      window.addEventListener('touchstart', onFirstTouch, { once: true, passive: true });
     }
 
     this.updateVisibility();
@@ -7040,46 +7287,42 @@ class VirtualJoystick {
     const by = this.baseY;
     const r = this.maxRadius;
 
-    // Sombra externa suave
+    // Sombra da base ancorada
     g.fillStyle(0x000000, 0.35);
     g.fillCircle(bx, by + 3, r + 4);
 
-    // Placa de fundo de obsidiana translúcida
-    g.fillStyle(0x120d09, isActive ? 0.60 : 0.38);
+    // Placa de obsidiana rúnica com translucidez agradável
+    g.fillStyle(0x120d09, isActive ? 0.62 : 0.42);
     g.fillCircle(bx, by, r);
 
-    // Anel externo de ferro forjado
-    g.lineStyle(3, 0x2b221a, isActive ? 0.85 : 0.65);
+    // Borda externa de ferro forjado
+    g.lineStyle(3, 0x2b221a, isActive ? 0.88 : 0.65);
     g.strokeCircle(bx, by, r);
 
-    // Aro chanfrado nobre em ouro envelhecido
-    g.lineStyle(2, isActive ? 0xffca28 : 0xc5a059, isActive ? 0.90 : 0.65);
+    // Moldura chanfrada em ouro envelhecido
+    g.lineStyle(2, isActive ? 0xffca28 : 0xc5a059, isActive ? 0.95 : 0.70);
     g.strokeCircle(bx, by, r - 2);
 
-    // Aro interno rúnico sutil
-    g.lineStyle(1, 0x8a6e30, isActive ? 0.45 : 0.25);
+    // Aro rúnico interno
+    g.lineStyle(1, 0x8a6e30, isActive ? 0.50 : 0.28);
     g.strokeCircle(bx, by, r * 0.55);
 
-    // 4 Marcadores Cardeais de Orientação (Norte, Sul, Leste, Oeste em estilo medieval)
+    // 4 Marcadores Cardeais de Orientação (Norte, Sul, Leste, Oeste)
     const arrowSize = 6;
     const dist = r - 7;
     const arrowCol = isActive ? 0xffe082 : 0xc5a059;
-    const arrowAlpha = isActive ? 0.85 : 0.50;
+    const arrowAlpha = isActive ? 0.85 : 0.52;
     g.fillStyle(arrowCol, arrowAlpha);
 
-    // Norte
     g.fillTriangle(bx, by - dist, bx - arrowSize, by - dist + arrowSize, bx + arrowSize, by - dist + arrowSize);
-    // Sul
     g.fillTriangle(bx, by + dist, bx - arrowSize, by + dist - arrowSize, bx + arrowSize, by + dist - arrowSize);
-    // Oeste
     g.fillTriangle(bx - dist, by, bx - dist + arrowSize, by - arrowSize, bx - dist + arrowSize, by + arrowSize);
-    // Leste
     g.fillTriangle(bx + dist, by, bx + dist - arrowSize, by - arrowSize, bx + arrowSize - arrowSize, by + arrowSize);
 
-    // Eixo cruzado discreto
-    g.lineStyle(1, 0xc5a059, isActive ? 0.30 : 0.15);
-    g.lineBetween(bx - 12, by, bx + 12, by);
-    g.lineBetween(bx, by - 12, bx, by + 12);
+    // Mira cruzada central
+    g.lineStyle(1, 0xc5a059, isActive ? 0.30 : 0.16);
+    g.lineBetween(bx - 10, by, bx + 10, by);
+    g.lineBetween(bx, by - 10, bx, by + 10);
   }
 
   drawKnob(isActive = false) {
@@ -7093,28 +7336,28 @@ class VirtualJoystick {
     g.fillStyle(0x000000, 0.45);
     g.fillCircle(kx, ky + 2, kr + 2);
 
-    // Corpo metálico chanfrado (broquel de aço e carvalho)
+    // Broquel de aço e madeira nobre
     g.fillStyle(isActive ? 0x3d3023 : 0x271e16, 0.95);
     g.fillCircle(kx, ky, kr);
 
-    // Borda nobre em ouro chanfrado com sub-tons
+    // Borda chanfrada de ouro nobre
     g.lineStyle(2.5, isActive ? 0xffca28 : 0xc5a059, 1);
     g.strokeCircle(kx, ky, kr);
 
-    g.lineStyle(1, isActive ? 0xfff59d : 0x8a6e30, 0.8);
+    g.lineStyle(1, isActive ? 0xfff59d : 0x8a6e30, 0.85);
     g.strokeCircle(kx, ky, kr - 2);
 
-    // Gema Central (Cabochão de Rubi Real)
+    // Cabochão central de Rubi Real
     const gemR = 9;
     const gemColor = isActive ? 0xff3d00 : 0xd32f2f;
     g.fillStyle(gemColor, 1);
     g.fillCircle(kx, ky, gemR);
 
-    // Brilho especular do cristal
+    // Reflexo especular branco
     g.fillStyle(0xffffff, isActive ? 0.95 : 0.70);
     g.fillCircle(kx - 3, ky - 3, 2.5);
 
-    // Cruz rúnica central de ouro
+    // Cruz rúnica de ouro
     g.lineStyle(1.5, isActive ? 0xffea00 : 0xffca28, 0.9);
     g.lineBetween(kx - 5, ky, kx + 5, ky);
     g.lineBetween(kx, ky - 5, kx, ky + 5);
@@ -7125,7 +7368,7 @@ class VirtualJoystick {
     g.clear();
     if (!this.active || this.force <= 0.05) return;
 
-    // Arco de energia dourada conectando a base ao pino
+    // Arco de energia dourada conectando a base fixa ao pino
     g.lineStyle(2, 0xffca28, Math.min(0.7, this.force * 0.8));
     g.lineBetween(this.baseX, this.baseY, this.knobX, this.knobY);
 
@@ -7133,64 +7376,10 @@ class VirtualJoystick {
     g.lineBetween(this.baseX, this.baseY, this.knobX, this.knobY);
   }
 
-  createActionButton() {
-    this.actionContainer = this.scene.add.container(695, 475).setDepth(2400).setScrollFactor(0);
-    this.actionGraphics = this.scene.add.graphics();
-
-    const drawBtn = (isPressed = false) => {
-      const g = this.actionGraphics;
-      g.clear();
-      const r = 36;
-
-      // Sombra
-      g.fillStyle(0x000000, 0.40);
-      g.fillCircle(0, 3, r + 2);
-
-      // Fundo escuro com sutil translucidez
-      g.fillStyle(isPressed ? 0x4a1818 : 0x1d140e, isPressed ? 0.95 : 0.82);
-      g.fillCircle(0, 0, r);
-
-      // Moldura nobre de ouro
-      g.lineStyle(2.5, isPressed ? 0xffeb3b : 0xc5a059, 1);
-      g.strokeCircle(0, 0, r);
-
-      g.lineStyle(1, isPressed ? 0xffffff : 0x8a6e30, 0.6);
-      g.strokeCircle(0, 0, r - 3);
-
-      // Ícone central: Espadas Cruzadas / Brasão de Ataque
-      const iconCol = isPressed ? 0xffeb3b : 0xffca28;
-      g.lineStyle(2.5, iconCol, 1);
-      g.lineBetween(-12, -12, 12, 12);
-      g.lineBetween(12, -12, -12, 12);
-
-      // Empunhaduras das espadas
-      g.lineStyle(1.5, 0xffffff, 0.9);
-      g.lineBetween(-15, -9, -9, -15);
-      g.lineBetween(9, -15, 15, -9);
-
-      // Ponto de brilho solar central
-      g.fillStyle(isPressed ? 0xffffff : 0xff7043, 1);
-      g.fillCircle(0, 0, 4);
-    };
-
-    drawBtn(false);
-
-    this.actionText = this.scene.add.text(0, 44, 'AÇÃO', {
-      fontSize: '11px',
-      fontStyle: 'bold',
-      color: '#c5a059',
-      fontFamily: 'Courier New, monospace'
-    }).setOrigin(0.5);
-
-    this.actionContainer.add([this.actionGraphics, this.actionText]);
-  }
-
   setupTouchListeners() {
     const scene = this.scene;
 
-    // Multi-Touch: Pointer Down
     scene.input.on('pointerdown', (pointer) => {
-      // Bloqueia se o jogo estiver em pausa ou tela de menu/modal
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
       if (typeof activeModal !== 'undefined' && activeModal) return;
       if (typeof isPaused !== 'undefined' && isPaused) return;
@@ -7198,43 +7387,24 @@ class VirtualJoystick {
       const px = pointer.x;
       const py = pointer.y;
 
-      // 1. ZONA DO BOTÃO DE AÇÃO (Lado direito inferior: x > 610, y > 380)
-      const actionDist = Phaser.Math.Distance.Between(px, py, 695, 475);
-      if (actionDist <= 55 && this.actionTouchId === null) {
-        this.actionTouchId = pointer.id;
-        this.handleActionDown();
-        return;
-      }
+      // Área de ativação: toque próximo à base fixa ancorada (raio de 115px ou canto inferior esquerdo)
+      const distFromBase = Phaser.Math.Distance.Between(px, py, this.baseX, this.baseY);
+      const inZone = distFromBase <= 115 || (px <= 250 && py >= 350);
 
-      // 2. ZONA DO JOYSTICK (Metade esquerda da tela: x < 400, y > 140)
-      if (px < 400 && py > 140 && this.touchId === null) {
+      if (inZone && this.touchId === null) {
         this.touchId = pointer.id;
         this.active = true;
-
-        if (this.isFloating) {
-          // Posiciona a base exatamente onde o polegar encostou (com margem de segurança)
-          this.baseX = Phaser.Math.Clamp(px, 75, 360);
-          this.baseY = Phaser.Math.Clamp(py, 180, 540);
-        } else {
-          this.baseX = this.defaultBaseX;
-          this.baseY = this.defaultBaseY;
-        }
-
-        this.knobX = px;
-        this.knobY = py;
 
         this.processPointerMove(px, py);
         this.drawBase(true);
         this.drawKnob(true);
         this.drawConnectorLine();
 
-        // Animação de pulso ao tocar
         scene.tweens.killTweensOf(this.knobGraphics);
-        this.knobGraphics.setScale(1.12);
+        this.knobGraphics.setScale(1.10);
       }
     });
 
-    // Multi-Touch: Pointer Move
     scene.input.on('pointermove', (pointer) => {
       if (this.touchId !== null && pointer.id === this.touchId) {
         this.processPointerMove(pointer.x, pointer.y);
@@ -7243,15 +7413,7 @@ class VirtualJoystick {
       }
     });
 
-    // Multi-Touch: Pointer Up
     const onPointerUp = (pointer) => {
-      // Finaliza botão de ação se for o toque dele
-      if (this.actionTouchId !== null && pointer.id === this.actionTouchId) {
-        this.actionTouchId = null;
-        this.handleActionUp();
-      }
-
-      // Finaliza joystick se for o toque dele
       if (this.touchId !== null && pointer.id === this.touchId) {
         this.touchId = null;
         this.active = false;
@@ -7259,13 +7421,13 @@ class VirtualJoystick {
         this.vector.y = 0;
         this.force = 0;
 
-        // Retorna o pino suavemente ao centro da base
+        // Retorna o pino suavemente ao centro da base fixa
         scene.tweens.killTweensOf(this.knobGraphics);
         scene.tweens.add({
           targets: this,
           knobX: this.baseX,
           knobY: this.baseY,
-          duration: 130,
+          duration: 120,
           ease: 'Sine.easeOut',
           onUpdate: () => {
             this.drawKnob(false);
@@ -7276,26 +7438,6 @@ class VirtualJoystick {
             this.drawBase(false);
             this.drawKnob(false);
             this.drawConnectorLine();
-
-            // Se for base flutuante, retorna suavemente à posição padrão de repouso
-            if (this.isFloating && (this.baseX !== this.defaultBaseX || this.baseY !== this.defaultBaseY)) {
-              scene.tweens.add({
-                targets: this,
-                baseX: this.defaultBaseX,
-                baseY: this.defaultBaseY,
-                knobX: this.defaultBaseX,
-                knobY: this.defaultBaseY,
-                duration: 250,
-                delay: 400,
-                ease: 'Sine.easeInOut',
-                onUpdate: () => {
-                  if (!this.active) {
-                    this.drawBase(false);
-                    this.drawKnob(false);
-                  }
-                }
-              });
-            }
           }
         });
       }
@@ -7314,8 +7456,8 @@ class VirtualJoystick {
       this.vector.x = 0;
       this.vector.y = 0;
       this.force = 0;
-      this.knobX = px;
-      this.knobY = py;
+      this.knobX = this.baseX;
+      this.knobY = this.baseY;
       return;
     }
 
@@ -7331,62 +7473,12 @@ class VirtualJoystick {
     this.vector.y = Math.sin(angle) * this.force;
   }
 
-  handleActionDown() {
-    if (this.actionContainer) {
-      this.actionContainer.setScale(0.92);
-      if (this.actionGraphics) {
-        this.actionGraphics.clear();
-        this.actionGraphics.fillStyle(0x5c1d1d, 1).fillCircle(0, 0, 36);
-        this.actionGraphics.lineStyle(2.5, 0xffeb3b, 1).strokeCircle(0, 0, 36);
-        this.actionGraphics.lineStyle(2.5, 0xffffff, 1);
-        this.actionGraphics.lineBetween(-12, -12, 12, 12);
-        this.actionGraphics.lineBetween(12, -12, -12, 12);
-        this.actionGraphics.fillStyle(0xffea00, 1).fillCircle(0, 0, 5);
-      }
-    }
-    // Dispara a mecânica de ataque manual do jogador
-    if (typeof triggerPlayerAction === 'function') {
-      triggerPlayerAction(this.scene);
-    }
-  }
-
-  handleActionUp() {
-    if (this.actionContainer) {
-      this.scene.tweens.add({
-        targets: this.actionContainer,
-        scale: 1.0,
-        duration: 90,
-        ease: 'Back.easeOut'
-      });
-      if (this.actionGraphics) {
-        this.drawActionButtonDefault();
-      }
-    }
-  }
-
-  drawActionButtonDefault() {
-    const g = this.actionGraphics;
-    if (!g) return;
-    g.clear();
-    const r = 36;
-    g.fillStyle(0x000000, 0.40).fillCircle(0, 3, r + 2);
-    g.fillStyle(0x1d140e, 0.82).fillCircle(0, 0, r);
-    g.lineStyle(2.5, 0xc5a059, 1).strokeCircle(0, 0, r);
-    g.lineStyle(1, 0x8a6e30, 0.6).strokeCircle(0, 0, r - 3);
-    g.lineStyle(2.5, 0xffca28, 1);
-    g.lineBetween(-12, -12, 12, 12);
-    g.lineBetween(12, -12, -12, 12);
-    g.lineStyle(1.5, 0xffffff, 0.9);
-    g.lineBetween(-15, -9, -9, -15);
-    g.lineBetween(9, -15, 15, -9);
-    g.fillStyle(0xff7043, 1).fillCircle(0, 0, 4);
-  }
-
   updateVisibility() {
+    this.isMobile = this.detectMobile();
     const inGame = typeof gameState !== 'undefined' && gameState === 'PLAYING';
     const isPausedNow = typeof isPaused !== 'undefined' && isPaused;
     const hasModal = typeof activeModal !== 'undefined' && activeModal;
-    const shouldShow = (this.isMobile || this.forceVisible) && inGame && !isPausedNow && !hasModal;
+    const shouldShow = this.isMobile && inGame && !isPausedNow && !hasModal;
 
     this.setVisible(shouldShow);
   }
@@ -7395,7 +7487,6 @@ class VirtualJoystick {
     if (this.visible === show) return;
     this.visible = show;
     if (this.container) this.container.setVisible(show);
-    if (this.actionContainer) this.actionContainer.setVisible(show);
   }
 
   update(dt) {
@@ -7410,10 +7501,6 @@ class VirtualJoystick {
     if (this.container) {
       this.container.destroy();
       this.container = null;
-    }
-    if (this.actionContainer) {
-      this.actionContainer.destroy();
-      this.actionContainer = null;
     }
   }
 }
@@ -7440,7 +7527,7 @@ function preload() {
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
   makeSheet(this, 'gargoyle', 32, 32, 2, drawGargoyle);
   makeSheet(this, 'dark_mage', 32, 32, 2, drawDarkMage);
-  makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
+  makeSheet(this, 'mini_golem', 28, 28, 3, drawMiniGolem);
   makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
   makeSheet(this, 'village_blacksmith', 112, 84, 1, drawVillageBlacksmith);
   makeSheet(this, 'village_stable', 120, 84, 1, drawVillageStable);
@@ -7705,6 +7792,19 @@ function create(data) {
     if (a.projId && e.lastProjId === a.projId) return;
     if (a.projId) e.lastProjId = a.projId;
 
+    // Regras 1 e 2: O Mago Sombrio ignora dano de projéteis e se teletransporta instantaneamente!
+    if (e.enemyType === 'dark_mage') {
+      teleportMage(scene, e);
+      if (a.isFireball) {
+        const fx = a.x, fy = a.y, rad = a.blastRadius || 42, dmg = a.dmg || 1;
+        a.destroy();
+        explodeFireball(scene, fx, fy, rad, dmg);
+      } else if (!a.isBoomerang) {
+        a.destroy();
+      }
+      return;
+    }
+
     if (a.isFireball) {
       const fx = a.x, fy = a.y, rad = a.blastRadius || 42, dmg = a.dmg || 1;
       a.destroy();
@@ -7724,6 +7824,15 @@ function create(data) {
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, s.dmg || 1);
+      // Regra 22: Espada aplica empurrão (knockback) escalonado com o nível
+      if (!e.isBoss) {
+        const kb = s.knockback || 22;
+        e.x = Math.min(790, e.x + kb);
+        if (e.body) {
+          e.body.updateFromGameObject();
+          e.body.velocity.x += kb * 4;
+        }
+      }
     }
   });
   scene.physics.add.overlap(slashes, enemyArrows, (s, a) => {
@@ -7874,6 +7983,17 @@ function updateGameplay(scene, time, dt) {
       if (e.enemyType === 'gargoyle' && e.baseY !== undefined) {
         e.y = Math.round(Phaser.Math.Clamp(e.baseY + Math.sin(time * 0.0055 + e.phase) * 46, 125, 520));
         if (e.body) e.body.updateFromGameObject();
+      } else if (e.enemyType === 'goblin') {
+        if (e.phase === undefined) e.phase = Math.random() * 6.28;
+        // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
+        const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
+        e.setVelocityY(zigZagSpeed);
+      } else if (e.enemyType === 'mini_golem') {
+        // Regras 9 e 10: Mini-Golems inconscientes/em ejeção permanecem estáticos como pedra
+        if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {
+          e.setVelocity(0, 0);
+          e.setFrame(2);
+        }
       }
     }
   });

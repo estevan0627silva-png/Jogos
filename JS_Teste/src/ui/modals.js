@@ -10,18 +10,22 @@ function rollLevelUpCards() {
   unlockedKeys.forEach(key => {
     const cfg = WEAPON_CATALOG[key];
     const currLvl = getWeaponLevel(key);
-    if (cfg && currLvl < MAX_WEAPON_LEVEL) {
+    if (cfg) {
       const nextLvl = currLvl + 1;
-      const isHeld = buff.type === key;
+      const isHeld = buff && buff.type === key;
+      const lvlDesc = (cfg.levels && cfg.levels[nextLvl - 1])
+        ? cfg.levels[nextLvl - 1]
+        : `✦ PODER TRANSCENDENTAL (NV. ${nextLvl})!\n+15% Cadência de disparo, +Dano e escala contínua de combate.`;
+
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
         category: isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA',
         title: cfg.name,
         badge: `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-        badgeColor: nextLvl === MAX_WEAPON_LEVEL ? '#ffca28' : '#7fe7ff',
-        borderColor: nextLvl === MAX_WEAPON_LEVEL ? 0xffca28 : 0x7fe7ff,
+        badgeColor: nextLvl >= 5 ? '#ffca28' : '#7fe7ff',
+        borderColor: nextLvl >= 5 ? 0xffca28 : 0x7fe7ff,
         icon: cfg.icon,
-        desc: `${cfg.levels[nextLvl - 1]}\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `${lvlDesc}\n\n✦ Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;

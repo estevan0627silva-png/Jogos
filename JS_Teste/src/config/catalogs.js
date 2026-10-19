@@ -87,13 +87,13 @@ const STATUS_CATALOG = {
     potionColor: 0xff5252,
     icon: 'stat_health',
     maxLevel: 4,
-    costs: [22, 48, 85, 0],
-    values: [1, 2, 3, 4],
+    costs: [25, 50, 90, 0],
+    values: [3, 4, 5, 6],
     levels: [
-      '1 Coração de Vida (Vigor inicial do Cavaleiro).',
-      '2 Corações de Vida (+1 golpe suportado com invencibilidade).',
-      '3 Corações de Vida (Sangue de Dragão — alta resistência).',
-      '4 Corações de Vida (Imortalidade Rubra do Campeão)!'
+      '3 Corações de Vida (Vigor inicial honrado do Cavaleiro).',
+      '4 Corações de Vida (+1 Coração — 4 golpes suportados).',
+      '5 Corações de Vida (Sangue de Dragão — 5 Corações).',
+      '6 Corações de Vida (Imortalidade Rubra — 6 Corações supremos)!'
     ]
   },
   moveSpeed: {

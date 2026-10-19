@@ -141,6 +141,7 @@ function killEnemy(enemy) {
 
 function playerHit(scene, hazard) {
   if (gameState !== 'PLAYING' || !hazard.active) return;
+  if (hazard.golemState === 'EJECTING' || hazard.golemState === 'DORMANT') return;
 
   if (buff.type === 'shield') {
     const lvl = getWeaponLevel('shield');

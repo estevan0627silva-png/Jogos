@@ -7,27 +7,29 @@ const WeaponStrategies = {
     id: 'bow',
     name: BUFF_NAMES.bow,
     baseDuration: BUFF_TIME.bow,
-    attackRates: [520, 420, 350, 280, 220],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 520;
+      return Math.max(130, Math.round(540 - (lvl - 1) * 45));
     },
     attack({ player, arrows, nextProjId }) {
       sound.playBow();
       const lvl = getWeaponLevel('bow');
-      const spreads = {
-        1: [0],
-        2: [0],
-        3: [-0.09, 0.09],
-        4: [-0.18, 0, 0.18],
-        5: [-0.28, -0.14, 0, 0.14, 0.28]
-      }[lvl] || [0];
+      let spreads = [0];
+      if (lvl >= 7) {
+        spreads = [-0.32, -0.21, -0.11, 0, 0.11, 0.21, 0.32];
+      } else if (lvl >= 5) {
+        spreads = [-0.26, -0.13, 0, 0.13, 0.26];
+      } else if (lvl >= 4) {
+        spreads = [-0.18, 0, 0.18];
+      } else if (lvl >= 3) {
+        spreads = [-0.09, 0.09];
+      }
 
-      const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
-      const dmg = lvl >= 4 ? 2 : 1;
-      const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
+      const spd = Math.min(950, 520 + (lvl - 1) * 55);
+      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.4));
+      const pierce = lvl >= 4 ? Math.min(6, 2 + Math.floor((lvl - 4) * 0.6)) : 1;
       const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
 
       spreads.forEach(ang => {
@@ -45,31 +47,33 @@ const WeaponStrategies = {
     id: 'sword',
     name: BUFF_NAMES.sword,
     baseDuration: BUFF_TIME.sword,
-    attackRates: [480, 400, 330, 265, 210],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 480;
+      return Math.max(140, Math.round(480 - (lvl - 1) * 40));
     },
     attack({ scene, player, arrows, slashes, fx, nextProjId }) {
       slashes.getChildren().slice().forEach(old => old.destroy());
       sound.playSword();
       const lvl = getWeaponLevel('sword');
-      const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
-      const damages = [1, 1, 2, 3, 4];
-      const scale = scales[lvl - 1] || 0.72;
+
+      // Escalonamento contínuo de tamanho (hitbox) e força de repulsão (knockback)
+      const scale = 0.75 + (lvl - 1) * 0.22;
+      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
+      const knockback = 22 + (lvl - 1) * 16;
       const offsetX = Math.round(24 + (lvl - 1) * 7);
 
       const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
       slash.setScale(scale);
       slash.offsetX = offsetX;
-      slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
+      slash.body.setSize(Math.round(40 * scale), Math.round(62 * scale));
       slash.slashId = nextProjId();
-      slash.dmg = damages[lvl - 1] || 1;
+      slash.dmg = dmg;
+      slash.knockback = knockback;
       slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
         .setOrigin(0.5, 0.78)
-        .setScale(0.82 + (lvl - 1) * 0.18);
+        .setScale(0.80 + (lvl - 1) * 0.20);
 
       fx.sparks.explode(5, player.x + offsetX, player.y);
 
@@ -83,16 +87,18 @@ const WeaponStrategies = {
         onComplete: () => slash.destroy()
       });
 
-      // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
+      // Nv >= 5: Dispara Onda de Vento Cortante Perfurante que também escala
       if (lvl >= 5) {
+        const waveScale = 1.35 + (lvl - 5) * 0.15;
+        const waveDmg = 2 + Math.floor((lvl - 5) * 0.75);
         const waveProj = arrows.create(player.x + 34, player.y, 'arrow_player');
         waveProj.setTint(0x7fe7ff);
-        waveProj.setScale(1.45);
+        waveProj.setScale(waveScale);
         waveProj.body.setSize(22, 14);
-        waveProj.dmg = 3;
-        waveProj.pierceCount = 4;
+        waveProj.dmg = waveDmg;
+        waveProj.pierceCount = 4 + Math.floor((lvl - 5) * 0.5);
         waveProj.projId = nextProjId();
-        waveProj.setVelocityX(720);
+        waveProj.setVelocityX(720 + (lvl - 5) * 35);
         fx.holy.explode(8, player.x + 34, player.y);
       }
     }
@@ -101,9 +107,8 @@ const WeaponStrategies = {
     id: 'shield',
     name: BUFF_NAMES.shield,
     baseDuration: BUFF_TIME.shield,
-    attackRates: [],
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 1.65 + wisdomDur + bonusDur;
+      return this.baseDuration + (lvl - 1) * 1.50 + wisdomDur + bonusDur;
     },
     getAttackRate() { return 0; },
     attack() { /* O escudo é defensivo/reativo a impactos */ },
@@ -126,40 +131,42 @@ const WeaponStrategies = {
     id: 'axe',
     name: BUFF_NAMES.axe,
     baseDuration: BUFF_TIME.axe,
-    attackRates: [600, 500, 420, 340, 270],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 600;
+      return Math.max(150, Math.round(620 - (lvl - 1) * 55));
     },
     attack({ player, arrows, nextProjId }) {
       sound.playSword();
       const lvl = getWeaponLevel('axe');
-      const angles = {
-        1: [0],
-        2: [0],
-        3: [-0.16, 0.16],
-        4: [-0.24, 0, 0.24],
-        5: [-0.32, -0.11, 0.11, 0.32]
-      }[lvl] || [0];
+      let angles = [0];
+      if (lvl >= 5) {
+        angles = [-0.32, -0.11, 0.11, 0.32];
+      } else if (lvl >= 4) {
+        angles = [-0.24, 0, 0.24];
+      } else if (lvl >= 3) {
+        angles = [-0.16, 0.16];
+      }
 
-      const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
-      const damages = [1, 1, 2, 2, 3];
+      const scale = 0.80 + (lvl - 1) * 0.12;
+      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.45));
+      const spd = Math.min(780, 440 + (lvl - 1) * 40);
 
       angles.forEach(ang => {
         const axe = arrows.create(player.x + 18, player.y, 'axe_proj');
-        axe.setScale(scales[lvl - 1] || 0.82);
+        axe.setScale(scale);
         axe.body.setSize(20, 20);
         axe.isBoomerang = lvl >= 2;
-        axe.pierceCount = lvl === 1 ? 2 : 99;
+        axe.pierceCount = lvl === 1 ? 1 : 99; // Nv 1 atinge 1 inimigo sem perfurar
         axe.returning = false;
-        axe.dmg = damages[lvl - 1] || 1;
+        axe.dmg = dmg;
         axe.projId = nextProjId();
 
-        const spd = 460 + (lvl - 1) * 40;
         axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        axe.body.setAccelerationX(-680);
+        if (axe.isBoomerang) {
+          axe.body.setAccelerationX(-680);
+        }
       });
     }
   },
@@ -167,38 +174,36 @@ const WeaponStrategies = {
     id: 'firestaff',
     name: BUFF_NAMES.firestaff,
     baseDuration: BUFF_TIME.firestaff,
-    attackRates: [650, 540, 450, 360, 285],
     getDuration(lvl, bonusDur, wisdomDur) {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 650;
+      return Math.max(160, Math.round(660 - (lvl - 1) * 60));
     },
     attack({ player, arrows, nextProjId }) {
       sound.playBow();
       const lvl = getWeaponLevel('firestaff');
-      const angles = {
-        1: [0],
-        2: [0],
-        3: [-0.13, 0.13],
-        4: [-0.15, 0.15],
-        5: [-0.24, 0, 0.24]
-      }[lvl] || [0];
+      let angles = [0];
+      if (lvl >= 5) {
+        angles = [-0.24, 0, 0.24];
+      } else if (lvl >= 3) {
+        angles = [-0.14, 0.14];
+      }
 
-      const radii = [42, 58, 74, 92, 115];
-      const damages = [1, 1, 2, 3, 4];
-      const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
+      const blastRadius = 36 + (lvl - 1) * 16;
+      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
+      const scale = 0.78 + (lvl - 1) * 0.12;
+      const spd = Math.min(720, 420 + (lvl - 1) * 35);
 
       angles.forEach(ang => {
         const fb = arrows.create(player.x + 22, player.y, 'fireball_proj');
-        fb.setScale(scales[lvl - 1] || 0.85);
+        fb.setScale(scale);
         fb.body.setSize(18, 12);
         fb.isFireball = true;
-        fb.blastRadius = radii[lvl - 1] || 42;
-        fb.dmg = damages[lvl - 1] || 1;
+        fb.blastRadius = blastRadius;
+        fb.dmg = dmg;
         fb.projId = nextProjId();
 
-        const spd = 440 + (lvl - 1) * 35;
         fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
         fb.rotation = ang;
       });
@@ -422,6 +427,7 @@ function swingSword(scene) {
   slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
   slash.slashId = ++slashCounter;
   slash.dmg = damages[lvl - 1] || 1;
+  slash.knockback = 22 + (lvl - 1) * 16;
   slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
     .setOrigin(0.5, 0.78)
     .setScale(0.82 + (lvl - 1) * 0.18);

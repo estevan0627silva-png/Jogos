@@ -264,8 +264,22 @@ const StorageManager = {
         scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
         scene.cameras.main.setRoundPixels(true);
       }
-      this.updateFullscreenIcons(scene);
     });
+  },
+
+  getJoystickMode() {
+    try {
+      const mode = localStorage.getItem(STORAGE_JOYSTICK_KEY);
+      return mode || 'auto';
+    } catch {
+      return 'auto';
+    }
+  },
+
+  setJoystickMode(mode) {
+    try {
+      localStorage.setItem(STORAGE_JOYSTICK_KEY, mode);
+    } catch {}
   }
 };
 
@@ -296,5 +310,7 @@ function recordAchievementProgress(scene, statKey, amount = 1) { return StorageM
 function isGameFullscreen(scene) { return StorageManager.isGameFullscreen(scene); }
 function updateFullscreenIcons(scene) { return StorageManager.updateFullscreenIcons(scene); }
 function toggleFullscreen(scene) { return StorageManager.toggleFullscreen(scene); }
+function getJoystickMode() { return StorageManager.getJoystickMode(); }
+function setJoystickMode(mode) { return StorageManager.setJoystickMode(mode); }
 
 // =============================================================================

@@ -827,17 +827,17 @@ function showSettingsMenu(scene) {
   menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', 540, 'Ajustes de áudio, vídeo (Tela Cheia) e pergaminho de batalha', 540);
   menuContainer.isMainMenu = false;
 
-  // Seção 1: Áudio & Tela Cheia
+  // Seção 1: Áudio, Tela Cheia & Controles Mobile
   const audioBox = scene.add.graphics();
-  audioBox.fillStyle(0x221a13, 0.92).fillRoundedRect(160, 118, 480, 108, 6);
-  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 118, 480, 108, 6);
+  audioBox.fillStyle(0x221a13, 0.92).fillRoundedRect(160, 108, 480, 134, 6);
+  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 108, 480, 134, 6);
 
-  const audioTitle = scene.add.text(180, 130, 'ÁUDIO & TELA CHEIA (FULLSCREEN)', textStyle('#ffca28', 12));
-  const audioHint = scene.add.text(180, 202, 'Atalhos rápidos: [M] Alternar Áudio   |   [F] Alternar Tela Cheia', textStyle('#a8987b', 11));
+  const audioTitle = scene.add.text(180, 118, 'ÁUDIO, TELA CHEIA & JOYSTICK VIRTUAL', textStyle('#ffca28', 12));
 
-  const audioToggleBtn = scene.add.rectangle(285, 172, 210, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+  // Botão 1: Áudio
+  const audioToggleBtn = scene.add.rectangle(285, 156, 210, 34, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioToggleTxt = scene.add.text(285, 172, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
+  const audioToggleTxt = scene.add.text(285, 156, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 11))
     .setOrigin(0.5);
 
   audioToggleBtn.on('pointerdown', () => {
@@ -848,9 +848,10 @@ function showSettingsMenu(scene) {
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   });
 
-  const fsToggleBtn = scene.add.rectangle(515, 172, 210, 36, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
+  // Botão 2: Tela Cheia
+  const fsToggleBtn = scene.add.rectangle(515, 156, 210, 34, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const fsToggleTxt = scene.add.text(515, 172, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
+  const fsToggleTxt = scene.add.text(515, 156, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 11))
     .setOrigin(0.5);
 
   const refreshFsBtn = () => {
@@ -867,10 +868,39 @@ function showSettingsMenu(scene) {
     scene.time.delayedCall(80, refreshFsBtn);
   });
 
+  // Botão 3: Ativar Joystick Virtual (Mobile / PC)
+  const getJoyLabel = () => {
+    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
+    if (m === 'enabled') return 'JOYSTICK VIRTUAL: [SEMPRE ATIVADO]';
+    if (m === 'disabled') return 'JOYSTICK VIRTUAL: [DESATIVADO]';
+    return 'JOYSTICK VIRTUAL: [DETECÇÃO AUTOMÁTICA]';
+  };
+  const getJoyColor = () => {
+    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
+    if (m === 'enabled') return 0x247a46;
+    if (m === 'disabled') return 0x8e1b1b;
+    return 0x2d3a4f;
+  };
+
+  const joyToggleBtn = scene.add.rectangle(400, 204, 440, 34, getJoyColor())
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const joyToggleTxt = scene.add.text(400, 204, getJoyLabel(), textStyle('#ffffff', 11))
+    .setOrigin(0.5);
+
+  joyToggleBtn.on('pointerdown', () => {
+    sound.playButtonClick();
+    const current = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
+    const next = current === 'auto' ? 'enabled' : (current === 'enabled' ? 'disabled' : 'auto');
+    if (typeof setJoystickMode === 'function') setJoystickMode(next);
+    joyToggleBtn.setFillStyle(getJoyColor());
+    joyToggleTxt.setText(getJoyLabel());
+    if (virtualJoystick) virtualJoystick.updateVisibility();
+  });
+
   // Seção 2: Pergaminho de Dicas
   const guideBox = scene.add.graphics();
-  guideBox.fillStyle(0x1d1611, 0.92).fillRoundedRect(160, 238, 480, 215, 6);
-  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 238, 480, 215, 6);
+  guideBox.fillStyle(0x1d1611, 0.92).fillRoundedRect(160, 250, 480, 205, 6);
+  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 250, 480, 205, 6);
 
   const guideTitle = scene.add.text(400, 256, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
@@ -886,7 +916,7 @@ function showSettingsMenu(scene) {
   );
 
   menuContainer.add([
-    audioBox, audioTitle, audioHint, audioToggleBtn, audioToggleTxt, fsToggleBtn, fsToggleTxt,
+    audioBox, audioTitle, audioToggleBtn, audioToggleTxt, fsToggleBtn, fsToggleTxt, joyToggleBtn, joyToggleTxt,
     guideBox, guideTitle, ...guideTexts,
     ...createButton(scene, 400, 498, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 44)
   ]);

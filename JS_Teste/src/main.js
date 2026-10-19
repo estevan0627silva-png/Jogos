@@ -12,7 +12,7 @@ function preload() {
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
   makeSheet(this, 'gargoyle', 32, 32, 2, drawGargoyle);
   makeSheet(this, 'dark_mage', 32, 32, 2, drawDarkMage);
-  makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
+  makeSheet(this, 'mini_golem', 28, 28, 3, drawMiniGolem);
   makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
   makeSheet(this, 'village_blacksmith', 112, 84, 1, drawVillageBlacksmith);
   makeSheet(this, 'village_stable', 120, 84, 1, drawVillageStable);
@@ -277,6 +277,19 @@ function create(data) {
     if (a.projId && e.lastProjId === a.projId) return;
     if (a.projId) e.lastProjId = a.projId;
 
+    // Regras 1 e 2: O Mago Sombrio ignora dano de projéteis e se teletransporta instantaneamente!
+    if (e.enemyType === 'dark_mage') {
+      teleportMage(scene, e);
+      if (a.isFireball) {
+        const fx = a.x, fy = a.y, rad = a.blastRadius || 42, dmg = a.dmg || 1;
+        a.destroy();
+        explodeFireball(scene, fx, fy, rad, dmg);
+      } else if (!a.isBoomerang) {
+        a.destroy();
+      }
+      return;
+    }
+
     if (a.isFireball) {
       const fx = a.x, fy = a.y, rad = a.blastRadius || 42, dmg = a.dmg || 1;
       a.destroy();
@@ -296,6 +309,15 @@ function create(data) {
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, s.dmg || 1);
+      // Regra 22: Espada aplica empurrão (knockback) escalonado com o nível
+      if (!e.isBoss) {
+        const kb = s.knockback || 22;
+        e.x = Math.min(790, e.x + kb);
+        if (e.body) {
+          e.body.updateFromGameObject();
+          e.body.velocity.x += kb * 4;
+        }
+      }
     }
   });
   scene.physics.add.overlap(slashes, enemyArrows, (s, a) => {
@@ -446,6 +468,17 @@ function updateGameplay(scene, time, dt) {
       if (e.enemyType === 'gargoyle' && e.baseY !== undefined) {
         e.y = Math.round(Phaser.Math.Clamp(e.baseY + Math.sin(time * 0.0055 + e.phase) * 46, 125, 520));
         if (e.body) e.body.updateFromGameObject();
+      } else if (e.enemyType === 'goblin') {
+        if (e.phase === undefined) e.phase = Math.random() * 6.28;
+        // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
+        const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
+        e.setVelocityY(zigZagSpeed);
+      } else if (e.enemyType === 'mini_golem') {
+        // Regras 9 e 10: Mini-Golems inconscientes/em ejeção permanecem estáticos como pedra
+        if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {
+          e.setVelocity(0, 0);
+          e.setFrame(2);
+        }
       }
     }
   });

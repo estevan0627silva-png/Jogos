@@ -58,8 +58,7 @@ function startBossFight(scene) {
   updateBossHUD();
 
   if (!buff.type) spawnItem(scene);
-  spawnEnemy(scene, 'mini_golem', 220);
-  spawnEnemy(scene, 'mini_golem', 430);
+  ejectMiniGolemsFromBoss(scene, boss);
 
   boss.attackTimer = scene.time.addEvent({
     delay: 2800,
@@ -67,7 +66,9 @@ function startBossFight(scene) {
     callback: () => {
       if (gameState !== 'PLAYING' || !boss.active || boss.entering || boss.isLunging) return;
       boss.attackCount++;
-      spawnEnemy(scene, 'mini_golem', Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-90, 90), 140, 510));
+
+      // Ejeção física dinâmica de Mini-Golems diretamente do corpo do Boss
+      ejectMiniGolemsFromBoss(scene, boss);
 
       if (boss.attackCount % 2 === 1) {
         bossThrowRocks(scene, boss);
@@ -76,6 +77,126 @@ function startBossFight(scene) {
       }
     }
   });
+}
+
+// EJEÇÃO DINÂMICA DE MINI-GOLEMS DO CORPO DO BOSS:
+// Quanto menor a vida do Chefão, maior o número de Mini-Golems expelidos.
+// Saltam com física/arco do torso do Boss, caem como pedra inativa, tremem e despertam com olhos vermelhos.
+function ejectMiniGolemsFromBoss(scene, boss) {
+  if (!boss || !boss.active || gameState !== 'PLAYING') return;
+
+  const hpRatio = (boss.hp ?? BOSS_MAX_HP) / (boss.maxHp || BOSS_MAX_HP);
+  let count = 1;
+  if (hpRatio <= 0.35) {
+    count = Phaser.Math.Between(3, 4);
+  } else if (hpRatio <= 0.70) {
+    count = Phaser.Math.Between(2, 3);
+  } else {
+    count = Phaser.Math.Between(1, 2);
+  }
+
+  sound.playEarthSmash();
+  scene.cameras.main.shake(160, 0.006);
+
+  // Recuo visual do torso do Boss ao desprender fragmentos
+  scene.tweens.add({
+    targets: boss,
+    x: boss.x + 6,
+    duration: 65,
+    yoyo: true,
+    repeat: 1
+  });
+
+  for (let i = 0; i < count; i++) {
+    scene.time.delayedCall(i * 180, () => {
+      if (!boss || !boss.active || gameState !== 'PLAYING') return;
+
+      const originX = boss.x - 22;
+      const originY = boss.y - 8;
+
+      if (debrisFx) debrisFx.explode(10, originX, originY);
+      if (sparksFx) sparksFx.explode(6, originX, originY);
+
+      const golem = enemies.create(originX, originY, 'mini_golem', 2);
+      const cfg = ENEMIES.mini_golem || { w: 18, h: 20, speed: 0.94, hp: 1 };
+      golem.body.setSize(cfg.w, cfg.h);
+      golem.enemyType = 'mini_golem';
+      golem.maxHp = cfg.hp;
+      golem.hp = golem.maxHp;
+      golem.setFlipX(true);
+      golem.setFrame(2); // Frame 2: Rocha inerte, olhos apagados
+
+      golem.golemState = 'EJECTING';
+      golem.setVelocity(0, 0);
+
+      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(75, 170), 160, 680);
+      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-85, 85), 140, 505);
+
+      // Trajetória em arco parabólico simulando desprendimento do corpo do Boss
+      scene.tweens.add({
+        targets: golem,
+        x: targetX,
+        duration: 440,
+        ease: 'Linear'
+      });
+
+      scene.tweens.add({
+        targets: golem,
+        y: targetY - 45,
+        duration: 210,
+        ease: 'Quad.easeOut',
+        onComplete: () => {
+          if (!golem || !golem.active) return;
+          scene.tweens.add({
+            targets: golem,
+            y: targetY,
+            duration: 230,
+            ease: 'Quad.easeIn',
+            onComplete: () => {
+              if (!golem || !golem.active) return;
+              golem.y = targetY;
+              golem.baseY = targetY;
+
+              if (debrisFx) debrisFx.explode(7, golem.x, golem.y + 10);
+              sound.playShieldBlock();
+
+              // Estado: DORMANT (Inconsciente como rocha, olhos apagados, totalmente imóvel)
+              golem.golemState = 'DORMANT';
+              golem.setFrame(2);
+              golem.setVelocity(0, 0);
+
+              // Transição de despertar após breve momento (1.1s a 1.5s)
+              const dormantTime = Phaser.Math.Between(1100, 1500);
+              scene.time.delayedCall(dormantTime, () => {
+                if (!golem || !golem.active || gameState !== 'PLAYING') return;
+
+                // Animação de tremor pré-despertar
+                scene.tweens.add({
+                  targets: golem,
+                  x: golem.x + 3,
+                  duration: 40,
+                  yoyo: true,
+                  repeat: 5,
+                  onComplete: () => {
+                    if (!golem || !golem.active || gameState !== 'PLAYING') return;
+
+                    // Despertar dos olhos vermelhos brilhantes e início da perseguição
+                    golem.golemState = 'ACTIVE';
+                    golem.play('mini_golem');
+                    if (holyFx) holyFx.explode(6, golem.x, golem.y);
+                    sound.playFireStaff();
+                    floatText(scene, golem.x, golem.y - 18, 'DESPERTOU!', '#ff5252');
+
+                    golem.setVelocityX(-enemySpeed * cfg.speed);
+                  }
+                });
+              });
+            }
+          });
+        }
+      });
+    });
+  }
 }
 
 // GOLPE 1: Arremesso de Rochas com Alerta Vermelho -> Chão Craquelado + Rocha como Escudo/Obstáculo

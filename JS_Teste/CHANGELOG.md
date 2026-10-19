@@ -4,6 +4,43 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
 
 ---
 
+## [v1.6.0] — 2026-10-19
+### 🗿 Título da Versão: **Combat Overhaul, Stone Golem & Refined Touch Controls**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Boss Golem aos 60s com ejeção física e despertar de Mini-Golems conforme o HP, defesa do Mago com esquiva/teletransporte contra projéteis, movimentação em zigue-zague dos Goblins, sistema de vida padronizado em Corações/Hits, progressão infinita de armas com balanceamento, escalonamento de tamanho e Knockback da Espada, joystick virtual ancorado com toggle nas configurações e remoção do botão de ação.
+
+### 🚀 O que mudou (22 Diretrizes Implementadas):
+- **🧙 Defesa e Mecânicas do Mago Sombrio:**
+  - **Imunidade a Projéteis:** O Mago agora ignora totalmente dano ao ser atingido por projéteis (flechas, bumerangues e bolas de fogo).
+  - **Teletransporte Instantâneo de Esquiva:** Ao colidir com projéteis, o Mago emite faíscas arcanas e som de bloqueio místico, teletransportando-se imediatamente para uma coordenada segura aleatória no campo de batalha com aviso tático de *"ESQUIVA / TELEPORTE!"*. Dano corpo a corpo com a espada permanece eficaz contra ele.
+  - **Spawn Raro:** Peso do Mago reduzido no pool de inimigos para ~8% de spawn rate, conferindo presença imponente e estratégica.
+  - **Bloqueio de Progressão Pré-Boss:** O Mago só é adicionado ao pool de geração após a primeira derrota do Boss (\`bossDefeated === true\`).
+- **🗿 Boss Fight do Golem de Pedra & Mini-Golems:**
+  - **Surgimento Pontual aos 60s:** O Golem Ancestral agora desperta exatamente aos 60 segundos de partida (\`BOSS_TRIGGER_TIME = 60\`).
+  - **Pausa de Inimigos Comuns:** Durante toda a Boss Fight, a geração de monstros comuns fica suspensa; a arena é povoada exclusivamente pelo Golem e seus Mini-Golems.
+  - **Ejeção Física com Salto do Torso:** Mini-Golems saltam fisicamente do peito do Boss em um arco parabólico com emissão de estilhaços de pedra e recuo no corpo do Golem, criando o efeito visual de lascarem da sua carcaça.
+  - **Spawn Dinâmico Atrelado ao HP do Boss:** O número de Mini-Golems expelidos escala com o dano sofrido pelo Chefão (HP alto: 1–2; HP médio: 2–3; HP crítico <35%: 3–4 mini-golems por ciclo).
+  - **Estado Inerte "Inconsciente/Pedra":** Ao aterrissarem, os Mini-Golems assumem o frame 2 com olhos fechados/apagados e corpo imóvel, sem ferir o jogador enquanto repousam no chão por 1.1s a 1.5s.
+  - **Transição e Despertar Ameaçador:** Após o período inerte, os Mini-Golems tremem o corpo, acendem olhos vermelhos incandescentes em efeito sonoro místico e iniciam a perseguição ativa ao Cavaleiro.
+- **👺 IA e Trajetória dos Inimigos:**
+  - **Movimentação em Zigue-Zague dos Goblins:** Os Goblins agora avançam em trajetórias senoidais oscilantes no eixo Y, tornando a aproximação mais dinâmica e imprevisível.
+- **❤️ Padronização de Vida em Corações / Hits:**
+  - **Vida Baseada em Corações/Hits:** Substituída a vida linear por corações discretos (3 corações base, expandíveis até 6 corações no Santuário do Mago).
+  - **Dano Padronizado de 1 Hit:** Qualquer colisão com monstros ou projéteis subtrai rigorosamente 1 Coração, garantindo 1320ms de tempo de invulnerabilidade limpa (i-frames).
+  - **UI de Vida com Ícones de Coração:** Substituição da barra por ícones de coração em Pixel Art no HUD que esvaziam para silhuetas de ferro ao sofrer dano.
+- **🕹️ Controles Mobile e Joystick Virtual Aprimorado:**
+  - **Joystick Virtual Ancorado:** Base do joystick agora é fixa e ancorada no canto inferior esquerdo (\`x: 110, y: 485\`), eliminando deslocamento flutuante indesejado ao tocar na tela.
+  - **Configuração no Menu:** Novo botão *"JOYSTICK VIRTUAL: [AUTO / ATIVADO / DESATIVADO]"* adicionado ao Menu de Configurações, com persistência local em \`localStorage\`.
+  - **Remoção do Botão de Ação:** O botão de ação tátil da direita foi permanentemente removido da tela, mantendo o visual limpo e fluido com ataque automático em cadência nativa.
+- **⚔️ Balanceamento, Progressão Infinita e Escalonamento da Espada:**
+  - **Nível Infinito de Armas:** Removida a barreira de nível 5; armas continuam acumulando níveis indefinidamente durante a partida, com fórmulas de dano contínuas e descrições dinâmicas nas cartas de Level Up.
+  - **Dano Inicial Calibrado:** Nível 1 das armas de projétil inicia com poder reduzido, incentivando a evolução progressiva através de XP.
+  - **Curva de Pacing Rebalanceada:** 0 a 20s suave com aparições pontuais de goblins; após a vitória do Boss, escalonamento agressivo com ondas densas.
+  - **Escalonamento e Knockback da Espada:** A Espada Vorpal agora aumenta sua área de impacto (hitbox) a cada nível e empurra os inimigos com força de Knockback proporcional (\`22 + (lvl - 1) * 16\`).
+
+---
+
 ## [v1.5.0] — 2026-10-19
 ### 📱 Título da Versão: **Mobile Web Touch & Virtual Joystick System**
 

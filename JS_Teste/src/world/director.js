@@ -118,8 +118,8 @@ function startGameplay(scene) {
     if (survivalTime > getBestScore() && hudBestText) {
       hudBestText.setText(`${survivalTime}s`);
     }
-    if (survivalTime === 60 && !bossSpawned) {
-      floatText(scene, 400, 132, '⚔ HORDA INTENSIFICADA! CONTINUE EVOLUINDO! ⚔', '#ffca28');
+    if (survivalTime === 35 && !bossSpawned) {
+      floatText(scene, 400, 132, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
     }
     if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
       startBossFight(scene);
@@ -163,24 +163,27 @@ function startGameplay(scene) {
 
 // Director Dinâmico: calcula quantos inimigos surgem por onda de acordo com o tempo da partida
 function spawnDirectorWave(scene) {
+  // Durante a Boss Fight, pausa completamente a geração de inimigos comuns!
+  // Apenas Mini-Golems expelidos pelo corpo do Golem de Pedra atuam na arena.
   if (activeBoss && activeBoss.active) {
-    spawnEnemy(scene);
-    if (Math.random() < 0.35) {
-      scene.time.delayedCall(220, () => gameState === 'PLAYING' && spawnEnemy(scene, 'mini_golem'));
-    }
     return;
   }
 
   let waveCount = 1;
   const r = Math.random();
-  if (survivalTime >= 130) {
-    waveCount = r < 0.35 ? 4 : (r < 0.80 ? 3 : 2);
-  } else if (survivalTime >= 85) {
+  if (bossDefeated || survivalTime >= 100) {
+    // Pós-Boss: escalonamento agressivo com hordas densas
+    waveCount = r < 0.38 ? 4 : (r < 0.78 ? 3 : 2);
+  } else if (survivalTime >= 70) {
     waveCount = r < 0.45 ? 3 : 2;
-  } else if (survivalTime >= 45) {
-    waveCount = r < 0.20 ? 3 : (r < 0.72 ? 2 : 1);
-  } else if (survivalTime >= 18) {
-    waveCount = r < 0.42 ? 2 : 1;
+  } else if (survivalTime >= 40) {
+    waveCount = r < 0.25 ? 3 : (r < 0.75 ? 2 : 1);
+  } else if (survivalTime >= 20) {
+    // Intermediário (20s - 40s)
+    waveCount = r < 0.40 ? 2 : 1;
+  } else {
+    // Curva inicial suave (0 - 20s): 1 inimigo por pulso para aquecimento gradual
+    waveCount = 1;
   }
 
   for (let i = 0; i < waveCount; i++) {

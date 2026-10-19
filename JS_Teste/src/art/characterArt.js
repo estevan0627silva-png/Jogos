@@ -496,7 +496,11 @@ function drawBossGolem(r, f) {
 }
 
 // Mini Golem de Pedra ("Filhotinhos" do Boss — 28x28, com runas incandescentes, musgo e margem limpa)
+// Frames 0 e 1: Ativo/Perseguindo (olhos vermelhos incandescentes, passadas)
+// Frame 2: Inconsciente/Pedra (olhos apagados/fechados, imóvel como rocha fria)
 function drawMiniGolem(r, f) {
+  const isDormant = (f === 2);
+
   // 1. Tufo de Musgo Ancestral no Topo da Cabeça
   r(C.leafDeep, 5, 1, 4, 2);
   r(C.leafDark, 6, 1, 3, 1);
@@ -510,36 +514,60 @@ function drawMiniGolem(r, f) {
   r(C.steelShadow, 4, 3, 6, 3);
   r(C.steelBase, 5, 3, 4, 1);
 
-  // 3. Olhos Vermelhos Incandescentes (Mini Núcleo Magmático)
-  r(C.rubyDeep, 3, 4, 3, 2);
-  r(C.rubyDeep, 8, 4, 3, 2);
-  r(C.redBase, 4, 5, 2, 2);
-  r(f === 0 ? C.rubyLight : C.rubyGlow, 4, 5, 1, 1);
-  r.shine(4, 5, 0, 0, C.white);
+  if (isDormant) {
+    // 3. Olhos apagados / fechados como fendas de rocha escura
+    r(C.ironDeep, 3, 4, 3, 2);
+    r(C.ironDeep, 8, 4, 3, 2);
+    r(C.outline, 4, 5, 2, 1);
+    r(C.outline, 8, 5, 2, 1);
 
-  r(C.redBase, 8, 5, 2, 2);
-  r(f === 0 ? C.rubyLight : C.rubyGlow, 9, 5, 1, 1);
-  r.shine(9, 5, 0, 0, C.white);
+    // Fissura inativa/fria de pedra no peito
+    r(C.outline, 5, 7, 4, 1);
+    r(C.ironDeep, 6, 8, 2, 1);
 
-  // Fissura de Magma no Peito
-  r(C.outline, 5, 7, 4, 1);
-  r(C.rubyDeep, 6, 8, 2, 1);
-  r(f === 0 ? C.rubyLight : C.fireLight, 6, 7, 1, 1);
+    // 4. Braços e Punhos de Pedra repousando imóveis
+    r(C.ironDark, 1, 6, 2, 3);
+    r(C.steelShadow, 1, 6, 1, 2);
+    r(C.ironDark, 11, 6, 2, 3);
+    r(C.steelShadow, 11, 6, 1, 2);
 
-  // 4. Braços e Punhos de Pedra com Balanço de Corrida
-  const armOff = f === 0 ? 0 : 1;
-  r(C.ironDark, 1, 6 + armOff, 2, 3);
-  r(C.steelShadow, 1, 6 + armOff, 1, 2);
-  r(C.ironDark, 11, 7 - armOff, 2, 3);
-  r(C.steelShadow, 11, 7 - armOff, 1, 2);
+    // 5. Pernas de Pedra encolhidas
+    r(C.ironDark, 3, 9, 3, 1);
+    r(C.steelShadow, 3, 10, 3, 1);
+    r(C.ironDark, 8, 9, 3, 1);
+    r(C.steelShadow, 8, 10, 3, 1);
+  } else {
+    // 3. Olhos Vermelhos Incandescentes (Mini Núcleo Magmático)
+    r(C.rubyDeep, 3, 4, 3, 2);
+    r(C.rubyDeep, 8, 4, 3, 2);
+    r(C.redBase, 4, 5, 2, 2);
+    r(f === 0 ? C.rubyLight : C.rubyGlow, 4, 5, 1, 1);
+    r.shine(4, 5, 0, 0, C.white);
 
-  // 5. Pernas de Pedra Curtas com Passos
-  const legL = f === 0 ? 1 : 2;
-  const legR = f === 1 ? 1 : 2;
-  r(C.ironDark, 3, 9, 3, legL);
-  r(C.steelShadow, 3, 9 + legL, 3, 1);
-  r(C.ironDark, 8, 9, 3, legR);
-  r(C.steelShadow, 8, 9 + legR, 3, 1);
+    r(C.redBase, 8, 5, 2, 2);
+    r(f === 0 ? C.rubyLight : C.rubyGlow, 9, 5, 1, 1);
+    r.shine(9, 5, 0, 0, C.white);
+
+    // Fissura de Magma no Peito
+    r(C.outline, 5, 7, 4, 1);
+    r(C.rubyDeep, 6, 8, 2, 1);
+    r(f === 0 ? C.rubyLight : C.fireLight, 6, 7, 1, 1);
+
+    // 4. Braços e Punhos de Pedra com Balanço de Corrida
+    const armOff = f === 0 ? 0 : 1;
+    r(C.ironDark, 1, 6 + armOff, 2, 3);
+    r(C.steelShadow, 1, 6 + armOff, 1, 2);
+    r(C.ironDark, 11, 7 - armOff, 2, 3);
+    r(C.steelShadow, 11, 7 - armOff, 1, 2);
+
+    // 5. Pernas de Pedra Curtas com Passos
+    const legL = f === 0 ? 1 : 2;
+    const legR = f === 1 ? 1 : 2;
+    r(C.ironDark, 3, 9, 3, legL);
+    r(C.steelShadow, 3, 9 + legL, 3, 1);
+    r(C.ironDark, 8, 9, 3, legR);
+    r(C.steelShadow, 8, 9 + legR, 3, 1);
+  }
 }
 
 
