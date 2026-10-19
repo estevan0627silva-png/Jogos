@@ -453,8 +453,8 @@ const C = {
 // =============================================================================
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
-let player, shieldSprite, cursors, keys;
-let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, playerBuffBar, enemyHpBars;
+let player, shieldSprite, shieldAura, cursors, keys;
+let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
 let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes, xpOrbs;
 let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
@@ -1825,10 +1825,32 @@ function drawAxeIcon(r) {
 }
 
 function drawAxeProj(r) {
-  r(C.woodDark, 5, 2, 2, 8); r(C.gold, 5, 5, 2, 2);
-  r(C.steelLight, 1, 2, 4, 6); r(C.steel, 2, 3, 3, 4);
-  r(C.steelLight, 7, 2, 4, 6); r(C.steel, 7, 3, 3, 4);
-  r(C.cyan, 5, 4, 2, 3);
+  // 1. Haste de carvalho reforçada com amarras e pomo de ouro
+  r(C.woodDark, 5, 1, 2, 10);
+  r(C.leatherBase, 5, 5, 2, 3);
+  r(C.goldDark, 5, 10, 2, 2);
+  r(C.goldLight, 5, 10, 2, 1);
+
+  // 2. Lâmina Dupla Reluzente com chanfro e gume curvo afiado
+  // Lâmina Esquerda (meia-lua agressiva)
+  r(C.steelDark, 1, 2, 4, 7);
+  r(C.steelBase, 1, 3, 3, 5);
+  r(C.steelLight, 0, 3, 2, 5);
+  r(C.white, 0, 4, 1, 3); // Gume afiado de alto contraste
+  r.shine(0, 3, 0, 0, C.white);
+
+  // Lâmina Direita (meia-lua agressiva)
+  r(C.steelDark, 7, 2, 4, 7);
+  r(C.steelBase, 8, 3, 3, 5);
+  r(C.steelLight, 10, 3, 2, 5);
+  r(C.white, 11, 4, 1, 3); // Gume afiado de alto contraste
+  r.shine(11, 3, 0, 0, C.white);
+
+  // 3. Olho de fixação central de ferro com Runa Ciano reluzente
+  r(C.ironDeep, 4, 3, 4, 4);
+  r(C.goldBase, 4, 3, 4, 1);
+  r(C.cyan, 5, 4, 2, 2);
+  r(C.white, 5, 4, 1, 1);
 }
 
 // Nova Arma 2: Ícone e Projétil do Cajado de Fogo Arcano
@@ -1838,30 +1860,86 @@ function drawFireStaffIcon(r) {
 }
 
 function drawFireballProj(r) {
-  r(C.darkRed, 1, 2, 4, 3);
-  r(C.red, 3, 1, 6, 5);
-  r(C.gold, 5, 2, 4, 3);
-  r(C.yellow, 7, 2, 3, 3);
-  r(C.white, 8, 3, 2, 1);
+  // 1. Cauda de fumaça rubi e brasas turbulentas
+  r(C.rubyDeep, 0, 2, 3, 4);
+  r(C.fireDeep, 1, 1, 3, 6);
+  r(C.fireShadow, 2, 2, 3, 4);
+
+  // 2. Manto de labaredas vivas
+  r(C.fireBase, 3, 1, 5, 6);
+  r(C.fireLight, 4, 1, 5, 6);
+  r(C.fireHighlight, 6, 2, 4, 4);
+
+  // 3. Esfera central incandescente solar
+  r(C.white, 8, 2, 3, 4);
+  r(C.white, 7, 3, 5, 2);
+  r.shine(9, 3, 0, 0, C.white);
 }
 
-// Orbe Arcano do Mago Sombrio (Bullet-Hell)
+// Orbe Arcano do Mago Sombrio (Bullet-Hell — Núcleo negro com aura magenta/púrpura)
 function drawMageOrb(r) {
-  r(0x4a148c, 1, 1, 6, 6);
-  r(C.purple, 2, 2, 4, 4);
-  r(C.cyan, 3, 2, 2, 4);
-  r(C.white, 3, 3, 2, 2);
+  // 1. Aura espectral pulsante do Vazio em magenta e púrpura
+  r(C.arcanaDeep, 0, 1, 8, 6);
+  r(C.arcanaDeep, 1, 0, 6, 8);
+  r(C.arcanaShadow, 1, 1, 6, 6);
+  r(0xe040fb, 1, 2, 6, 4); // Magenta luminoso
+  r(0xaa00ff, 2, 1, 4, 6); // Violeta místico
+
+  // 2. Singularidade Negra (Núcleo do Abismo)
+  r(0x0a0012, 2, 2, 4, 4);
+
+  // 3. Centelha arcana espectral no centro da singularidade
+  r(C.cyan, 3, 3, 2, 2);
+  r(C.white, 3, 3, 1, 1);
 }
 
-function drawBlade(r) {                                  // espada usada no golpe
-  r(C.steelLight, 2, 1, 1, 12); r(C.steel, 3, 2, 1, 11);
-  r(C.gold, 1, 13, 4, 1); r(C.woodDark, 2, 14, 2, 3); r(C.gold, 2, 17, 2, 1);
+function drawBlade(r) {                                  // Espada Vorpal (lâmina usada no golpe)
+  // 1. Lâmina de aço temperado com gume reluzente e canaleta de sangue
+  r(C.steelShadow, 1, 1, 4, 12);
+  r(C.steelBase, 2, 1, 2, 12);
+  r(C.steelLight, 2, 1, 1, 12);
+  r(C.white, 2, 0, 1, 2); // Ponta afiada
+  r.shine(2, 1, 0, 0, C.white);
+
+  // 2. Runa ciano luminosa entalhada na lâmina
+  r(C.cyan, 2, 6, 1, 4);
+  r(C.white, 2, 7, 1, 2);
+
+  // 3. Guarda de ouro maciço com gavilhões chanfrados
+  r(C.goldDark, 0, 13, 6, 2);
+  r(C.goldBase, 0, 13, 6, 1);
+  r(C.goldLight, 1, 13, 4, 1);
+  r.shine(1, 13, 0, 0, C.white);
+
+  // 4. Cabo de couro nobre trançado e pomo com rubi cravado
+  r(C.woodDark, 2, 15, 2, 3);
+  r(C.leatherBase, 2, 16, 2, 1);
+  r(C.goldBase, 1, 18, 4, 2);
+  r(C.rubyLight, 2, 18, 2, 1);
 }
 
-const arrowDrawer = (feather, tip) => (r) => {
-  r(feather, 1, 1, 2, 1); r(feather, 1, 3, 2, 1); r(feather, 2, 2, 1, 1); // penas
-  r(C.wood, 3, 2, 7, 1);                                                   // haste
-  r(tip, 10, 1, 1, 3); r(tip, 11, 2, 1, 1);                                // ponta
+const arrowDrawer = (feather, tip, trailCol = C.manaLight) => (r) => {
+  // 1. Rastro de velocidade / esteira de vento translúcida atrás da flecha
+  r(trailCol, 0, 2, 2, 1);
+  r(trailCol, 1, 1, 1, 1);
+  r(trailCol, 1, 3, 1, 1);
+
+  // 2. Empenamento / Penas do projétil
+  r(feather, 2, 0, 2, 2);
+  r(feather, 2, 3, 2, 2);
+  r(C.white, 3, 1, 1, 1);
+  r(C.white, 3, 3, 1, 1);
+
+  // 3. Haste de madeira torneada com anel metálico de reforço
+  r(C.woodDark, 4, 2, 6, 1);
+  r(C.woodBase, 5, 2, 5, 1);
+  r(C.goldBase, 7, 2, 1, 1);
+
+  // 4. Ponta afiada perfurante de navalha com reflexo especular
+  r(tip, 10, 1, 2, 3);
+  r(tip, 11, 2, 1, 1);
+  r(C.white, 11, 2, 1, 1);
+  r.shine(11, 2, 0, 0, C.white);
 };
 
 // Ícones de Pixel Art para o HUD
@@ -2404,11 +2482,13 @@ function makeWorldTextures(scene) {
   });
   g.generateTexture('forest_bottom', 128, 80);
 
-  // 5. Rastro do golpe de espada (meia-lua cortante)
+  // 5. Rastro do golpe de espada (meia-lua cortante com gradiente luminoso semicircular)
   g.clear();
-  g.lineStyle(12, C.cyan, 0.35).beginPath().arc(4, 36, 32, -1.15, 1.15).strokePath();
-  g.lineStyle(5, C.white, 1).beginPath().arc(4, 36, 32, -0.95, 0.95).strokePath();
-  g.generateTexture('slash_arc', 48, 72);
+  g.lineStyle(14, C.manaDeep, 0.25).beginPath().arc(6, 36, 30, -1.22, 1.22).strokePath();
+  g.lineStyle(8, C.cyan, 0.65).beginPath().arc(6, 36, 31, -1.10, 1.10).strokePath();
+  g.lineStyle(4, C.manaLight, 0.92).beginPath().arc(6, 36, 32, -0.98, 0.98).strokePath();
+  g.lineStyle(2, C.white, 1.0).beginPath().arc(6, 36, 32, -0.85, 0.85).strokePath();
+  g.generateTexture('slash_arc', 52, 72);
 
   // 6. Chão craquelado / rachado pelo impacto das rochas do Boss
   g.clear();
@@ -2500,9 +2580,31 @@ function makeWorldTextures(scene) {
   g.fillStyle(C.gold, 0.9).fillRect(444, 176, 4, 88).fillRect(466, 176, 4, 88);
   g.generateTexture('village_plaza', 480, 440);
 
-  // Faísca usada nas explosões de partículas
+  // Faísca usada nas explosões de partículas gerais
   g.clear().fillStyle(C.white).fillRect(0, 0, 4, 4);
   g.generateTexture('spark', 4, 4);
+
+  // Estilhaço afiado para faíscas metálicas, lascas de madeira e pedriscos
+  g.clear().fillStyle(C.white).fillRect(0, 0, 2, 4);
+  g.generateTexture('spark_shard', 2, 4);
+
+  // Estrela cintilante para efeitos sagrados, arcanos e críticos
+  g.clear();
+  g.fillStyle(C.white, 1).fillRect(2, 0, 1, 5).fillRect(0, 2, 5, 1);
+  g.generateTexture('spark_star', 5, 5);
+
+  // Aura rúnica protetora do Escudo Sagrado (48x48)
+  g.clear();
+  g.lineStyle(2, C.cyan, 0.45).strokeCircle(24, 24, 21);
+  g.lineStyle(1, C.manaLight, 0.85).strokeCircle(24, 24, 19);
+  g.fillStyle(C.white, 1);
+  g.fillRect(23, 2, 3, 3).fillRect(23, 43, 3, 3);
+  g.fillRect(2, 23, 3, 3).fillRect(43, 23, 3, 3);
+  g.fillStyle(C.goldLight, 0.9);
+  g.fillRect(9, 9, 2, 2).fillRect(37, 9, 2, 2);
+  g.fillRect(9, 37, 2, 2).fillRect(37, 37, 2, 2);
+  g.generateTexture('shield_aura', 48, 48);
+
   g.destroy();
 }
 
@@ -3052,9 +3154,9 @@ function preload() {
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
   makeSheet(this, 'sword_blade', 12, 40, 1, drawBlade);
-  makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blue, C.steelLight));
-  makeSheet(this, 'arrow_gold', 26, 10, 1, arrowDrawer(C.yellow, C.gold));
-  makeSheet(this, 'arrow_elf', 26, 10, 1, arrowDrawer(C.elfCloak, C.purple));
+  makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blueBase, C.steelLight, C.manaLight));
+  makeSheet(this, 'arrow_gold', 26, 10, 1, arrowDrawer(C.goldDark, C.goldHighlight, C.goldLight));
+  makeSheet(this, 'arrow_elf', 26, 10, 1, arrowDrawer(0x00c853, 0x69f0ae, 0x00e676));
   makeSheet(this, 'orb_enemy', 16, 16, 1, drawMageOrb);
   makeSheet(this, 'axe_proj', 24, 24, 1, drawAxeProj);
   makeSheet(this, 'fireball_proj', 24, 16, 1, drawFireballProj);
@@ -3197,6 +3299,7 @@ function create(data) {
   player.setCollideWorldBounds(true);
   player.setVisible(false); // Oculto enquanto estiver nos menus
   shieldSprite = scene.add.image(0, 0, 'shield_worn').setVisible(false);
+  shieldAura = scene.add.image(0, 0, 'shield_aura').setVisible(false).setAlpha(0.85);
 
   // Controles
   cursors = scene.input.keyboard.createCursorKeys();
@@ -3227,11 +3330,35 @@ function create(data) {
     emitting: false
   }).setDepth(5);
 
-  // Partículas para impactos e mortes
+  // Partículas para impactos gerais e mortes de monstros
   hitFx = scene.add.particles(0, 0, 'spark', {
-    lifespan: 380, speed: { min: 60, max: 180 }, scale: { start: 1.5, end: 0 },
+    lifespan: 340, speed: { min: 70, max: 190 }, scale: { start: 1.4, end: 0 },
     tint: [0xffffff, 0xffca28, 0xff7043], emitting: false
   }).setDepth(1500);
+
+  // Faíscas metálicas pontuais para acertos em armaduras, espadas e bloqueios
+  sparksFx = scene.add.particles(0, 0, 'spark_shard', {
+    lifespan: 220, speed: { min: 120, max: 280 }, scale: { start: 1.2, end: 0 },
+    tint: [0xffffff, 0xfff59d, 0x80deea], emitting: false
+  }).setDepth(1510);
+
+  // Estilhaços físicos de madeira (árvores) e lascas de pedra (rochas) com gravidade
+  debrisFx = scene.add.particles(0, 0, 'spark_shard', {
+    lifespan: 420, speed: { min: 50, max: 150 }, gravityY: 260, scale: { start: 1.5, end: 0.2 },
+    tint: [0x8d5c38, 0x5c3a1b, 0x78909c, 0x455a64], emitting: false
+  }).setDepth(1490);
+
+  // Partículas sagradas cintilantes para Escudo Sagrado e bênçãos divinas
+  holyFx = scene.add.particles(0, 0, 'spark_star', {
+    lifespan: 480, speed: { min: 45, max: 160 }, scale: { start: 1.6, end: 0 },
+    tint: [0xffffff, 0x7fe7ff, 0xffe082, 0x80deea], emitting: false
+  }).setDepth(1620);
+
+  // Brasas e fagulhas para explosões do Cajado de Fogo e impactos vulcânicos
+  emberFx = scene.add.particles(0, 0, 'spark', {
+    lifespan: 380, speed: { min: 90, max: 240 }, scale: { start: 1.8, end: 0 },
+    tint: [0xffeb3b, 0xff7043, 0xff1744, 0xd83a3a], emitting: false
+  }).setDepth(1560);
 
   createHUD(scene);
 
@@ -3270,10 +3397,15 @@ function create(data) {
       damageEnemy(scene, e, s.dmg || 1);
     }
   });
-  scene.physics.add.overlap(slashes, enemyArrows, (s, a) => { sound.playShieldBlock(); a.destroy(); });
+  scene.physics.add.overlap(slashes, enemyArrows, (s, a) => {
+    sound.playShieldBlock();
+    sparksFx.explode(7, a.x, a.y);
+    a.destroy();
+  });
   scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => {
     if (!a.active || !b.active) return;
     sound.playShieldBlock();
+    sparksFx.explode(6, b.x, b.y);
     b.destroy();
     if (!a.isBoomerang && !a.isFireball && (!a.pierceCount || a.pierceCount <= 1)) {
       a.destroy();
@@ -3292,10 +3424,11 @@ function create(data) {
     if (arrow.x > 0 && arrow.x < 800 && obs.x < 810) {
       if (obs.obstacleType === 'rock') {
         sound.playShieldBlock();
-        hitFx.explode(6, arrow.x, arrow.y);
+        sparksFx.explode(6, arrow.x, arrow.y);
+        debrisFx.explode(6, arrow.x, arrow.y);
       } else {
         sound.playWoodHit();
-        hitFx.explode(4, arrow.x, arrow.y);
+        debrisFx.explode(7, arrow.x, arrow.y);
       }
     }
     arrow.destroy();
@@ -3401,15 +3534,26 @@ function updateGameplay(scene, time, dt) {
     }
   });
 
-  // Rotação discreta dos Machados Bumerangue (em passos de 45 graus para preservar nitidez)
+  // Rotação fluida dos Machados Bumerangue e rastros de projéteis
   playerArrows.getChildren().forEach(p => {
-    if (p.isBoomerang && p.active) {
-      p.spinAccum = (p.spinAccum || 0) + 760 * dt;
-      p.setAngle(Math.round(p.spinAccum / 45) * 45);
-      if (!p.returning && p.body.velocity.x < 0) {
+    if ((p.isBoomerang || p.texture.key === 'axe_proj') && p.active) {
+      p.spinAccum = (p.spinAccum || 0) + 820 * dt;
+      p.setAngle(Math.round(p.spinAccum / 30) * 30);
+      if (p.isBoomerang && !p.returning && p.body.velocity.x < 0) {
         p.returning = true;
         p.projId = ++slashCounter;
       }
+    }
+    // Rastro de labaredas e fagulhas da Bola de Fogo
+    if (p.isFireball && p.active && Math.random() < 0.45) {
+      emberFx.emitParticleAt(p.x - 8, p.y + Phaser.Math.Between(-2, 2), 1);
+    }
+  });
+
+  // Rastro mágico verde-esmeralda inconfundível das flechas élficas
+  enemyArrows.getChildren().forEach(a => {
+    if (a.texture.key === 'arrow_elf' && a.active && Math.random() < 0.35) {
+      holyFx.emitParticleAt(a.x + 8, a.y + Phaser.Math.Between(-2, 2), 1);
     }
   });
 
@@ -3501,14 +3645,67 @@ function separatePlayerFromObstacle(p, obs) {
 
 // Profundidade por altura (quem está mais embaixo fica na frente) + sombras + barras de HP
 function sortAndShade() {
-  shadows.clear().fillStyle(0x000000, 0.28);
+  shadows.clear();
   enemyHpBars.clear();
 
   const shadeEntity = (s) => {
     if (!s || !s.active || !s.visible) return;
     const feet = Math.round(s.groundY ?? s.y + s.displayHeight / 2);
     s.setDepth(feet);
-    shadows.fillEllipse(Math.round(s.x), feet - 2, Math.round(s.displayWidth * 0.7), s.isBoss ? 14 : 8);
+
+    // Determina dimensões da sombra proporcionalmente ao tamanho e tipo da criatura
+    let pw = 22, ph = 7, cw = 15, ch = 4; // Penumbra e Core padrão (Cavaleiro)
+    let pAlpha = 0.20, cAlpha = 0.34;
+    let groundY = feet - 2;
+
+    if (s.isBoss) {
+      pw = 74; ph = 20; cw = 56; ch = 12;
+      pAlpha = 0.26; cAlpha = 0.44;
+      groundY = feet - 3;
+    } else if (s.enemyType === 'goblin') {
+      pw = 18; ph = 6; cw = 12; ch = 3;
+    } else if (s.enemyType === 'warrior') {
+      pw = 26; ph = 8; cw = 18; ch = 5;
+      cAlpha = 0.38;
+    } else if (s.enemyType === 'elf') {
+      pw = 18; ph = 6; cw = 12; ch = 4;
+    } else if (s.enemyType === 'dark_mage') {
+      // Mago sombrio flutua/levita suavemente no ar
+      pw = 22; ph = 6; cw = 14; ch = 3;
+      pAlpha = 0.16; cAlpha = 0.22;
+      groundY = feet + 4;
+    } else if (s.enemyType === 'gargoyle') {
+      // Gárgula projeta sombra no chão enquanto bate asas no ar
+      pw = 22; ph = 6; cw = 12; ch = 3;
+      pAlpha = 0.16; cAlpha = 0.20;
+      groundY = Math.round((s.baseY || s.y) + 16);
+    } else if (s.enemyType === 'mini_golem') {
+      pw = 20; ph = 7; cw = 14; ch = 4;
+      cAlpha = 0.36;
+    } else if (s.obstacleType === 'rock') {
+      pw = 32; ph = 10; cw = 24; ch = 6;
+      pAlpha = 0.24; cAlpha = 0.40;
+      groundY = feet - 3;
+    } else if (s.obstacleType === 'tree' || s.isTree) {
+      pw = 36; ph = 12; cw = 26; ch = 7;
+      pAlpha = 0.24; cAlpha = 0.40;
+      groundY = feet - 4;
+    } else if (s.displayWidth && s.displayWidth >= 60) {
+      pw = Math.round(s.displayWidth * 0.82);
+      ph = 14; cw = Math.round(s.displayWidth * 0.62); ch = 8;
+      pAlpha = 0.25; cAlpha = 0.38;
+      groundY = feet - 4;
+    } else if (s.isCoin || s.isXpOrb || s.isItem) {
+      pw = 12; ph = 4; cw = 8; ch = 2;
+      pAlpha = 0.18; cAlpha = 0.28;
+      groundY = feet - 1;
+    }
+
+    const sx = Math.round(s.x);
+    // 1. Penumbra suave externa (dissipa suavemente no solo)
+    shadows.fillStyle(0x161009, pAlpha).fillEllipse(sx, groundY, pw, ph);
+    // 2. Núcleo escuro de contato (assenta os pés firmemente na terra)
+    shadows.fillStyle(0x0a0604, cAlpha).fillEllipse(sx, groundY, cw, ch);
   };
 
   obstacles.getChildren().forEach(o => {
@@ -3560,9 +3757,13 @@ function sortAndShade() {
   playerArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
   enemyArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
 
-  // Escudo e golpe de espada acompanham o cavaleiro (sempre voltados para a frente)
+  // Escudo, aura rúnica e golpe de espada acompanham o cavaleiro (sempre voltados para a frente)
   if (player && player.visible) {
     shieldSprite.setPosition(Math.round(player.x + 12), Math.round(player.y + 4)).setDepth(player.depth + 1);
+    if (shieldAura && shieldAura.visible) {
+      shieldAura.setPosition(Math.round(player.x), Math.round(player.y)).setDepth(player.depth - 1);
+      shieldAura.rotation += 0.02;
+    }
   }
   slashes.getChildren().forEach(s => {
     s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y)).setDepth(player.depth + 3);
@@ -3662,6 +3863,8 @@ function startGameplay(scene) {
     player.setPosition(160, 330).setFlipX(false).setAngle(0).setAlpha(1).clearTint().setVisible(true);
     player.play('knight');
   }
+  if (shieldSprite) shieldSprite.setVisible(false);
+  if (shieldAura) shieldAura.setVisible(false);
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (hudContainer) hudContainer.setVisible(true);
@@ -4286,17 +4489,35 @@ function damageEnemy(scene, enemy, dmg = 1) {
   if (!enemy || !enemy.active) return;
   enemy.hp = (enemy.hp ?? 1) - dmg;
 
+  // Faíscas metálicas pontuais para alvos blindados (guerreiros e boss) ou hit normal
+  if (enemy.isBoss || enemy.enemyType === 'warrior') {
+    sparksFx.explode(8, enemy.x - 12, enemy.y);
+  } else if (enemy.enemyType === 'mini_golem') {
+    debrisFx.explode(6, enemy.x, enemy.y);
+  } else {
+    hitFx.explode(7, enemy.x, enemy.y);
+  }
+
+  // Flash branco estrito de impacto (65ms) sem ofuscar a visão
+  enemy.setTint(0xffffff);
+  scene.time.delayedCall(65, () => {
+    if (!enemy || !enemy.active) return;
+    if (enemy.hp > 0) {
+      enemy.setTint(0xffca28);
+      scene.time.delayedCall(65, () => {
+        if (enemy && enemy.active) enemy.clearTint();
+      });
+    } else {
+      enemy.clearTint();
+    }
+  });
+
   if (enemy.isBoss) {
     updateBossHUD();
     if (enemy.hp <= 0) {
       defeatBoss(scene, enemy);
     } else {
       sound.playShieldBlock();
-      hitFx.explode(8, enemy.x - 16, enemy.y);
-      enemy.setTint(0xffca28);
-      scene.time.delayedCall(120, () => {
-        if (enemy && enemy.active) enemy.clearTint();
-      });
     }
     return;
   }
@@ -4305,12 +4526,7 @@ function damageEnemy(scene, enemy, dmg = 1) {
     killEnemy(enemy);
   } else {
     sound.playShieldBlock();
-    hitFx.explode(7, enemy.x, enemy.y);
     enemy.x = Math.min(785, enemy.x + 22);
-    enemy.setTint(0xffca28);
-    scene.time.delayedCall(140, () => {
-      if (enemy && enemy.active) enemy.clearTint();
-    });
   }
 }
 
@@ -4324,7 +4540,16 @@ function killEnemy(enemy) {
   const xpValue = ENEMIES[eType]?.xp ?? 2;
 
   sound.playEnemyHit();
-  hitFx.explode(12, ex, ey);
+  hitFx.explode(10, ex, ey);
+  if (eType === 'warrior') {
+    sparksFx.explode(8, ex, ey);
+    debrisFx.explode(5, ex, ey);
+  } else if (eType === 'mini_golem') {
+    debrisFx.explode(8, ex, ey);
+    sparksFx.explode(4, ex, ey);
+  } else if (eType === 'dark_mage') {
+    holyFx.explode(8, ex, ey);
+  }
   removeEntity(enemy);
 
   // 1. Contabiliza Conquistas Acumulativas (Goblins, Guerreiros, Magos)
@@ -4463,6 +4688,13 @@ function equipWeaponBuff(scene, type, announce = true) {
     nextAttack: sameType ? buff.nextAttack : 0
   };
   shieldSprite.setVisible(buff.type === 'shield');
+  if (shieldAura) {
+    shieldAura.setVisible(buff.type === 'shield');
+    if (buff.type === 'shield' && player) {
+      shieldAura.setPosition(Math.round(player.x), Math.round(player.y));
+      holyFx.explode(10, player.x, player.y);
+    }
+  }
   if (announce && player) {
     floatText(scene, player.x, player.y - 24, `${BUFF_NAMES[type]} NV.${lvl}!`, '#ffca28');
   }
@@ -4478,6 +4710,7 @@ function collectItem(scene, item) {
 function endBuff() {
   buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
   shieldSprite.setVisible(false);
+  if (shieldAura) shieldAura.setVisible(false);
   if (playerBuffBar) playerBuffBar.clear();
 }
 
@@ -4496,9 +4729,10 @@ function shootArrow() {
   const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
   const dmg = lvl >= 4 ? 2 : 1;
   const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
+  const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
 
   spreads.forEach(ang => {
-    const arrow = playerArrows.create(player.x + 20, player.y + 2, 'arrow_player');
+    const arrow = playerArrows.create(player.x + 20, player.y + 2, arrowKey);
     arrow.body.setSize(18, 6);
     arrow.dmg = dmg;
     arrow.pierceCount = pierce;
@@ -4528,6 +4762,8 @@ function swingSword(scene) {
     .setOrigin(0.5, 0.78)
     .setScale(0.82 + (lvl - 1) * 0.18);
 
+  sparksFx.explode(5, player.x + offsetX, player.y);
+
   slash.on('destroy', () => {
     if (slash.blade && slash.blade.active) slash.blade.destroy();
   });
@@ -4548,6 +4784,7 @@ function swingSword(scene) {
     waveProj.pierceCount = 4;
     waveProj.projId = ++slashCounter;
     waveProj.setVelocityX(720);
+    holyFx.explode(8, player.x + 34, player.y);
   }
 }
 
@@ -4615,16 +4852,30 @@ function shootFireball(scene) {
 
 function explodeFireball(scene, x, y, radius, dmg) {
   sound.playEarthSmash();
-  hitFx.explode(14, x, y);
-  const blast = scene.add.circle(x, y, 12, 0xff7043, 0.55)
+  emberFx.explode(18, x, y);
+  hitFx.explode(8, x, y);
+  sparksFx.explode(6, x, y);
+
+  const blastOuter = scene.add.circle(x, y, 14, 0xff7043, 0.60)
     .setStrokeStyle(3, 0xffeb3b, 0.95).setDepth(1550);
+  const blastInner = scene.add.circle(x, y, 8, 0xffffff, 0.85)
+    .setStrokeStyle(2, 0xffca28, 1).setDepth(1551);
+
   scene.tweens.add({
-    targets: blast,
+    targets: blastOuter,
     radius,
     alpha: 0,
-    duration: 250,
+    duration: 260,
     ease: 'Cubic.easeOut',
-    onComplete: () => blast.destroy()
+    onComplete: () => blastOuter.destroy()
+  });
+  scene.tweens.add({
+    targets: blastInner,
+    radius: Math.round(radius * 0.65),
+    alpha: 0,
+    duration: 180,
+    ease: 'Cubic.easeOut',
+    onComplete: () => blastInner.destroy()
   });
 
   enemies.getChildren().slice().forEach(e => {
@@ -4651,7 +4902,8 @@ function playerHit(scene, hazard) {
       hazard.destroy();
 
       sound.playShieldBlock();
-      hitFx.explode(8, hx, hy);
+      sparksFx.explode(10, hx, hy);
+      holyFx.explode(8, hx, hy);
       floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
       recordAchievementProgress(scene, 'reflected', 1);
 
@@ -4686,15 +4938,24 @@ function playerHit(scene, hazard) {
     const shockRadius = 95 + (lvl - 1) * 30;
     const bossDmg = [2, 3, 5, 7, 10][lvl - 1] || 2;
 
-    const wave = scene.add.circle(player.x, player.y, 16, 0x7fe7ff, 0.35)
+    holyFx.explode(28, player.x, player.y);
+    sparksFx.explode(16, player.x, player.y);
+
+    const wave = scene.add.circle(player.x, player.y, 16, 0x7fe7ff, 0.40)
       .setStrokeStyle(3, 0xffffff).setDepth(1600);
+    const innerWave = scene.add.circle(player.x, player.y, 10, 0xffe082, 0.60)
+      .setStrokeStyle(2, 0xffffff).setDepth(1601);
+
     scene.tweens.add({
-      targets: wave,
+      targets: [wave, innerWave],
       radius: shockRadius,
       alpha: 0,
       duration: 320,
       ease: 'Cubic.easeOut',
-      onComplete: () => wave.destroy()
+      onComplete: () => {
+        if (wave.active) wave.destroy();
+        if (innerWave.active) innerWave.destroy();
+      }
     });
 
     enemies.getChildren().slice().forEach(e => {
@@ -4731,7 +4992,12 @@ function playerHit(scene, hazard) {
     }
 
     sound.playPlayerHurt();
+    sparksFx.explode(8, player.x, player.y);
     hitFx.explode(14, player.x, player.y);
+    player.setTint(0xffffff);
+    scene.time.delayedCall(75, () => {
+      if (player && player.active) player.clearTint();
+    });
     scene.cameras.main.flash(140, 255, 80, 80);
     scene.cameras.main.shake(180, 0.009);
     floatText(scene, player.x, player.y - 30, `-1 CORAÇÃO! (${playerHp}/${playerMaxHp})`, '#ff5252');
@@ -4767,6 +5033,8 @@ function gameOver(scene) {
 
   consolidateSilverToGold();
 
+  if (shieldSprite) shieldSprite.setVisible(false);
+  if (shieldAura) shieldAura.setVisible(false);
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (activeBoss) clearBossTelegraphs(activeBoss);

@@ -2,6 +2,38 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v1.2.4] - 2026-10-19 (Efeitos Visuais de Ação 16-bit: Projéteis Detalhados, Rastros de Corte Luminosos, Faíscas Metálicas, Sombras com Oclusão de Contato e Emitters Pré-Alocados)
+### ⚔️ Arsenal Refinado do Cavaleiro & Projéteis das 5 Armas
+- **Flechas Reais & Flechas de Ouro (`arrow_player`, `arrow_gold`)**: Penas azuis reais/douradas com pontas afiadas de navalha, anel metálico de reforço e esteira translúcida de vento e velocidade. Flechas douradas ativadas nos níveis 4 e 5.
+- **Espada Vorpal (`drawBlade` / `slash_arc`)**: Lâmina de aço temperado com runa ciano luminosa e guarda dourada imperial. Arco de corte com gradiente de 4 camadas (aura profunda, ciano mágico, fio luminoso e gume incandescente) acompanhado por centelhas de impacto (`sparksFx`).
+- **Machado Bumerangue (`drawAxeProj`)**: Lâmina dupla de meia-lua com gumes reluzentes de alto contraste, núcleo rúnico ciano e rotação fluida contínua em passos de 30 graus com centelhas de vento.
+- **Cajado de Fogo & Cataclismo Solar (`drawFireballProj` / `explodeFireball`)**: Esfera solar com núcleo incandescente, labaredas vivas e cauda de brasas com emissão de fagulhas em voo. Detonação com onda de choque concêntrica dupla (núcleo branco-dourado + anel de fogo) e chuva de brasas (`emberFx`).
+- **Escudo Sagrado & Onda de Choque Divina (`shield_aura` / `holyFx`)**: Aura rúnica protetora ciano com 4 nós cardeais reluzentes orbitando o herói. Ao quebrar, detona uma onda de choque sagrada dupla com estilhaços cintilantes de luz celestial.
+
+### 🏹 Projéteis Inimigos
+- **Flechas Élficas Homogeneizadas (`arrow_elf`)**: Empenamento e ponta cristalina em verde-esmeralda vibrante com rastro luminoso de partículas mágicas, garantindo leitura instantânea mesmo em combates caóticos.
+- **Orbes do Mago Sombrio (`drawMageOrb`)**: Singularidade negra do Abismo envolta por anel estroboscópico de magenta e violeta pulsante com centelha espectral no centro.
+
+### 🌑 Sombras Dinâmicas com Oclusão de Contato (`sortAndShade`)
+- **Sistema de Duplo Passe (Penumbra + Core)**: Eliminação do aspecto de "disco colado". Cada entidade possui penumbra translúcida suave para dispersão no terreno e núcleo escuro de oclusão de contato que ancora firmemente os pés no solo.
+- **Dimensões e Física Proporcionais**:
+  - *Cavaleiro*: Penumbra `22x7` e Core `15x4`.
+  - *Guerreiro de Ferro*: Penumbra `26x8` e Core `18x5`.
+  - *Goblin & Elfa*: Penumbra `18x6` e Core `12x3`.
+  - *Mago Sombrio*: Sombra suave deslocada verticalmente simulando levitação mágica.
+  - *Gárgula*: Sombra projetada no nível do solo simulando voo rasante em altitude.
+  - *Boss Golem Ancestral*: Sombra colossal de monólito titânico (`74x20` / `56x12`).
+
+### 💥 Impactos Físicos, Faíscas & Flash Estrito
+- **Sistema de Partículas Especializadas Pré-Alocadas**: 6 emissores permanentes (`dustFx`, `hitFx`, `sparksFx`, `debrisFx`, `holyFx`, `emberFx`) sem nenhuma alocação de memória durante o combate (zero risco de Memory Leak).
+  - *`sparksFx`*: Faíscas metálicas velozes de lâminas, armaduras e bloqueios.
+  - *`debrisFx`*: Lascas físicas de madeira para impactos em árvores e fragmentos de pedra para rochas com física de gravidade.
+  - *`holyFx`*: Estrelas cintilantes sagradas para reflexões do escudo e bênçãos.
+  - *`emberFx`*: Fagulhas ardentes para o fogo do cajado.
+- **Flash Branco de Dano Estrito**: Impactos acionam um flash branco de 65ms (`0xffffff`) que resolve rapidamente em alívio âmbar/normal, mantendo feedback claro sem fadiga visual.
+
+---
+
 ## [v1.2.3] - 2026-10-19 (Modernização de Entidades de Combate 16-bit: Cavaleiro com Ciclo de Corrida de 4 Quadros, 6 Criaturas Ameaçadoras com Silhueta Expressiva e Chefe Golem Ancestral Monumental)
 ### 🛡️ O Cavaleiro da Alvorada (`drawKnight`, 32x32, 4 frames)
 - **Elmo de Aço Polido**: Viseira em T com chanfro metálico de aço temperado, reflexo especular de alto brilho e fresta de olhar heróico.
