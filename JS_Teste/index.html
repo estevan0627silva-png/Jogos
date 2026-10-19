@@ -19,6 +19,40 @@
         console.error('DEBUG-GLOBAL-ERROR:', msg, lineNo, error);
       };
     </script>
-    <script src="game.js"></script>
+    <!-- Configuração & Constantes Globais -->
+    <script src="src/config/constants.js"></script>
+    <script src="src/config/palette.js"></script>
+    <script src="src/config/catalogs.js"></script>
+
+    <!-- Núcleo do Jogo (Core Systems & State) -->
+    <script src="src/core/events.js"></script>
+    <script src="src/core/state.js"></script>
+    <script src="src/core/storage.js"></script>
+    <script src="src/core/audio.js"></script>
+
+    <!-- Arte Procedural & Texturas -->
+    <script src="src/art/drawHelpers.js"></script>
+    <script src="src/art/characterArt.js"></script>
+    <script src="src/art/itemArt.js"></script>
+    <script src="src/art/worldArt.js"></script>
+
+    <!-- Combate, Armas & Loot -->
+    <script src="src/combat/weapons.js"></script>
+    <script src="src/combat/combatManager.js"></script>
+    <script src="src/combat/lootManager.js"></script>
+
+    <!-- Mundo, Inimigos & Chefes -->
+    <script src="src/world/director.js"></script>
+    <script src="src/world/enemies.js"></script>
+    <script src="src/world/boss.js"></script>
+
+    <!-- Interface de Usuário (UI) -->
+    <script src="src/ui/hud.js"></script>
+    <script src="src/ui/modals.js"></script>
+    <script src="src/ui/menus.js"></script>
+
+    <!-- Inicialização do Phaser & Ciclo de Vida -->
+    <script src="src/main.js"></script>
+    <!-- Fallback / Bundle de Arquivo Único Legado: <script src="game.js"></script> -->
 </body>
 </html>

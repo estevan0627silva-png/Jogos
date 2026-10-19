@@ -7,9 +7,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO (SemVer — Sincronizado para Releases do GitHub)
 // =============================================================================
-const GAME_VERSION = 'v1.3.0';
-const VERSION_TITLE = 'Art & Architecture Overhaul';
-const VERSION_DESC = 'Refatoração da arquitetura em microssistemas desacoplados (EventBus, Strategy Pattern de armas e Facade de persistência), eliminação de código morto e refinamento técnico de Pixel Art e VFX (projéteis fluidos, mago sombrio com sobretudo longo, orbes esféricas 3D e calçamento orgânico da vila).';
+const GAME_VERSION = 'v1.4.0';
+const VERSION_TITLE = 'Modular Architecture & Separation of Concerns';
+const VERSION_DESC = 'Desmembramento e modularização completa do monólito (7.450+ linhas) em arquitetura desacoplada em 21 submódulos organizados em src/ (config, core, art, combat, world, ui, main). Preservação de 100% da mecânica, física, balanceamento e pixel art procedural com zero regressão e compatibilidade nativa com carregamento via script tags e navegação local (file:/// e web).';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;

@@ -4,6 +4,31 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
 
 ---
 
+## [v1.4.0] — 2026-10-19
+### 🏛️ Título da Versão: **Modular Architecture & Separation of Concerns**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Desmembramento e modularização completa do monólito (7.450+ linhas) em uma arquitetura limpa, desacoplada e escalável composta por 21 submódulos distribuídos em pastas de domínio sob \`src/\` (Config, Core, Art, Combat, World, UI e Main). Preservação integral de 100% da mecânica, física, balanceamento e pixel art procedural com zero regressão e compatibilidade nativa imediata via script tags (suporta execução direta offline via \`file:///\`, servidores estáticos e GitHub Pages sem bundlers).
+
+### 🚀 O que mudou:
+- **Separação de Responsabilidades (SRP) & Arquitetura de Pastas:**
+  - Código desmembrado em 21 arquivos modulares em \`src/\`:
+    - \`src/config/\`: \`constants.js\`, \`palette.js\`, \`catalogs.js\` (constantes globais, paleta de cores e catálogos de armas/status/conquistas).
+    - \`src/core/\`: \`events.js\`, \`state.js\`, \`storage.js\`, \`audio.js\` (EventBus, estado global de partida, persistência local e síntese de áudio chiptune).
+    - \`src/art/\`: \`drawHelpers.js\`, \`characterArt.js\`, \`itemArt.js\`, \`worldArt.js\` (motores de rasterização e spritesheets procedurais de personagens, itens, cenários e vila).
+    - \`src/combat/\`: \`weapons.js\`, \`combatManager.js\`, \`lootManager.js\` (estratégias de armas, colisões, dano e gerenciamento de esferas de XP e moedas).
+    - \`src/world/\`: \`director.js\`, \`enemies.js\`, \`boss.js\` (diretor de ondas, spawns de hordas, IA de atiradores e boss fight do Golem Ancestral).
+    - \`src/ui/\`: \`hud.js\`, \`modals.js\`, \`menus.js\` (HUD in-game, modais de draft e confirmação, e telas completas de menu, forja, mago e recordes).
+    - \`src/main.js\`: Ciclo de vida principal da cena Phaser (\`preload\`, \`create\`, \`update\`) e instanciação do jogo.
+- **Mapeamento de Dependências e Ordem de Carregamento Topológica:**
+  - Carregamento ordenado e linear no \`index.html\`, garantindo resolução de dependências sem colisões ou ciclos.
+  - Suporte total a carregamento padrão em navegadores locais sem necessidade de servidor HTTP ativo ou módulos ES6 restritivos por política CORS local.
+- **Zero Regressão & Preservação Total:**
+  - Todos os 199 símbolos e funções originais preservados com fidelidade exata.
+  - Sincronização e atualização do arquivo unificado \`game.js\` para a versão \`v1.4.0\`.
+
+---
+
 ## [v1.3.0] — 2026-10-19
 ### 🎨 Título da Versão: **Art & Architecture Overhaul**
 
