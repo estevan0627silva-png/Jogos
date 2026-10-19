@@ -1987,50 +1987,218 @@ function drawMiniGolem(r, f) {
 }
 
 // Cenário (chão, estrada, florestas das bordas) e efeitos
+// Cenário (chão, estrada, florestas das bordas, praça da vila) e efeitos
 function makeWorldTextures(scene) {
   const g = scene.make.graphics({ add: false });
-  const rnd = Phaser.Math.Between;
-  const pick = Phaser.Utils.Array.GetRandom;
 
-  // Grama com tufos e flores (repete infinitamente)
-  g.fillStyle(0x5b8a3c).fillRect(0, 0, 128, 128);
-  for (let i = 0; i < 50; i++) {
-    const x = rnd(2, 122), y = rnd(2, 120);
-    g.fillStyle(pick([0x4c7a33, 0x6d9e48])).fillRect(x, y, 2, 4).fillRect(x + 2, y + 2, 2, 2);
+  // 1. Gramado Medieval da Floresta ('ground' 128x128 — repetição infinita sem costuras)
+  // Base verde natural com variações orgânicas de relevo e micro-sombreamento
+  g.fillStyle(0x527e34).fillRect(0, 0, 128, 128);
+
+  // Micro-textura de relva (variação sutil de solo e luz de fundo)
+  for (let px = 0; px < 128; px += 4) {
+    for (let py = 0; py < 128; py += 4) {
+      if ((px * 3 + py * 7) % 5 === 0) {
+        g.fillStyle(0x4a732f).fillRect(px, py, 2, 2);
+      } else if ((px * 5 + py * 11) % 7 === 0) {
+        g.fillStyle(0x5a8739).fillRect(px + 1, py + 1, 2, 2);
+      }
+    }
   }
-  for (let i = 0; i < 6; i++) g.fillStyle(pick([0xf5e663, 0xffffff, 0xe57373])).fillRect(rnd(4, 122), rnd(4, 122), 2, 2);
+
+  // Tufos de grama volumosos com 3 camadas (sombra na base, verde vivo e ponta iluminada)
+  const grassSeeds = [
+    [12, 18], [34, 45], [68, 22], [96, 54], [118, 14],
+    [16, 78], [48, 92], [82, 74], [108, 102], [28, 116],
+    [74, 118], [54, 32], [88, 38], [24, 62], [112, 70]
+  ];
+  grassSeeds.forEach(([gx, gy]) => {
+    // Sombra inferior do tufo
+    g.fillStyle(C.leafDeep).fillRect(gx, gy + 4, 6, 2);
+    // Lâminas de grama em leque
+    g.fillStyle(C.leafDark).fillRect(gx + 1, gy + 1, 2, 4).fillRect(gx + 3, gy + 2, 2, 3);
+    g.fillStyle(C.leafBase).fillRect(gx + 1, gy, 2, 3).fillRect(gx + 3, gy + 1, 2, 2);
+    g.fillStyle(C.leafLight).fillRect(gx + 1, gy, 1, 2).fillRect(gx + 4, gy + 1, 1, 1);
+  });
+
+  // Pedrinhas de cascalho incrustadas no solo (relevo 3D com luz e sombra)
+  const pebbleCoords = [[42, 16], [86, 88], [22, 104], [102, 32], [64, 60]];
+  pebbleCoords.forEach(([rx, ry]) => {
+    g.fillStyle(C.stoneDeep).fillRect(rx, ry + 2, 5, 2);
+    g.fillStyle(C.stoneBase).fillRect(rx, ry, 5, 2);
+    g.fillStyle(C.stoneHighlight).fillRect(rx + 1, ry, 2, 1);
+  });
+
+  // Flores silvestres campestres (margaridas brancas, campânulas rubi e miosótis)
+  const flowerSpecs = [
+    { x: 18, y: 38, col: C.white, center: C.yellow },
+    { x: 78, y: 12, col: C.rubyLight, center: C.goldHighlight },
+    { x: 114, y: 44, col: C.manaLight, center: C.yellow },
+    { x: 38, y: 72, col: C.goldLight, center: C.rubyDeep },
+    { x: 92, y: 110, col: C.white, center: C.yellow },
+    { x: 60, y: 98, col: C.rubyLight, center: C.goldHighlight }
+  ];
+  flowerSpecs.forEach(f => {
+    g.fillStyle(C.leafDeep).fillRect(f.x + 1, f.y + 2, 2, 2); // caule/sombra
+    g.fillStyle(f.col).fillRect(f.x, f.y, 4, 3);               // pétalas
+    g.fillStyle(f.center).fillRect(f.x + 1, f.y + 1, 2, 1);    // miolo
+  });
+
+  // Folhas outonais caídas (toque de floresta ancestral)
+  [[26, 84], [72, 48], [120, 86]].forEach(([lx, ly]) => {
+    g.fillStyle(C.leafAmber).fillRect(lx, ly, 2, 2);
+    g.fillStyle(C.mossGold).fillRect(lx + 1, ly + 1, 1, 1);
+  });
+
   g.generateTexture('ground', 128, 128);
 
-  // Estrada de terra com pedrinhas
-  g.clear().fillStyle(0x9b7b4f).fillRect(0, 0, 64, 80);
-  g.fillStyle(0x7a5f3b).fillRect(0, 0, 64, 4).fillRect(0, 76, 64, 4);
-  for (let i = 0; i < 12; i++) g.fillStyle(pick([0xb89a6c, 0x6e5434])).fillRect(rnd(0, 60), rnd(8, 70), 3, 2);
+  // 2. Estrada Real de Terra Batida ('road' 64x80 — rolagem contínua sem quebra)
+  g.clear();
+  // Leito base de terra batida quente
+  g.fillStyle(C.dirtBase).fillRect(0, 0, 64, 80);
+
+  // Bordas orgânicas com dentes de grama (franja de transição relva-terra no topo e base)
+  for (let bx = 0; bx < 64; bx += 4) {
+    const topH = ((bx * 3) % 4) + 3;
+    const botH = ((bx * 7) % 4) + 3;
+    g.fillStyle(0x4a732f).fillRect(bx, 0, 4, topH).fillRect(bx, 80 - botH, 4, botH);
+    g.fillStyle(C.leafDeep).fillRect(bx, topH - 1, 4, 1).fillRect(bx, 80 - botH, 4, 1);
+  }
+
+  // Sulco / Trilho de Roda de Carroça Norte (y: 19..26)
+  g.fillStyle(C.dirtShadow).fillRect(0, 20, 64, 6);
+  g.fillStyle(C.dirtDeep).fillRect(0, 22, 64, 3);
+  g.fillStyle(C.dirtLight).fillRect(0, 26, 64, 1);
+
+  // Sulco / Trilho de Roda de Carroça Sul (y: 53..60)
+  g.fillStyle(C.dirtShadow).fillRect(0, 54, 64, 6);
+  g.fillStyle(C.dirtDeep).fillRect(0, 56, 64, 3);
+  g.fillStyle(C.dirtLight).fillRect(0, 60, 64, 1);
+
+  // Faixa central de terra batida compactada (passagem de cavalos, y: 35..45)
+  g.fillStyle(C.dirtShadow).fillRect(0, 36, 64, 8);
+  for (let kx = 2; kx < 64; kx += 8) {
+    g.fillStyle(C.dirtLight).fillRect(kx, 38, 4, 2);
+    g.fillStyle(C.dirtDeep).fillRect(kx + 2, 40, 3, 1);
+  }
+
+  // Pedregulhos incrustados na estrada (com volume de luz e sombra)
+  const roadStones = [
+    [10, 14], [28, 30], [48, 12], [20, 48], [42, 66], [58, 34], [6, 68]
+  ];
+  roadStones.forEach(([sx, sy]) => {
+    g.fillStyle(C.stoneDeep).fillRect(sx, sy + 2, 4, 2);
+    g.fillStyle(C.stoneBase).fillRect(sx, sy, 4, 2);
+    g.fillStyle(C.stoneHighlight).fillRect(sx + 1, sy, 2, 1);
+  });
   g.generateTexture('road', 64, 80);
 
-  // Floresta ao fundo (topo da tela). Copas repetidas em -128/0/128 para emendar sem corte
-  g.clear().fillStyle(0x16331a).fillRect(0, 0, 128, 70);
-  g.fillStyle(C.woodDark).fillRect(16, 60, 8, 50).fillRect(60, 60, 8, 46).fillRect(100, 60, 8, 50);
+  // 3. Floresta Ancestral ao Fundo ('forest_top' 128x110 — Parallax Superior x0.9)
+  // Encaixe 100% contínuo: elementos carimbados em [-128, 0, 128]
+  g.clear();
+  // Fundo denso da mata fechada
+  g.fillStyle(0x0e2412).fillRect(0, 0, 128, 70);
+
+  // Troncos de carvalhos e pinheiros com casca rugosa e musgo
   [-128, 0, 128].forEach(o => {
-    g.fillStyle(C.leafDark).fillCircle(o + 20, 62, 26).fillCircle(o + 64, 70, 24).fillCircle(o + 104, 60, 26);
-    g.fillStyle(C.leaf).fillCircle(o + 14, 54, 14).fillCircle(o + 58, 62, 12).fillCircle(o + 98, 52, 14);
+    // Troncos principais
+    g.fillStyle(C.woodDeep).fillRect(o + 14, 52, 12, 58).fillRect(o + 58, 56, 12, 54).fillRect(o + 98, 50, 12, 60);
+    g.fillStyle(C.woodDark).fillRect(o + 16, 52, 8, 58).fillRect(o + 60, 56, 8, 54).fillRect(o + 100, 50, 8, 60);
+    g.fillStyle(C.woodHighlight).fillRect(o + 16, 52, 2, 58).fillRect(o + 60, 56, 2, 54).fillRect(o + 100, 50, 2, 60);
+    // Musgo de tronco
+    g.fillStyle(C.mossGold).fillRect(o + 17, 72, 3, 6).fillRect(o + 61, 78, 3, 5).fillRect(o + 101, 68, 3, 6);
+  });
+
+  // Copas volumosas multicamadas (esferas de folhagem com 4 níveis de iluminação)
+  [-128, 0, 128].forEach(o => {
+    // Camada 1: Sombra profunda da copa
+    g.fillStyle(C.leafDeep)
+      .fillCircle(o + 20, 60, 28)
+      .fillCircle(o + 64, 66, 26)
+      .fillCircle(o + 106, 58, 28);
+
+    // Camada 2: Folhagem ambiente escura
+    g.fillStyle(C.leafDark)
+      .fillCircle(o + 18, 54, 24)
+      .fillCircle(o + 62, 60, 22)
+      .fillCircle(o + 104, 52, 24);
+
+    // Camada 3: Copa verde vibrante
+    g.fillStyle(C.leafBase)
+      .fillCircle(o + 14, 46, 18)
+      .fillCircle(o + 58, 52, 16)
+      .fillCircle(o + 100, 44, 18);
+
+    // Camada 4: Luz solar direta nas folhas superiores
+    g.fillStyle(C.leafLight)
+      .fillCircle(o + 11, 40, 11)
+      .fillCircle(o + 55, 46, 10)
+      .fillCircle(o + 97, 38, 11);
+
+    // Brilho solar dourado nas pontas
+    g.fillStyle(C.leafHighlight)
+      .fillCircle(o + 9, 36, 5)
+      .fillCircle(o + 53, 42, 5)
+      .fillCircle(o + 95, 34, 5);
+
+    // Toque outonal de folha dourada
+    g.fillStyle(C.leafAmber)
+      .fillCircle(o + 32, 48, 6)
+      .fillCircle(o + 82, 52, 5);
   });
   g.generateTexture('forest_top', 128, 110);
 
-  // Arbustos em primeiro plano (base da tela)
-  g.clear().fillStyle(C.leafDark).fillRect(0, 44, 128, 36);
+  // 4. Arbustos Espinhosos em Primeiro Plano ('forest_bottom' 128x80 — Parallax Inferior x1.3)
+  g.clear();
+  g.fillStyle(C.leafDeep).fillRect(0, 46, 128, 34);
+
   [-128, 0, 128].forEach(o => {
-    g.fillStyle(C.leafDark).fillCircle(o + 20, 36, 26).fillCircle(o + 66, 44, 26).fillCircle(o + 108, 34, 26);
-    g.fillStyle(C.leaf).fillCircle(o + 16, 30, 12).fillCircle(o + 62, 38, 12).fillCircle(o + 104, 28, 12);
+    // Sombra das moitas
+    g.fillStyle(C.leafDeep)
+      .fillCircle(o + 22, 40, 26)
+      .fillCircle(o + 66, 46, 26)
+      .fillCircle(o + 108, 38, 26);
+
+    // Corpo verde escuro dos arbustos
+    g.fillStyle(C.leafDark)
+      .fillCircle(o + 18, 34, 20)
+      .fillCircle(o + 62, 40, 20)
+      .fillCircle(o + 104, 32, 20);
+
+    // Folhagem viva iluminada
+    g.fillStyle(C.leafBase)
+      .fillCircle(o + 14, 28, 14)
+      .fillCircle(o + 58, 34, 13)
+      .fillCircle(o + 100, 26, 14);
+
+    // Luz no topo dos arbustos
+    g.fillStyle(C.leafLight)
+      .fillCircle(o + 12, 24, 7)
+      .fillCircle(o + 56, 30, 7)
+      .fillCircle(o + 98, 22, 7);
+
+    // Bagas silvestres carmesins nos arbustos
+    g.fillStyle(C.rubyLight)
+      .fillRect(o + 8, 26, 2, 2)
+      .fillRect(o + 24, 30, 2, 2)
+      .fillRect(o + 52, 32, 2, 2)
+      .fillRect(o + 72, 36, 2, 2)
+      .fillRect(o + 94, 24, 2, 2)
+      .fillRect(o + 112, 28, 2, 2);
+    g.fillStyle(C.rubyGlow)
+      .fillRect(o + 9, 26, 1, 1)
+      .fillRect(o + 53, 32, 1, 1)
+      .fillRect(o + 95, 24, 1, 1);
   });
   g.generateTexture('forest_bottom', 128, 80);
 
-  // Rastro do golpe de espada (meia-lua)
+  // 5. Rastro do golpe de espada (meia-lua cortante)
   g.clear();
   g.lineStyle(12, C.cyan, 0.35).beginPath().arc(4, 36, 32, -1.15, 1.15).strokePath();
   g.lineStyle(5, C.white, 1).beginPath().arc(4, 36, 32, -0.95, 0.95).strokePath();
   g.generateTexture('slash_arc', 48, 72);
 
-  // Chão craquelado / rachado pelo impacto das rochas arremessadas pelo Boss Golem
+  // 6. Chão craquelado / rachado pelo impacto das rochas do Boss
   g.clear();
   g.fillStyle(0x3a2818, 0.78).fillEllipse(28, 20, 52, 26);
   g.fillStyle(0x22160d, 0.92).fillEllipse(28, 20, 40, 18);
@@ -2043,46 +2211,81 @@ function makeWorldTextures(scene) {
   g.fillStyle(C.steelDark).fillRect(11, 15, 1, 1).fillRect(43, 17, 1, 1).fillRect(33, 29, 1, 1);
   g.generateTexture('cracked_ground', 56, 40);
 
-  // Piso e Praça Unificada da Vila ("village_plaza" 480x440 — conecta pátios, caminho calçado e muralha)
+  // 7. Piso e Praça Unificada da Vila ("village_plaza" 480x440 — pátio calçado e grande alameda)
   g.clear();
-  g.fillStyle(0x4a7331, 1).fillRect(0, 0, 468, 440);
-  g.fillStyle(0x7d6340, 0.95).fillRoundedRect(14, 18, 424, 148, 12);
-  g.fillStyle(0x7d6340, 0.95).fillRoundedRect(14, 274, 424, 148, 12);
-  g.fillStyle(0x525763, 0.92).fillRoundedRect(26, 28, 396, 130, 8);
-  g.fillStyle(0x525763, 0.92).fillRoundedRect(26, 282, 396, 130, 8);
+  // Gramado limpo da vila
+  g.fillStyle(0x47702e, 1).fillRect(0, 0, 480, 440);
+
+  // Pátios calçados Norte e Sul (base de argamassa e terra batida)
+  g.fillStyle(C.dirtShadow, 0.95).fillRoundedRect(14, 18, 424, 148, 12);
+  g.fillStyle(C.dirtShadow, 0.95).fillRoundedRect(14, 274, 424, 148, 12);
+  g.fillStyle(C.stoneDeep, 0.92).fillRoundedRect(26, 28, 396, 130, 8);
+  g.fillStyle(C.stoneDeep, 0.92).fillRoundedRect(26, 282, 396, 130, 8);
+
+  // Lajotas de pedra dos pátios (com chanfro de luz e sombra de argamassa)
   for (let px = 34; px < 410; px += 22) {
     for (let py = 36; py < 150; py += 16) {
-      g.fillStyle((px + py) % 4 === 0 ? 0x676d7a : 0x3f444f, 0.9).fillRect(px, py, 18, 12);
+      const stoneCol = (px + py) % 4 === 0 ? C.stoneLight : C.stoneBase;
+      g.fillStyle(C.stoneDeep).fillRect(px, py, 19, 13);
+      g.fillStyle(stoneCol).fillRect(px, py, 18, 12);
+      g.fillStyle(C.stoneHighlight, 0.5).fillRect(px, py, 18, 2).fillRect(px, py, 2, 12);
     }
     for (let py = 290; py < 404; py += 16) {
-      g.fillStyle((px + py) % 4 === 0 ? 0x676d7a : 0x3f444f, 0.9).fillRect(px, py, 18, 12);
+      const stoneCol = (px + py) % 4 === 0 ? C.stoneLight : C.stoneBase;
+      g.fillStyle(C.stoneDeep).fillRect(px, py, 19, 13);
+      g.fillStyle(stoneCol).fillRect(px, py, 18, 12);
+      g.fillStyle(C.stoneHighlight, 0.5).fillRect(px, py, 18, 2).fillRect(px, py, 2, 12);
     }
   }
-  g.fillStyle(0x3a2818, 1).fillRect(0, 172, 472, 96);
-  g.fillStyle(0x525763, 1).fillRect(0, 178, 470, 84);
+
+  // A Grande Alameda Central da Vila (Caminho Real de Pedras de Cantaria, y: 172..268)
+  g.fillStyle(C.dirtDeep, 1).fillRect(0, 172, 472, 96);
+  g.fillStyle(C.stoneDeep, 1).fillRect(0, 178, 470, 84);
+
+  // Meio-fio reforçado de cantaria nas margens da estrada
   for (let cx = 0; cx < 466; cx += 18) {
-    g.fillStyle(cx % 36 === 0 ? C.steel : C.iron, 1).fillRect(cx, 174, 16, 6).fillRect(cx, 260, 16, 6);
+    g.fillStyle(cx % 36 === 0 ? C.stoneLight : C.stoneBase, 1)
+      .fillRect(cx, 174, 16, 6)
+      .fillRect(cx, 260, 16, 6);
+    g.fillStyle(C.stoneHighlight, 0.6).fillRect(cx, 174, 16, 2);
   }
+
+  // Blocos centrais de paralelepípedos chanfrados com amarração
   for (let rx = 4; rx < 462; rx += 16) {
     for (let ry = 184; ry < 252; ry += 14) {
-      const off = (ry % 28 === 0) ? 6 : 0;
-      g.fillStyle((rx + ry) % 3 === 0 ? 0x7b8291 : 0x626875, 1).fillRoundedRect(rx + off, ry, 13, 10, 3);
-      g.fillStyle(0x8e96a6, 0.6).fillRect(rx + off + 2, ry + 2, 7, 2);
+      const off = (ry % 28 === 0) ? 7 : 0;
+      g.fillStyle(C.stoneDeep, 1).fillRect(rx + off, ry, 14, 11);
+      g.fillStyle((rx + ry) % 3 === 0 ? C.stoneLight : C.stoneBase, 1).fillRect(rx + off, ry, 13, 10);
+      g.fillStyle(C.stoneHighlight, 0.6).fillRect(rx + off, ry, 13, 2).fillRect(rx + off, ry, 2, 10);
     }
   }
+
+  // Passarelas conectando as oficinas e chalés
   [115, 295].forEach(wx => {
-    g.fillStyle(0x676d7a, 1).fillRect(wx - 22, 152, 44, 24).fillRect(wx - 22, 264, 44, 24);
+    g.fillStyle(C.stoneDeep, 1).fillRect(wx - 22, 152, 44, 24).fillRect(wx - 22, 264, 44, 24);
+    g.fillStyle(C.stoneBase, 1).fillRect(wx - 20, 154, 40, 20).fillRect(wx - 20, 266, 40, 20);
   });
+
+  // Jardineiras e canteiros reais com moldura de madeira e flores nobres
   [75, 225, 375].forEach(lx => {
-    g.fillStyle(0x2f6e35, 1).fillRoundedRect(lx - 18, 158, 36, 12, 4).fillRoundedRect(lx - 18, 270, 36, 12, 4);
-    g.fillStyle(0xffca28, 0.95).fillRect(lx - 10, 162, 4, 4).fillRect(lx + 6, 274, 4, 4);
-    g.fillStyle(0xff5252, 0.95).fillRect(lx + 4, 161, 4, 4).fillRect(lx - 8, 273, 4, 4);
-    g.fillStyle(0xffca28, 0.16).fillCircle(lx, 174, 28).fillCircle(lx, 266, 28);
+    // Moldura de madeira da jardineira
+    g.fillStyle(C.woodDark, 1).fillRoundedRect(lx - 20, 156, 40, 16, 4).fillRoundedRect(lx - 20, 268, 40, 16, 4);
+    g.fillStyle(C.woodBase, 1).fillRoundedRect(lx - 18, 158, 36, 12, 3).fillRoundedRect(lx - 18, 270, 36, 12, 3);
+    g.fillStyle(C.leafDark, 1).fillRect(lx - 16, 160, 32, 8).fillRect(lx - 16, 272, 32, 8);
+    // Flores coloridas
+    g.fillStyle(C.goldHighlight, 1).fillRect(lx - 12, 162, 4, 4).fillRect(lx + 4, 274, 4, 4);
+    g.fillStyle(C.rubyLight, 1).fillRect(lx + 4, 161, 4, 4).fillRect(lx - 10, 273, 4, 4);
+    g.fillStyle(C.manaLight, 1).fillRect(lx - 4, 162, 3, 3).fillRect(lx - 2, 274, 3, 3);
+    // Luz ambiente dourada das tochas
+    g.fillStyle(C.goldHighlight, 0.15).fillCircle(lx, 174, 28).fillCircle(lx, 266, 28);
   });
-  g.fillStyle(C.woodDark, 1).fillRect(442, 4, 28, 170).fillRect(442, 266, 28, 170);
+
+  // Soleira e Trilho do Grande Portão no extremo leste (x: 442..470)
+  g.fillStyle(C.woodDeep, 1).fillRect(442, 4, 28, 170).fillRect(442, 266, 28, 170);
   g.fillStyle(C.ironDark, 1).fillRect(446, 6, 20, 166).fillRect(446, 268, 20, 166);
+  g.fillStyle(C.ironHighlight, 0.6).fillRect(448, 8, 4, 162).fillRect(448, 270, 4, 162);
   g.fillStyle(0x2a1d17, 1).fillRect(440, 174, 34, 92);
-  g.fillStyle(C.gold, 0.85).fillRect(444, 176, 4, 88).fillRect(466, 176, 4, 88);
+  g.fillStyle(C.gold, 0.9).fillRect(444, 176, 4, 88).fillRect(466, 176, 4, 88);
   g.generateTexture('village_plaza', 480, 440);
 
   // Faísca usada nas explosões de partículas
@@ -2094,236 +2297,284 @@ function makeWorldTextures(scene) {
 // 1. Casa do Ferreiro da Vila (112x84 pixels — matriz 56x42 a escala 2x: Telhado Sólido, Forja, Bigorna e Armas)
 function drawVillageBlacksmith(r) {
   // Base de pedra sólida e paredes inteiriças (preenchimento total sem vãos)
-  r(C.ironDark, 5, 17, 46, 23);
-  r(C.iron, 7, 18, 42, 21);
-  r(C.steelDark, 8, 19, 40, 3);
-  r(C.ironDark, 4, 38, 48, 2);
+  r(C.stoneDeep, 5, 17, 46, 23);
+  r(C.stoneBase, 7, 18, 42, 21);
+  r(C.stoneHighlight, 8, 19, 40, 2);
+  r(C.stoneDeep, 4, 38, 48, 2);
 
-  // Chaminé robusta de pedra à esquerda (integrada ao telhado)
-  r(C.ironDark, 7, 2, 7, 15);
-  r(C.iron, 8, 3, 5, 13);
-  r(C.steelDark, 7, 2, 7, 2);
-  r(C.steelLight, 9, 1, 3, 1);
+  // Chaminé robusta de pedra à esquerda (integrada ao telhado com cinzas de forja)
+  r(C.stoneDeep, 7, 2, 7, 15);
+  r(C.stoneBase, 8, 3, 5, 13);
+  r(C.stoneHighlight, 7, 2, 7, 2);
+  r(C.steelHighlight, 9, 1, 3, 1);
+  r(C.ironDark, 8, 4, 3, 3);
 
-  // Telhado Cerâmico Sólido e Simétrico (cume estreito em y=4, base larga em y=16, h=2 para zero frestas!)
+  // Telhado Cerâmico Sólido e Simétrico (telhas terracota sobrepostas, h=2 para zero frestas!)
   for (let row = 0; row <= 12; row++) {
     const y = 4 + row;
     const w = 24 + row * 2;
     const x = 28 - w / 2;
-    r(C.woodDark, x, y, w, 2);
-    r(C.darkRed, x + 1, y, w - 2, 1);
+    r(C.woodDeep, x, y, w, 2);
+    r(C.redDeep, x + 1, y, w - 2, 1);
     if (row % 2 === 0) {
-      r(C.red, x + 2, y, w - 4, 1);
+      r(C.redBase, x + 2, y, w - 4, 1);
+      r(C.redHighlight, x + 3, y, 4, 1);
     }
   }
   // Cumeeira e Beiral de Carvalho Contínuo
-  r(C.wood, 16, 4, 24, 1);
-  r(C.woodDark, 3, 16, 50, 3);
-  r(C.wood, 4, 17, 48, 1);
-  r(C.gold, 6, 18, 44, 1);
+  r(C.woodBase, 16, 4, 24, 1);
+  r(C.woodDeep, 3, 16, 50, 3);
+  r(C.woodHighlight, 4, 17, 48, 1);
+  r(C.mossGold, 6, 18, 14, 1);
 
-  // Vigas verticais de carvalho na fachada
-  r(C.woodDark, 5, 18, 3, 21);
-  r(C.woodDark, 26, 18, 3, 21);
-  r(C.woodDark, 48, 18, 3, 21);
+  // Vigas verticais de carvalho na fachada com textura
+  r(C.woodDeep, 5, 18, 3, 21);
+  r(C.woodHighlight, 6, 18, 1, 21);
+  r(C.woodDeep, 26, 18, 3, 21);
+  r(C.woodHighlight, 27, 18, 1, 21);
+  r(C.woodDeep, 48, 18, 3, 21);
 
-  // Fornalha da Forja aberta com brasas vivas (Lado Esquerdo)
-  r(C.ironDark, 10, 22, 14, 16);
-  r(C.steelDark, 11, 22, 12, 2);
+  // Fornalha da Forja aberta com brasas vivas e degradê de calor incandescente
+  r(C.stoneDeep, 10, 22, 14, 16);
+  r(C.stoneHighlight, 11, 22, 12, 2);
   r(C.outline, 12, 24, 10, 13);
-  r(C.darkRed, 13, 26, 8, 11);
-  r(C.red, 14, 28, 6, 9);
-  r(C.yellow, 15, 31, 4, 5);
-  r(C.white, 16, 33, 2, 2);
+  r(C.deepBlood, 13, 26, 8, 11);
+  r(C.redBase, 14, 28, 6, 9);
+  r(C.fireBase, 14, 30, 6, 7);
+  r(C.yellow, 15, 32, 4, 5);
+  r(C.white, 16, 33, 2, 3);
+  r.shine(13, 25, 0, 0, C.fireHighlight);
+  r.shine(18, 27, 1, 0, C.yellow);
 
-  // Mostruário de Armas na parede direita (Escudo Real e Espadas)
-  r(C.woodDark, 31, 21, 15, 8);
-  r(C.wood, 32, 22, 13, 6);
-  r(C.blue, 33, 23, 4, 4);
-  r(C.gold, 34, 23, 2, 4);
-  r(C.steelLight, 39, 21, 1, 7); r(C.gold, 38, 26, 3, 1);
-  r(C.steelLight, 43, 21, 1, 7); r(C.gold, 42, 26, 3, 1);
+  // Mostruário de Armas na parede direita (Escudo Real e Espadas Afiadas)
+  r(C.woodDeep, 31, 21, 15, 8);
+  r(C.woodBase, 32, 22, 13, 6);
+  r(C.blueBase, 33, 23, 4, 4);
+  r(C.goldBase, 34, 23, 2, 4);
+  r.shine(33, 23, 0, 0, C.goldHighlight);
+  r(C.steelHighlight, 39, 21, 1, 7); r(C.goldBase, 38, 26, 3, 1);
+  r(C.steelHighlight, 43, 21, 1, 7); r(C.goldBase, 42, 26, 3, 1);
 
-  // Bigorna de Aço Pesada sobre cepo no pátio frontal
-  r(C.woodDark, 34, 34, 8, 5);
-  r(C.ironDark, 33, 32, 10, 3);
-  r(C.steelDark, 31, 30, 14, 3);
-  r(C.steel, 32, 30, 12, 2);
-  r(C.steelLight, 34, 30, 8, 1);
+  // Bigorna de Aço Pesada sobre cepo de carvalho no pátio frontal
+  r(C.woodDeep, 34, 34, 8, 5);
+  r(C.woodBase, 35, 34, 6, 4);
+  r(C.ironDeep, 33, 32, 10, 3);
+  r(C.steelShadow, 31, 30, 14, 3);
+  r(C.steelBase, 32, 30, 12, 2);
+  r(C.steelHighlight, 34, 30, 8, 1);
+  r.shine(32, 30, 0, 0, C.white);
 }
 
 // 2. Casa do Cuidador de Cavalos / Estábulo Real (120x84 pixels — matriz 60x42 a escala 2x)
 function drawVillageStable(r) {
   // Base e Paredes inteiriças de madeira do Celeiro (preenchimento 100% sólido sem falhas)
-  r(C.woodDark, 5, 17, 50, 23);
-  r(C.wood, 7, 18, 46, 21);
-  r(C.ironDark, 4, 38, 52, 2);
+  r(C.woodDeep, 5, 17, 50, 23);
+  r(C.woodDark, 7, 18, 46, 21);
+  r(C.woodBase, 8, 19, 44, 19);
+  r(C.ironDeep, 4, 38, 52, 2);
 
-  // Telhado Simétrico de Madeira e Palha Dourada (cume em y=4, base larga em y=16, h=2 contínuo)
+  // Telhado Simétrico de Madeira e Palha Dourada (cume em y=4, base larga em y=16)
   for (let row = 0; row <= 12; row++) {
     const y = 4 + row;
     const w = 28 + row * 2;
     const x = 30 - w / 2;
-    r(C.woodDark, x, y, w, 2);
-    r(C.wood, x + 1, y, w - 2, 1);
-    r(C.rag, x + 2, y, w - 4, 1);
+    r(C.woodDeep, x, y, w, 2);
+    r(C.goldDark, x + 1, y, w - 2, 1);
+    r(C.goldBase, x + 2, y, w - 4, 1);
   }
-  r(C.wood, 16, 4, 28, 1);
-  r(C.woodDark, 3, 16, 54, 3);
-  r(C.wood, 4, 17, 52, 1);
+  r(C.woodBase, 16, 4, 28, 1);
+  r(C.woodDeep, 3, 16, 54, 3);
+  r(C.woodHighlight, 4, 17, 52, 1);
 
-  // Sótão de Feno central no telhado com ferradura dourada
-  r(C.woodDark, 25, 7, 10, 9);
-  r(C.wood, 26, 8, 8, 7);
-  r(C.gold, 28, 9, 4, 5);
-  r(C.yellow, 29, 10, 2, 3);
+  // Sótão de Feno central no telhado com ferradura dourada e palha derramando
+  r(C.woodDeep, 25, 7, 10, 9);
+  r(C.woodBase, 26, 8, 8, 7);
+  r(C.goldBase, 28, 9, 4, 5);
+  r(C.goldHighlight, 29, 9, 2, 3);
+  r.shine(28, 9, 0, 0, C.white);
+  r(C.goldLight, 27, 13, 6, 3);
 
   // Colunas mestras de carvalho
-  r(C.woodDark, 5, 18, 3, 21);
-  r(C.woodDark, 28, 18, 3, 21);
-  r(C.woodDark, 52, 18, 3, 21);
+  r(C.woodDeep, 5, 18, 3, 21);
+  r(C.woodDeep, 28, 18, 3, 21);
+  r(C.woodDeep, 52, 18, 3, 21);
 
-  // Baia Esquerda com o Cavalo Marrom (crina, orelhas, estrela branca na testa e focinho)
+  // Baia Esquerda com o Cavalo Alazão (crina, orelhas, estrela branca na testa e focinho)
   r(C.outline, 9, 20, 18, 17);
-  r(C.boot, 12, 24, 9, 7);
-  r(C.wood, 13, 25, 7, 5);
-  r(C.boot, 16, 20, 6, 5);
-  r(C.rag, 20, 22, 3, 3);
-  r(C.white, 19, 20, 1, 2);
+  r(C.leatherDark, 12, 24, 9, 7);
+  r(C.leatherBase, 13, 25, 7, 5);
+  r(C.leatherDark, 16, 20, 6, 5);
+  r(C.leatherBase, 17, 21, 4, 4);
+  r(C.skinLight, 20, 22, 3, 3);
+  r(C.white, 19, 20, 1, 3);
   r(C.outline, 18, 21, 1, 1);
-  r(C.woodDark, 14, 19, 2, 6);
-  r(C.boot, 15, 18, 2, 2);
+  r(C.woodDeep, 14, 19, 2, 6);
+  r(C.leatherDark, 15, 18, 2, 2);
+  r(C.leatherDark, 17, 21, 4, 1);
+  r(C.goldBase, 18, 22, 1, 1);
 
   // Porteira de madeira da baia do cavalo
-  r(C.woodDark, 9, 29, 18, 8);
-  r(C.rag, 10, 30, 16, 2);
-  r(C.rag, 10, 34, 16, 2);
+  r(C.woodDeep, 9, 29, 18, 8);
+  r(C.woodBase, 10, 30, 16, 2);
+  r(C.woodBase, 10, 34, 16, 2);
 
   // Lado Direito: Fardos de Feno Dourado + Cocho de Água Cristalina
-  r(C.gold, 33, 22, 17, 10);
-  r(C.yellow, 34, 23, 15, 8);
-  r(C.woodDark, 33, 26, 17, 1);
-  r(C.woodDark, 32, 32, 19, 6);
-  r(C.blue, 34, 33, 15, 3);
-  r(C.cyan, 35, 33, 10, 1);
+  r(C.goldDark, 33, 22, 17, 10);
+  r(C.goldBase, 34, 23, 15, 8);
+  r(C.goldLight, 35, 24, 12, 3);
+  r(C.woodDeep, 33, 26, 17, 1);
+  r(C.woodDeep, 32, 32, 19, 6);
+  r(C.woodBase, 33, 33, 17, 4);
+  r(C.blueBase, 34, 33, 15, 3);
+  r(C.manaBase, 35, 33, 10, 1);
+  r.shine(36, 33, 1, 0, C.white);
 }
 
 // 3. Chalé Medieval da Vila (72x64 pixels — matriz 36x32 a escala 2x, 100% simétrico e sem cortes!)
 function drawVillageHouse(r) {
   // Base de pedra e Paredes inteiriças de enxaimel (preenchimento sólido primeiro)
-  r(C.woodDark, 4, 16, 28, 14);
-  r(C.bone, 6, 18, 24, 10);
-  r(C.ironDark, 3, 28, 30, 2);
-  r(C.iron, 5, 28, 26, 1);
+  r(C.stoneDeep, 3, 28, 30, 3);
+  r(C.stoneBase, 5, 28, 26, 2);
+  r(C.stoneHighlight, 6, 28, 12, 1);
+  r(C.leafDark, 4, 24, 2, 6);
+  r(C.leafBase, 5, 26, 2, 4);
 
-  // Chaminé de pedra e tijolos à direita (dentro da margem segura)
-  r(C.ironDark, 24, 2, 5, 11);
-  r(C.iron, 25, 3, 3, 9);
-  r(C.steelDark, 24, 2, 5, 1);
-  r(C.steelLight, 25, 1, 3, 1);
+  // Paredes de argamassa clara (Fachwerk)
+  r(C.boneDark, 4, 16, 28, 13);
+  r(C.bone, 6, 17, 24, 11);
 
-  // Telhado Simétrico de Madeira e Palha (centro exato x=18, de y=4 até y=15, h=2 para zero buracos!)
+  // Chaminé de pedra e tijolos à direita
+  r(C.stoneDeep, 24, 2, 5, 11);
+  r(C.stoneBase, 25, 3, 3, 9);
+  r(C.stoneHighlight, 25, 2, 3, 1);
+
+  // Telhado Simétrico de Madeira e Palha (centro exato x=18, de y=4 até y=15)
   for (let row = 0; row <= 11; row++) {
     const y = 4 + row;
     const w = 10 + row * 2;
     const x = 18 - w / 2;
-    r(C.woodDark, x, y, w, 2);
-    r(C.wood, x + 1, y, w - 2, 1);
+    r(C.woodDeep, x, y, w, 2);
+    r(C.woodDark, x + 1, y, w - 2, 1);
     if (row % 2 === 0) {
-      r(C.rag, x + 2, y, w - 4, 1);
+      r(C.woodBase, x + 2, y, w - 4, 1);
     }
   }
-  // Cumeeira e Beiral de Carvalho Contínuo (dentro de x=2..34)
-  r(C.wood, 13, 4, 10, 1);
-  r(C.woodDark, 2, 15, 32, 3);
-  r(C.wood, 3, 16, 30, 1);
+  // Cumeeira e Beiral de Carvalho Contínuo
+  r(C.woodHighlight, 13, 4, 10, 1);
+  r(C.woodDeep, 2, 15, 32, 3);
+  r(C.woodHighlight, 3, 16, 30, 1);
 
   // Vigas de carvalho estilo enxaimel europeu
-  r(C.woodDark, 4, 17, 2, 12);
-  r(C.woodDark, 17, 17, 2, 12);
-  r(C.woodDark, 30, 17, 2, 12);
+  r(C.woodDeep, 4, 16, 2, 13);
+  r(C.woodDeep, 17, 16, 2, 13);
+  r(C.woodDeep, 30, 16, 2, 13);
+  r(C.woodDark, 6, 19, 3, 2);
+  r(C.woodDark, 9, 21, 3, 2);
+  r(C.woodDark, 12, 23, 3, 2);
 
   // Porta de carvalho com ferrolho dourado (Lado Esquerdo)
-  r(C.woodDark, 8, 20, 6, 9);
-  r(C.wood, 9, 21, 4, 7);
-  r(C.gold, 12, 24, 1, 1);
+  r(C.woodDeep, 8, 20, 6, 9);
+  r(C.woodBase, 9, 21, 4, 7);
+  r(C.goldBase, 12, 24, 1, 1);
 
-  // Janela iluminada com venezianas (Lado Direito)
-  r(C.woodDark, 20, 20, 8, 6);
+  // Janela iluminada com venezianas e brilho aconchegante (Lado Direito)
+  r(C.woodDeep, 20, 20, 8, 6);
   r(C.yellow, 21, 21, 6, 4);
-  r(C.white, 22, 21, 2, 2);
-  r(C.woodDark, 24, 21, 1, 4);
-  r(C.woodDark, 21, 23, 6, 1);
+  r(C.goldHighlight, 22, 21, 4, 2);
+  r(C.woodDeep, 24, 21, 1, 4);
+  r(C.woodDeep, 21, 23, 6, 1);
+  r.shine(22, 21, 0, 0, C.white);
 }
 
 // 4. Muralha / Paliçada Vertical Contínua da Vila (32x96 — fecha o perímetro até o Portão)
 function drawVillageWallV(r) {
-  r(C.ironDark, 2, 1, 12, 46);
+  r(C.woodDeep, 2, 1, 12, 46);
   r(C.woodDark, 3, 2, 10, 44);
-  r(C.wood, 5, 2, 6, 44);
-  r(C.rag, 6, 2, 2, 44);
+  r(C.woodBase, 5, 2, 6, 44);
+  r(C.woodHighlight, 6, 2, 2, 44);
+  r(C.woodHighlight, 6, 1, 2, 2);
   for (let y = 5; y < 44; y += 10) {
-    r(C.ironDark, 2, y, 12, 3);
-    r(C.steelDark, 3, y + 1, 10, 1);
-    r(C.gold, 4, y + 1, 1, 1);
-    r(C.gold, 11, y + 1, 1, 1);
+    r(C.ironDeep, 2, y, 12, 3);
+    r(C.ironBase, 3, y + 1, 10, 1);
+    r(C.ironHighlight, 3, y, 10, 1);
+    r(C.goldBase, 4, y + 1, 1, 1);
+    r(C.goldBase, 11, y + 1, 1, 1);
   }
 }
 
 // 5. Torre e Pilar do Grande Portão da Vila (48x96 — matriz 24x48 a escala 2x)
 function drawGateTower(r) {
-  r(C.ironDark, 2, 35, 20, 11);
-  r(C.iron, 4, 37, 16, 8);
-  r(C.steelDark, 5, 37, 14, 3);
+  // Base de cantaria com musgo
+  r(C.stoneDeep, 2, 35, 20, 11);
+  r(C.stoneBase, 4, 37, 16, 8);
+  r(C.stoneHighlight, 5, 37, 14, 2);
   r(C.leafDark, 2, 43, 4, 3);
-  r(C.leaf, 3, 43, 2, 2);
+  r(C.leafBase, 3, 43, 2, 2);
 
-  r(C.woodDark, 4, 12, 16, 24);
-  r(C.wood, 6, 13, 12, 22);
-  r(C.rag, 8, 14, 4, 20);
+  // Superestrutura de carvalho
+  r(C.woodDeep, 4, 12, 16, 24);
+  r(C.woodBase, 6, 13, 12, 22);
+  r(C.woodHighlight, 8, 14, 4, 20);
 
+  // Abraçadeiras de ferro forjado
   [15, 24, 32].forEach(by => {
-    r(C.ironDark, 3, by, 18, 3);
-    r(C.steelDark, 4, by + 1, 16, 1);
-    r(C.gold, 6, by + 1, 1, 1);
-    r(C.gold, 17, by + 1, 1, 1);
+    r(C.ironDeep, 3, by, 18, 3);
+    r(C.ironBase, 4, by + 1, 16, 1);
+    r(C.ironHighlight, 4, by, 16, 1);
+    r(C.goldBase, 6, by + 1, 1, 1);
+    r(C.goldBase, 17, by + 1, 1, 1);
   });
 
-  r(C.woodDark, 2, 8, 20, 5);
-  r(C.wood, 3, 9, 18, 3);
-  r(C.woodDark, 2, 5, 4, 4); r(C.wood, 3, 6, 2, 3);
-  r(C.woodDark, 10, 5, 4, 4); r(C.wood, 11, 6, 2, 3);
-  r(C.woodDark, 18, 5, 4, 4); r(C.wood, 19, 6, 2, 3);
+  // Ameias defensivas no topo
+  r(C.woodDeep, 2, 8, 20, 5);
+  r(C.woodBase, 3, 9, 18, 3);
+  r(C.woodDeep, 2, 5, 4, 4); r(C.woodBase, 3, 6, 2, 3);
+  r(C.woodDeep, 10, 5, 4, 4); r(C.woodBase, 11, 6, 2, 3);
+  r(C.woodDeep, 18, 5, 4, 4); r(C.woodBase, 19, 6, 2, 3);
 
-  r(C.blue, 7, 18, 6, 10);
-  r(C.gold, 9, 20, 2, 4); r(C.gold, 8, 21, 4, 1);
-  r(C.darkRed, 7, 27, 6, 1);
+  // Estandarte Real com cruz dourada
+  r(C.blueBase, 7, 18, 6, 10);
+  r(C.goldBase, 9, 20, 2, 4); r(C.goldBase, 8, 21, 4, 1);
+  r(C.redBase, 7, 27, 6, 1);
 
-  r(C.ironDark, 11, 3, 2, 3);
-  r(C.darkRed, 10, 1, 4, 3);
-  r(C.red, 11, 1, 2, 3);
+  // Tocha acesa viva iluminando o portal
+  r(C.ironDeep, 11, 3, 2, 3);
+  r(C.deepBlood, 10, 1, 4, 3);
+  r(C.fireBase, 11, 1, 2, 3);
   r(C.yellow, 11, 2, 2, 2);
+  r.shine(11, 1, 0, 0, C.white);
 }
 
 // 6. Moradores NPCs da Vila dando Tchau (24x28 — 2 frames acenando para o Cavaleiro)
 function drawVillageNpc(r, f) {
-  r(C.woodDark, 4, 1, 4, 2);
-  r(C.skin, 4, 3, 4, 3);
-  r(C.eye, 7, 4, 1, 1);
+  // Gorro camponês de lã e rosto
+  r(C.leatherBase, 4, 1, 4, 2);
+  r(C.skinBase, 4, 3, 4, 3);
+  r(C.skinShadow, 4, 5, 4, 1);
+  r(C.outline, 7, 4, 1, 1);
 
+  // Túnica e avental
   r(C.elfTunic, 3, 6, 6, 5);
   r(C.bone, 5, 7, 3, 4);
-  r(C.woodDark, 3, 9, 6, 1);
+  r(C.leatherDark, 3, 9, 6, 1);
 
-  r(C.skin, 2, 6, 1, 3);
+  // Braço esquerdo na cintura
+  r(C.skinBase, 2, 6, 1, 3);
+
+  // Braço direito acenando com lenço branco para o herói
   if (f === 0) {
     r(C.elfTunic, 9, 5, 1, 2);
-    r(C.skin, 10, 3, 2, 2);
+    r(C.skinBase, 10, 3, 2, 2);
+    r(C.white, 11, 2, 3, 3);
+    r.shine(12, 2, 0, 0, C.goldHighlight);
   } else {
     r(C.elfTunic, 9, 4, 1, 2);
-    r(C.skin, 9, 1, 2, 2);
+    r(C.skinBase, 9, 1, 2, 2);
+    r(C.white, 9, 0, 3, 3);
+    r.shine(10, 0, 0, 0, C.goldHighlight);
   }
 
+  // Botas de couro
   r(C.boot, 4, 11, 2, 2);
   r(C.boot, 7, 11, 2, 2);
 }

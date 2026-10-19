@@ -2,6 +2,23 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v1.2.2] - 2026-10-19 (Modernização de Cenário 16-bit: Terreno com Relevo, Estrada com Sulcos e Franjas Orgânicas, Parallax Florestal Volumétrico e Estruturas Rústicas da Vila dos Cavaleiros)
+### 🌲 Parallax Florestal & Terreno Orgânico ('ground', 'road', 'forest_top', 'forest_bottom')
+- **Gramado Medieval (`ground` 128x128)**: Solo verde rico com micro-texturas em dithering suave, tufos volumosos em leque com sombra inferior, pedrinhas 3D incrustadas, folhas caídas de outono e flores silvestres (margaridas, campânulas e miosótis) com contraste equilibrado para máxima legibilidade de combate.
+- **Estrada Real de Terra Batida (`road` 64x80)**: Leito de terra batida quente com dois sulcos paralelos de rodas de carroça, caminho central de cascalho compactado e bordas recortadas com dentes de grama orgânicos, eliminando divisões artificiais com a relva.
+- **Copas Ancestrais em Parallax (`forest_top` 128x110)**: Troncos espessos de carvalho com casca rugosa e musgo dourado, sustentando copas esféricas volumosas com 4 níveis de iluminação e brilho de luz solar filtrada, com repetições milimétricas em `[-128, 0, 128]` para rolagem horizontal 100% contínua e sem costuras.
+- **Arbustos com Bagas Silvestres (`forest_bottom` 128x80)**: Moitas densas em primeiro plano com sombras na base, ramagens espinhosas e bagas silvestres carmesins cintilantes.
+
+### 🏰 A Vila dos Cavaleiros & Arquitetura Medieval ('village_plaza', 'village_blacksmith', 'village_stable', 'village_house', 'village_wall_v', 'village_gate_tower', 'village_npc')
+- **A Praça e Alameda Imperial (`village_plaza` 480x440)**: Pátios calçados com lajotas de cantaria chanfradas e rejunte de argamassa sombreado, alameda central ladeada por meio-fio de pedra, jardineiras com moldura de carvalho e arandelas de tocha acesas.
+- **A Forja do Ferreiro (`village_blacksmith` 112x84)**: Telhado cerâmico de terracota sobreposta, fornalha ardente com núcleo incandescente e faíscas brilhantes, chaminé de cantaria com cinzas e bigorna pesada de aço sobre cepo de carvalho com reflexo metálico.
+- **O Estábulo Real (`village_stable` 120x84)**: Celeiro de madeira envelhecida com telhado de palha dourada, sótão com ferradura da sorte, cavalo alazão na baia com estrela branca e arreios de couro, fardos de feno e cocho de água límpida brilhante.
+- **Chalés de Enxaimel (`village_house` 72x64)**: Alvenaria clássica de madeira e argamassa clara (Fachwerk), alicerce rústico com hera trepadeira, janela iluminada aconchegante e porta de carvalho maciço.
+- **Muralha & Torreão do Portão (`village_wall_v` 32x96 e `drawGateTower` 48x96)**: Paliçada de troncos aguçados com abraçadeiras de ferro forjado e rebites dourados, torreão com ameias, tocha viva e estandarte heráldico do Reino.
+- **Aldeões Acolhedores (`village_npc` 24x28)**: Roupas camponesas rústicas, gorros de lã e animação acenando com lenço branco para abençoar a jornada do Cavaleiro.
+
+---
+
 ## [v1.2.1] - 2026-10-19 (Infraestrutura Gráfica 16-bit: Paleta Expandida de Sub-tons, Primitivas de Desenho com Dithering/Shine/Bevel e Moedas em Alta Definição)
 ### 🎨 Paleta Expandida de Sub-tons (`const C`)
 - **Organização em Rampas de 3 a 4 Cores**: Estruturação cromática com iluminação direta, base e oclusão para todos os materiais essenciais (Aço, Ferro, Ouro, Prata, Rubi, Madeira, Couro, Pele, Vegetação, Magia Arcana, Fogo e Terra).
