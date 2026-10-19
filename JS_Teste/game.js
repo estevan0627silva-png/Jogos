@@ -20,20 +20,104 @@ const game = new Phaser.Game(config);
 // AJUSTES DO JOGO (mude aqui para balancear)
 // =============================================================================
 const PLAYER_SPEED = 280;
-const BUFF_TIME = { bow: 6, shield: 9, sword: 6 };   // duração de cada item (s)
-const ATTACK_RATE = { bow: 340, sword: 280 };        // intervalo entre ataques (ms)
-const BUFF_NAMES = { bow: 'ARCO REAL', shield: 'ESCUDO DE AÇO', sword: 'ESPADA VORPAL' };
+const BUFF_TIME = { bow: 6.5, shield: 9, sword: 6.5, axe: 7, firestaff: 6.5 }; // duração base de cada arma (s)
+const ATTACK_RATE = { bow: 330, sword: 280, axe: 430, firestaff: 460 };        // intervalo base entre ataques (ms)
+const BUFF_NAMES = {
+  bow: 'ARCO REAL',
+  shield: 'ESCUDO SAGRADO',
+  sword: 'ESPADA VORPAL',
+  axe: 'MACHADO BUMERANGUE',
+  firestaff: 'CAJADO DE FOGO'
+};
 const ENEMIES = {                                    // vida, velocidade relativa e hitbox
   goblin:     { hp: 1, speed: 1.15, w: 16, h: 20 },
   warrior:    { hp: 2, speed: 0.88, w: 20, h: 26 },
   elf:        { hp: 1, speed: 0.85, w: 16, h: 24 },
+  gargoyle:   { hp: 1, speed: 1.20, w: 18, h: 20 },  // voo senoidal estilo Bullet-Hell
+  dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26 },  // dispara 3 orbes sombrios em leque
   mini_golem: { hp: 1, speed: 0.96, w: 18, h: 20 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // segundo em que o Golem de Pedra desperta
-const BOSS_MAX_HP = 40;                              // vida total do Boss Golem Ancestral
+const BOSS_MAX_HP = 45;                              // vida total do Boss Golem Ancestral
 const MAX_ENEMY_SPEED = 380;                         // teto máximo justo de velocidade
 const MIN_SPAWN_DELAY = 500;                         // intervalo mínimo de spawn (ms)
 const STORAGE_KEY = 'knight_quest_highscores';
+const STORAGE_GOLD_KEY = 'knight_quest_gold_v1';
+const STORAGE_UPGRADES_KEY = 'knight_quest_upgrades_v1';
+
+// Catálogo da Loja de Upgrades & Arsenal Real (Roguelite Meta-Progression)
+const WEAPON_CATALOG = {
+  bow: {
+    name: 'ARCO REAL',
+    icon: 'item_bow',
+    unlockedDefault: true,
+    unlockCost: 0,
+    maxLevel: 4,
+    costs: [0, 15, 30, 50],
+    descs: [
+      'Nv 1: Dispara 1 flecha frontal veloz.',
+      'Nv 2: Tiro Duplo (Shotgun com 2 flechas em V).',
+      'Nv 3: Tiro Triplo (3 flechas em leque + cadência).',
+      'Nv 4: Tempestade Real (4 flechas em leque rápido).'
+    ]
+  },
+  sword: {
+    name: 'ESPADA VORPAL',
+    icon: 'item_sword',
+    unlockedDefault: true,
+    unlockCost: 0,
+    maxLevel: 4,
+    costs: [0, 15, 30, 50],
+    descs: [
+      'Nv 1: Golpe em meia-lua que corta armaduras e flechas.',
+      'Nv 2: Lâmina Ampla (+30% tamanho e golpe mais rápido).',
+      'Nv 3: Fúria Vorpal (+55% tamanho, cadência alta e 3 dano).',
+      'Nv 4: Corte Colossal (+80% tamanho e onda cortante).'
+    ]
+  },
+  shield: {
+    name: 'ESCUDO SAGRADO',
+    icon: 'item_shield',
+    unlockedDefault: true,
+    unlockCost: 0,
+    maxLevel: 4,
+    costs: [0, 15, 30, 50],
+    descs: [
+      'Nv 1: Reflete flechas em 1 Flecha de Ouro (+2 Ouro).',
+      'Nv 2: Reflete 2 Flechas de Ouro em V (+2 Ouro) e dura 11s.',
+      'Nv 3: Reflete 3 Flechas de Ouro (+3 Ouro) e Onda Maior.',
+      'Nv 4: Reflete 4 Flechas de Ouro (+4 Ouro) e Onda Titânica.'
+    ]
+  },
+  axe: {
+    name: 'MACHADO BUMERANGUE',
+    icon: 'item_axe',
+    unlockedDefault: false,
+    unlockCost: 25,
+    maxLevel: 4,
+    costs: [0, 20, 40, 65],
+    descs: [
+      'Nv 1: Lança 1 machado giratório que vai e volta perfurando.',
+      'Nv 2: Lança 2 machados bumerangue em ângulos opostos.',
+      'Nv 3: Alcance ampliado + 3 machados giratórios.',
+      'Nv 4: Turbilhão Bárbaro (4 machados gigantes perfurantes).'
+    ]
+  },
+  firestaff: {
+    name: 'CAJADO DE FOGO',
+    icon: 'item_firestaff',
+    unlockedDefault: false,
+    unlockCost: 40,
+    maxLevel: 4,
+    costs: [0, 25, 45, 75],
+    descs: [
+      'Nv 1: Dispara 1 Orbe de Fogo que explode em área.',
+      'Nv 2: Explosão Solar ampliada + recarga mais rápida.',
+      'Nv 3: Chama Gêmea (2 Orbes de Fogo em V com 3 de dano).',
+      'Nv 4: Cataclismo Solar (3 Orbes + mega explosão limpa-tela).'
+    ]
+  }
+};
 
 // Paleta de cores da pixel art
 const C = {
@@ -55,14 +139,14 @@ const C = {
 let player, shieldSprite, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, playerBuffBar, enemyHpBars;
 let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes;
-let hudContainer, hudGloryText, hudBestText;
+let hudContainer, hudGloryText, hudGoldText, hudBestText;
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
 let villageDecor, coins, menuContainer, pauseModal;
-let gameState, survivalTime, enemySpeed, spawnDelay, buff, slashCounter = 0;
+let gameState, survivalTime, runGold = 0, enemySpeed, spawnDelay, buff, slashCounter = 0;
 
 // =============================================================================
-// RECORDES (salvos no navegador com localStorage)
+// RECORDES, OURO PERSISTENTE & UPGRADES (salvos no navegador com localStorage)
 // =============================================================================
 function getHighScores() {
   const defaults = [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
@@ -90,6 +174,70 @@ function saveHighScore(name, score) {
 }
 
 const getBestScore = () => getHighScores()[0]?.score ?? 0;
+
+function getGold() {
+  if (typeof localStorage === 'undefined') return 0;
+  const val = parseInt(localStorage.getItem(STORAGE_GOLD_KEY) || '0', 10);
+  return Number.isFinite(val) && val >= 0 ? val : 0;
+}
+
+function setGold(total) {
+  const clean = Math.max(0, Math.floor(total));
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_GOLD_KEY, String(clean));
+  }
+  if (hudGoldText && hudGoldText.active) {
+    hudGoldText.setText(`${clean}`);
+  }
+  return clean;
+}
+
+function addGold(amount) {
+  runGold += amount;
+  return setGold(getGold() + amount);
+}
+
+function getUpgrades() {
+  const defaults = {
+    bow:       { unlocked: true,  level: 1 },
+    sword:     { unlocked: true,  level: 1 },
+    shield:    { unlocked: true,  level: 1 },
+    axe:       { unlocked: false, level: 1 },
+    firestaff: { unlocked: false, level: 1 }
+  };
+  if (typeof localStorage === 'undefined') return defaults;
+  const saved = localStorage.getItem(STORAGE_UPGRADES_KEY);
+  if (!saved) return defaults;
+  try {
+    const parsed = JSON.parse(saved);
+    if (!parsed || typeof parsed !== 'object') return defaults;
+    Object.keys(defaults).forEach(k => {
+      if (parsed[k] && typeof parsed[k] === 'object') {
+        defaults[k].unlocked = Boolean(parsed[k].unlocked ?? defaults[k].unlocked);
+        defaults[k].level = Phaser.Math.Clamp(parseInt(parsed[k].level || 1, 10), 1, WEAPON_CATALOG[k].maxLevel);
+      }
+    });
+    return defaults;
+  } catch (e) {
+    return defaults;
+  }
+}
+
+function saveUpgrades(up) {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_UPGRADES_KEY, JSON.stringify(up));
+  }
+}
+
+function getWeaponLevel(type) {
+  const up = getUpgrades();
+  return up[type]?.level ?? 1;
+}
+
+function getUnlockedWeaponPool() {
+  const up = getUpgrades();
+  return Object.keys(WEAPON_CATALOG).filter(k => up[k]?.unlocked);
+}
 
 // =============================================================================
 // SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
@@ -717,11 +865,11 @@ function makeItem(scene, key, glow, drawIcon) {
 // Todos olham para a direita; inimigos são espelhados com setFlipX.
 // =============================================================================
 function drawKnight(r, f) {
-  r(C.red, 6, 1, 3, 1); r(C.red, 5, 2, 4, 1);             // pluma
-  r(C.steel, 4, 3, 6, 4); r(C.steelLight, 5, 3, 2, 1);   // elmo
+  r(C.red, 6, 1, 3, 1); r(C.red, 5, 2, 4, 1);             // pluma real
+  r(C.steel, 4, 3, 6, 4); r(C.steelLight, 5, 3, 2, 1);   // elmo polido
   r(C.outline, 7, 5, 3, 1);                              // viseira
-  r(C.steel, 3, 7, 8, 5);                                // armadura
-  r(C.blue, 5, 7, 5, 5);                                 // tabardo azul
+  r(C.steel, 3, 7, 8, 5);                                // peitoral de aço
+  r(C.blue, 5, 7, 5, 5);                                 // tabardo azul real
   r(C.gold, 7, 8, 1, 3); r(C.gold, 6, 9, 3, 1);          // cruz dourada
   r(C.woodDark, 3, 11, 8, 1);                            // cinto
   r(C.steelDark, 11, 8, 2, 3);                           // braço
@@ -743,23 +891,23 @@ function drawGoblin(r, f) {
 }
 
 function drawWarrior(r, f) {
-  r(C.darkRed, 3, 8, 2, 7);                              // capa
+  r(C.darkRed, 3, 8, 2, 7);                              // capa carmesim
   r(C.bone, 3, 1, 1, 3); r(C.bone, 4, 3, 1, 1);          // chifre esquerdo
   r(C.bone, 13, 1, 1, 3); r(C.bone, 12, 3, 1, 1);        // chifre direito
-  r(C.iron, 5, 2, 7, 6); r(C.steelDark, 6, 2, 3, 1);     // elmo
-  r(C.outline, 7, 5, 5, 1); r(C.eye, 9, 5, 1, 1); r(C.eye, 11, 5, 1, 1); // olhos vermelhos
+  r(C.iron, 5, 2, 7, 6); r(C.steelDark, 6, 2, 4, 1);     // elmo pesado
+  r(C.outline, 7, 5, 5, 1); r(C.eye, 8, 5, 1, 1); r(C.eye, 10, 5, 1, 1); // olhos vermelhos
   r(C.iron, 5, 8, 8, 6);                                 // armadura
   r(C.steelDark, 4, 8, 3, 2); r(C.steelDark, 11, 8, 3, 2); // ombreiras
   r(C.red, 8, 10, 2, 2); r(C.ironDark, 5, 13, 8, 1);     // brasão e cinto
-  r(C.steel, 15, 2, 1, 9); r(C.darkRed, 14, 11, 3, 1); r(C.woodDark, 15, 12, 1, 2); // espada
-  r(C.ironDark, 13, 11, 2, 2);                           // mão
-  const leg = (x, up) => r(C.ironDark, x, 14, 2, up ? 2 : 3);
+  r(C.steelLight, 14, 2, 1, 9); r(C.gold, 13, 11, 3, 1); r(C.woodDark, 14, 12, 1, 2); // espada larga
+  r(C.ironDark, 12, 10, 2, 2);                           // manopla
+  const leg = (x, up) => r(C.ironDark, x, 14, 2, up ? 1 : 2);
   leg(6, f === 0); leg(10, f === 1);
 }
 
 function drawElf(r, f) {
-  r(C.elfCloak, 3, 6, 2, 6);                             // capa
-  r(C.elfHair, 4, 1, 6, 3); r(C.elfHair, 3, 3, 2, 4);    // cabelo
+  r(C.elfCloak, 3, 6, 2, 6);                             // capa florestal
+  r(C.elfHair, 4, 1, 6, 3); r(C.elfHair, 3, 3, 2, 4);    // cabelo dourado
   r(C.skin, 6, 3, 4, 3);                                 // rosto
   r(C.skin, 5, 4, 1, 1); r(C.skin, 4, 3, 1, 1);          // orelha pontuda
   r(C.outline, 8, 4, 1, 1);                              // olho
@@ -771,6 +919,54 @@ function drawElf(r, f) {
   leg(5, f === 0); leg(8, f === 1);
 }
 
+// Novo Inimigo Bullet-Hell 1: Gárgula Alada de Sangue (32x32 — 2 frames batendo asas, voo senoidal)
+function drawGargoyle(r, f) {
+  // Asas de morcego/gárgula batendo (Frame 0: erguidas, Frame 1: abertas para baixo)
+  if (f === 0) {
+    r(C.ironDark, 2, 2, 4, 6); r(C.darkRed, 3, 3, 3, 4);
+    r(C.ironDark, 10, 2, 4, 6); r(C.darkRed, 10, 3, 3, 4);
+  } else {
+    r(C.ironDark, 1, 6, 5, 5); r(C.darkRed, 2, 7, 3, 3);
+    r(C.ironDark, 10, 6, 5, 5); r(C.darkRed, 11, 7, 3, 3);
+  }
+  // Chifres e cabeça pétrea demoníaca
+  r(C.bone, 5, 1, 1, 2); r(C.bone, 10, 1, 1, 2);
+  r(C.iron, 5, 3, 6, 4);
+  r(C.yellow, 6, 4, 1, 1); r(C.yellow, 9, 4, 1, 1);
+  r(C.red, 7, 6, 2, 1);
+  // Torso blindado e garras
+  r(C.ironDark, 5, 7, 6, 4);
+  r(C.red, 6, 8, 4, 2);
+  r(C.iron, 5, 11, 2, 2); r(C.iron, 9, 11, 2, 2);
+  r(C.bone, 5, 13, 1, 1); r(C.bone, 10, 13, 1, 1);
+}
+
+// Novo Inimigo Bullet-Hell 2: Mago Sombrio / Necromante (32x32 — dispara 3 orbes em leque)
+function drawDarkMage(r, f) {
+  // Capuz e manto arcano púrpura-abissal
+  r(0x4a148c, 5, 1, 5, 3);
+  r(0x4a148c, 4, 3, 7, 4);
+  r(C.outline, 6, 4, 4, 3); // rosto oculto na sombra do capuz
+  r(C.cyan, 7, 5, 1, 1); r(C.cyan, 9, 5, 1, 1); // olhos arcanos brilhantes
+
+  // Túnica longa com runas douradas
+  r(0x311b92, 4, 7, 7, 6);
+  r(C.purple, 5, 8, 5, 4);
+  r(C.gold, 4, 10, 7, 1);
+  r(C.gold, 7, 8, 1, 5);
+
+  // Cajado rúnico com cristal pulsante na ponta
+  const staffY = f === 0 ? 0 : 1;
+  r(C.woodDark, 12, 4 + staffY, 1, 10);
+  r(C.gold, 11, 3 + staffY, 3, 1);
+  r(C.purple, 11, 1 + staffY, 3, 2);
+  r(C.cyan, 12, 1 + staffY, 1, 1);
+
+  // Pés sob o manto
+  r(C.boot, 5, 13, 2, 2);
+  r(C.boot, 8, 13, 2, 2);
+}
+
 function drawTree(r) {
   r(C.woodDark, 10, 19, 4, 11); r(C.wood, 10, 19, 1, 11); r(C.woodDark, 8, 29, 8, 1); // tronco
   r(C.leafDark, 5, 2, 14, 3); r(C.leafDark, 3, 5, 18, 16); r(C.leafDark, 2, 8, 20, 10); // copa
@@ -779,41 +975,29 @@ function drawTree(r) {
 }
 
 function drawRock(r, f) {
-  // 1. Sombra e base arredondada (estreita na base, sem linha reta chapada)
-  r(C.ironDark, 4, 10, 8, 1);  // base inferior curvada
-  r(C.ironDark, 3, 9, 10, 1);   // transição inferior
-  r(C.ironDark, 2, 7, 12, 2);   // base sombreada
-
-  // 2. Corpo rochoso médio arredondado (ardósia/granito)
+  r(C.ironDark, 4, 10, 8, 1);
+  r(C.ironDark, 3, 9, 10, 1);
+  r(C.ironDark, 2, 7, 12, 2);
   r(C.iron, 2, 4, 12, 3);
-  r(C.iron, 1, 5, 1, 3);        // curvatura esquerda
-  r(C.iron, 14, 5, 1, 3);       // curvatura direita
-
-  // 3. Meia-luz e relevo superior arredondado
+  r(C.iron, 1, 5, 1, 3);
+  r(C.iron, 14, 5, 1, 3);
   r(C.steelDark, 3, 2, 10, 3);
   r(C.steelDark, 2, 3, 1, 2);
   r(C.steelDark, 13, 3, 1, 2);
-
-  // 4. Domo superior e brilho zenital esférico
   r(C.steel, 4, 1, 8, 2);
-  r(C.steelLight, 6, 1, 4, 1);  // ponto alto de luz
-  r(C.white, 7, 2, 2, 1);       // brilho especular sutil
-
-  // 5. Fissuras e veios minerais escuros
+  r(C.steelLight, 6, 1, 4, 1);
+  r(C.white, 7, 2, 2, 1);
   r(C.ironDark, 6, 4, 1, 3);
   r(C.ironDark, 7, 6, 2, 1);
   r(C.ironDark, 11, 6, 1, 2);
 
-  // Frame 1: Versão com Musgo de Fantasia Medieval (Frame 0 é a pedra lisa arredondada)
   if (f === 1) {
     r(C.leafDark, 2, 3, 3, 2);
     r(C.leaf, 3, 3, 2, 2);
     r(C.leafLight, 3, 2, 1, 1);
-
     r(C.leafDark, 9, 2, 4, 2);
     r(C.leaf, 10, 2, 3, 1);
     r(C.leafLight, 11, 1, 2, 1);
-
     r(C.leafDark, 1, 6, 2, 2);
     r(C.leaf, 1, 7, 1, 1);
     r(C.leafDark, 13, 6, 2, 2);
@@ -840,6 +1024,43 @@ function drawSwordIcon(r) {
   r(C.woodDark, 4, 8, 2, 2); r(C.gold, 4, 10, 2, 1);     // cabo e pomo
 }
 
+// Nova Arma 1: Ícone e Projétil do Machado Bumerangue
+function drawAxeIcon(r) {
+  r(C.woodDark, 4, 2, 1, 8); r(C.gold, 4, 1, 1, 1); r(C.gold, 4, 9, 1, 1); // cabo
+  r(C.steelLight, 1, 2, 3, 5); r(C.steel, 2, 3, 2, 3);                     // lâmina esquerda
+  r(C.steelLight, 5, 2, 3, 5); r(C.steel, 5, 3, 2, 3);                     // lâmina direita
+  r(C.cyan, 4, 4, 1, 2);                                                   // runa central
+}
+
+function drawAxeProj(r) {
+  r(C.woodDark, 5, 2, 2, 8); r(C.gold, 5, 5, 2, 2);
+  r(C.steelLight, 1, 2, 4, 6); r(C.steel, 2, 3, 3, 4);
+  r(C.steelLight, 7, 2, 4, 6); r(C.steel, 7, 3, 3, 4);
+  r(C.cyan, 5, 4, 2, 3);
+}
+
+// Nova Arma 2: Ícone e Projétil do Cajado de Fogo Arcano
+function drawFireStaffIcon(r) {
+  r(C.woodDark, 4, 4, 1, 7); r(C.gold, 3, 3, 3, 2);                        // haste e garras de ouro
+  r(C.red, 3, 1, 3, 3); r(C.yellow, 4, 1, 1, 2); r(C.white, 4, 2, 1, 1);   // orbe solar flamejante
+}
+
+function drawFireballProj(r) {
+  r(C.darkRed, 1, 2, 4, 3);
+  r(C.red, 3, 1, 6, 5);
+  r(C.gold, 5, 2, 4, 3);
+  r(C.yellow, 7, 2, 3, 3);
+  r(C.white, 8, 3, 2, 1);
+}
+
+// Orbe Arcano do Mago Sombrio (Bullet-Hell)
+function drawMageOrb(r) {
+  r(0x4a148c, 1, 1, 6, 6);
+  r(C.purple, 2, 2, 4, 4);
+  r(C.cyan, 3, 2, 2, 4);
+  r(C.white, 3, 3, 2, 2);
+}
+
 function drawBlade(r) {                                  // espada usada no golpe
   r(C.steelLight, 2, 1, 1, 12); r(C.steel, 3, 2, 1, 11);
   r(C.gold, 1, 13, 4, 1); r(C.woodDark, 2, 14, 2, 3); r(C.gold, 2, 17, 2, 1);
@@ -851,17 +1072,17 @@ const arrowDrawer = (feather, tip) => (r) => {
   r(tip, 10, 1, 1, 3); r(tip, 11, 2, 1, 1);                                // ponta
 };
 
-// Ícones de Pixel Art para o novo HUD
+// Ícones de Pixel Art para o HUD
 function drawHourglass(r) {
-  r(C.woodDark, 1, 0, 8, 1); r(C.wood, 2, 1, 6, 1);
+  r(C.woodDark, 1, 1, 8, 1); r(C.wood, 2, 2, 6, 1);
   r(C.woodDark, 1, 11, 8, 1); r(C.wood, 2, 10, 6, 1);
-  r(C.cyan, 2, 2, 6, 2);
-  r(C.cyan, 3, 4, 4, 3);
+  r(C.cyan, 2, 3, 6, 2);
+  r(C.cyan, 3, 5, 4, 2);
   r(C.cyan, 2, 7, 6, 3);
   r(C.gold, 3, 3, 4, 1);
   r(C.yellow, 4, 4, 2, 3);
   r(C.gold, 3, 8, 4, 2);
-  r(C.white, 2, 2, 1, 1); r(C.white, 2, 9, 1, 1);
+  r(C.white, 2, 3, 1, 1); r(C.white, 2, 9, 1, 1);
 }
 
 function drawCrown(r) {
@@ -883,32 +1104,29 @@ function drawHorn(r, f) {
   r(C.gold, 1, 3, 2, 2);
   r(C.gold, 3, 2, 3, 4);
   r(C.gold, 6, 1, 3, 6);
-  r(C.gold, 9, 0, 2, 8);
-  r(C.woodDark, 10, 1, 1, 6);
+  r(C.gold, 9, 1, 2, 7);
+  r(C.woodDark, 10, 2, 1, 5);
   if (f === 0) {
     r(C.cyan, 12, 1, 1, 2);
     r(C.cyan, 13, 3, 1, 2);
     r(C.cyan, 12, 5, 1, 2);
   } else {
-    r(C.red, 2, 0, 2, 2); r(C.red, 4, 2, 2, 2);
-    r(C.red, 6, 4, 2, 2); r(C.red, 8, 6, 2, 2);
+    r(C.red, 2, 1, 2, 2); r(C.red, 4, 3, 2, 2);
+    r(C.red, 6, 5, 2, 2); r(C.red, 8, 6, 2, 2);
   }
 }
 
 // Cavaleiro Heróico para a Capa (equipado com Arco Real nas costas, Escudo de Aço e Espada Vorpal)
 function drawKnightBanner(r) {
-  // Arco Real e aljava presos às costas (visíveis sobre o ombro esquerdo)
   r(C.wood, 4, 3, 2, 1); r(C.wood, 3, 4, 1, 5); r(C.gold, 4, 2, 1, 1);
-  r(C.white, 5, 4, 1, 5); // corda do arco
-  r(C.woodDark, 6, 5, 2, 4); r(C.red, 6, 3, 1, 2); r(C.red, 8, 4, 1, 1); // aljava e penas das flechas
+  r(C.white, 5, 4, 1, 5);
+  r(C.woodDark, 6, 5, 2, 4); r(C.red, 6, 3, 1, 2); r(C.red, 8, 4, 1, 1);
 
-  // Pluma e Elmo Real
   r(C.red, 10, 1, 5, 2); r(C.red, 9, 2, 6, 2); r(C.darkRed, 14, 3, 3, 2);
   r(C.steel, 9, 4, 7, 6); r(C.steelLight, 10, 4, 3, 2);
   r(C.steelDark, 9, 9, 7, 1);
   r(C.outline, 11, 7, 4, 1); r(C.outline, 12, 8, 2, 2);
 
-  // Capa esvoaçante e Armadura
   r(C.darkRed, 4, 10, 5, 14); r(C.red, 5, 12, 4, 10);
   r(C.steel, 6, 10, 4, 3); r(C.steelLight, 7, 10, 2, 1);
   r(C.steel, 15, 10, 4, 3); r(C.steelLight, 16, 10, 2, 1);
@@ -917,22 +1135,18 @@ function drawKnightBanner(r) {
   r(C.gold, 12, 11, 1, 6); r(C.gold, 11, 13, 3, 1);
   r(C.woodDark, 9, 17, 7, 2); r(C.gold, 12, 17, 1, 2);
 
-  // Braços
   r(C.steelDark, 6, 13, 3, 4); r(C.steel, 6, 17, 3, 2);
   r(C.steelDark, 16, 13, 3, 4); r(C.steel, 16, 17, 3, 2);
 
-  // Escudo de Aço Sagrado empunhado no braço esquerdo
   r(C.gold, 2, 12, 6, 6); r(C.gold, 3, 18, 4, 2);
   r(C.blue, 3, 13, 4, 5); r(C.blue, 4, 18, 2, 1);
   r(C.white, 4, 13, 2, 5); r(C.cyan, 3, 15, 4, 1);
 
-  // Espada Vorpal erguida na mão direita
   r(C.steelLight, 19, 3, 2, 16); r(C.cyan, 19, 3, 1, 14); r(C.steel, 20, 4, 1, 15);
   r(C.gold, 17, 10, 6, 2);
   r(C.woodDark, 19, 8, 2, 2);
   r(C.gold, 19, 7, 2, 1);
 
-  // Grevas e Botas
   r(C.steelDark, 9, 19, 3, 6); r(C.steelLight, 9, 20, 1, 3);
   r(C.steelDark, 13, 19, 3, 6); r(C.steelLight, 13, 20, 1, 3);
   r(C.woodDark, 8, 24, 4, 2); r(C.woodDark, 13, 24, 4, 2);
@@ -940,40 +1154,34 @@ function drawKnightBanner(r) {
 
 // Boss 1: Golem Ancestral de Pedra (88x88 — Colosso Titânico em Pixel Art 16-bit com olhos vermelhos)
 function drawBossGolem(r, f) {
-  // Grade 44x44 (renderizada em blocos 2x2 = 88x88 pixels)
-  // 1. CONTORNO E OMBROS CICLÓPICOS ASSIMÉTRICOS DE ROCHA ANCESTRAL
+  // Grade 44x44 (margem de segurança 1..42 para nunca cortar o outline)
   r(C.outline, 3, 7, 38, 13);
   r(C.ironDark, 4, 8, 36, 12);
   r(C.iron, 6, 7, 32, 10);
   r(C.steelDark, 8, 6, 28, 8);
   r(C.steel, 10, 6, 24, 3);
 
-  // Espigões e Cristas de Rocha nos Ombros (Relevo 3D)
-  r(C.outline, 1, 6, 6, 7);
+  r(C.outline, 2, 6, 5, 7);
   r(C.ironDark, 2, 7, 5, 6);
   r(C.steelDark, 3, 6, 3, 4);
   r(C.steelLight, 4, 6, 1, 3);
 
-  r(C.outline, 37, 6, 6, 7);
+  r(C.outline, 37, 6, 5, 7);
   r(C.ironDark, 37, 7, 5, 6);
   r(C.steelDark, 38, 6, 3, 4);
   r(C.steel, 39, 6, 1, 3);
 
-  // Rachaduras tectônicas nos ombros
   r(C.outline, 9, 9, 1, 4); r(C.outline, 10, 12, 2, 1);
   r(C.outline, 34, 9, 1, 4); r(C.outline, 32, 12, 2, 1);
 
-  // 2. CABEÇA MACIÇA DE TITÃ (Encravada no trapézio com cara de mau e olhos vermelhos)
   r(C.outline, 13, 2, 18, 14);
   r(C.ironDark, 14, 3, 16, 13);
   r(C.iron, 15, 4, 14, 11);
   r(C.steelDark, 16, 3, 12, 3);
   r(C.steelLight, 17, 3, 8, 1);
 
-  // Cicatriz de rocha na testa
   r(C.outline, 22, 3, 1, 3); r(C.outline, 23, 5, 1, 2);
 
-  // Sobrancelhas pesadas e franzidas em V ("cara de mau")
   r(C.outline, 15, 6, 6, 3);
   r(C.ironDark, 14, 5, 6, 2);
   r(C.ironDark, 19, 7, 2, 2);
@@ -982,27 +1190,23 @@ function drawBossGolem(r, f) {
   r(C.ironDark, 24, 5, 6, 2);
   r(C.ironDark, 23, 7, 2, 2);
 
-  // OLHOS ESTRITAMENTE VERMELHOS (Brilho escarlate rubro incandescente)
-  // Olho Esquerdo
+  // Olhos vermelhos incandescentes
   r(C.darkRed, 16, 9, 4, 2);
   r(C.red, 16, 8, 4, 2);
   r(0xff1744, 17, 8, 3, 2);
   r(0xff5252, 18, 8, 2, 1);
   r(0xff8a80, 18, 8, 1, 1);
 
-  // Olho Direito
   r(C.darkRed, 24, 9, 4, 2);
   r(C.red, 24, 8, 4, 2);
   r(0xff1744, 24, 8, 3, 2);
   r(0xff5252, 24, 8, 2, 1);
   r(0xff8a80, 25, 8, 1, 1);
 
-  // Nariz monolítico e maçãs do rosto chanfradas
   r(C.ironDark, 21, 8, 2, 3);
   r(C.steelDark, 15, 10, 2, 2);
   r(C.steelDark, 27, 10, 2, 2);
 
-  // Mandíbula pesada e boca serrilhada com presas de pedra
   r(C.outline, 16, 12, 12, 3);
   r(C.darkRed, 18, 13, 8, 1);
   r(C.steel, 17, 12, 1, 1);
@@ -1012,13 +1216,11 @@ function drawBossGolem(r, f) {
   r(C.ironDark, 15, 14, 14, 2);
   r(C.steelDark, 17, 15, 10, 1);
 
-  // 3. CAMADAS RICAS DE MUSGO ANCESTRAL E VINHAS (Cabeça e Ombros)
-  // Coroa de musgo no crânio
+  // Musgo ancestral (dentro da margem y >= 1)
   r(C.leafDark, 16, 1, 12, 3);
   r(C.leaf, 17, 1, 9, 2);
-  r(C.leafLight, 19, 0, 5, 2);
+  r(C.leafLight, 19, 1, 5, 1);
 
-  // Manto de musgo no ombro esquerdo com vinhas pendentes
   r(C.leafDark, 4, 5, 8, 4);
   r(C.leaf, 5, 4, 6, 3);
   r(C.leafLight, 6, 3, 4, 2);
@@ -1026,7 +1228,6 @@ function drawBossGolem(r, f) {
   r(C.leaf, 4, 9, 2, 2);
   r(C.leafDark, 8, 9, 2, 3);
 
-  // Manto de musgo no ombro direito com vinhas pendentes
   r(C.leafDark, 32, 5, 8, 4);
   r(C.leaf, 33, 4, 6, 3);
   r(C.leafLight, 34, 3, 4, 2);
@@ -1034,7 +1235,7 @@ function drawBossGolem(r, f) {
   r(C.leaf, 38, 9, 2, 2);
   r(C.leafDark, 34, 9, 2, 3);
 
-  // 4. TORSO BLINDADO DE ROCHA, PLACAS PEITORAIS E NÚCLEO RÚNICO VERMELHO
+  // Torso blindado e núcleo rúnico vermelho
   r(C.outline, 8, 16, 28, 14);
   r(C.ironDark, 9, 16, 26, 13);
   r(C.iron, 11, 17, 22, 11);
@@ -1042,12 +1243,10 @@ function drawBossGolem(r, f) {
   r(C.steel, 13, 17, 7, 2);
   r(C.steel, 24, 17, 7, 2);
 
-  // Fendas das placas peitorais
   r(C.outline, 21, 16, 2, 12);
   r(C.outline, 11, 22, 7, 1);
   r(C.outline, 26, 22, 7, 1);
 
-  // Núcleo Rúnico Carmesim no Centro do Tórax
   r(C.outline, 18, 19, 8, 8);
   r(C.darkRed, 19, 20, 6, 6);
   r(C.red, 20, 20, 4, 6);
@@ -1056,101 +1255,88 @@ function drawBossGolem(r, f) {
   r(0xff5252, 21, 22, 2, 2);
   r(0xff8a80, 21, 22, 1, 1);
 
-  // Veios rúnicos vermelhos irradiando pelo peito
   r(C.darkRed, 17, 19, 2, 1); r(C.red, 15, 18, 2, 1);
   r(C.darkRed, 25, 19, 2, 1); r(C.red, 27, 18, 2, 1);
   r(C.darkRed, 17, 25, 2, 1); r(C.darkRed, 25, 25, 2, 1);
 
-  // Cinturão monolítico e quadril rochoso
   r(C.outline, 11, 28, 22, 5);
   r(C.ironDark, 12, 28, 20, 5);
   r(C.iron, 14, 29, 16, 3);
   r(C.steelDark, 16, 29, 4, 2); r(C.steelDark, 24, 29, 4, 2);
   r(C.outline, 21, 28, 2, 4);
 
-  // 5. BRAÇOS COLOSSAIS E MANOPLAS/PUNHOS GIGANTES COM NÓS DOS DEDOS
   const armBob = f === 0 ? 0 : -2;
 
-  // Braço Esquerdo (Frontal)
-  r(C.outline, 1, 15 + armBob, 10, 13);
+  // Braço e Punho Esquerdo (dentro da margem x >= 1)
+  r(C.outline, 2, 15 + armBob, 9, 13);
   r(C.ironDark, 2, 16 + armBob, 9, 12);
   r(C.iron, 3, 17 + armBob, 7, 10);
   r(C.steelDark, 4, 18 + armBob, 5, 8);
   r(C.steel, 4, 18 + armBob, 3, 3);
-  r(C.leafDark, 1, 20 + armBob, 4, 3);
+  r(C.leafDark, 2, 20 + armBob, 3, 3);
   r(C.leaf, 2, 21 + armBob, 3, 2);
 
-  // Punho Esquerdo Gigante (com cristas e nós dos dedos)
-  r(C.outline, 0, 27 + armBob, 13, 12);
-  r(C.ironDark, 1, 28 + armBob, 11, 10);
+  r(C.outline, 1, 27 + armBob, 12, 12);
+  r(C.ironDark, 2, 28 + armBob, 10, 10);
   r(C.iron, 2, 29 + armBob, 9, 8);
-  r(C.steelDark, 2, 29 + armBob, 8, 5);
+  r(C.steelDark, 3, 29 + armBob, 7, 5);
   r(C.steelLight, 3, 30 + armBob, 3, 2);
   r(C.outline, 2, 34 + armBob, 9, 1);
   r(C.steel, 2, 36 + armBob, 2, 2);
   r(C.steel, 5, 36 + armBob, 2, 2);
   r(C.steel, 8, 36 + armBob, 2, 2);
 
-  // Braço Direito (Traseiro)
-  r(C.outline, 33, 15 - armBob, 10, 13);
+  // Braço e Punho Direito (dentro da margem x + w <= 43)
+  r(C.outline, 33, 15 - armBob, 9, 13);
   r(C.ironDark, 33, 16 - armBob, 9, 12);
   r(C.iron, 34, 17 - armBob, 7, 10);
   r(C.steelDark, 35, 18 - armBob, 5, 8);
-  r(C.leafDark, 39, 20 - armBob, 4, 3);
+  r(C.leafDark, 39, 20 - armBob, 3, 3);
   r(C.leaf, 39, 21 - armBob, 3, 2);
 
-  // Punho Direito Gigante
-  r(C.outline, 31, 27 - armBob, 13, 12);
-  r(C.ironDark, 32, 28 - armBob, 11, 10);
+  r(C.outline, 31, 27 - armBob, 12, 12);
+  r(C.ironDark, 32, 28 - armBob, 10, 10);
   r(C.iron, 33, 29 - armBob, 9, 8);
-  r(C.steelDark, 34, 29 - armBob, 8, 5);
+  r(C.steelDark, 34, 29 - armBob, 7, 5);
   r(C.outline, 33, 34 - armBob, 9, 1);
   r(C.steel, 34, 36 - armBob, 2, 2);
   r(C.steel, 37, 36 - armBob, 2, 2);
   r(C.steel, 40, 36 - armBob, 2, 2);
 
-  // 6. PERNAS DE PILAR ROCHOSO E PÉS DE LAJE
-  const legStepL = f === 0 ? 0 : 3;
-  const legStepR = f === 1 ? 0 : 3;
+  const legStepL = f === 0 ? 0 : 2;
+  const legStepR = f === 1 ? 0 : 2;
 
-  // Perna Esquerda
   r(C.outline, 12, 32, 9, 8 + legStepL);
   r(C.ironDark, 13, 32, 7, 8 + legStepL);
   r(C.iron, 14, 33, 5, 6 + legStepL);
   r(C.steelDark, 15, 34, 3, 4 + legStepL);
-  r(C.outline, 10, 39 + legStepL, 11, 4);
-  r(C.ironDark, 11, 40 + legStepL, 9, 3);
-  r(C.steelDark, 12, 40 + legStepL, 7, 2);
+  r(C.outline, 10, 38 + legStepL, 11, 3);
+  r(C.ironDark, 11, 39 + legStepL, 9, 2);
+  r(C.steelDark, 12, 39 + legStepL, 7, 1);
 
-  // Perna Direita
   r(C.outline, 23, 32, 9, 8 + legStepR);
   r(C.ironDark, 24, 32, 7, 8 + legStepR);
   r(C.iron, 25, 33, 5, 6 + legStepR);
   r(C.steelDark, 26, 34, 3, 4 + legStepR);
-  r(C.outline, 23, 39 + legStepR, 11, 4);
-  r(C.ironDark, 24, 40 + legStepR, 9, 3);
-  r(C.steelDark, 25, 40 + legStepR, 7, 2);
+  r(C.outline, 23, 38 + legStepR, 11, 3);
+  r(C.ironDark, 24, 39 + legStepR, 9, 2);
+  r(C.steelDark, 25, 39 + legStepR, 7, 1);
 }
 
-// Mini Golem de Pedra ("Filhotinhos" do Boss — 28x28, com olhos vermelhos)
+// Mini Golem de Pedra ("Filhotinhos" do Boss — 28x28, com olhos vermelhos e margem limpa)
 function drawMiniGolem(r, f) {
-  // 1. Tufo de musgo no topo da cabeça
-  r(C.leafDark, 5, 0, 4, 2); r(C.leaf, 6, 0, 2, 1); r(C.leafLight, 6, 1, 1, 1);
-
-  // 2. Corpo arredondado de rocha viva
+  r(C.leafDark, 5, 1, 4, 2); r(C.leaf, 6, 1, 2, 1); r(C.leafLight, 6, 2, 1, 1);
   r(C.ironDark, 3, 2, 8, 2);
   r(C.ironDark, 2, 4, 10, 6);
   r(C.iron, 3, 3, 8, 7);
   r(C.steelDark, 4, 3, 6, 3);
 
-  // 3. Olhos vermelhos bravos e boca invocada
   r(C.outline, 3, 4, 3, 1); r(C.outline, 8, 4, 3, 1);
   r(C.red, 4, 5, 2, 2); r(0xff5252, 4, 5, 1, 1);
   r(C.red, 8, 5, 2, 2); r(0xff5252, 9, 5, 1, 1);
   r(C.outline, 5, 8, 4, 1);
   r(C.darkRed, 6, 9, 2, 1);
 
-  // 4. Bracinhos e perninhas de pedra
   const armOff = f === 0 ? 0 : 1;
   r(C.steelDark, 1, 6 + armOff, 2, 3);
   r(C.steelDark, 11, 7 - armOff, 2, 3);
@@ -1220,11 +1406,9 @@ function makeWorldTextures(scene) {
 
   // Piso e Praça Unificada da Vila ("village_plaza" 480x440 — conecta pátios, caminho calçado e muralha)
   g.clear();
-  // Base de terra batida e jardins da vila (norte e sul)
   g.fillStyle(0x4a7331, 1).fillRect(0, 0, 468, 440);
   g.fillStyle(0x7d6340, 0.95).fillRoundedRect(14, 18, 424, 148, 12);
   g.fillStyle(0x7d6340, 0.95).fillRoundedRect(14, 274, 424, 148, 12);
-  // Pátios de lajotas de pedra sob a Forja do Ferreiro, o Estábulo e os Chalés
   g.fillStyle(0x525763, 0.92).fillRoundedRect(26, 28, 396, 130, 8);
   g.fillStyle(0x525763, 0.92).fillRoundedRect(26, 282, 396, 130, 8);
   for (let px = 34; px < 410; px += 22) {
@@ -1235,14 +1419,11 @@ function makeWorldTextures(scene) {
       g.fillStyle((px + py) % 4 === 0 ? 0x676d7a : 0x3f444f, 0.9).fillRect(px, py, 18, 12);
     }
   }
-  // Caminho Real de Paralelepípedos da Vila (centro y = 175..265, largura total até o Portão)
   g.fillStyle(0x3a2818, 1).fillRect(0, 172, 472, 96);
   g.fillStyle(0x525763, 1).fillRect(0, 178, 470, 84);
-  // Meio-fio de pedra talhada nas duas margens da rua da vila
   for (let cx = 0; cx < 466; cx += 18) {
     g.fillStyle(cx % 36 === 0 ? C.steel : C.iron, 1).fillRect(cx, 174, 16, 6).fillRect(cx, 260, 16, 6);
   }
-  // Paralelepípedos arredondados no caminho da vila
   for (let rx = 4; rx < 462; rx += 16) {
     for (let ry = 184; ry < 252; ry += 14) {
       const off = (ry % 28 === 0) ? 6 : 0;
@@ -1250,21 +1431,17 @@ function makeWorldTextures(scene) {
       g.fillStyle(0x8e96a6, 0.6).fillRect(rx + off + 2, ry + 2, 7, 2);
     }
   }
-  // Passarelas de pedra ligando a rua à Casa do Ferreiro, ao Estábulo e aos Chalés
   [115, 295].forEach(wx => {
     g.fillStyle(0x676d7a, 1).fillRect(wx - 22, 152, 44, 24).fillRect(wx - 22, 264, 44, 24);
   });
-  // Canteiros floridos e iluminação quente das lanternas da rua
   [75, 225, 375].forEach(lx => {
     g.fillStyle(0x2f6e35, 1).fillRoundedRect(lx - 18, 158, 36, 12, 4).fillRoundedRect(lx - 18, 270, 36, 12, 4);
     g.fillStyle(0xffca28, 0.95).fillRect(lx - 10, 162, 4, 4).fillRect(lx + 6, 274, 4, 4);
     g.fillStyle(0xff5252, 0.95).fillRect(lx + 4, 161, 4, 4).fillRect(lx - 8, 273, 4, 4);
     g.fillStyle(0xffca28, 0.16).fillCircle(lx, 174, 28).fillCircle(lx, 266, 28);
   });
-  // Base contínua da Muralha Leste da Vila (fecha o perímetro em x = 442..474)
   g.fillStyle(C.woodDark, 1).fillRect(442, 4, 28, 170).fillRect(442, 266, 28, 170);
   g.fillStyle(C.ironDark, 1).fillRect(446, 6, 20, 166).fillRect(446, 268, 20, 166);
-  // Arco de sombra e soleira real sob o Grande Portão da Vila (x = 440..476, y = 174..266)
   g.fillStyle(0x2a1d17, 1).fillRect(440, 174, 34, 92);
   g.fillStyle(C.gold, 0.85).fillRect(444, 176, 4, 88).fillRect(466, 176, 4, 88);
   g.generateTexture('village_plaza', 480, 440);
@@ -1275,146 +1452,178 @@ function makeWorldTextures(scene) {
   g.destroy();
 }
 
-// 1. Casa do Ferreiro da Vila (112x84 pixels — matriz 56x42 a escala 2x: Forja acesa, Bigorna e Armas)
+// 1. Casa do Ferreiro da Vila (112x84 pixels — matriz 56x42 a escala 2x: Telhado Sólido, Forja, Bigorna e Armas)
 function drawVillageBlacksmith(r) {
-  // Chaminé robusta de pedra expelindo fumaça
-  r(C.ironDark, 5, 1, 8, 13);
-  r(C.iron, 6, 2, 6, 11);
-  r(C.steelDark, 6, 1, 6, 2);
-  r(C.steelLight, 7, 0, 4, 1);
+  // Base de pedra sólida e paredes inteiriças (preenchimento total sem vãos)
+  r(C.ironDark, 5, 17, 46, 23);
+  r(C.iron, 7, 18, 42, 21);
+  r(C.steelDark, 8, 19, 40, 3);
+  r(C.ironDark, 4, 38, 48, 2);
 
-  // Telhado de telhas cerâmicas vermelho-tijolo e vigas de carvalho
-  for (let i = 0; i < 11; i++) {
-    r(C.woodDark, 9 + i, 5 + i, 44 - i * 2, 1);
-    r(C.darkRed, 10 + i, 6 + i, 42 - i * 2, 1);
-    r(C.red, 11 + i, 6 + i, 40 - i * 2, 1);
+  // Chaminé robusta de pedra à esquerda (integrada ao telhado)
+  r(C.ironDark, 7, 2, 7, 15);
+  r(C.iron, 8, 3, 5, 13);
+  r(C.steelDark, 7, 2, 7, 2);
+  r(C.steelLight, 9, 1, 3, 1);
+
+  // Telhado Cerâmico Sólido e Simétrico (cume estreito em y=4, base larga em y=16, h=2 para zero frestas!)
+  for (let row = 0; row <= 12; row++) {
+    const y = 4 + row;
+    const w = 24 + row * 2;
+    const x = 28 - w / 2;
+    r(C.woodDark, x, y, w, 2);
+    r(C.darkRed, x + 1, y, w - 2, 1);
+    if (row % 2 === 0) {
+      r(C.red, x + 2, y, w - 4, 1);
+    }
   }
-  r(C.woodDark, 7, 17, 46, 2);
-  r(C.gold, 9, 17, 42, 1);
+  // Cumeeira e Beiral de Carvalho Contínuo
+  r(C.wood, 16, 4, 24, 1);
+  r(C.woodDark, 3, 16, 50, 3);
+  r(C.wood, 4, 17, 48, 1);
+  r(C.gold, 6, 18, 44, 1);
 
-  // Estrutura de pedra talhada e vigas de carvalho
-  r(C.ironDark, 9, 19, 42, 20);
-  r(C.iron, 11, 20, 38, 18);
-  r(C.steelDark, 12, 20, 36, 4);
-  r(C.woodDark, 9, 19, 3, 20);
-  r(C.woodDark, 48, 19, 3, 20);
-  r(C.woodDark, 28, 19, 3, 20);
+  // Vigas verticais de carvalho na fachada
+  r(C.woodDark, 5, 18, 3, 21);
+  r(C.woodDark, 26, 18, 3, 21);
+  r(C.woodDark, 48, 18, 3, 21);
 
-  // Fornalha da Forja aberta com fogo vivo (Lado Esquerdo)
-  r(C.ironDark, 13, 24, 14, 14);
-  r(C.steelDark, 14, 24, 12, 2);
-  r(C.outline, 15, 26, 10, 11);
-  r(C.darkRed, 16, 28, 8, 9);
-  r(C.red, 17, 30, 6, 7);
-  r(C.yellow, 18, 32, 4, 4);
-  r(C.white, 19, 33, 2, 2);
+  // Fornalha da Forja aberta com brasas vivas (Lado Esquerdo)
+  r(C.ironDark, 10, 22, 14, 16);
+  r(C.steelDark, 11, 22, 12, 2);
+  r(C.outline, 12, 24, 10, 13);
+  r(C.darkRed, 13, 26, 8, 11);
+  r(C.red, 14, 28, 6, 9);
+  r(C.yellow, 15, 31, 4, 5);
+  r(C.white, 16, 33, 2, 2);
 
-  // Suporte de Armas (Escudo Real e Espadas forjadas) no Lado Direito
-  r(C.woodDark, 33, 22, 13, 8);
-  r(C.wood, 34, 23, 11, 6);
-  r(C.blue, 35, 24, 4, 4);
-  r(C.gold, 36, 24, 2, 4);
-  r(C.steelLight, 41, 21, 1, 7);
-  r(C.gold, 40, 26, 3, 1);
-  r(C.steelLight, 44, 21, 1, 7);
-  r(C.gold, 43, 26, 3, 1);
+  // Mostruário de Armas na parede direita (Escudo Real e Espadas)
+  r(C.woodDark, 31, 21, 15, 8);
+  r(C.wood, 32, 22, 13, 6);
+  r(C.blue, 33, 23, 4, 4);
+  r(C.gold, 34, 23, 2, 4);
+  r(C.steelLight, 39, 21, 1, 7); r(C.gold, 38, 26, 3, 1);
+  r(C.steelLight, 43, 21, 1, 7); r(C.gold, 42, 26, 3, 1);
 
-  // Bigorna de Aço Pesada no pátio frontal + Martelo de Ferreiro
-  r(C.ironDark, 34, 33, 10, 6);
-  r(C.steelDark, 33, 32, 12, 3);
-  r(C.steel, 34, 31, 10, 2);
-  r(C.steelLight, 35, 31, 6, 1);
-  r(C.woodDark, 39, 29, 1, 3);
-  r(C.steelLight, 38, 29, 3, 1);
+  // Bigorna de Aço Pesada sobre cepo no pátio frontal
+  r(C.woodDark, 34, 34, 8, 5);
+  r(C.ironDark, 33, 32, 10, 3);
+  r(C.steelDark, 31, 30, 14, 3);
+  r(C.steel, 32, 30, 12, 2);
+  r(C.steelLight, 34, 30, 8, 1);
 }
 
 // 2. Casa do Cuidador de Cavalos / Estábulo Real (120x84 pixels — matriz 60x42 a escala 2x)
 function drawVillageStable(r) {
-  // Telhado amplo de madeira e palha dourada
-  for (let i = 0; i < 11; i++) {
-    r(C.woodDark, 3 + i, 5 + i, 54 - i * 2, 1);
-    r(C.wood, 4 + i, 6 + i, 52 - i * 2, 1);
-    r(C.rag, 6 + i, 6 + i, 48 - i * 2, 1);
+  // Base e Paredes inteiriças de madeira do Celeiro (preenchimento 100% sólido sem falhas)
+  r(C.woodDark, 5, 17, 50, 23);
+  r(C.wood, 7, 18, 46, 21);
+  r(C.ironDark, 4, 38, 52, 2);
+
+  // Telhado Simétrico de Madeira e Palha Dourada (cume em y=4, base larga em y=16, h=2 contínuo)
+  for (let row = 0; row <= 12; row++) {
+    const y = 4 + row;
+    const w = 28 + row * 2;
+    const x = 30 - w / 2;
+    r(C.woodDark, x, y, w, 2);
+    r(C.wood, x + 1, y, w - 2, 1);
+    r(C.rag, x + 2, y, w - 4, 1);
   }
-  r(C.woodDark, 2, 16, 56, 3);
-  r(C.gold, 27, 9, 6, 5); // janela do sótão de feno
+  r(C.wood, 16, 4, 28, 1);
+  r(C.woodDark, 3, 16, 54, 3);
+  r(C.wood, 4, 17, 52, 1);
 
-  // Estrutura de madeira do Estábulo
-  r(C.woodDark, 5, 19, 50, 20);
-  r(C.wood, 7, 20, 46, 18);
-  r(C.outline, 9, 21, 20, 12); // interior sombreado da baia do cavalo
-  r(C.woodDark, 5, 19, 3, 20);
-  r(C.woodDark, 29, 19, 3, 20);
-  r(C.woodDark, 52, 19, 3, 20);
+  // Sótão de Feno central no telhado com ferradura dourada
+  r(C.woodDark, 25, 7, 10, 9);
+  r(C.wood, 26, 8, 8, 7);
+  r(C.gold, 28, 9, 4, 5);
+  r(C.yellow, 29, 10, 2, 3);
 
-  // O Cavalo Marrom na Baia Esquerda (com crina, orelhas e focinho)
-  r(C.boot, 13, 24, 9, 7);       // pescoço e peito do cavalo
-  r(C.wood, 14, 25, 7, 5);
-  r(C.boot, 17, 20, 6, 5);       // cabeça
-  r(C.rag, 21, 22, 3, 3);        // focinho claro
-  r(C.white, 20, 20, 1, 2);      // mancha branca na testa
-  r(C.outline, 19, 21, 1, 1);    // olho do cavalo
-  r(C.woodDark, 15, 19, 2, 6);   // crina
-  r(C.boot, 16, 18, 2, 2);       // orelhas
+  // Colunas mestras de carvalho
+  r(C.woodDark, 5, 18, 3, 21);
+  r(C.woodDark, 28, 18, 3, 21);
+  r(C.woodDark, 52, 18, 3, 21);
 
-  // Cerca de madeira da baia do cavalo
-  r(C.woodDark, 8, 30, 21, 8);
-  r(C.rag, 9, 31, 19, 2);
-  r(C.rag, 9, 35, 19, 2);
+  // Baia Esquerda com o Cavalo Marrom (crina, orelhas, estrela branca na testa e focinho)
+  r(C.outline, 9, 20, 18, 17);
+  r(C.boot, 12, 24, 9, 7);
+  r(C.wood, 13, 25, 7, 5);
+  r(C.boot, 16, 20, 6, 5);
+  r(C.rag, 20, 22, 3, 3);
+  r(C.white, 19, 20, 1, 2);
+  r(C.outline, 18, 21, 1, 1);
+  r(C.woodDark, 14, 19, 2, 6);
+  r(C.boot, 15, 18, 2, 2);
 
-  // Fardos de Feno Dourado + Cocho de Água Límpida (Lado Direito)
-  r(C.gold, 34, 25, 16, 9);
-  r(C.yellow, 35, 26, 14, 7);
-  r(C.woodDark, 34, 29, 16, 1);
-  r(C.woodDark, 33, 34, 18, 5);
-  r(C.blue, 35, 35, 14, 2);
-  r(C.cyan, 36, 35, 8, 1);
+  // Porteira de madeira da baia do cavalo
+  r(C.woodDark, 9, 29, 18, 8);
+  r(C.rag, 10, 30, 16, 2);
+  r(C.rag, 10, 34, 16, 2);
+
+  // Lado Direito: Fardos de Feno Dourado + Cocho de Água Cristalina
+  r(C.gold, 33, 22, 17, 10);
+  r(C.yellow, 34, 23, 15, 8);
+  r(C.woodDark, 33, 26, 17, 1);
+  r(C.woodDark, 32, 32, 19, 6);
+  r(C.blue, 34, 33, 15, 3);
+  r(C.cyan, 35, 33, 10, 1);
 }
 
-// 3. Cabana Rústica da Vila (72x64 pixels — matriz 36x32 a escala 2x)
+// 3. Chalé Medieval da Vila (72x64 pixels — matriz 36x32 a escala 2x, 100% simétrico e sem cortes!)
 function drawVillageHouse(r) {
-  r(C.ironDark, 26, 2, 5, 8);
-  r(C.iron, 27, 3, 3, 7);
-  r(C.steelDark, 27, 2, 3, 1);
-  r(C.steelLight, 27, 0, 2, 2);
-  r(C.bone, 28, 0, 2, 1);
+  // Base de pedra e Paredes inteiriças de enxaimel (preenchimento sólido primeiro)
+  r(C.woodDark, 4, 16, 28, 14);
+  r(C.bone, 6, 18, 24, 10);
+  r(C.ironDark, 3, 28, 30, 2);
+  r(C.iron, 5, 28, 26, 1);
 
-  for (let row = 0; row < 12; row++) {
-    const w = 12 + row * 2;
-    const x = 18 - row;
-    r(C.woodDark, x, 6 + row, w, 1);
-    r(C.wood, x + 1, 6 + row, w - 2, 1);
-    r(C.rag, x + 2, 6 + row, w - 4, 1);
+  // Chaminé de pedra e tijolos à direita (dentro da margem segura)
+  r(C.ironDark, 24, 2, 5, 11);
+  r(C.iron, 25, 3, 3, 9);
+  r(C.steelDark, 24, 2, 5, 1);
+  r(C.steelLight, 25, 1, 3, 1);
+
+  // Telhado Simétrico de Madeira e Palha (centro exato x=18, de y=4 até y=15, h=2 para zero buracos!)
+  for (let row = 0; row <= 11; row++) {
+    const y = 4 + row;
+    const w = 10 + row * 2;
+    const x = 18 - w / 2;
+    r(C.woodDark, x, y, w, 2);
+    r(C.wood, x + 1, y, w - 2, 1);
+    if (row % 2 === 0) {
+      r(C.rag, x + 2, y, w - 4, 1);
+    }
   }
-  r(C.woodDark, 4, 18, 28, 2);
+  // Cumeeira e Beiral de Carvalho Contínuo (dentro de x=2..34)
+  r(C.wood, 13, 4, 10, 1);
+  r(C.woodDark, 2, 15, 32, 3);
+  r(C.wood, 3, 16, 30, 1);
 
-  r(C.woodDark, 6, 20, 24, 11);
-  r(C.bone, 8, 21, 20, 9);
-  r(C.woodDark, 6, 20, 2, 11);
-  r(C.woodDark, 28, 20, 2, 11);
-  r(C.woodDark, 17, 20, 2, 11);
+  // Vigas de carvalho estilo enxaimel europeu
+  r(C.woodDark, 4, 17, 2, 12);
+  r(C.woodDark, 17, 17, 2, 12);
+  r(C.woodDark, 30, 17, 2, 12);
 
-  r(C.woodDark, 10, 24, 5, 7);
-  r(C.wood, 11, 25, 3, 6);
-  r(C.gold, 13, 27, 1, 1);
+  // Porta de carvalho com ferrolho dourado (Lado Esquerdo)
+  r(C.woodDark, 8, 20, 6, 9);
+  r(C.wood, 9, 21, 4, 7);
+  r(C.gold, 12, 24, 1, 1);
 
-  r(C.woodDark, 21, 23, 5, 5);
-  r(C.yellow, 22, 24, 3, 3);
-  r(C.woodDark, 23, 24, 1, 3);
-  r(C.woodDark, 22, 25, 3, 1);
-
-  r(C.ironDark, 5, 30, 26, 2);
-  r(C.leafDark, 5, 29, 2, 2);
-  r(C.leaf, 29, 29, 2, 2);
+  // Janela iluminada com venezianas (Lado Direito)
+  r(C.woodDark, 20, 20, 8, 6);
+  r(C.yellow, 21, 21, 6, 4);
+  r(C.white, 22, 21, 2, 2);
+  r(C.woodDark, 24, 21, 1, 4);
+  r(C.woodDark, 21, 23, 6, 1);
 }
 
 // 4. Muralha / Paliçada Vertical Contínua da Vila (32x96 — fecha o perímetro até o Portão)
 function drawVillageWallV(r) {
-  r(C.ironDark, 2, 0, 12, 48);
-  r(C.woodDark, 3, 0, 10, 48);
-  r(C.wood, 5, 0, 6, 48);
-  r(C.rag, 6, 0, 2, 48);
-  for (let y = 4; y < 46; y += 10) {
+  r(C.ironDark, 2, 1, 12, 46);
+  r(C.woodDark, 3, 2, 10, 44);
+  r(C.wood, 5, 2, 6, 44);
+  r(C.rag, 6, 2, 2, 44);
+  for (let y = 5; y < 44; y += 10) {
     r(C.ironDark, 2, y, 12, 3);
     r(C.steelDark, 3, y + 1, 10, 1);
     r(C.gold, 4, y + 1, 1, 1);
@@ -1424,25 +1633,25 @@ function drawVillageWallV(r) {
 
 // 5. Torre e Pilar do Grande Portão da Vila (48x96 — matriz 24x48 a escala 2x)
 function drawGateTower(r) {
-  r(C.ironDark, 2, 36, 20, 12);
-  r(C.iron, 4, 38, 16, 9);
-  r(C.steelDark, 5, 38, 14, 3);
-  r(C.leafDark, 2, 44, 4, 3);
-  r(C.leaf, 3, 44, 2, 2);
+  r(C.ironDark, 2, 35, 20, 11);
+  r(C.iron, 4, 37, 16, 8);
+  r(C.steelDark, 5, 37, 14, 3);
+  r(C.leafDark, 2, 43, 4, 3);
+  r(C.leaf, 3, 43, 2, 2);
 
-  r(C.woodDark, 4, 12, 16, 25);
-  r(C.wood, 6, 13, 12, 23);
-  r(C.rag, 8, 14, 4, 21);
+  r(C.woodDark, 4, 12, 16, 24);
+  r(C.wood, 6, 13, 12, 22);
+  r(C.rag, 8, 14, 4, 20);
 
-  [15, 24, 33].forEach(by => {
+  [15, 24, 32].forEach(by => {
     r(C.ironDark, 3, by, 18, 3);
     r(C.steelDark, 4, by + 1, 16, 1);
     r(C.gold, 6, by + 1, 1, 1);
     r(C.gold, 17, by + 1, 1, 1);
   });
 
-  r(C.woodDark, 1, 8, 22, 5);
-  r(C.wood, 2, 9, 20, 3);
+  r(C.woodDark, 2, 8, 20, 5);
+  r(C.wood, 3, 9, 18, 3);
   r(C.woodDark, 2, 5, 4, 4); r(C.wood, 3, 6, 2, 3);
   r(C.woodDark, 10, 5, 4, 4); r(C.wood, 11, 6, 2, 3);
   r(C.woodDark, 18, 5, 4, 4); r(C.wood, 19, 6, 2, 3);
@@ -1451,35 +1660,31 @@ function drawGateTower(r) {
   r(C.gold, 9, 20, 2, 4); r(C.gold, 8, 21, 4, 1);
   r(C.darkRed, 7, 27, 6, 1);
 
-  r(C.ironDark, 11, 2, 2, 4);
-  r(C.darkRed, 10, 0, 4, 3);
-  r(C.red, 11, 0, 2, 3);
-  r(C.yellow, 11, 1, 2, 2);
+  r(C.ironDark, 11, 3, 2, 3);
+  r(C.darkRed, 10, 1, 4, 3);
+  r(C.red, 11, 1, 2, 3);
+  r(C.yellow, 11, 2, 2, 2);
 }
 
 // 6. Moradores NPCs da Vila dando Tchau (24x28 — 2 frames acenando para o Cavaleiro)
 function drawVillageNpc(r, f) {
-  // Cabelo / Boina medieval e Cabeça
   r(C.woodDark, 4, 1, 4, 2);
   r(C.skin, 4, 3, 4, 3);
-  r(C.eye, 7, 4, 1, 1); // olhando para o cavaleiro
+  r(C.eye, 7, 4, 1, 1);
 
-  // Túnica aldeã e avental claro
   r(C.elfTunic, 3, 6, 6, 5);
   r(C.bone, 5, 7, 3, 4);
   r(C.woodDark, 3, 9, 6, 1);
 
-  // Braço esquerdo em repouso + Braço direito ACENANDO (dando tchau!
   r(C.skin, 2, 6, 1, 3);
   if (f === 0) {
     r(C.elfTunic, 9, 5, 1, 2);
-    r(C.skin, 10, 3, 2, 2); // mão erguida
+    r(C.skin, 10, 3, 2, 2);
   } else {
     r(C.elfTunic, 9, 4, 1, 2);
-    r(C.skin, 9, 1, 2, 2);  // mão acenando no alto
+    r(C.skin, 9, 1, 2, 2);
   }
 
-  // Botas (paradinhos no lugar)
   r(C.boot, 4, 11, 2, 2);
   r(C.boot, 7, 11, 2, 2);
 }
@@ -1507,6 +1712,8 @@ function preload() {
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
+  makeSheet(this, 'gargoyle', 32, 32, 2, drawGargoyle);
+  makeSheet(this, 'dark_mage', 32, 32, 2, drawDarkMage);
   makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
   makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
   makeSheet(this, 'village_blacksmith', 112, 84, 1, drawVillageBlacksmith);
@@ -1521,7 +1728,11 @@ function preload() {
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
   makeSheet(this, 'sword_blade', 12, 40, 1, drawBlade);
   makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blue, C.steelLight));
+  makeSheet(this, 'arrow_gold', 26, 10, 1, arrowDrawer(C.yellow, C.gold));
   makeSheet(this, 'arrow_elf', 26, 10, 1, arrowDrawer(C.elfCloak, C.purple));
+  makeSheet(this, 'orb_enemy', 16, 16, 1, drawMageOrb);
+  makeSheet(this, 'axe_proj', 24, 24, 1, drawAxeProj);
+  makeSheet(this, 'fireball_proj', 24, 16, 1, drawFireballProj);
   makeSheet(this, 'hud_hourglass', 22, 26, 1, drawHourglass);
   makeSheet(this, 'hud_crown', 24, 22, 1, drawCrown);
   makeSheet(this, 'hud_horn', 30, 20, 2, drawHorn);
@@ -1529,6 +1740,8 @@ function preload() {
   makeItem(this, 'item_bow', 0xffe082, drawBowIcon);
   makeItem(this, 'item_shield', 0x80deea, drawShieldIcon);
   makeItem(this, 'item_sword', 0xffffff, drawSwordIcon);
+  makeItem(this, 'item_axe', 0x7fe7ff, drawAxeIcon);
+  makeItem(this, 'item_firestaff', 0xff7043, drawFireStaffIcon);
   makeWorldTextures(this);
 }
 
@@ -1540,6 +1753,7 @@ function create(data) {
   sound.stopBGM();
   gameState = 'MENU';
   survivalTime = 0;
+  runGold = 0;
   enemySpeed = 200;
   spawnDelay = 1250;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
@@ -1553,7 +1767,11 @@ function create(data) {
   });
 
   // Animações de 2 quadros — criadas uma única vez
-  const fps = { knight: 10, goblin: 12, warrior: 6, elf: 8, mini_golem: 10, boss_golem: 5, village_npc: 4, gold_coin: 8 };
+  const fps = {
+    knight: 10, goblin: 12, warrior: 6, elf: 8,
+    gargoyle: 9, dark_mage: 6, mini_golem: 10, boss_golem: 5,
+    village_npc: 4, gold_coin: 8
+  };
   Object.entries(fps).forEach(([key, frameRate]) => {
     if (!scene.anims.exists(key)) {
       scene.anims.create({ key, frameRate, repeat: -1, frames: [{ key, frame: 0 }, { key, frame: 1 }] });
@@ -1626,26 +1844,52 @@ function create(data) {
   scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
   scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
 
-  // Combate (só atinge inimigos visíveis na tela; suporta múltiplos pontos de vida)
+  // Combate: suporta flechas, flechas douradas refletidas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
-    if (e.x < 800 && a.active && e.active) {
+    if (e.x >= 800 || !a.active || !e.active) return;
+    if (a.projId && e.lastProjId === a.projId) return;
+    if (a.projId) e.lastProjId = a.projId;
+
+    if (a.isFireball) {
+      const fx = a.x, fy = a.y, rad = a.blastRadius || 68, dmg = a.dmg || 2;
       a.destroy();
-      damageEnemy(scene, e, 1);
+      explodeFireball(scene, fx, fy, rad, dmg);
+      return;
+    }
+
+    damageEnemy(scene, e, a.dmg || 1);
+    if (a.pierceCount && a.pierceCount > 1) {
+      a.pierceCount--;
+    } else if (!a.isBoomerang) {
+      a.destroy();
     }
   });
   scene.physics.add.overlap(slashes, enemies, (s, e) => {
     // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
-      damageEnemy(scene, e, 2); // Espada Vorpal corta armadura pesada de uma vez
+      damageEnemy(scene, e, s.dmg || 2);
     }
   });
   scene.physics.add.overlap(slashes, enemyArrows, (s, a) => { sound.playShieldBlock(); a.destroy(); });
-  scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => { sound.playShieldBlock(); a.destroy(); b.destroy(); });
+  scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => {
+    if (!a.active || !b.active) return;
+    sound.playShieldBlock();
+    b.destroy();
+    if (!a.isBoomerang && !a.isFireball && (!a.pierceCount || a.pierceCount <= 1)) {
+      a.destroy();
+    }
+  });
 
-  // Obstáculos (árvores e rochas) servem de cobertura: bloqueiam flechas
+  // Obstáculos (árvores e rochas) servem de cobertura: bloqueiam flechas (machado bumerangue sobrevoa)
   const hitObstacle = (arrow, obs) => {
-    if (!arrow.active) return;
+    if (!arrow.active || arrow.isBoomerang) return;
+    if (arrow.isFireball) {
+      const fx = arrow.x, fy = arrow.y, rad = arrow.blastRadius || 68, dmg = arrow.dmg || 2;
+      arrow.destroy();
+      explodeFireball(scene, fx, fy, rad, dmg);
+      return;
+    }
     if (arrow.x > 0 && arrow.x < 800 && obs.x < 810) {
       if (obs.obstacleType === 'rock') {
         sound.playShieldBlock();
@@ -1662,6 +1906,9 @@ function create(data) {
 
   if (data && data.autoStart) {
     startGameplay(scene);
+  } else if (data && data.openShop) {
+    showMainMenu(scene);
+    showShopMenu(scene, () => showMainMenu(scene));
   } else {
     showMainMenu(scene);
   }
@@ -1697,7 +1944,18 @@ function updateGameplay(scene, time, dt) {
   obstacles.setVelocityX(-worldSpeed);
   villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
-  coins.setVelocityX(-worldSpeed);
+
+  // Moedas acompanham o chão e são atraídas suavemente quando o cavaleiro passa perto
+  coins.getChildren().forEach(c => {
+    if (!c.active) return;
+    const dist = Phaser.Math.Distance.Between(player.x, player.y, c.x, c.y);
+    if (dist < 90) {
+      scene.physics.moveToObject(c, player, 320);
+      c.groundY = c.y + 10;
+    } else {
+      c.setVelocityX(-worldSpeed);
+    }
+  });
 
   // 2. Cavaleiro: 8 direções com velocidade normalizada, SEMPRE olhando para a frente
   let dirX = 0, dirY = 0;
@@ -1715,9 +1973,26 @@ function updateGameplay(scene, time, dt) {
     dustFx.emitParticleAt(player.x - 6, player.y + 14, 1);
   }
 
-  // 3. Inimigos balançando enquanto andam + Movimentação do Boss Golem na arena
+  // 3. Inimigos: balanço + voo senoidal das Gárgulas + Movimentação do Boss Golem na arena
   enemies.getChildren().forEach(e => {
-    if (!e.isBoss) e.setAngle(Math.sin(time * 0.015 + e.phase) * 5);
+    if (!e.isBoss) {
+      e.setAngle(Math.sin(time * 0.015 + e.phase) * 5);
+      if (e.enemyType === 'gargoyle' && e.baseY !== undefined) {
+        e.y = Phaser.Math.Clamp(e.baseY + Math.sin(time * 0.0055 + e.phase) * 46, 125, 520);
+        if (e.body) e.body.updateFromGameObject();
+      }
+    }
+  });
+
+  // Rotação dos Machados Bumerangue e renovação de hit ao inverter direção na volta
+  playerArrows.getChildren().forEach(p => {
+    if (p.isBoomerang && p.active) {
+      p.angle += 760 * dt;
+      if (!p.returning && p.body.velocity.x < 0) {
+        p.returning = true;
+        p.projId = ++slashCounter;
+      }
+    }
   });
 
   if (activeBoss && activeBoss.active) {
@@ -1739,14 +2014,19 @@ function updateGameplay(scene, time, dt) {
     }
   }
 
-  // 4. Item ativo: conta o tempo e ataca na cadência certa
+  // 4. Arma ativa: conta o tempo e ataca na cadência escalada pelo nível de Upgrade!
   if (buff.type) {
     buff.timeLeft -= dt;
     if (buff.timeLeft <= 0) endBuff();
-    else if (time > buff.nextAttack && ATTACK_RATE[buff.type]) {
-      if (buff.type === 'bow') shootArrow();
-      if (buff.type === 'sword') swingSword(scene);
-      buff.nextAttack = time + ATTACK_RATE[buff.type];
+    else {
+      const rate = getWeaponAttackRate(buff.type);
+      if (rate && time > buff.nextAttack) {
+        if (buff.type === 'bow') shootArrow(scene);
+        else if (buff.type === 'sword') swingSword(scene);
+        else if (buff.type === 'axe') throwAxe(scene);
+        else if (buff.type === 'firestaff') shootFireball(scene);
+        buff.nextAttack = time + rate;
+      }
     }
   }
   updateItemHUD();
@@ -1758,8 +2038,8 @@ function updateGameplay(scene, time, dt) {
   cull(obstacles, s => s.x < -60);
   cull(items, s => s.x < -60);
   cull(coins, s => s.x < -60);
-  cull(playerArrows, s => s.x < 0 || s.x > 800);
-  cull(enemyArrows, s => s.x < -40 || s.y < 0 || s.y > 620);
+  cull(playerArrows, s => s.x < -40 || s.x > 830 || s.y < 0 || s.y > 620);
+  cull(enemyArrows, s => s.x < -40 || s.x > 840 || s.y < 0 || s.y > 620);
 }
 
 // Impede o jogador de atravessar obstáculos e resolve prensamento de forma suave (sem trancos ou cuspidas)
@@ -1867,7 +2147,7 @@ function sortAndShade() {
     shieldSprite.setPosition(player.x + 12, player.y + 4).setDepth(player.depth + 1);
   }
   slashes.getChildren().forEach(s => {
-    s.setPosition(player.x + 30, player.y).setDepth(player.depth + 3);
+    s.setPosition(player.x + (s.offsetX || 30), player.y).setDepth(player.depth + 3);
     if (s.blade && s.blade.active) {
       s.blade.setPosition(player.x + 8, player.y + 4).setDepth(player.depth + 2);
     }
@@ -1952,6 +2232,7 @@ function startGameplay(scene) {
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (hudContainer) hudContainer.setVisible(true);
+  if (hudGoldText) hudGoldText.setText(`${getGold()}`);
   sound.startBGM('normal');
 
   // Constrói a vila inicial com o Grande Portão
@@ -1981,7 +2262,7 @@ function startGameplay(scene) {
   });
 
   // Relíquias e árvores das bordas (rochas não nascem mais aleatoriamente — são ataques do Golem!)
-  every(4600, () => spawnItem(scene));
+  every(4400, () => spawnItem(scene));
   every(900, () => spawnTree());
 
   const nextEnemy = () => {
@@ -2006,7 +2287,13 @@ function spawnEnemy(scene, forcedType, customY) {
   if (!type) {
     if (activeBoss && activeBoss.active) {
       // Durante a Boss Fight, os filhotinhos (mini_golem) aparecem junto aos outros inimigos
-      type = roll < 0.45 ? 'mini_golem' : roll < 0.70 ? 'goblin' : roll < 0.86 ? 'warrior' : 'elf';
+      type = roll < 0.40 ? 'mini_golem' : roll < 0.62 ? 'goblin' : roll < 0.78 ? 'gargoyle' : roll < 0.90 ? 'elf' : 'dark_mage';
+    } else if (survivalTime >= 24) {
+      // Fase completa Bullet-Hell: inclui Gárgulas Senoidais e Magos Sombrios com tiro em leque!
+      type = roll < 0.28 ? 'goblin' : roll < 0.48 ? 'warrior' : roll < 0.68 ? 'elf' : roll < 0.85 ? 'gargoyle' : 'dark_mage';
+    } else if (survivalTime >= 12) {
+      // Aos 12s entram as Gárgulas Aladas de movimento senoidal
+      type = roll < 0.36 ? 'goblin' : roll < 0.60 ? 'warrior' : roll < 0.82 ? 'elf' : 'gargoyle';
     } else {
       type = roll < 0.45 ? 'goblin' : roll < 0.75 ? 'warrior' : 'elf';
     }
@@ -2022,12 +2309,16 @@ function spawnEnemy(scene, forcedType, customY) {
       if (!stacked) { y = candidate; break; }
     }
   }
+  if (type === 'gargoyle') {
+    y = Phaser.Math.Clamp(y, 175, 470);
+  }
 
   const enemy = enemies.create(860, y, type, 0);
   enemy.play({ key: type, startFrame: Phaser.Math.Between(0, 1) }).setFlipX(true);
   enemy.body.setSize(cfg.w, cfg.h);
   enemy.setVelocityX(-enemySpeed * cfg.speed);
-  enemy.phase = Math.random() * 10; // cada um balança num ritmo diferente
+  enemy.phase = Math.random() * 10;
+  enemy.baseY = y;
   enemy.enemyType = type;
   enemy.maxHp = cfg.hp;
   enemy.hp = cfg.hp;
@@ -2041,6 +2332,17 @@ function spawnEnemy(scene, forcedType, customY) {
         delay: 1700,
         loop: true,
         callback: () => elfShoot(scene, enemy)
+      });
+    });
+  } else if (type === 'dark_mage') {
+    // Mago Sombrio dispara leque de 3 Orbes Arcanos (Bullet-Hell!)
+    enemy.shootTimer = scene.time.delayedCall(750, () => {
+      if (!enemy.active || gameState !== 'PLAYING') return;
+      mageShoot(scene, enemy);
+      enemy.shootTimer = scene.time.addEvent({
+        delay: 2200,
+        loop: true,
+        callback: () => mageShoot(scene, enemy)
       });
     });
   }
@@ -2377,6 +2679,7 @@ function defeatBoss(scene, boss) {
 
   sound.playEarthSmash();
   sound.playEnemyHit();
+  sound.playCoin();
   scene.cameras.main.flash(260, 255, 215, 110);
   scene.cameras.main.shake(450, 0.014);
   hitFx.explode(36, bx, by);
@@ -2406,9 +2709,10 @@ function defeatBoss(scene, boss) {
   forestBottom.clearTint();
   sound.startBGM('normal');
 
-  floatText(scene, 400, 150, '★ GOLEM ANCESTRAL DERROTADO! ★', '#ffca28');
-  for (let i = 0; i < 5; i++) {
-    spawnCoinDrop(scene, bx + Phaser.Math.Between(-34, 34), by + Phaser.Math.Between(-24, 24));
+  addGold(15);
+  floatText(scene, 400, 150, '★ GOLEM DERROTADO! +15 OURO! ★', '#ffca28');
+  for (let i = 0; i < 8; i++) {
+    spawnCoinDrop(scene, bx + Phaser.Math.Between(-42, 42), by + Phaser.Math.Between(-30, 30));
   }
   spawnItem(scene);
 }
@@ -2416,7 +2720,6 @@ function defeatBoss(scene, boss) {
 // Elfo brilha e concentra energia (360ms de aviso justo) antes de disparar
 function elfShoot(scene, elf) {
   if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
-  // Dispara com garantia enquanto estiver na tela visível e à frente do cavaleiro
   if (elf.x > 790 || elf.x < player.x + 25) return;
 
   elf.setTint(0xff80ff);
@@ -2443,6 +2746,40 @@ function elfShoot(scene, elf) {
   });
 }
 
+// Mago Sombrio conjura 3 Orbes Arcanos em leque (Bullet-Hell!)
+function mageShoot(scene, mage) {
+  if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
+  if (mage.x > 790 || mage.x < player.x + 20) return;
+
+  mage.setTint(0x7fe7ff);
+  if (mage.chargeRing && mage.chargeRing.active) mage.chargeRing.destroy();
+  const chargeRing = scene.add.circle(mage.x - 10, mage.y - 4, 15, 0x7fe7ff, 0.32)
+    .setStrokeStyle(2, 0xc36bff).setDepth(mage.depth + 2);
+  mage.chargeRing = chargeRing;
+
+  scene.tweens.add({
+    targets: chargeRing,
+    scale: { from: 1.4, to: 0.25 },
+    alpha: { from: 0.95, to: 0 },
+    duration: 380,
+    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
+  });
+
+  scene.time.delayedCall(380, () => {
+    if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
+    mage.clearTint();
+    sound.playElfShot();
+    const baseAngle = Phaser.Math.Angle.Between(mage.x - 12, mage.y, player.x, player.y);
+    [-0.30, 0, 0.30].forEach(spread => {
+      const orb = enemyArrows.create(mage.x - 12, mage.y, 'orb_enemy');
+      orb.body.setSize(10, 10);
+      const ang = baseAngle + spread;
+      const spd = 255;
+      orb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    });
+  });
+}
+
 // Árvores nascem na vegetação fora da estrada
 function spawnTree(x = 880) {
   for (let i = 0; i < 6; i++) {
@@ -2460,9 +2797,10 @@ function spawnTree(x = 880) {
   }
 }
 
-// Item flutua e pulsa para chamar atenção (evita nascer dentro de obstáculos)
+// Item flutua e pulsa para chamar atenção (usa o pool de armas desbloqueadas na Loja!)
 function spawnItem(scene) {
-  const type = Phaser.Utils.Array.GetRandom(['bow', 'shield', 'sword']);
+  const pool = getUnlockedWeaponPool();
+  const type = Phaser.Utils.Array.GetRandom(pool);
   let y = Phaser.Math.Between(140, 510);
   for (let i = 0; i < 6; i++) {
     const candidate = Phaser.Math.Between(140, 510);
@@ -2471,13 +2809,13 @@ function spawnItem(scene) {
   }
   const item = items.create(860, y, 'item_' + type);
   item.lootType = type;
-  item.groundY = y + 18; // sombra fica no chão enquanto o item flutua
+  item.groundY = y + 18;
   scene.tweens.add({ targets: item, y: y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   scene.tweens.add({ targets: item, scale: 1.12, duration: 400, yoyo: true, repeat: -1 });
 }
 
 // =============================================================================
-// COMBATE
+// COMBATE & ARMAS COM UPGRADES ROGUELITE
 // =============================================================================
 function removeEntity(obj) {
   if (!obj || !obj.active) return;
@@ -2513,7 +2851,6 @@ function damageEnemy(scene, enemy, dmg = 1) {
   if (enemy.hp <= 0) {
     killEnemy(enemy);
   } else {
-    // Inimigo de armadura absorveu o primeiro impacto
     sound.playShieldBlock();
     hitFx.explode(7, enemy.x, enemy.y);
     enemy.x = Math.min(785, enemy.x + 22);
@@ -2528,26 +2865,30 @@ function killEnemy(enemy) {
   if (!enemy || !enemy.active) return;
   const scene = enemy.scene;
   const ex = enemy.x, ey = enemy.y;
-  const dropRates = { warrior: 0.55, elf: 0.45, goblin: 0.35, mini_golem: 0.30 };
-  const chance = dropRates[enemy.enemyType] ?? 0.35;
+  const dropRates = { dark_mage: 0.75, warrior: 0.65, elf: 0.50, gargoyle: 0.48, goblin: 0.40, mini_golem: 0.35 };
+  const chance = dropRates[enemy.enemyType] ?? 0.40;
 
   sound.playEnemyHit();
   hitFx.explode(12, ex, ey);
   removeEntity(enemy);
 
   if (Math.random() < chance) {
-    spawnCoinDrop(scene, ex, ey);
+    const count = (enemy.enemyType === 'dark_mage' || enemy.enemyType === 'warrior') && Math.random() < 0.45 ? 2 : 1;
+    for (let i = 0; i < count; i++) {
+      spawnCoinDrop(scene, ex + i * 10, ey);
+    }
   }
 }
 
-// Peça de Ouro (visual): salta do monstro derrotado e brilha no caminho
-function spawnCoinDrop(scene, x, y) {
+// Peça de Ouro: salta do monstro derrotado, brilha e pode ser coletada para a Loja de Upgrades!
+function spawnCoinDrop(scene, x, y, goldValue = 1) {
   if (!scene || !coins) return;
   const targetY = Phaser.Math.Clamp(y + Phaser.Math.Between(-10, 14), 130, 520);
   const coin = coins.create(x, targetY, 'gold_coin');
   coin.play('gold_coin');
   coin.body.setSize(16, 16);
   coin.groundY = targetY + 10;
+  coin.goldValue = goldValue;
 
   scene.tweens.add({
     targets: coin,
@@ -2569,61 +2910,191 @@ function spawnCoinDrop(scene, x, y) {
   });
 }
 
-// Coleta puramente visual da moeda de ouro (sem contador no HUD por enquanto)
 function collectCoin(scene, coin) {
   if (!coin || !coin.active) return;
   const cx = coin.x, cy = coin.y;
+  const val = coin.goldValue || 1;
+  addGold(val);
   sound.playCoin();
   hitFx.explode(6, cx, cy);
-  floatText(scene, cx, cy - 16, '✦ OURO! ✦', '#ffd740');
+  floatText(scene, cx, cy - 16, `+${val} OURO!`, '#ffd740');
   removeEntity(coin);
 }
 
+function getWeaponDuration(type) {
+  const base = BUFF_TIME[type] || 6.5;
+  if (type === 'shield') {
+    const lvl = getWeaponLevel('shield');
+    return base + (lvl - 1) * 1.5;
+  }
+  return base + (getWeaponLevel(type) - 1) * 0.6;
+}
+
+function getWeaponAttackRate(type) {
+  const lvl = getWeaponLevel(type);
+  if (type === 'bow') return Math.max(200, ATTACK_RATE.bow - (lvl - 1) * 32);
+  if (type === 'sword') return Math.max(170, ATTACK_RATE.sword - (lvl - 1) * 34);
+  if (type === 'axe') return Math.max(250, ATTACK_RATE.axe - (lvl - 1) * 45);
+  if (type === 'firestaff') return Math.max(280, ATTACK_RATE.firestaff - (lvl - 1) * 45);
+  return ATTACK_RATE[type] || 0;
+}
+
 function collectItem(scene, item) {
-  // Se já estiver com a mesma relíquia ativa, apenas renova o tempo sem zerar nextAttack
   const sameType = buff.type === item.lootType;
+  const dur = getWeaponDuration(item.lootType);
+  const lvl = getWeaponLevel(item.lootType);
   buff = {
     type: item.lootType,
-    timeLeft: BUFF_TIME[item.lootType],
+    timeLeft: dur,
+    maxTime: dur,
     nextAttack: sameType ? buff.nextAttack : 0
   };
   shieldSprite.setVisible(buff.type === 'shield');
   sound.playItemCollect();
-  floatText(scene, item.x, item.y - 20, BUFF_NAMES[buff.type] + '!', '#ffca28');
+  floatText(scene, item.x, item.y - 20, `${BUFF_NAMES[buff.type]} NV.${lvl}!`, '#ffca28');
   removeEntity(item);
 }
 
 function endBuff() {
-  buff = { type: null, timeLeft: 0, nextAttack: 0 };
+  buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
   shieldSprite.setVisible(false);
   if (playerBuffBar) playerBuffBar.clear();
 }
 
+// ARMA 1: Arco Real (Nv1: 1 flecha | Nv2: 2 flechas Shotgun | Nv3: 3 flechas | Nv4: 4 flechas em leque!)
 function shootArrow() {
   sound.playBow();
-  const arrow = playerArrows.create(player.x + 20, player.y + 2, 'arrow_player');
-  arrow.body.setSize(18, 6);
-  arrow.setVelocityX(750);
+  const lvl = getWeaponLevel('bow');
+  const spreads = {
+    1: [0],
+    2: [-0.11, 0.11],
+    3: [-0.20, 0, 0.20],
+    4: [-0.26, -0.09, 0.09, 0.26]
+  }[lvl] || [0];
+
+  spreads.forEach(ang => {
+    const arrow = playerArrows.create(player.x + 20, player.y + 2, 'arrow_player');
+    arrow.body.setSize(18, 6);
+    arrow.dmg = 1;
+    const spd = 760;
+    arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    arrow.rotation = ang;
+  });
 }
 
-// Espada gira no punho do cavaleiro + rastro em meia-lua (sempre voltada para a frente)
+// ARMA 2: Espada Vorpal (Nível aumenta o tamanho do corte, velocidade de ataque e dano!)
 function swingSword(scene) {
-  // Garante que nunca existam 2 slashes simultâneos (elimina bug de dano multiplicado)
   slashes.getChildren().slice().forEach(old => old.destroy());
   sound.playSword();
-  const slash = slashes.create(player.x + 30, player.y, 'slash_arc');
-  slash.body.setSize(36, 60);
+  const lvl = getWeaponLevel('sword');
+  const scale = 1 + (lvl - 1) * 0.26;
+  const offsetX = Math.round(30 + (lvl - 1) * 7);
+
+  const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
+  slash.setScale(scale);
+  slash.offsetX = offsetX;
+  slash.body.setSize(Math.round(38 * scale), Math.round(62 * scale));
   slash.slashId = ++slashCounter;
-  slash.blade = scene.add.image(player.x, player.y, 'sword_blade').setOrigin(0.5, 0.78);
+  slash.dmg = lvl >= 3 ? 3 : 2;
+  slash.blade = scene.add.image(player.x, player.y, 'sword_blade').setOrigin(0.5, 0.78).setScale(1 + (lvl - 1) * 0.18);
 
   slash.on('destroy', () => {
     if (slash.blade && slash.blade.active) slash.blade.destroy();
   });
 
-  scene.tweens.add({ targets: slash.blade, angle: { from: -60, to: 120 }, duration: 150, ease: 'Cubic.easeOut' });
+  scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
   scene.tweens.add({
     targets: slash, alpha: { from: 1, to: 0 }, duration: 200,
     onComplete: () => slash.destroy()
+  });
+
+  // Nv 4: Dispara também uma lâmina de vento dourada à frente!
+  if (lvl >= 4) {
+    const waveProj = playerArrows.create(player.x + 34, player.y, 'arrow_gold');
+    waveProj.setScale(1.35);
+    waveProj.body.setSize(20, 12);
+    waveProj.dmg = 2;
+    waveProj.pierceCount = 2;
+    waveProj.projId = ++slashCounter;
+    waveProj.setVelocityX(680);
+  }
+}
+
+// ARMA 4 (Desbloqueável): Machado Bumerangue (Atravessa inimigos na ida e na volta!)
+function throwAxe(scene) {
+  sound.playSword();
+  const lvl = getWeaponLevel('axe');
+  const angles = {
+    1: [0],
+    2: [-0.18, 0.18],
+    3: [-0.26, 0, 0.26],
+    4: [-0.32, -0.11, 0.11, 0.32]
+  }[lvl] || [0];
+
+  angles.forEach(ang => {
+    const axe = playerArrows.create(player.x + 18, player.y, 'axe_proj');
+    axe.setScale(lvl >= 4 ? 1.25 : 1.05);
+    axe.body.setSize(20, 20);
+    axe.isBoomerang = true;
+    axe.returning = false;
+    axe.dmg = lvl >= 4 ? 3 : 2;
+    axe.projId = ++slashCounter;
+
+    const spd = 540 + (lvl - 1) * 35;
+    axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    axe.body.setAccelerationX(-740); // freia no ar e retorna como bumerangue!
+  });
+}
+
+// ARMA 5 (Desbloqueável): Cajado de Fogo Arcano (Orbes solares que explodem em área!)
+function shootFireball(scene) {
+  sound.playBow();
+  const lvl = getWeaponLevel('firestaff');
+  const angles = {
+    1: [0],
+    2: [0],
+    3: [-0.14, 0.14],
+    4: [-0.22, 0, 0.22]
+  }[lvl] || [0];
+
+  angles.forEach(ang => {
+    const fb = playerArrows.create(player.x + 22, player.y, 'fireball_proj');
+    fb.setScale(lvl >= 2 ? 1.25 : 1.05);
+    fb.body.setSize(18, 12);
+    fb.isFireball = true;
+    fb.blastRadius = 68 + (lvl - 1) * 18;
+    fb.dmg = lvl >= 3 ? 3 : 2;
+    fb.projId = ++slashCounter;
+
+    const spd = 520;
+    fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    fb.rotation = ang;
+  });
+}
+
+function explodeFireball(scene, x, y, radius, dmg) {
+  sound.playEarthSmash();
+  hitFx.explode(16, x, y);
+  const blast = scene.add.circle(x, y, 12, 0xff7043, 0.55)
+    .setStrokeStyle(3, 0xffeb3b, 0.95).setDepth(1550);
+  scene.tweens.add({
+    targets: blast,
+    radius,
+    alpha: 0,
+    duration: 260,
+    ease: 'Cubic.easeOut',
+    onComplete: () => blast.destroy()
+  });
+
+  enemies.getChildren().slice().forEach(e => {
+    if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
+      damageEnemy(scene, e, dmg);
+    }
+  });
+  enemyArrows.getChildren().slice().forEach(a => {
+    if (a.active && Phaser.Math.Distance.Between(x, y, a.x, a.y) <= radius * 0.9) {
+      a.destroy();
+    }
   });
 }
 
@@ -2631,12 +3102,37 @@ function playerHit(scene, hazard) {
   if (gameState !== 'PLAYING' || !hazard.active) return;
 
   if (buff.type === 'shield') {
-    // 1. Flechas inimigas são rebatidas sem quebrar o escudo!
+    const lvl = getWeaponLevel('shield');
+
+    // 1. ESCUDO SAGRADO REFLETE PROJÉTEIS EM OURO! (Cria Flechas de Ouro + Concede Ouro na hora!)
     if (enemyArrows.contains(hazard)) {
-      sound.playShieldBlock();
-      hitFx.explode(8, hazard.x, hazard.y);
-      floatText(scene, player.x, player.y - 28, 'FLECHA REBATIDA!', '#7fe7ff');
+      const hx = hazard.x, hy = hazard.y;
       hazard.destroy();
+
+      const bonusGold = lvl >= 4 ? 4 : lvl === 3 ? 3 : 2;
+      addGold(bonusGold);
+      sound.playShieldBlock();
+      sound.playCoin();
+      hitFx.explode(10, hx, hy);
+      floatText(scene, player.x, player.y - 28, `REFLETIDO EM OURO! +${bonusGold}🪙`, '#ffd740');
+
+      const spreads = {
+        1: [0],
+        2: [-0.12, 0.12],
+        3: [-0.20, 0, 0.20],
+        4: [-0.26, -0.09, 0.09, 0.26]
+      }[lvl] || [0];
+
+      spreads.forEach(ang => {
+        const goldArrow = playerArrows.create(player.x + 20, player.y, 'arrow_gold');
+        goldArrow.body.setSize(18, 8);
+        goldArrow.dmg = 2;
+        goldArrow.pierceCount = lvl >= 4 ? 2 : 1;
+        goldArrow.projId = ++slashCounter;
+        const spd = 800;
+        goldArrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        goldArrow.rotation = ang;
+      });
       return;
     }
 
@@ -2647,11 +3143,14 @@ function playerHit(scene, hazard) {
     scene.cameras.main.shake(180, 0.008);
     floatText(scene, player.x, player.y - 32, 'ONDA DE CHOQUE!', '#7fe7ff');
 
+    const shockRadius = 140 + (lvl - 1) * 28;
+    const bossDmg = 4 + (lvl - 1) * 2;
+
     const wave = scene.add.circle(player.x, player.y, 16, 0x7fe7ff, 0.35)
       .setStrokeStyle(3, 0xffffff).setDepth(1600);
     scene.tweens.add({
       targets: wave,
-      radius: 135,
+      radius: shockRadius,
       alpha: 0,
       duration: 320,
       ease: 'Cubic.easeOut',
@@ -2659,16 +3158,16 @@ function playerHit(scene, hazard) {
     });
 
     enemies.getChildren().slice().forEach(e => {
-      if (e.active && Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y) <= 145) {
+      if (e.active && Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y) <= shockRadius + 10) {
         if (e.isBoss) {
-          damageEnemy(scene, e, 4);
+          damageEnemy(scene, e, bossDmg);
         } else {
           killEnemy(e);
         }
       }
     });
     enemyArrows.getChildren().slice().forEach(a => {
-      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= 135) {
+      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= shockRadius) {
         a.destroy();
       }
     });
@@ -2721,41 +3220,49 @@ function floatText(scene, x, y, msg, color) {
 function createHUD(scene) {
   hudContainer = scene.add.container(0, 0).setDepth(2000).setVisible(false);
 
-  // 1. PAINEL DE GLÓRIA (Tempo Sobrevivido) — Canto Superior Esquerdo
+  // 1. PAINEL DE GLÓRIA (Tempo Sobrevivido) — Esquerda
   const gloryBg = scene.add.graphics();
-  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(12, 10, 160, 48, 6);
-  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(12, 10, 160, 48, 6);
-  const hourglass = scene.add.image(30, 34, 'hud_hourglass');
-  const gloryLabel = scene.add.text(50, 17, 'GLÓRIA', textStyle('#a89260', 10));
-  hudGloryText = scene.add.text(50, 28, '0s', textStyle('#f5e6c8', 19));
+  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(12, 10, 124, 48, 6);
+  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(12, 10, 124, 48, 6);
+  const hourglass = scene.add.image(28, 34, 'hud_hourglass');
+  const gloryLabel = scene.add.text(44, 17, 'GLÓRIA', textStyle('#a89260', 10));
+  hudGloryText = scene.add.text(44, 28, '0s', textStyle('#f5e6c8', 18));
   hudContainer.add([gloryBg, hourglass, gloryLabel, hudGloryText]);
 
-  // 2. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro Superior
+  // 2. PAINEL DE TESOURO (Ouro Acumulado) — Centro-Esquerda
+  const goldBg = scene.add.graphics();
+  goldBg.fillStyle(0x16120e, 0.94).fillRoundedRect(144, 10, 124, 48, 6);
+  goldBg.lineStyle(2, 0xc5a059).strokeRoundedRect(144, 10, 124, 48, 6);
+  const coinIcon = scene.add.image(162, 34, 'gold_coin', 0).setScale(1.2);
+  const goldLabel = scene.add.text(178, 17, 'TESOURO', textStyle('#a89260', 10));
+  hudGoldText = scene.add.text(178, 28, `${getGold()}`, textStyle('#ffd740', 18));
+  hudContainer.add([goldBg, coinIcon, goldLabel, hudGoldText]);
+
+  // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro
   const itemBg = scene.add.graphics();
-  itemBg.fillStyle(0x16120e, 0.94).fillRoundedRect(275, 10, 235, 48, 6);
-  itemBg.lineStyle(2, 0xc5a059).strokeRoundedRect(275, 10, 235, 48, 6);
+  itemBg.fillStyle(0x16120e, 0.94).fillRoundedRect(276, 10, 238, 48, 6);
+  itemBg.lineStyle(2, 0xc5a059).strokeRoundedRect(276, 10, 238, 48, 6);
 
   const slotFrame = scene.add.graphics();
-  slotFrame.fillStyle(0x221a14, 1).fillRoundedRect(283, 16, 36, 36, 4);
-  slotFrame.lineStyle(1, 0x8d5524).strokeRoundedRect(283, 16, 36, 36, 4);
+  slotFrame.fillStyle(0x221a14, 1).fillRoundedRect(284, 16, 36, 36, 4);
+  slotFrame.lineStyle(1, 0x8d5524).strokeRoundedRect(284, 16, 36, 36, 4);
 
-  hudItemIcon = scene.add.image(301, 34, 'item_bow').setVisible(false);
-  hudItemName = scene.add.text(328, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 12));
+  hudItemIcon = scene.add.image(302, 34, 'item_bow').setVisible(false);
+  hudItemName = scene.add.text(328, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
   hudItemBar = scene.add.graphics();
-  // Centralizado na área direita interna do painel (entre o fim da barra em 442 e a borda em 506)
-  hudItemTime = scene.add.text(474, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
+  hudItemTime = scene.add.text(476, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
   hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime]);
 
-  // 3. PAINEL DE RECORDE DO REINO — Canto Superior Direito
+  // 4. PAINEL DE RECORDE DO REINO — Direita
   const bestBg = scene.add.graphics();
-  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(525, 10, 185, 48, 6);
-  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(525, 10, 185, 48, 6);
-  const crown = scene.add.image(547, 34, 'hud_crown');
-  const bestLabel = scene.add.text(572, 17, 'RECORDE', textStyle('#a89260', 10));
-  hudBestText = scene.add.text(572, 28, `${getBestScore()}s`, textStyle('#ffca28', 19));
+  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(522, 10, 194, 48, 6);
+  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(522, 10, 194, 48, 6);
+  const crown = scene.add.image(544, 34, 'hud_crown');
+  const bestLabel = scene.add.text(568, 17, 'RECORDE', textStyle('#a89260', 10));
+  hudBestText = scene.add.text(568, 28, `${getBestScore()}s`, textStyle('#ffca28', 18));
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
 
-  // 4. BOTÃO DE SOM RÁPIDO — Extremo Superior Direito
+  // 5. BOTÃO DE SOM RÁPIDO — Extremo Superior Direito
   const soundBtnBg = scene.add.graphics();
   const drawSoundBtn = (hover = false) => {
     soundBtnBg.clear();
@@ -2789,7 +3296,7 @@ function createHUD(scene) {
 
   hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea]);
 
-  // 5. BARRA DE VIDA DO CHEFÃO (Oculta até os 60s da Boss Fight)
+  // 6. BARRA DE VIDA DO CHEFÃO (Oculta até os 60s da Boss Fight)
   bossHudContainer = scene.add.container(0, 0).setVisible(false);
   const bossBg = scene.add.graphics();
   bossBg.fillStyle(0x160d0b, 0.94).fillRoundedRect(236, 62, 328, 30, 5);
@@ -2815,13 +3322,14 @@ function updateItemHUD() {
   const texKey = buff.type === 'shield' ? 'shield_worn' : 'item_' + buff.type;
   hudItemIcon.setTexture(texKey).setVisible(true);
 
-  const names = { bow: 'ARCO REAL', shield: 'ESCUDO DE AÇO', sword: 'ESPADA VORPAL' };
-  hudItemName.setText(names[buff.type] || 'RELÍQUIA').setColor('#7fe7ff');
+  const lvl = getWeaponLevel(buff.type);
+  const label = BUFF_NAMES[buff.type] || 'RELÍQUIA';
+  hudItemName.setText(`${label} NV.${lvl}`).setColor('#7fe7ff');
 
   const remaining = Math.max(0, buff.timeLeft);
   hudItemTime.setText(`${remaining.toFixed(1)}s`);
 
-  const maxTime = BUFF_TIME[buff.type] || 6;
+  const maxTime = buff.maxTime || BUFF_TIME[buff.type] || 6;
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
   const barW = 114;
   const barH = 7;
@@ -2833,7 +3341,11 @@ function updateItemHUD() {
   hudItemBar.lineStyle(1, 0x4a3b2c).strokeRect(barX, barY, barW, barH);
 
   // Barra fica rubra nos 2 segundos finais
-  const barColor = remaining <= 2 ? 0xd83a3a : (buff.type === 'shield' ? 0x26a69a : 0xf2c14e);
+  const barColor = remaining <= 2 ? 0xd83a3a : (
+    buff.type === 'shield' ? 0x26a69a :
+    buff.type === 'firestaff' ? 0xff7043 :
+    buff.type === 'axe' ? 0xab47bc : 0xf2c14e
+  );
   hudItemBar.fillStyle(barColor, 1).fillRect(barX + 1, barY + 1, Math.max(0, (barW - 2) * pct), barH - 2);
 
   // Barrinha flutuante de duração sobre o cavaleiro (overhead buff bar)
@@ -2850,7 +3362,10 @@ function updateItemHUD() {
 
     // Cor por tipo com alerta vermelho em <= 1.8s
     const overheadColor = remaining <= 1.8 ? 0xff3030 : (
-      buff.type === 'shield' ? 0x7fe7ff : (buff.type === 'bow' ? 0xffeb3b : 0xffffff)
+      buff.type === 'shield' ? 0x7fe7ff :
+      buff.type === 'firestaff' ? 0xff7043 :
+      buff.type === 'axe' ? 0xce93d8 :
+      buff.type === 'bow' ? 0xffeb3b : 0xffffff
     );
     const fillW = Math.max(0, Math.round(pW * pct));
     playerBuffBar.fillStyle(overheadColor, 1).fillRect(pX, pY, fillW, pH);
@@ -2906,20 +3421,20 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     frame.fillStyle(0x3a2818, 1).fillCircle(rx, ry, 1.5);
   });
 
-  const titleShadow = scene.add.text(402, top + 37, titleText, { ...textStyle('#080604', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const title = scene.add.text(400, top + 35, titleText, { ...textStyle('#ffca28', 24), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const titleShadow = scene.add.text(402, top + 34, titleText, { ...textStyle('#080604', 23), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const title = scene.add.text(400, top + 32, titleText, { ...textStyle('#ffca28', 23), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
 
   const children = [overlay, frame, titleShadow, title];
   if (subtitleText) {
-    const sub = scene.add.text(400, top + 65, subtitleText, textStyle('#c5a059', 12)).setOrigin(0.5);
-    frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(left + 60, top + 80, left + width - 60, top + 80);
+    const sub = scene.add.text(400, top + 60, subtitleText, textStyle('#c5a059', 12)).setOrigin(0.5);
+    frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(left + 60, top + 75, left + width - 60, top + 75);
     children.push(sub);
   }
 
   return scene.add.container(0, 0, children).setDepth(3000);
 }
 
-function restartScene(scene, autoStart = false) {
+function restartScene(scene, autoStart = false, openShop = false) {
   if (pauseModal) {
     pauseModal.destroy();
     pauseModal = null;
@@ -2931,7 +3446,7 @@ function restartScene(scene, autoStart = false) {
   sound.stopBGM();
   scene.physics.resume();
   scene.time.paused = false;
-  scene.scene.restart({ autoStart });
+  scene.scene.restart({ autoStart, openShop });
 }
 
 // -----------------------------------------------------------------------------
@@ -2964,7 +3479,6 @@ function showMainMenu(scene) {
   starCoords.forEach(([sx, sy], i) => {
     art.fillStyle(i % 3 === 0 ? 0xffeb3b : 0xffffff, 0.85).fillRect(sx, sy, i % 2 === 0 ? 3 : 2, i % 2 === 0 ? 3 : 2);
   });
-  // Linhas de constelação estilo mapa astral
   art.lineStyle(1, 0x7fe7ff, 0.22);
   art.lineBetween(55, 30, 115, 65);
   art.lineBetween(115, 65, 180, 28);
@@ -2977,69 +3491,55 @@ function showMainMenu(scene) {
   art.fillStyle(0xf2c14e, 0.45).fillCircle(622, 136, 8).fillCircle(598, 154, 11);
 
   // 2. CORDILHEIRA DE MONTANHAS & CASTELO DO REINO AO HORIZONTE
-  // Montanhas distantes
   art.fillStyle(0x1b152b, 1);
   art.fillTriangle(-20, 285, 130, 155, 290, 285);
   art.fillTriangle(190, 285, 355, 170, 510, 285);
   art.fillTriangle(430, 285, 605, 140, 770, 285);
   art.fillTriangle(640, 285, 760, 180, 840, 285);
 
-  // Face iluminada das montanhas
   art.fillStyle(0x2c2240, 1);
   art.fillTriangle(130, 155, 210, 285, 290, 285);
   art.fillTriangle(355, 170, 430, 285, 510, 285);
 
-  // Silhueta Imperial do Castelo do Reino (no topo da montanha direita, x: 545..675)
   const cx = 555, cy = 148;
   art.fillStyle(0x120d1d, 1);
-  art.fillRect(cx, cy + 32, 110, 65);          // muralha principal
-  art.fillRect(cx - 12, cy + 16, 24, 80);      // torre oeste
-  art.fillRect(cx + 98, cy + 16, 24, 80);      // torre leste
-  art.fillRect(cx + 35, cy - 12, 40, 108);     // torre de menagem central
-  art.fillRect(cx + 18, cy + 6, 18, 90);       // torre interna esquerda
-  art.fillRect(cx + 74, cy + 6, 18, 90);       // torre interna direita
+  art.fillRect(cx, cy + 32, 110, 65);
+  art.fillRect(cx - 12, cy + 16, 24, 80);
+  art.fillRect(cx + 98, cy + 16, 24, 80);
+  art.fillRect(cx + 35, cy - 12, 40, 108);
+  art.fillRect(cx + 18, cy + 6, 18, 90);
+  art.fillRect(cx + 74, cy + 6, 18, 90);
 
-  // Telhados cônicos reais e ameias
   art.fillStyle(0x2f6fd6, 1);
   art.fillTriangle(cx - 16, cy + 16, cx, cy - 6, cx + 16, cy + 16);
   art.fillTriangle(cx + 94, cy + 16, cx + 110, cy - 6, cx + 126, cy + 16);
   art.fillTriangle(cx + 30, cy - 12, cx + 55, cy - 44, cx + 80, cy - 12);
 
-  // Estandartes reais vermelhos e dourados no topo das torres
   art.lineStyle(2, 0xc5a059, 1);
   art.lineBetween(cx + 55, cy - 44, cx + 55, cy - 58);
   art.fillStyle(0xd83a3a, 1).fillTriangle(cx + 55, cy - 58, cx + 73, cy - 53, cx + 55, cy - 48);
 
-  // Janelas iluminadas e portão do castelo
   art.fillStyle(0xffeb3b, 0.95);
   art.fillRect(cx + 51, cy - 2, 8, 14);
   art.fillRect(cx + 46, cy + 20, 6, 10);
   art.fillRect(cx + 58, cy + 20, 6, 10);
   art.fillRect(cx - 3, cy + 28, 6, 10);
   art.fillRect(cx + 107, cy + 28, 6, 10);
-  // Portão em arco do castelo
   art.fillStyle(0x3a2414, 1).fillRect(cx + 45, cy + 58, 20, 32);
   art.fillStyle(0xffa726, 0.7).fillRect(cx + 49, cy + 64, 12, 24);
 
-  // 3. COLINAS VERDES, FLORESTA E O CAMINHO REAL SINUOSO (Com Elementos de Mapa)
+  // 3. COLINAS VERDES, FLORESTA E O CAMINHO REAL SINUOSO
   art.fillStyle(0x16331a, 1).fillRect(0, 265, 800, 335);
-  // Colina intermediária
   art.fillStyle(0x1f4724, 1);
   art.fillEllipse(210, 340, 560, 150);
   art.fillEllipse(620, 355, 520, 140);
-  // Colina frontal
   art.fillStyle(0x2a5c2f, 1);
   art.fillEllipse(400, 495, 920, 270);
 
-  // O Caminho Sinuoso saindo do Castelo até o Primeiro Plano
   const roadPolys = [
-    // Trecho distante (saindo do portão do castelo)
     { y1: 242, y2: 285, x1L: 602, x1R: 618, x2L: 520, x2R: 552 },
-    // Curva média pelas colinas
     { y1: 285, y2: 345, x1L: 520, x1R: 552, x2L: 370, x2R: 425 },
-    // Curva chegando ao cavaleiro
     { y1: 345, y2: 430, x1L: 370, x1R: 425, x2L: 285, x2R: 380 },
-    // Primeiro plano largo da estrada
     { y1: 430, y2: 600, x1L: 285, x1R: 380, x2L: 160, x2R: 470 }
   ];
   roadPolys.forEach(s => {
@@ -3053,16 +3553,14 @@ function showMainMenu(scene) {
     ], true);
   });
 
-  // Pátio de pedra suave sob as construções da Vila no plano médio da estrada
   art.fillStyle(0x4b4e58, 0.75).fillEllipse(370, 360, 210, 52);
 
   // Pedestal Rochoso Heróico no Primeiro Plano Esquerdo (onde está o Cavaleiro)
   art.fillStyle(0x1f2126, 1).fillEllipse(205, 470, 200, 58);
   art.fillStyle(0x373a42, 1).fillEllipse(205, 461, 184, 48);
   art.fillStyle(0x525763, 1).fillEllipse(205, 455, 158, 36);
-  art.fillStyle(0x000000, 0.45).fillEllipse(205, 451, 88, 18); // sombra do herói
+  art.fillStyle(0x000000, 0.45).fillEllipse(205, 451, 88, 18);
 
-  // Sombras suaves da Vila e das árvores
   art.fillStyle(0x000000, 0.32).fillEllipse(310, 355, 84, 18);
   art.fillStyle(0x000000, 0.32).fillEllipse(418, 344, 46, 14);
   art.fillStyle(0x000000, 0.35).fillEllipse(68, 435, 62, 14);
@@ -3071,12 +3569,11 @@ function showMainMenu(scene) {
 
   // 4. A VILA DE VALE DOURADO NO CAMINHO + O CAVALEIRO HERÓICO
   const treeFar = scene.add.image(492, 292, 'tree').setScale(0.72);
-  const menuHouse = scene.add.image(235, 318, 'village_house').setScale(0.76);
-  const menuBlacksmith = scene.add.image(312, 326, 'village_blacksmith').setScale(0.78);
+  const menuHouse = scene.add.image(235, 318, 'village_house').setScale(0.88);
+  const menuBlacksmith = scene.add.image(312, 326, 'village_blacksmith').setScale(0.82);
   const menuGateTower = scene.add.image(416, 314, 'village_gate_tower').setScale(0.76);
   const treeLeft = scene.add.image(68, 395, 'tree').setScale(1.2);
 
-  // O Cavaleiro Heróico em Destaque
   const heroSprite = scene.add.image(205, 392, 'knight_banner').setScale(2.2);
   scene.tweens.add({
     targets: heroSprite,
@@ -3099,7 +3596,7 @@ function showMainMenu(scene) {
   const titleMain = scene.add.text(400, 44, 'A JORNADA DO CAVALEIRO', {
     ...textStyle('#ffca28', 27), fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
-  const subtitleTxt = scene.add.text(400, 75, '★ CRÔNICAS DO REINO & SOBREVIVÊNCIA ★', textStyle('#e0c088', 11)).setOrigin(0.5);
+  const subtitleTxt = scene.add.text(400, 75, '★ CRÔNICAS DO REINO & ROGUELITE DE AÇÃO ★', textStyle('#e0c088', 11)).setOrigin(0.5);
 
   // Botão rápido de Som no canto superior direito da Capa
   const menuSoundBg = scene.add.graphics();
@@ -3124,15 +3621,19 @@ function showMainMenu(scene) {
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   });
 
-  // Painel de Ações à Direita (Deixa a arte do Reino, da Vila e do Cavaleiro limpa!)
+  // Painel de Ações à Direita (Com Indicador de Recorde + Tesouro de Ouro + Loja de Upgrades)
   const menuPanel = scene.add.graphics();
-  menuPanel.fillStyle(0x14100c, 0.90).fillRoundedRect(442, 272, 326, 274, 12);
-  menuPanel.lineStyle(2.5, 0x8d5524, 1).strokeRoundedRect(442, 272, 326, 274, 12);
-  menuPanel.lineStyle(1.2, 0xc5a059, 0.85).strokeRoundedRect(447, 277, 316, 264, 9);
+  menuPanel.fillStyle(0x14100c, 0.92).fillRoundedRect(442, 244, 326, 306, 12);
+  menuPanel.lineStyle(2.5, 0x8d5524, 1).strokeRoundedRect(442, 244, 326, 306, 12);
+  menuPanel.lineStyle(1.2, 0xc5a059, 0.85).strokeRoundedRect(447, 249, 316, 296, 9);
 
-  const crownIcon = scene.add.image(525, 304, 'hud_crown').setScale(0.95);
-  const bestBannerTxt = scene.add.text(545, 304, `RECORDE DO REINO: ${getBestScore()}s`, textStyle('#ffca28', 13)).setOrigin(0, 0.5);
-  menuPanel.lineStyle(1, 0xc5a059, 0.4).lineBetween(468, 324, 742, 324);
+  const crownIcon = scene.add.image(474, 272, 'hud_crown').setScale(0.85);
+  const bestBannerTxt = scene.add.text(490, 272, `RECORDE: ${getBestScore()}s`, textStyle('#ffca28', 12)).setOrigin(0, 0.5);
+
+  const menuCoinIcon = scene.add.image(626, 272, 'gold_coin', 0).setScale(1.15);
+  const menuGoldTxt = scene.add.text(642, 272, `OURO: ${getGold()}`, textStyle('#ffd740', 12)).setOrigin(0, 0.5);
+
+  menuPanel.lineStyle(1, 0xc5a059, 0.4).lineBetween(464, 292, 746, 292);
 
   const clearMenuKeys = () => {
     scene.input.keyboard.off('keydown-SPACE', onKeyStart);
@@ -3147,21 +3648,27 @@ function showMainMenu(scene) {
     startGameplay(scene);
   };
 
-  const startBtn = createButton(scene, 605, 362, 'COMEÇAR O JOGO', launchGame, 276, 46);
-  const recordsBtn = createButton(scene, 605, 420, 'RECORDES', () => {
+  const startBtn = createButton(scene, 605, 324, 'COMEÇAR JORNADA', launchGame, 276, 42);
+  const shopBtn = createButton(scene, 605, 376, 'LOJA DE UPGRADES 🪙', () => {
+    clearMenuKeys();
+    sound.ensureContext();
+    sound.startMenuBGM();
+    showShopMenu(scene);
+  }, 276, 42);
+  const recordsBtn = createButton(scene, 605, 428, 'RECORDES', () => {
     clearMenuKeys();
     sound.ensureContext();
     sound.startMenuBGM();
     showRecordsMenu(scene);
-  }, 276, 46);
-  const settingsBtn = createButton(scene, 605, 478, 'CONFIGURAÇÕES', () => {
+  }, 276, 42);
+  const settingsBtn = createButton(scene, 605, 480, 'CONFIGURAÇÕES', () => {
     clearMenuKeys();
     sound.ensureContext();
     sound.startMenuBGM();
     showSettingsMenu(scene);
-  }, 276, 46);
+  }, 276, 42);
 
-  const startHint = scene.add.text(605, 522, '[ESPAÇO] ou [ENTER] para iniciar', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const startHint = scene.add.text(605, 524, '[ESPAÇO] ou [ENTER] para iniciar', textStyle('#c5a059', 11)).setOrigin(0.5);
 
   // Faixa de Rodapé Completa
   const footerBg = scene.add.rectangle(400, 578, 800, 32, 0x0c0907, 0.92);
@@ -3173,8 +3680,8 @@ function showMainMenu(scene) {
     treeLeft, heroSprite,
     headerBanner, titleShadow, titleMain, subtitleTxt,
     menuSoundBg, menuHorn, menuSoundHit,
-    menuPanel, crownIcon, bestBannerTxt,
-    ...startBtn, ...recordsBtn, ...settingsBtn, startHint,
+    menuPanel, crownIcon, bestBannerTxt, menuCoinIcon, menuGoldTxt,
+    ...startBtn, ...shopBtn, ...recordsBtn, ...settingsBtn, startHint,
     footerBg, footerLine, footerTxt
   ]);
 
@@ -3187,6 +3694,136 @@ function showMainMenu(scene) {
   }
   scene.input.keyboard.once('keydown-SPACE', onKeyStart);
   scene.input.keyboard.once('keydown-ENTER', onKeyStart);
+}
+
+// -----------------------------------------------------------------------------
+// LOJA DE UPGRADES & ARSENAL DO FERREIRO REAL (DESBLOQUEIO E EVOLUÇÃO DE ARMAS)
+// -----------------------------------------------------------------------------
+function showShopMenu(scene) {
+  if (menuContainer) menuContainer.destroy();
+  sound.startMenuBGM();
+
+  menuContainer = createModal(scene, 'ARSENAL REAL & LOJA DE UPGRADES', 564, 'Forje novas relíquias e aprimore suas armas com o Ouro conquistado', 740);
+
+  // Painel de Ouro Disponível no Topo Direito do Modal
+  const goldBadge = scene.add.graphics();
+  goldBadge.fillStyle(0x261c12, 0.96).fillRoundedRect(535, 36, 175, 38, 6);
+  goldBadge.lineStyle(2, 0xffca28).strokeRoundedRect(535, 36, 175, 38, 6);
+  const coinSprite = scene.add.sprite(556, 55, 'gold_coin').play('coin_spin').setScale(1.3);
+  const goldValTxt = scene.add.text(574, 55, `${getGold()} OURO`, textStyle('#ffd740', 15)).setOrigin(0, 0.5);
+  menuContainer.add([goldBadge, coinSprite, goldValTxt]);
+
+  const upgrades = getUpgrades();
+  const currentGold = getGold();
+  const weaponKeys = ['bow', 'sword', 'shield', 'axe', 'firestaff'];
+
+  weaponKeys.forEach((key, idx) => {
+    const cfg = WEAPON_CATALOG[key];
+    const state = upgrades[key] || { unlocked: false, level: 1 };
+    const isUnlocked = state.unlocked;
+    const lvl = state.level || 1;
+    const isMax = isUnlocked && lvl >= MAX_WEAPON_LEVEL;
+
+    const rowY = 136 + idx * 74;
+    const rowBg = scene.add.graphics();
+    rowBg.fillStyle(isUnlocked ? 0x221a13 : 0x17120e, 0.95).fillRoundedRect(56, rowY - 31, 688, 66, 7);
+    rowBg.lineStyle(1.5, isMax ? 0xffca28 : (isUnlocked ? 0x8d5524 : 0x4a3b2c)).strokeRoundedRect(56, rowY - 31, 688, 66, 7);
+
+    // Moldura do Ícone da Arma
+    const slotBg = scene.add.graphics();
+    slotBg.fillStyle(0x120d0a, 1).fillRoundedRect(68, rowY - 22, 46, 46, 5);
+    slotBg.lineStyle(1.5, isUnlocked ? 0xc5a059 : 0x5c4938).strokeRoundedRect(68, rowY - 22, 46, 46, 5);
+
+    const icon = scene.add.image(91, rowY + 1, cfg.icon).setScale(1.35);
+    if (!isUnlocked) icon.setTint(0x666666);
+
+    // Nome da Arma e Tag de Status / Nível
+    const titleColor = isUnlocked ? '#ffca28' : '#a8987b';
+    const nameTxt = scene.add.text(126, rowY - 21, cfg.name, textStyle(titleColor, 14));
+
+    // Barrinhas visuais de Nível (1 a 4)
+    const pips = scene.add.graphics();
+    for (let p = 0; p < MAX_WEAPON_LEVEL; p++) {
+      const activePip = isUnlocked && p < lvl;
+      pips.fillStyle(activePip ? 0xffca28 : 0x33271d, 1).fillRect(320 + p * 18, rowY - 19, 14, 10);
+      pips.lineStyle(1, activePip ? 0xfff3c4 : 0x5c4938).strokeRect(320 + p * 18, rowY - 19, 14, 10);
+    }
+    const lvlBadgeTxt = scene.add.text(398, rowY - 14, isUnlocked ? `NV. ${lvl}/${MAX_WEAPON_LEVEL}` : 'BLOQUEADA', textStyle(isUnlocked ? '#7fe7ff' : '#ef5350', 11)).setOrigin(0, 0.5);
+
+    // Descrição do nível atual e próximo bônus
+    const descStr = !isUnlocked
+      ? `Relíquia Bloqueada — ${cfg.levels[0]}`
+      : (isMax ? `★ MÁXIMO: ${cfg.levels[lvl - 1]}` : `Atual: ${cfg.levels[lvl - 1]}\nPróximo (Nv.${lvl + 1}): ${cfg.levels[lvl]}`);
+    const descTxt = scene.add.text(126, rowY - 2, descStr, {
+      ...textStyle(isUnlocked ? '#e0d2b4' : '#9c8d73', 11, 'normal'),
+      lineSpacing: 3
+    });
+
+    menuContainer.add([rowBg, slotBg, icon, nameTxt, pips, lvlBadgeTxt, descTxt]);
+
+    // Botão de Compra / Upgrade à Direita
+    const btnX = 636, btnY = rowY + 1, btnW = 186, btnH = 42;
+    if (isMax) {
+      const maxBox = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2418).setStrokeStyle(1.5, 0xffca28);
+      const maxTxt = scene.add.text(btnX, btnY, 'NÍVEL MÁXIMO ★', textStyle('#ffca28', 12)).setOrigin(0.5);
+      menuContainer.add([maxBox, maxTxt]);
+    } else {
+      const cost = !isUnlocked ? cfg.unlockCost : cfg.costs[lvl - 1];
+      const canAfford = currentGold >= cost;
+      const actionLabel = !isUnlocked ? `DESBLOQUEAR (${cost}🪙)` : `UPGRADE NV.${lvl + 1} (${cost}🪙)`;
+
+      const buyBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x246b3d : 0x3b2c22)
+        .setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846)
+        .setInteractive({ useHandCursor: true });
+      const buyTxt = scene.add.text(btnX, btnY, actionLabel, textStyle(canAfford ? '#ffffff' : '#8c7b6b', 12)).setOrigin(0.5);
+
+      buyBtn.on('pointerover', () => {
+        if (canAfford) {
+          buyBtn.setFillStyle(0x2f8a4f);
+          buyBtn.setStrokeStyle(2, 0xffeb3b);
+          buyTxt.setColor('#ffeb3b');
+        }
+      });
+      buyBtn.on('pointerout', () => {
+        buyBtn.setFillStyle(canAfford ? 0x246b3d : 0x3b2c22);
+        buyBtn.setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846);
+        buyTxt.setColor(canAfford ? '#ffffff' : '#8c7b6b');
+      });
+      buyBtn.on('pointerdown', () => {
+        if (getGold() < cost) {
+          sound.playShieldBlock();
+          floatText(scene, btnX, btnY - 18, 'OURO INSUFICIENTE!', '#ff5252');
+          return;
+        }
+        addGold(-cost);
+        const curr = getUpgrades();
+        if (!curr[key].unlocked) {
+          curr[key].unlocked = true;
+          curr[key].level = 1;
+        } else {
+          curr[key].level = Math.min(MAX_WEAPON_LEVEL, curr[key].level + 1);
+        }
+        saveUpgrades(curr);
+        sound.playPowerup();
+        sound.playCoin();
+        showShopMenu(scene);
+        floatText(scene, btnX, btnY - 22, !isUnlocked ? 'ARMA DESBLOQUEADA!' : `UPGRADE NV.${curr[key].level}!`, '#ffd740');
+      });
+
+      menuContainer.add([buyBtn, buyTxt]);
+    }
+  });
+
+  // Botões de Rodapé da Loja: Jogar Agora ou Voltar ao Menu
+  const playNowBtn = createButton(scene, 265, 534, 'INICIAR JORNADA', () => {
+    sound.ensureContext();
+    menuContainer.destroy();
+    menuContainer = null;
+    startGameplay(scene);
+  }, 240, 42);
+
+  const backMenuBtn = createButton(scene, 535, 534, 'VOLTAR AO MENU', () => showMainMenu(scene), 240, 42);
+  menuContainer.add([...playNowBtn, ...backMenuBtn]);
 }
 
 // -----------------------------------------------------------------------------
@@ -3251,15 +3888,15 @@ function showSettingsMenu(scene) {
 
   const guideTitle = scene.add.text(400, 244, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
-    '• Árvores protegem contra todas as flechas (cobertura).',
-    '• Guerreiros de Armadura exigem 2 flechas ou 1 golpe de espada.',
-    '• O Escudo de Aço rebate flechas e explode em Onda de Choque.',
-    '• A Espada Vorpal corta armaduras e projéteis à queima-roupa.',
-    '• Elfos concentram energia mágica antes de disparar.',
+    '• O Escudo Sagrado reflete flechas inimigas em Flechas de Ouro (+Ouro!).',
+    '• Use seu Ouro na Loja de Upgrades para desbloquear e evoluir armas.',
+    '• O Arco evoluído dispara múltiplos tiros em leque (Multiple Shots).',
+    '• Machado Bumerangue e Cajado de Fogo podem ser desbloqueados na Loja.',
+    '• Cuidado com as Gárgulas Aladas e o leque triplo dos Magos Sombrios!',
     '• Pressione ESC a qualquer momento para pausar a partida.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
-    scene.add.text(190, 270 + i * 26, txt, { ...textStyle('#d6c8aa', 12, 'normal'), lineSpacing: 4 })
+    scene.add.text(186, 270 + i * 26, txt, { ...textStyle('#d6c8aa', 11, 'normal'), lineSpacing: 4 })
   );
 
   menuContainer.add([
@@ -3328,8 +3965,8 @@ function showPauseModal(scene) {
   statsBox.fillStyle(0x221a13, 0.9).fillRoundedRect(190, top + 92, 420, 62, 6);
   statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(190, top + 92, 420, 62, 6);
 
-  const timeTxt = scene.add.text(210, top + 107, `TEMPO EM COMBATE: ${survivalTime}s`, textStyle('#ffca28', 13));
-  const relicName = buff.type ? `${BUFF_NAMES[buff.type]} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
+  const timeTxt = scene.add.text(210, top + 107, `TEMPO: ${survivalTime}s   |   OURO TOTAL: ${getGold()}🪙`, textStyle('#ffca28', 13));
+  const relicName = buff.type ? `${BUFF_NAMES[buff.type]} NV.${getWeaponLevel(buff.type)} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
   const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
   const relicTxt = scene.add.text(210, top + 130, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 13));
 
@@ -3354,8 +3991,8 @@ function showPauseModal(scene) {
 
   pauseModal.updateAudio = updateAudioUI;
 
-  const restartBtn = createButton(scene, 400, top + 282, 'REINICIAR MISSÃO', () => restartScene(scene, true), 280, 40);
-  const menuBtn = createButton(scene, 400, top + 332, 'MENU PRINCIPAL', () => restartScene(scene, false), 280, 40);
+  const restartBtn = createButton(scene, 400, top + 282, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 280, 40);
+  const menuBtn = createButton(scene, 400, top + 332, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 280, 40);
   const footerHint = scene.add.text(400, top + 390, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
 
   pauseModal.add([
@@ -3369,13 +4006,14 @@ function showPauseModal(scene) {
 }
 
 // -----------------------------------------------------------------------------
-// GAME OVER (INICIAIS E REGISTRO)
+// GAME OVER (INICIAIS, OURO CONQUISTADO E ACESSO À LOJA DE UPGRADES)
 // -----------------------------------------------------------------------------
 function showInitials(scene) {
   let name = '', done = false;
-  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 430, '', 480);
-  const info = scene.add.text(400, 175, `Tempo de bravura em combate: ${survivalTime}s\n\nDigite suas 3 iniciais de honra:`,
-    { ...textStyle('#e8dcbe', 15), align: 'center', lineSpacing: 5 }).setOrigin(0.5);
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 450, '', 500);
+  const info = scene.add.text(400, 168,
+    `Tempo de bravura: ${survivalTime}s   |   Ouro na partida: +${runGold}🪙 (Total: ${getGold()}🪙)\n\nDigite suas 3 iniciais de honra:`,
+    { ...textStyle('#e8dcbe', 14), align: 'center', lineSpacing: 5 }).setOrigin(0.5);
 
   const inputBg = scene.add.graphics();
   inputBg.fillStyle(0x0e0b08, 0.95).fillRoundedRect(260, 220, 280, 56, 6);
@@ -3444,40 +4082,41 @@ function showInitials(scene) {
 
   modal.add([
     info, inputBg, placeholder, display, cursor, inputHint,
-    ...createButton(scene, 400, 350, 'CONFIRMAR HONRA', submit, 260, 46)
+    ...createButton(scene, 400, 355, 'CONFIRMAR HONRA', submit, 260, 46)
   ]);
   scene.input.keyboard.on('keydown', onKey);
 }
 
 function showLeaderboard(scene, topScores, currentName) {
-  const modal = createModal(scene, 'CAMPEÕES DO REINO', 470, '', 480);
+  const modal = createModal(scene, 'CAMPEÕES DO REINO', 490, `Tesouro Acumulado: ${getGold()}🪙 — Visite a Loja para evoluir suas armas!`, 580);
   let marked = false;
 
   topScores.forEach((entry, i) => {
     const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
     if (isMine) marked = true;
     const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
-    modal.add(scene.add.text(400, 160 + i * 40, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`,
+    modal.add(scene.add.text(400, 165 + i * 40, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`,
       { ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 17), fontStyle: isMine ? 'bold' : 'normal' }).setOrigin(0.5));
   });
 
   let restarting = false;
-  const finishAndRestart = (autoStart) => {
+  const finishAndRestart = (autoStart, openShop = false) => {
     if (restarting) return;
     restarting = true;
     scene.input.keyboard.off('keydown-SPACE', onQuickRestart);
     scene.input.keyboard.off('keydown-ENTER', onQuickRestart);
     modal.destroy();
-    restartScene(scene, autoStart);
+    restartScene(scene, autoStart, openShop);
   };
 
   const onQuickRestart = () => {
     sound.playButtonClick();
-    finishAndRestart(true);
+    finishAndRestart(true, false);
   };
 
-  modal.add(createButton(scene, 285, 420, 'NOVA JORNADA', () => finishAndRestart(true), 200, 44));
-  modal.add(createButton(scene, 515, 420, 'MENU INICIAL', () => finishAndRestart(false), 200, 44));
+  modal.add(createButton(scene, 215, 430, 'NOVA JORNADA', () => finishAndRestart(true, false), 165, 44));
+  modal.add(createButton(scene, 400, 430, 'LOJA DE UPGRADES', () => finishAndRestart(false, true), 185, 44));
+  modal.add(createButton(scene, 585, 430, 'MENU INICIAL', () => finishAndRestart(false, false), 165, 44));
 
   scene.time.delayedCall(200, () => {
     if (!restarting) {

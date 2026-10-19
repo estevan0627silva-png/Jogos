@@ -4,6 +4,33 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v1.0.0] - 2026-10-18 (Escudo Reflete Flechas em Ouro, Loja de Upgrades, Novas Armas, Inimigos Bullet-Hell & Correção da Arte das Casas da Vila)
+### 🛡️ Escudo Sagrado Reflete Projéteis em Ouro (`playerHit`)
+- **Reflexão Dourada Instantânea**: Quando uma flecha ou orbe inimigo (`enemyArrows`) atinge o Escudo Sagrado do Cavaleiro, o projétil é convertido e **refletido para a frente como Flechas de Ouro (`arrow_gold`)** de alto dano (`2 de dano` e perfuração no Nv.4), além de conceder **Ouro imediato (`+2🪙` a `+4🪙`)** com efeito sonoro cristalino e texto flutuante `REFLETIDO EM OURO!`.
+- **Onda de Choque Aprimorada**: Colisões corpo a corpo continuam liberando a Onda de Choque Sagrada, cujo raio e dano contra o Boss aumentam conforme o nível do Escudo na Loja.
+
+### 🪙 Economia de Ouro Persistente & Loja de Upgrades (`showShopMenu` + `WEAPON_CATALOG`)
+- **Ouro Persistente (`knight_quest_gold_v1`)**: Todo ouro coletado das moedas dropadas por monstros (`+1🪙`), refletido pelo Escudo (`+2🪙` a `+4🪙`) ou conquistado ao derrotar o Golem Boss (`+15🪙` + chuva de moedas) é salvo automaticamente e exibido em tempo real no novo módulo **TESOURO** do HUD, no Menu Principal e no fim da partida.
+- **Loja de Upgrades & Arsenal Real (`showShopMenu`)**: Acessível pelo Menu Principal e diretamente na tela de Fim de Jogo (*Game Over*), permitindo desbloquear novas relíquias e evoluir todas as armas até o **Nível 4**:
+  - **Arco Real (`bow`, Nv. 1 a 4)**: Evolui para *Multiple Shots* em leque estilo *shotgun* (`1`, `2`, `3` e `4` flechas simultâneas com perfuração) e maior cadência de tiro.
+  - **Espada Vorpal (`sword`, Nv. 1 a 4)**: Aumenta o alcance/tamanho da lâmina (`+26%` por nível), acelera o tempo de golpe (`420ms` → `270ms`), eleva o dano (`2` → `4`) e libera uma **Onda de Vento Dourada** no Nv. 4.
+  - **Escudo Sagrado (`shield`, Nv. 1 a 4)**: Reflete de `1` a `4` Flechas de Ouro por projétil bloqueado, aumenta o ouro ganho por reflexão e amplia a duração e a Onda de Choque.
+  - **Machado Bumerangue (`axe`, Desbloqueável por `25🪙`, Nv. 1 a 4)**: Nova arma! Arremessa de `1` a `4` machados giratórios (`axe_proj`) que avançam, freiam no ar e retornam como bumerangue, atravessando todos os inimigos na ida e na volta.
+  - **Cajado de Fogo (`firestaff`, Desbloqueável por `40🪙`, Nv. 1 a 4)**: Nova arma! Dispara de `1` a `3` orbes solares (`fireball_proj`) que explodem no impacto (`explodeFireball`), causando dano em área (AoE) e destruindo projéteis inimigos.
+
+### 🦇 Novos Inimigos Bullet-Hell (`gargoyle` & `dark_mage`)
+- **Gárgula Alada (`drawGargoyle`, `32x32`, 2 frames)**: Surge a partir dos `12s` de jogo, voando em trajetória senoidal contínua (`y = baseY + sin(...) * 46`) que exige movimentação vertical constante.
+- **Mago Sombrio (`drawDarkMage`, `32x32`, 2 frames, `2 HP`)**: Surge a partir dos `24s` de jogo, conjurando e disparando um **leque Bullet-Hell de 3 Orbes Arcanos (`orb_enemy`)** simultâneos (`-18°`, `0°`, `+18°`) que podem ser esquivados, destruídos pela Espada/Cajado ou refletidos em Ouro pelo Escudo!
+
+### 🎨 Correção Definitiva das Casas da Vila ("Mordidas") e Polimento Geral de Pixel Art (`art_director`)
+- **Fim das Casas com Partes Faltando (`drawVillageHouse`, `drawVillageBlacksmith`, `drawVillageStable`)**:
+  - Corrigido o loop de telhado da **Casa do Ferreiro** e do **Estábulo**, que antes desenhava um trapézio invertido (`x = 9 + i, w = 44 - i * 2`), deixando buracos triangulares nas laterais do telhado.
+  - Corrigido o loop de telhado da **Cabana da Vila (`drawVillageHouse`)**, que antes tinha centro deslocado (`x = 18 - row, w = 12 + row * 2` numa grade `36x32`), cortando a direita e deixando a parede esquerda descoberta.
+  - Todas as construções da Vila agora possuem telhados triangulares/trapezoidais sólidos de `2px` de espessura por degrau, beirais completos e paredes maciças sem falhas.
+- **Revisão de Contornos e Margens dos Inimigos**: Polimento visual em `drawWarrior`, `drawBossGolem` e `drawMiniGolem` garantindo margem segura de `1px` dentro dos limites do canvas para evitar qualquer recorte brusco nas bordas dos sprites.
+
+---
+
 ## [v0.9.9] - 2026-10-18 (Vila de Vale Dourado Completa com Ferreiro, Estábulo e NPCs, Correção de Dano da Espada, Moeda de Ouro Visual & Menu Limpo)
 ### 🏘️ Vila de Vale Dourado Coesa, Cheia de Vida e Unificada (`spawnStartingVillage` + `art_director`)
 - **Pátio Calçado Unificado e Caminho de Paralelepípedos (`village_plaza`, `480x440`)**: Eliminado o aspecto "em pedaços" da vila! Agora o ponto de partida possui uma praça pavimentada contínua que integra todas as construções, canteiros floridos, postes de luz aquecidos e uma avenida central de pedras calçadas com meio-fio levando até o portão.
