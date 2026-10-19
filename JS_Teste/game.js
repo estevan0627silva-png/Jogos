@@ -5390,7 +5390,7 @@ function showMageShopMenu(scene) {
   menuContainer.add([...playNowBtn, ...blacksmithBtn, ...backMenuBtn]);
 }
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // TÁBULA DE CONQUISTAS DO REINO (PROGRESSO ACUMULATIVO & RECOMPENSAS EM OURO)
 // -----------------------------------------------------------------------------
 function showAchievementsMenu(scene) {
