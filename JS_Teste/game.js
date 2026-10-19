@@ -4,12 +4,23 @@
 //        Combate → Interface
 // =============================================================================
 
+const GAME_WIDTH = 800;
+const GAME_HEIGHT = 600;
+
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: GAME_WIDTH,
+  height: GAME_HEIGHT,
   pixelArt: true,
   backgroundColor: '#5b8a3c',
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    expandParent: true,
+    fullscreenTarget: typeof document !== 'undefined' ? document.body : null
+  },
   physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
   scene: { preload, create, update }
 };
@@ -41,11 +52,13 @@ const BOSS_TRIGGER_TIME = 60;                        // segundo em que o Golem d
 const BOSS_MAX_HP = 45;                              // vida total do Boss Golem Ancestral
 const MAX_ENEMY_SPEED = 380;                         // teto máximo justo de velocidade
 const MIN_SPAWN_DELAY = 500;                         // intervalo mínimo de spawn (ms)
+const MAX_WEAPON_LEVEL = 4;                          // nível máximo das armas na Loja
 const STORAGE_KEY = 'knight_quest_highscores';
 const STORAGE_GOLD_KEY = 'knight_quest_gold_v1';
 const STORAGE_UPGRADES_KEY = 'knight_quest_upgrades_v1';
+const STORAGE_STATUS_KEY = 'knight_quest_status_v1';
 
-// Catálogo da Loja de Upgrades & Arsenal Real (Roguelite Meta-Progression)
+// Aba 1 da Loja: Catálogo de Upgrades de Itens (Armas & Relíquias)
 const WEAPON_CATALOG = {
   bow: {
     name: 'ARCO REAL',
@@ -53,12 +66,12 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 4,
-    costs: [0, 15, 30, 50],
-    descs: [
-      'Nv 1: Dispara 1 flecha frontal veloz.',
-      'Nv 2: Tiro Duplo (Shotgun com 2 flechas em V).',
-      'Nv 3: Tiro Triplo (3 flechas em leque + cadência).',
-      'Nv 4: Tempestade Real (4 flechas em leque rápido).'
+    costs: [15, 30, 55, 0],
+    levels: [
+      'Dispara 1 flecha frontal veloz.',
+      'Tiro Duplo (Shotgun com 2 flechas em V).',
+      'Tiro Triplo (3 flechas em leque + cadência).',
+      'Tempestade Real (4 flechas em leque rápido).'
     ]
   },
   sword: {
@@ -67,12 +80,12 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 4,
-    costs: [0, 15, 30, 50],
-    descs: [
-      'Nv 1: Golpe em meia-lua que corta armaduras e flechas.',
-      'Nv 2: Lâmina Ampla (+30% tamanho e golpe mais rápido).',
-      'Nv 3: Fúria Vorpal (+55% tamanho, cadência alta e 3 dano).',
-      'Nv 4: Corte Colossal (+80% tamanho e onda cortante).'
+    costs: [15, 30, 55, 0],
+    levels: [
+      'Golpe em meia-lua que corta armaduras e flechas.',
+      'Lâmina Ampla (+30% tamanho e golpe mais rápido).',
+      'Fúria Vorpal (+55% tamanho, cadência alta e 3 dano).',
+      'Corte Colossal (+80% tamanho e onda cortante).'
     ]
   },
   shield: {
@@ -81,12 +94,12 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 4,
-    costs: [0, 15, 30, 50],
-    descs: [
-      'Nv 1: Reflete flechas em 1 Flecha de Ouro (+2 Ouro).',
-      'Nv 2: Reflete 2 Flechas de Ouro em V (+2 Ouro) e dura 11s.',
-      'Nv 3: Reflete 3 Flechas de Ouro (+3 Ouro) e Onda Maior.',
-      'Nv 4: Reflete 4 Flechas de Ouro (+4 Ouro) e Onda Titânica.'
+    costs: [15, 30, 55, 0],
+    levels: [
+      'Reflete projéteis em 1 flecha normal e explode em onda.',
+      'Reflete 2 flechas em V e dura +1.5s.',
+      'Reflete 3 flechas em leque e Onda de Choque Maior.',
+      'Reflete 4 flechas perfurantes e Onda Titânica.'
     ]
   },
   axe: {
@@ -95,12 +108,12 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 25,
     maxLevel: 4,
-    costs: [0, 20, 40, 65],
-    descs: [
-      'Nv 1: Lança 1 machado giratório que vai e volta perfurando.',
-      'Nv 2: Lança 2 machados bumerangue em ângulos opostos.',
-      'Nv 3: Alcance ampliado + 3 machados giratórios.',
-      'Nv 4: Turbilhão Bárbaro (4 machados gigantes perfurantes).'
+    costs: [20, 40, 65, 0],
+    levels: [
+      'Lança 1 machado giratório que vai e volta perfurando.',
+      'Lança 2 machados bumerangue em ângulos opostos.',
+      'Alcance ampliado + 3 machados giratórios.',
+      'Turbilhão Bárbaro (4 machados gigantes perfurantes).'
     ]
   },
   firestaff: {
@@ -109,12 +122,57 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 40,
     maxLevel: 4,
-    costs: [0, 25, 45, 75],
-    descs: [
-      'Nv 1: Dispara 1 Orbe de Fogo que explode em área.',
-      'Nv 2: Explosão Solar ampliada + recarga mais rápida.',
-      'Nv 3: Chama Gêmea (2 Orbes de Fogo em V com 3 de dano).',
-      'Nv 4: Cataclismo Solar (3 Orbes + mega explosão limpa-tela).'
+    costs: [25, 45, 75, 0],
+    levels: [
+      'Dispara 1 Orbe de Fogo que explode em área.',
+      'Explosão Solar ampliada + recarga mais rápida.',
+      'Chama Gêmea (2 Orbes de Fogo em V com 3 de dano).',
+      'Cataclismo Solar (3 Orbes + mega explosão limpa-tela).'
+    ]
+  }
+};
+
+// Aba 2 da Loja: Catálogo de Upgrades de Status Permanentes do Cavaleiro
+const STATUS_CATALOG = {
+  magnet: {
+    name: 'RANGE DE COLETA (MAGNETISMO)',
+    icon: 'stat_magnet',
+    maxLevel: 5,
+    costs: [12, 25, 45, 75, 0],
+    values: [95, 140, 190, 245, 310],
+    levels: [
+      'Raio magnético base (95 px) para atrair Moedas de Prata.',
+      'Atração Ampliada (140 px) + velocidade de puxada.',
+      'Ímã Real (190 px) — puxa moedas de meia estrada.',
+      'Vórtice de Prata (245 px) — atração magnética forte.',
+      'Magnetismo Supremo (310 px) — domina toda a trilha!'
+    ]
+  },
+  maxHp: {
+    name: 'VIDA MÁXIMA (CORAÇÕES REAIS)',
+    icon: 'stat_health',
+    maxLevel: 4,
+    costs: [25, 55, 95, 0],
+    values: [1, 2, 3, 4],
+    levels: [
+      '1 Coração de Vida (padrão do Cavaleiro).',
+      '2 Corações de Vida (+1 golpe suportado com invencibilidade).',
+      '3 Corações de Vida (Armadura Vital Reforçada).',
+      '4 Corações de Vida (Vigor Lendário do Campeão)!'
+    ]
+  },
+  moveSpeed: {
+    name: 'VELOCIDADE DE MOVIMENTO',
+    icon: 'stat_speed',
+    maxLevel: 5,
+    costs: [12, 25, 45, 75, 0],
+    values: [280, 305, 330, 355, 385],
+    levels: [
+      'Passos ágeis base (280 px/s).',
+      'Botas de Couro Leve (305 px/s, +9% velocidade).',
+      'Esporas do Vento (330 px/s, +18% velocidade).',
+      'Passos de Mercúrio (355 px/s, +27% velocidade).',
+      'Velocidade Relâmpago (385 px/s, +37% esquiva suprema)!'
     ]
   }
 };
@@ -139,14 +197,16 @@ const C = {
 let player, shieldSprite, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, playerBuffBar, enemyHpBars;
 let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes;
-let hudContainer, hudGloryText, hudGoldText, hudBestText;
-let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon;
+let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];
+let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
-let villageDecor, coins, menuContainer, pauseModal;
-let gameState, survivalTime, runGold = 0, enemySpeed, spawnDelay, buff, slashCounter = 0;
+let villageDecor, coins, menuContainer, pauseModal, currentShopTab = 'items';
+let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
+let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
+let enemySpeed, spawnDelay, buff, slashCounter = 0;
 
 // =============================================================================
-// RECORDES, OURO PERSISTENTE & UPGRADES (salvos no navegador com localStorage)
+// RECORDES, PRATA -> OURO PERSISTENTE & UPGRADES (salvos com localStorage)
 // =============================================================================
 function getHighScores() {
   const defaults = [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
@@ -193,8 +253,27 @@ function setGold(total) {
 }
 
 function addGold(amount) {
-  runGold += amount;
   return setGold(getGold() + amount);
+}
+
+// Consolida e converte as Moedas de Prata da partida em Ouro Persistente (Meta-currency)
+function consolidateSilverToGold() {
+  const silverCollected = Math.max(0, Math.floor(runSilver));
+  const goldFromSilver = silverCollected; // 1 Moeda de Prata consolidada = 1 Ouro Real
+  const timeBonusGold = Math.floor(survivalTime / 15);
+  const bossBonusGold = bossDefeated ? 15 : 0;
+  const totalGoldEarned = goldFromSilver + timeBonusGold + bossBonusGold;
+  const newTotalGold = addGold(totalGoldEarned);
+  runGold = totalGoldEarned;
+  lastRunSummary = {
+    silverCollected,
+    goldFromSilver,
+    timeBonusGold,
+    bossBonusGold,
+    totalGoldEarned,
+    newTotalGold
+  };
+  return lastRunSummary;
 }
 
 function getUpgrades() {
@@ -212,7 +291,7 @@ function getUpgrades() {
     const parsed = JSON.parse(saved);
     if (!parsed || typeof parsed !== 'object') return defaults;
     Object.keys(defaults).forEach(k => {
-      if (parsed[k] && typeof parsed[k] === 'object') {
+      if (parsed[k] && typeof parsed[k] === 'object' && WEAPON_CATALOG[k]) {
         defaults[k].unlocked = Boolean(parsed[k].unlocked ?? defaults[k].unlocked);
         defaults[k].level = Phaser.Math.Clamp(parseInt(parsed[k].level || 1, 10), 1, WEAPON_CATALOG[k].maxLevel);
       }
@@ -237,6 +316,82 @@ function getWeaponLevel(type) {
 function getUnlockedWeaponPool() {
   const up = getUpgrades();
   return Object.keys(WEAPON_CATALOG).filter(k => up[k]?.unlocked);
+}
+
+function getStatusUpgrades() {
+  const defaults = { magnet: 1, maxHp: 1, moveSpeed: 1 };
+  if (typeof localStorage === 'undefined') return defaults;
+  const saved = localStorage.getItem(STORAGE_STATUS_KEY);
+  if (!saved) return defaults;
+  try {
+    const parsed = JSON.parse(saved);
+    if (!parsed || typeof parsed !== 'object') return defaults;
+    Object.keys(defaults).forEach(k => {
+      if (STATUS_CATALOG[k]) {
+        defaults[k] = Phaser.Math.Clamp(parseInt(parsed[k] || 1, 10), 1, STATUS_CATALOG[k].maxLevel);
+      }
+    });
+    return defaults;
+  } catch (e) {
+    return defaults;
+  }
+}
+
+function saveStatusUpgrades(st) {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_STATUS_KEY, JSON.stringify(st));
+  }
+}
+
+function getStatusLevel(key) {
+  const st = getStatusUpgrades();
+  return st[key] ?? 1;
+}
+
+function getMagnetRadius() {
+  const lvl = getStatusLevel('magnet');
+  return STATUS_CATALOG.magnet.values[lvl - 1] ?? 95;
+}
+
+function getPlayerMaxHp() {
+  const lvl = getStatusLevel('maxHp');
+  return STATUS_CATALOG.maxHp.values[lvl - 1] ?? 1;
+}
+
+function getPlayerMoveSpeed() {
+  const lvl = getStatusLevel('moveSpeed');
+  return STATUS_CATALOG.moveSpeed.values[lvl - 1] ?? PLAYER_SPEED;
+}
+
+function isGameFullscreen(scene) {
+  return Boolean((scene && scene.scale && scene.scale.isFullscreen) || (typeof document !== 'undefined' && document.fullscreenElement));
+}
+
+function updateFullscreenIcons(scene) {
+  const frame = isGameFullscreen(scene) ? 1 : 0;
+  if (hudFullscreenIcon && hudFullscreenIcon.active) hudFullscreenIcon.setFrame(frame);
+  if (menuContainer && menuContainer.updateMenuFullscreen) menuContainer.updateMenuFullscreen();
+  if (pauseModal && pauseModal.updateFullscreen) pauseModal.updateFullscreen();
+}
+
+function toggleFullscreen(scene) {
+  if (!scene || !scene.scale) return;
+  try {
+    if (scene.scale.isFullscreen) {
+      scene.scale.stopFullscreen();
+    } else {
+      scene.scale.startFullscreen();
+    }
+  } catch (err) {
+    if (typeof document !== 'undefined') {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  }
+  scene.time.delayedCall(60, () => updateFullscreenIcons(scene));
 }
 
 // =============================================================================
@@ -802,7 +957,7 @@ class SoundSystem {
     osc.stop(now + 0.04);
   }
 
-  // Tilintar cristalino de peça de ouro / moeda (Si5 -> Mi6)
+  // Tilintar cristalino de moeda (Si5 -> Mi6)
   playCoin() {
     if (this.muted || !this.ensureContext()) return;
     const now = this.ctx.currentTime;
@@ -820,6 +975,28 @@ class SoundSystem {
       osc.start(t);
       osc.stop(t + dur);
     });
+  }
+
+  // Upgrade forjado na Loja (acorde triunfante)
+  playPowerup() {
+    this.playItemCollect();
+  }
+
+  // Impacto de dano quando o Cavaleiro perde 1 Coração (mas ainda sobrevive!)
+  playPlayerHurt() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(95, now + 0.18);
+    gain.gain.setValueAtTime(0.32, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.18);
   }
 }
 
@@ -1689,7 +1866,7 @@ function drawVillageNpc(r, f) {
   r(C.boot, 7, 11, 2, 2);
 }
 
-// 7. Peça de Ouro / Moeda Reluzente (16x16 — 2 frames girando e brilhando)
+// 7. Peça de Ouro / Meta-Moeda Reluzente (16x16 — 2 frames girando e brilhando)
 function drawGoldCoin(r, f) {
   if (f === 0) {
     r(C.gold, 1, 1, 6, 6);
@@ -1700,6 +1877,74 @@ function drawGoldCoin(r, f) {
     r(C.gold, 2, 1, 4, 6);
     r(C.yellow, 3, 2, 2, 4);
     r(C.white, 3, 1, 1, 2);
+  }
+}
+
+// 8. Moeda de Prata (Drop dos Inimigos durante a partida — 16x16, 2 frames)
+function drawSilverCoin(r, f) {
+  if (f === 0) {
+    r(C.steelDark, 1, 1, 6, 6);
+    r(C.steel, 2, 2, 4, 4);
+    r(C.steelLight, 2, 1, 4, 2);
+    r(C.iron, 3, 3, 2, 2);
+    r(C.white, 2, 2, 2, 1);
+  } else {
+    r(C.steelDark, 2, 1, 4, 6);
+    r(C.steel, 3, 2, 2, 4);
+    r(C.white, 3, 1, 1, 3);
+  }
+}
+
+// 9. Ícones de Upgrades de Status (Magnetismo, Vida Máxima, Velocidade) + Coração HUD + Tela Cheia
+function drawMagnetIcon(r) {
+  r(C.red, 1, 2, 2, 3); r(C.red, 6, 2, 2, 3);
+  r(C.steelDark, 1, 5, 2, 3); r(C.steelDark, 6, 5, 2, 3);
+  r(C.steelDark, 2, 7, 5, 2);
+  r(C.steelLight, 1, 1, 2, 1); r(C.steelLight, 6, 1, 2, 1);
+  r(C.cyan, 4, 2, 1, 2);
+}
+
+function drawHealthIcon(r) {
+  r(C.red, 1, 2, 3, 3); r(C.red, 5, 2, 3, 3);
+  r(C.red, 2, 5, 5, 2);
+  r(C.red, 3, 7, 3, 1);
+  r(C.darkRed, 4, 8, 1, 1);
+  r(C.white, 2, 2, 1, 1);
+}
+
+function drawSpeedIcon(r) {
+  r(C.wood, 2, 3, 3, 4);
+  r(C.boot, 2, 7, 6, 2);
+  r(C.gold, 2, 3, 3, 1);
+  r(C.cyan, 5, 2, 3, 1);
+  r(C.white, 6, 1, 2, 1);
+}
+
+function drawHeartHUD(r, f) {
+  const main = f === 0 ? C.red : C.iron;
+  const shade = f === 0 ? C.darkRed : C.ironDark;
+  r(main, 1, 1, 2, 2); r(main, 4, 1, 2, 2);
+  r(main, 1, 3, 5, 2);
+  r(shade, 2, 5, 3, 1);
+  r(shade, 3, 6, 1, 1);
+  if (f === 0) r(C.white, 1, 1, 1, 1);
+}
+
+function drawFullscreenIcon(r, f) {
+  if (f === 0) {
+    // Expandir para Tela Cheia
+    r(C.gold, 1, 1, 3, 1); r(C.gold, 1, 1, 1, 3);
+    r(C.gold, 6, 1, 3, 1); r(C.gold, 8, 1, 1, 3);
+    r(C.gold, 1, 8, 3, 1); r(C.gold, 1, 6, 1, 3);
+    r(C.gold, 6, 8, 3, 1); r(C.gold, 8, 6, 1, 3);
+    r(C.yellow, 4, 4, 2, 2);
+  } else {
+    // Sair da Tela Cheia
+    r(C.gold, 2, 3, 2, 1); r(C.gold, 3, 2, 1, 2);
+    r(C.gold, 6, 3, 2, 1); r(C.gold, 6, 2, 1, 2);
+    r(C.gold, 2, 6, 2, 1); r(C.gold, 3, 6, 1, 2);
+    r(C.gold, 6, 6, 2, 1); r(C.gold, 6, 6, 1, 2);
+    r(C.cyan, 4, 4, 2, 2);
   }
 }
 
@@ -1723,6 +1968,7 @@ function preload() {
   makeSheet(this, 'village_gate_tower', 48, 96, 1, drawGateTower);
   makeSheet(this, 'village_npc', 24, 28, 2, drawVillageNpc);
   makeSheet(this, 'gold_coin', 16, 16, 2, drawGoldCoin);
+  makeSheet(this, 'silver_coin', 16, 16, 2, drawSilverCoin);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
@@ -1736,12 +1982,17 @@ function preload() {
   makeSheet(this, 'hud_hourglass', 22, 26, 1, drawHourglass);
   makeSheet(this, 'hud_crown', 24, 22, 1, drawCrown);
   makeSheet(this, 'hud_horn', 30, 20, 2, drawHorn);
+  makeSheet(this, 'hud_fullscreen', 20, 20, 2, drawFullscreenIcon);
+  makeSheet(this, 'hud_heart', 14, 14, 2, drawHeartHUD);
   makeSheet(this, 'knight_banner', 48, 56, 1, drawKnightBanner);
   makeItem(this, 'item_bow', 0xffe082, drawBowIcon);
   makeItem(this, 'item_shield', 0x80deea, drawShieldIcon);
   makeItem(this, 'item_sword', 0xffffff, drawSwordIcon);
   makeItem(this, 'item_axe', 0x7fe7ff, drawAxeIcon);
   makeItem(this, 'item_firestaff', 0xff7043, drawFireStaffIcon);
+  makeItem(this, 'stat_magnet', 0x7fe7ff, drawMagnetIcon);
+  makeItem(this, 'stat_health', 0xff5252, drawHealthIcon);
+  makeItem(this, 'stat_speed', 0xffeb3b, drawSpeedIcon);
   makeWorldTextures(this);
 }
 
@@ -1751,9 +2002,20 @@ function preload() {
 function create(data) {
   const scene = this;
   sound.stopBGM();
+
+  // Garante que tempo, tweens e física nunca venham congelados após Game Over
+  scene.time.paused = false;
+  scene.time.timeScale = 1;
+  scene.tweens.resumeAll();
+  scene.physics.resume();
+
   gameState = 'MENU';
   survivalTime = 0;
+  runSilver = 0;
   runGold = 0;
+  playerMaxHp = getPlayerMaxHp();
+  playerHp = playerMaxHp;
+  playerInvulnerable = false;
   enemySpeed = 200;
   spawnDelay = 1250;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
@@ -1761,16 +2023,27 @@ function create(data) {
   bossSpawned = false;
   bossDefeated = false;
 
-  // Limpa todos os listeners de teclado ao encerrar/reiniciar a cena (evita duplicação)
+  // Limpa todos os listeners de teclado e escala ao encerrar/reiniciar a cena
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
     scene.input.keyboard.removeAllListeners();
+    scene.scale.off('enterfullscreen', onScaleChange);
+    scene.scale.off('leavefullscreen', onScaleChange);
+    scene.scale.off('resize', onScaleChange);
   });
+
+  const onScaleChange = () => {
+    scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    updateFullscreenIcons(scene);
+  };
+  scene.scale.on('enterfullscreen', onScaleChange);
+  scene.scale.on('leavefullscreen', onScaleChange);
+  scene.scale.on('resize', onScaleChange);
 
   // Animações de 2 quadros — criadas uma única vez
   const fps = {
     knight: 10, goblin: 12, warrior: 6, elf: 8,
     gargoyle: 9, dark_mage: 6, mini_golem: 10, boss_golem: 5,
-    village_npc: 4, gold_coin: 8
+    village_npc: 4, gold_coin: 8, silver_coin: 8
   };
   Object.entries(fps).forEach(([key, frameRate]) => {
     if (!scene.anims.exists(key)) {
@@ -1815,8 +2088,15 @@ function create(data) {
   enemyHpBars = scene.add.graphics().setDepth(2400);
   playerBuffBar = scene.add.graphics().setDepth(2500);
 
-  // Tecla ESC para pausar ou despausar a aventura
+  // Tecla ESC para pausar/despausar ou sair de submenus (Loja, Recordes, Configurações)
   scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene));
+
+  // Tecla F para ativar/desativar Tela Cheia (com trava durante digitação no Game Over)
+  scene.input.keyboard.on('keydown-F', () => {
+    if (gameState === 'GAMEOVER') return;
+    sound.playButtonClick();
+    toggleFullscreen(scene);
+  });
 
   // Partículas de poeira nos passos do cavaleiro
   dustFx = scene.add.particles(0, 0, 'spark', {
@@ -1844,7 +2124,7 @@ function create(data) {
   scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
   scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
 
-  // Combate: suporta flechas, flechas douradas refletidas, machados bumerangue perfurantes e bolas de fogo explosivas
+  // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
     if (e.x >= 800 || !a.active || !e.active) return;
     if (a.projId && e.lastProjId === a.projId) return;
@@ -1907,8 +2187,7 @@ function create(data) {
   if (data && data.autoStart) {
     startGameplay(scene);
   } else if (data && data.openShop) {
-    showMainMenu(scene);
-    showShopMenu(scene, () => showMainMenu(scene));
+    showShopMenu(scene, 'items');
   } else {
     showMainMenu(scene);
   }
@@ -1945,25 +2224,39 @@ function updateGameplay(scene, time, dt) {
   villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
 
-  // Moedas acompanham o chão e são atraídas suavemente quando o cavaleiro passa perto
-  coins.getChildren().forEach(c => {
-    if (!c.active) return;
+  // Física de Coleta e Magnetismo de Moedas de Prata (sem conflito de tween, atração fluida e coleta imediata)
+  const magnetRadius = getMagnetRadius();
+  coins.getChildren().slice().forEach(c => {
+    if (!c || !c.active) return;
     const dist = Phaser.Math.Distance.Between(player.x, player.y, c.x, c.y);
-    if (dist < 90) {
-      scene.physics.moveToObject(c, player, 320);
-      c.groundY = c.y + 10;
+    if (dist <= 28) {
+      collectCoin(scene, c);
+      return;
+    }
+    if (c.magnetized || dist <= magnetRadius) {
+      if (!c.magnetized) {
+        c.magnetized = true;
+        scene.tweens.killTweensOf(c);
+      }
+      const pullSpeed = Math.max(410, enemySpeed + 230 + Math.max(0, magnetRadius - dist) * 1.5);
+      scene.physics.moveToObject(c, player, pullSpeed);
+      c.groundY = c.y + 8;
+    } else if (!c.isDropping) {
+      c.setVelocity(-worldSpeed, 0);
+      c.groundY = c.y + 8;
     } else {
       c.setVelocityX(-worldSpeed);
     }
   });
 
-  // 2. Cavaleiro: 8 direções com velocidade normalizada, SEMPRE olhando para a frente
+  // 2. Cavaleiro: 8 direções com velocidade escalada pelo Upgrade de Velocidade, SEMPRE olhando para a frente
+  const moveSpd = getPlayerMoveSpeed();
   let dirX = 0, dirY = 0;
   if (cursors.left.isDown || keys.A.isDown) dirX -= 1;
   if (cursors.right.isDown || keys.D.isDown) dirX += 1;
   if (cursors.up.isDown || keys.W.isDown) dirY -= 1;
   if (cursors.down.isDown || keys.S.isDown) dirY += 1;
-  player.setVelocity(dirX, dirY).body.velocity.normalize().scale(PLAYER_SPEED);
+  player.setVelocity(dirX, dirY).body.velocity.normalize().scale(moveSpd);
   player.setFlipX(false);                                               // sempre olhando para o caminho à frente
   player.anims.timeScale = dirX > 0 ? 1.5 : (dirX < 0 ? 0.85 : 1);      // ritmo dos passos (avanço vs recuo)
   player.setAngle(Math.sin(time * 0.02) * 3);                           // balanço dos passos
@@ -2225,14 +2518,23 @@ function spawnStartingVillage(scene) {
 
 function startGameplay(scene) {
   gameState = 'PLAYING';
+  runSilver = 0;
+  runGold = 0;
+  lastRunSummary = null;
+  playerMaxHp = getPlayerMaxHp();
+  playerHp = playerMaxHp;
+  playerInvulnerable = false;
+
   if (player) {
-    player.setPosition(160, 330).setFlipX(false).setVisible(true);
+    scene.tweens.killTweensOf(player);
+    player.setPosition(160, 330).setFlipX(false).setAlpha(1).clearTint().setVisible(true);
     player.play('knight');
   }
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (hudContainer) hudContainer.setVisible(true);
-  if (hudGoldText) hudGoldText.setText(`${getGold()}`);
+  if (hudSilverText && hudSilverText.active) hudSilverText.setText('0');
+  updateHeartsHUD();
   sound.startBGM('normal');
 
   // Constrói a vila inicial com o Grande Portão
@@ -2709,10 +3011,9 @@ function defeatBoss(scene, boss) {
   forestBottom.clearTint();
   sound.startBGM('normal');
 
-  addGold(15);
-  floatText(scene, 400, 150, '★ GOLEM DERROTADO! +15 OURO! ★', '#ffca28');
-  for (let i = 0; i < 8; i++) {
-    spawnCoinDrop(scene, bx + Phaser.Math.Between(-42, 42), by + Phaser.Math.Between(-30, 30));
+  floatText(scene, 400, 150, '★ GOLEM DERROTADO! CHUVA DE PRATA + BÔNUS REAL! ★', '#ffca28');
+  for (let i = 0; i < 10; i++) {
+    spawnCoinDrop(scene, bx + Phaser.Math.Between(-48, 48), by + Phaser.Math.Between(-34, 34), 2);
   }
   spawnItem(scene);
 }
@@ -2880,32 +3181,26 @@ function killEnemy(enemy) {
   }
 }
 
-// Peça de Ouro: salta do monstro derrotado, brilha e pode ser coletada para a Loja de Upgrades!
-function spawnCoinDrop(scene, x, y, goldValue = 1) {
+// Moeda de Prata: salta do monstro derrotado com física limpa e sem conflito de tween!
+function spawnCoinDrop(scene, x, y, silverValue = 1) {
   if (!scene || !coins) return;
   const targetY = Phaser.Math.Clamp(y + Phaser.Math.Between(-10, 14), 130, 520);
-  const coin = coins.create(x, targetY, 'gold_coin');
-  coin.play('gold_coin');
-  coin.body.setSize(16, 16);
-  coin.groundY = targetY + 10;
-  coin.goldValue = goldValue;
+  const coin = coins.create(x, targetY, 'silver_coin');
+  coin.play('silver_coin');
+  coin.body.setSize(28, 28).setOffset(-6, -6); // área de coleta generosa e responsiva
+  coin.groundY = targetY + 8;
+  coin.silverValue = silverValue;
+  coin.magnetized = false;
+  coin.isDropping = true;
 
   scene.tweens.add({
     targets: coin,
-    y: { from: targetY - 18, to: targetY },
-    scale: { from: 1.25, to: 1 },
-    duration: 320,
-    ease: 'Bounce.easeOut',
+    y: { from: targetY - 14, to: targetY },
+    scale: { from: 1.22, to: 1 },
+    duration: 210,
+    ease: 'Quad.easeOut',
     onComplete: () => {
-      if (!coin.active) return;
-      scene.tweens.add({
-        targets: coin,
-        y: targetY - 5,
-        duration: 520,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-      });
+      if (coin && coin.active) coin.isDropping = false;
     }
   });
 }
@@ -2913,11 +3208,14 @@ function spawnCoinDrop(scene, x, y, goldValue = 1) {
 function collectCoin(scene, coin) {
   if (!coin || !coin.active) return;
   const cx = coin.x, cy = coin.y;
-  const val = coin.goldValue || 1;
-  addGold(val);
+  const val = coin.silverValue || 1;
+  runSilver += val;
+  if (hudSilverText && hudSilverText.active) {
+    hudSilverText.setText(`${runSilver}`);
+  }
   sound.playCoin();
   hitFx.explode(6, cx, cy);
-  floatText(scene, cx, cy - 16, `+${val} OURO!`, '#ffd740');
+  floatText(scene, cx, cy - 16, `+${val} PRATA`, '#e0f7fa');
   removeEntity(coin);
 }
 
@@ -3008,9 +3306,10 @@ function swingSword(scene) {
     onComplete: () => slash.destroy()
   });
 
-  // Nv 4: Dispara também uma lâmina de vento dourada à frente!
+  // Nv 4: Dispara também uma lâmina de vento cortante à frente!
   if (lvl >= 4) {
-    const waveProj = playerArrows.create(player.x + 34, player.y, 'arrow_gold');
+    const waveProj = playerArrows.create(player.x + 34, player.y, 'arrow_player');
+    waveProj.setTint(0x7fe7ff);
     waveProj.setScale(1.35);
     waveProj.body.setSize(20, 12);
     waveProj.dmg = 2;
@@ -3104,17 +3403,14 @@ function playerHit(scene, hazard) {
   if (buff.type === 'shield') {
     const lvl = getWeaponLevel('shield');
 
-    // 1. ESCUDO SAGRADO REFLETE PROJÉTEIS EM OURO! (Cria Flechas de Ouro + Concede Ouro na hora!)
+    // 1. ESCUDO SAGRADO REFLETE PROJÉTEIS MANTENDO A COR/ASPECTO NORMAL (sem flechas de ouro e sem dar ouro)
     if (enemyArrows.contains(hazard)) {
       const hx = hazard.x, hy = hazard.y;
       hazard.destroy();
 
-      const bonusGold = lvl >= 4 ? 4 : lvl === 3 ? 3 : 2;
-      addGold(bonusGold);
       sound.playShieldBlock();
-      sound.playCoin();
-      hitFx.explode(10, hx, hy);
-      floatText(scene, player.x, player.y - 28, `REFLETIDO EM OURO! +${bonusGold}🪙`, '#ffd740');
+      hitFx.explode(8, hx, hy);
+      floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
 
       const spreads = {
         1: [0],
@@ -3124,14 +3420,14 @@ function playerHit(scene, hazard) {
       }[lvl] || [0];
 
       spreads.forEach(ang => {
-        const goldArrow = playerArrows.create(player.x + 20, player.y, 'arrow_gold');
-        goldArrow.body.setSize(18, 8);
-        goldArrow.dmg = 2;
-        goldArrow.pierceCount = lvl >= 4 ? 2 : 1;
-        goldArrow.projId = ++slashCounter;
-        const spd = 800;
-        goldArrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        goldArrow.rotation = ang;
+        const reflArrow = playerArrows.create(player.x + 20, player.y, 'arrow_player');
+        reflArrow.body.setSize(18, 8);
+        reflArrow.dmg = 1;
+        reflArrow.pierceCount = lvl >= 4 ? 2 : 1;
+        reflArrow.projId = ++slashCounter;
+        const spd = 760;
+        reflArrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        reflArrow.rotation = ang;
       });
       return;
     }
@@ -3173,11 +3469,63 @@ function playerHit(scene, hazard) {
     });
     return;
   }
+
+  // Se estiver na janela de invencibilidade após perder um Coração, ignora o dano
+  if (playerInvulnerable) {
+    if (enemyArrows.contains(hazard)) hazard.destroy();
+    return;
+  }
+
+  // Deduz 1 Coração de Vida
+  playerHp = Math.max(0, playerHp - 1);
+  updateHeartsHUD();
+
+  if (playerHp > 0) {
+    playerInvulnerable = true;
+    if (enemyArrows.contains(hazard)) {
+      hazard.destroy();
+    } else if (hazard && hazard.active && !hazard.isBoss && !hazard.isBossAttack) {
+      killEnemy(hazard);
+    }
+
+    sound.playPlayerHurt();
+    hitFx.explode(14, player.x, player.y);
+    scene.cameras.main.flash(140, 255, 80, 80);
+    scene.cameras.main.shake(180, 0.009);
+    floatText(scene, player.x, player.y - 30, `-1 CORAÇÃO! (${playerHp}/${playerMaxHp})`, '#ff5252');
+
+    // Limpa projéteis colados ao cavaleiro para evitar dano duplo injusto
+    enemyArrows.getChildren().slice().forEach(a => {
+      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= 95) {
+        a.destroy();
+      }
+    });
+
+    scene.tweens.add({
+      targets: player,
+      alpha: { from: 0.25, to: 1 },
+      duration: 110,
+      yoyo: true,
+      repeat: 5,
+      onComplete: () => {
+        if (player && player.active) player.setAlpha(1);
+        playerInvulnerable = false;
+      }
+    });
+    return;
+  }
+
   gameOver(scene);
 }
 
 function gameOver(scene) {
+  if (gameState === 'GAMEOVER') return;
   gameState = 'GAMEOVER';
+  playerInvulnerable = false;
+
+  // Consolida e converte as Moedas de Prata coletadas em Ouro Persistente (Meta-currency)
+  consolidateSilverToGold();
+
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (activeBoss) clearBossTelegraphs(activeBoss);
@@ -3188,11 +3536,25 @@ function gameOver(scene) {
   sound.stopBGM();
   sound.playGameOver();
   if (hudContainer) hudContainer.setVisible(false);
+
+  // Pausa física e eventos de spawn, mas mantém scene.tweens e timeScale ativos para a UI e Loja!
   scene.physics.pause();
   scene.time.removeAllEvents();
-  scene.tweens.pauseAll();
-  [player, ...enemies.getChildren()].forEach(s => s.anims.pause());
-  player.setTint(0xff5555);
+  scene.time.paused = false;
+  scene.time.timeScale = 1;
+
+  if (player) {
+    scene.tweens.killTweensOf(player);
+    player.setAlpha(1).setTint(0xff5555);
+    if (player.anims) player.anims.pause();
+  }
+  enemies.getChildren().forEach(s => {
+    scene.tweens.killTweensOf(s);
+    if (s.anims) s.anims.pause();
+  });
+  items.getChildren().forEach(i => scene.tweens.killTweensOf(i));
+  coins.getChildren().forEach(c => scene.tweens.killTweensOf(c));
+
   hitFx.explode(20, player.x, player.y);
   scene.cameras.main.shake(300, 0.012);
   scene.time.delayedCall(700, () => showInitials(scene)); // pausa curta para ver o que te acertou
@@ -3208,6 +3570,17 @@ const textStyle = (color, size = 17, weight = 'bold') => ({
   fontFamily: 'Courier New, monospace'
 });
 
+// Ajusta automaticamente o tamanho da fonte caso o texto ultrapasse os limites da Bounding Box
+function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {
+  if (!textObj || !textObj.active) return textObj;
+  let currentSize = parseInt(String(textObj.style.fontSize).replace('px', ''), 10) || 14;
+  while (currentSize > minFontSize && (textObj.width > maxWidth || textObj.height > maxHeight)) {
+    currentSize--;
+    textObj.setFontSize(currentSize);
+  }
+  return textObj;
+}
+
 function floatText(scene, x, y, msg, color) {
   const t = scene.add.text(x, y, msg, { ...textStyle(color, 15), stroke: '#000000', strokeThickness: 4 })
     .setOrigin(0.5).setDepth(1500);
@@ -3215,64 +3588,72 @@ function floatText(scene, x, y, msg, color) {
 }
 
 // -----------------------------------------------------------------------------
-// NOVO HUD MEDIEVAL EM PIXEL ART (SEM EMOJIS, 4 MÓDULOS + BARRA DE VIDA DO BOSS)
+// HUD MEDIEVAL EM PIXEL ART (ANCORADO, COM CORAÇÕES, PRATA, RELÍQUIA, RECORDE, SOM E TELA CHEIA)
 // -----------------------------------------------------------------------------
 function createHUD(scene) {
-  hudContainer = scene.add.container(0, 0).setDepth(2000).setVisible(false);
+  hudContainer = scene.add.container(0, 0).setDepth(2000).setScrollFactor(0).setVisible(false);
 
-  // 1. PAINEL DE GLÓRIA (Tempo Sobrevivido) — Esquerda
+  // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 10..154)
   const gloryBg = scene.add.graphics();
-  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(12, 10, 124, 48, 6);
-  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(12, 10, 124, 48, 6);
-  const hourglass = scene.add.image(28, 34, 'hud_hourglass');
-  const gloryLabel = scene.add.text(44, 17, 'GLÓRIA', textStyle('#a89260', 10));
-  hudGloryText = scene.add.text(44, 28, '0s', textStyle('#f5e6c8', 18));
+  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(10, 10, 144, 48, 6);
+  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 144, 48, 6);
+  const hourglass = scene.add.image(26, 34, 'hud_hourglass');
+  const gloryLabel = scene.add.text(42, 14, 'GLÓRIA & VIDA', textStyle('#a89260', 9));
+  hudGloryText = scene.add.text(42, 26, '0s', textStyle('#f5e6c8', 15));
   hudContainer.add([gloryBg, hourglass, gloryLabel, hudGloryText]);
 
-  // 2. PAINEL DE TESOURO (Ouro Acumulado) — Centro-Esquerda
-  const goldBg = scene.add.graphics();
-  goldBg.fillStyle(0x16120e, 0.94).fillRoundedRect(144, 10, 124, 48, 6);
-  goldBg.lineStyle(2, 0xc5a059).strokeRoundedRect(144, 10, 124, 48, 6);
-  const coinIcon = scene.add.image(162, 34, 'gold_coin', 0).setScale(1.2);
-  const goldLabel = scene.add.text(178, 17, 'TESOURO', textStyle('#a89260', 10));
-  hudGoldText = scene.add.text(178, 28, `${getGold()}`, textStyle('#ffd740', 18));
-  hudContainer.add([goldBg, coinIcon, goldLabel, hudGoldText]);
+  hudHearts = [];
+  for (let i = 0; i < 4; i++) {
+    const heart = scene.add.image(92 + i * 15, 39, 'hud_heart', 0).setScale(1.0);
+    hudHearts.push(heart);
+    hudContainer.add(heart);
+  }
+  updateHeartsHUD();
 
-  // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro
+  // 2. PAINEL DE PRATA DA PARTIDA (Convertida em Ouro no fim!) — Centro-Esquerda (x: 160..274)
+  const silverBg = scene.add.graphics();
+  silverBg.fillStyle(0x16120e, 0.94).fillRoundedRect(160, 10, 114, 48, 6);
+  silverBg.lineStyle(2, 0xc5a059).strokeRoundedRect(160, 10, 114, 48, 6);
+  const silverIcon = scene.add.image(178, 34, 'silver_coin', 0).setScale(1.2);
+  const silverLabel = scene.add.text(194, 16, 'PRATA', textStyle('#b0bec5', 10));
+  hudSilverText = scene.add.text(194, 28, '0', textStyle('#e0f7fa', 18));
+  hudContainer.add([silverBg, silverIcon, silverLabel, hudSilverText]);
+
+  // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 280..514)
   const itemBg = scene.add.graphics();
-  itemBg.fillStyle(0x16120e, 0.94).fillRoundedRect(276, 10, 238, 48, 6);
-  itemBg.lineStyle(2, 0xc5a059).strokeRoundedRect(276, 10, 238, 48, 6);
+  itemBg.fillStyle(0x16120e, 0.94).fillRoundedRect(280, 10, 234, 48, 6);
+  itemBg.lineStyle(2, 0xc5a059).strokeRoundedRect(280, 10, 234, 48, 6);
 
   const slotFrame = scene.add.graphics();
-  slotFrame.fillStyle(0x221a14, 1).fillRoundedRect(284, 16, 36, 36, 4);
-  slotFrame.lineStyle(1, 0x8d5524).strokeRoundedRect(284, 16, 36, 36, 4);
+  slotFrame.fillStyle(0x221a14, 1).fillRoundedRect(288, 16, 36, 36, 4);
+  slotFrame.lineStyle(1, 0x8d5524).strokeRoundedRect(288, 16, 36, 36, 4);
 
-  hudItemIcon = scene.add.image(302, 34, 'item_bow').setVisible(false);
-  hudItemName = scene.add.text(328, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
+  hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
+  hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(476, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
+  hudItemTime = scene.add.text(478, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
   hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime]);
 
-  // 4. PAINEL DE RECORDE DO REINO — Direita
+  // 4. PAINEL DE RECORDE DO REINO — Direita (x: 520..682)
   const bestBg = scene.add.graphics();
-  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(522, 10, 194, 48, 6);
-  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(522, 10, 194, 48, 6);
-  const crown = scene.add.image(544, 34, 'hud_crown');
-  const bestLabel = scene.add.text(568, 17, 'RECORDE', textStyle('#a89260', 10));
-  hudBestText = scene.add.text(568, 28, `${getBestScore()}s`, textStyle('#ffca28', 18));
+  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(520, 10, 162, 48, 6);
+  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(520, 10, 162, 48, 6);
+  const crown = scene.add.image(540, 34, 'hud_crown');
+  const bestLabel = scene.add.text(562, 16, 'RECORDE', textStyle('#a89260', 10));
+  hudBestText = scene.add.text(562, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
 
-  // 5. BOTÃO DE SOM RÁPIDO — Extremo Superior Direito
+  // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 688..736)
   const soundBtnBg = scene.add.graphics();
   const drawSoundBtn = (hover = false) => {
     soundBtnBg.clear();
-    soundBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(725, 10, 48, 48, 6);
-    soundBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(725, 10, 48, 48, 6);
+    soundBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(688, 10, 48, 48, 6);
+    soundBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(688, 10, 48, 48, 6);
   };
   drawSoundBtn(false);
 
-  hudHornIcon = scene.add.image(749, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
-  const soundHitArea = scene.add.rectangle(749, 34, 48, 48, 0x000000, 0)
+  hudHornIcon = scene.add.image(712, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
+  const soundHitArea = scene.add.rectangle(712, 34, 48, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
 
   const toggleAudio = () => {
@@ -3294,9 +3675,29 @@ function createHUD(scene) {
     if (menuContainer && menuContainer.updateMenuHorn) menuContainer.updateMenuHorn();
   });
 
-  hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea]);
+  // 6. BOTÃO DE TELA CHEIA RÁPIDO [F] — Extremo Superior Direito (x: 742..790)
+  const fsBtnBg = scene.add.graphics();
+  const drawFsBtn = (hover = false) => {
+    fsBtnBg.clear();
+    fsBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(742, 10, 48, 48, 6);
+    fsBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(742, 10, 48, 48, 6);
+  };
+  drawFsBtn(false);
 
-  // 6. BARRA DE VIDA DO CHEFÃO (Oculta até os 60s da Boss Fight)
+  hudFullscreenIcon = scene.add.image(766, 34, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
+  const fsHitArea = scene.add.rectangle(766, 34, 48, 48, 0x000000, 0)
+    .setInteractive({ useHandCursor: true });
+
+  fsHitArea.on('pointerover', () => drawFsBtn(true));
+  fsHitArea.on('pointerout', () => drawFsBtn(false));
+  fsHitArea.on('pointerdown', () => {
+    sound.playButtonClick();
+    toggleFullscreen(scene);
+  });
+
+  hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
+
+  // 7. BARRA DE VIDA DO CHEFÃO (Oculta até os 60s da Boss Fight)
   bossHudContainer = scene.add.container(0, 0).setVisible(false);
   const bossBg = scene.add.graphics();
   bossBg.fillStyle(0x160d0b, 0.94).fillRoundedRect(236, 62, 328, 30, 5);
@@ -3306,6 +3707,20 @@ function createHUD(scene) {
   bossHpBar = scene.add.graphics();
   bossHudContainer.add([bossBg, bossTitle, bossHpBar, bossHpText]);
   hudContainer.add(bossHudContainer);
+}
+
+function updateHeartsHUD() {
+  if (!hudHearts || !hudHearts.length) return;
+  const maxH = playerMaxHp || getPlayerMaxHp();
+  hudHearts.forEach((h, idx) => {
+    if (!h || !h.active) return;
+    if (idx < maxH) {
+      h.setVisible(true);
+      h.setFrame(idx < playerHp ? 0 : 1);
+    } else {
+      h.setVisible(false);
+    }
+  });
 }
 
 // Atualiza o slot e a barra de duração gráfica do item ativo
@@ -3325,6 +3740,7 @@ function updateItemHUD() {
   const lvl = getWeaponLevel(buff.type);
   const label = BUFF_NAMES[buff.type] || 'RELÍQUIA';
   hudItemName.setText(`${label} NV.${lvl}`).setColor('#7fe7ff');
+  fitTextToBox(hudItemName, 174, 18, 9);
 
   const remaining = Math.max(0, buff.timeLeft);
   hudItemTime.setText(`${remaining.toFixed(1)}s`);
@@ -3333,7 +3749,7 @@ function updateItemHUD() {
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
   const barW = 114;
   const barH = 7;
-  const barX = 328;
+  const barX = 330;
   const barY = 32;
 
   hudItemBar.clear();
@@ -3356,11 +3772,9 @@ function updateItemHUD() {
     const pX = Math.round(player.x - pW / 2);
     const pY = Math.round(player.y - 25);
 
-    // Contorno e fundo escuro
     playerBuffBar.fillStyle(0x0e0b08, 0.95).fillRect(pX - 1, pY - 1, pW + 2, pH + 2);
     playerBuffBar.fillStyle(0x221a14, 0.95).fillRect(pX, pY, pW, pH);
 
-    // Cor por tipo com alerta vermelho em <= 1.8s
     const overheadColor = remaining <= 1.8 ? 0xff3030 : (
       buff.type === 'shield' ? 0x7fe7ff :
       buff.type === 'firestaff' ? 0xff7043 :
@@ -3377,7 +3791,8 @@ function updateItemHUD() {
 // -----------------------------------------------------------------------------
 function createButton(scene, x, y, label, onClick, w = 260, h = 46) {
   const btn = scene.add.rectangle(x, y, w, h, 0x6e3d1b).setStrokeStyle(2, 0xc5a059).setInteractive({ useHandCursor: true });
-  const txt = scene.add.text(x, y, label, { ...textStyle('#ffffff', 15), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const txt = scene.add.text(x, y, label, { ...textStyle('#ffffff', 14), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  fitTextToBox(txt, w - 16, h - 8, 10);
 
   btn.on('pointerover', () => {
     btn.setFillStyle(0x945324);
@@ -3397,12 +3812,14 @@ function createButton(scene, x, y, label, onClick, w = 260, h = 46) {
 }
 
 // -----------------------------------------------------------------------------
-// FÁBRICA UNIFICADA DE JANELAS E MODAIS MEDIEVAIS
+// FÁBRICA UNIFICADA DE JANELAS E MODAIS MEDIEVAIS (COM ANCORAGEM DINÂMICA)
 // -----------------------------------------------------------------------------
 function createModal(scene, titleText, height, subtitleText = '', width = 520) {
-  const left = (800 - width) / 2;
-  const top = (600 - height) / 2;
-  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x000000, 0.72);
+  const cx = GAME_WIDTH / 2;
+  const cy = GAME_HEIGHT / 2;
+  const left = cx - width / 2;
+  const top = cy - height / 2;
+  const overlay = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.74);
 
   const frame = scene.add.graphics();
   frame.fillStyle(0x16120e, 0.97).fillRoundedRect(left, top, width, height, 14);
@@ -3421,17 +3838,24 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     frame.fillStyle(0x3a2818, 1).fillCircle(rx, ry, 1.5);
   });
 
-  const titleShadow = scene.add.text(402, top + 34, titleText, { ...textStyle('#080604', 23), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const title = scene.add.text(400, top + 32, titleText, { ...textStyle('#ffca28', 23), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const titleShadow = scene.add.text(cx + 2, top + 30, titleText, { ...textStyle('#080604', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const title = scene.add.text(cx, top + 28, titleText, { ...textStyle('#ffca28', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  fitTextToBox(title, width - 80, 32, 14);
+  titleShadow.setFontSize(title.style.fontSize);
 
   const children = [overlay, frame, titleShadow, title];
   if (subtitleText) {
-    const sub = scene.add.text(400, top + 60, subtitleText, textStyle('#c5a059', 12)).setOrigin(0.5);
-    frame.lineStyle(1, 0xc5a059, 0.5).lineBetween(left + 60, top + 75, left + width - 60, top + 75);
+    const sub = scene.add.text(cx, top + 54, subtitleText, {
+      ...textStyle('#c5a059', 11),
+      align: 'center',
+      wordWrap: { width: width - 60, useAdvancedWrap: true }
+    }).setOrigin(0.5);
+    fitTextToBox(sub, width - 60, 26, 9);
+    frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 68, left + width - 40, top + 68);
     children.push(sub);
   }
 
-  return scene.add.container(0, 0, children).setDepth(3000);
+  return scene.add.container(0, 0, children).setDepth(3000).setScrollFactor(0);
 }
 
 function restartScene(scene, autoStart = false, openShop = false) {
@@ -3446,7 +3870,16 @@ function restartScene(scene, autoStart = false, openShop = false) {
   sound.stopBGM();
   scene.physics.resume();
   scene.time.paused = false;
+  scene.time.timeScale = 1;
+  scene.tweens.resumeAll();
   scene.scene.restart({ autoStart, openShop });
+}
+
+// Função unificada de saída de submenus (usada tanto pela tecla ESC quanto pelo botão Voltar/Sair)
+function exitSubMenu(scene) {
+  if (!scene) return;
+  sound.playButtonClick();
+  showMainMenu(scene);
 }
 
 // -----------------------------------------------------------------------------
@@ -3454,9 +3887,11 @@ function restartScene(scene, autoStart = false, openShop = false) {
 // -----------------------------------------------------------------------------
 function showMainMenu(scene) {
   if (menuContainer) menuContainer.destroy();
+  gameState = 'MENU';
   sound.startMenuBGM();
 
-  menuContainer = scene.add.container(0, 0).setDepth(3000);
+  menuContainer = scene.add.container(0, 0).setDepth(3000).setScrollFactor(0);
+  menuContainer.isMainMenu = true;
   const art = scene.add.graphics();
 
   // 1. CÉU CREPUSCULAR DO REINO (Degradê em faixas de Pixel Art)
@@ -3471,7 +3906,6 @@ function showMainMenu(scene) {
   ];
   skyBands.forEach(([y, h, color]) => art.fillStyle(color, 1).fillRect(0, y, 800, h));
 
-  // Estrelas e Constelação da Espada no céu
   const starCoords = [
     [55, 30], [115, 65], [180, 28], [260, 48], [340, 25], [440, 42], [510, 70],
     [690, 35], [750, 68], [85, 118], [155, 102], [295, 95], [480, 108], [735, 115]
@@ -3584,30 +4018,30 @@ function showMainMenu(scene) {
     ease: 'Sine.easeInOut'
   });
 
-  // 5. BRASÃO DE TÍTULO NO TOPO E PAINEL DE COMANDOS À DIREITA
+  // 5. BRASÃO DE TÍTULO NO TOPO E BOTÕES RÁPIDOS DE ÁUDIO [M] E TELA CHEIA [F]
   const headerBanner = scene.add.graphics();
-  headerBanner.fillStyle(0x14100c, 0.90).fillRoundedRect(105, 16, 590, 82, 10);
-  headerBanner.lineStyle(2.5, 0x8d5524, 1).strokeRoundedRect(105, 16, 590, 82, 10);
-  headerBanner.lineStyle(1.2, 0xc5a059, 0.9).strokeRoundedRect(110, 21, 580, 72, 8);
+  headerBanner.fillStyle(0x14100c, 0.90).fillRoundedRect(82, 16, 580, 82, 10);
+  headerBanner.lineStyle(2.5, 0x8d5524, 1).strokeRoundedRect(82, 16, 580, 82, 10);
+  headerBanner.lineStyle(1.2, 0xc5a059, 0.9).strokeRoundedRect(87, 21, 570, 72, 8);
 
-  const titleShadow = scene.add.text(402, 46, 'A JORNADA DO CAVALEIRO', {
-    ...textStyle('#060403', 27), fontFamily: 'Georgia, serif'
+  const titleShadow = scene.add.text(374, 46, 'A JORNADA DO CAVALEIRO', {
+    ...textStyle('#060403', 26), fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
-  const titleMain = scene.add.text(400, 44, 'A JORNADA DO CAVALEIRO', {
-    ...textStyle('#ffca28', 27), fontFamily: 'Georgia, serif'
+  const titleMain = scene.add.text(372, 44, 'A JORNADA DO CAVALEIRO', {
+    ...textStyle('#ffca28', 26), fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
-  const subtitleTxt = scene.add.text(400, 75, '★ CRÔNICAS DO REINO & ROGUELITE DE AÇÃO ★', textStyle('#e0c088', 11)).setOrigin(0.5);
+  const subtitleTxt = scene.add.text(372, 75, '★ CRÔNICAS DO REINO & ROGUELITE DE AÇÃO ★', textStyle('#e0c088', 11)).setOrigin(0.5);
 
-  // Botão rápido de Som no canto superior direito da Capa
+  // Botão rápido de Som [M] no canto superior direito da Capa
   const menuSoundBg = scene.add.graphics();
   const drawMenuSound = (hover = false) => {
     menuSoundBg.clear();
-    menuSoundBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.92).fillRoundedRect(722, 22, 52, 52, 8);
-    menuSoundBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(722, 22, 52, 52, 8);
+    menuSoundBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.92).fillRoundedRect(674, 22, 50, 50, 8);
+    menuSoundBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(674, 22, 50, 50, 8);
   };
   drawMenuSound(false);
-  const menuHorn = scene.add.image(748, 48, 'hud_horn', sound.isMuted() ? 1 : 0);
-  const menuSoundHit = scene.add.rectangle(748, 48, 52, 52, 0x000000, 0).setInteractive({ useHandCursor: true });
+  const menuHorn = scene.add.image(699, 47, 'hud_horn', sound.isMuted() ? 1 : 0);
+  const menuSoundHit = scene.add.rectangle(699, 47, 50, 50, 0x000000, 0).setInteractive({ useHandCursor: true });
   menuContainer.updateMenuHorn = () => {
     if (menuHorn && menuHorn.active) menuHorn.setFrame(sound.isMuted() ? 1 : 0);
   };
@@ -3619,6 +4053,26 @@ function showMainMenu(scene) {
     if (!sound.isMuted()) sound.startMenuBGM();
     menuContainer.updateMenuHorn();
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+  });
+
+  // Botão rápido de Tela Cheia [F] ao lado do botão de Som
+  const menuFsBg = scene.add.graphics();
+  const drawMenuFs = (hover = false) => {
+    menuFsBg.clear();
+    menuFsBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.92).fillRoundedRect(732, 22, 50, 50, 8);
+    menuFsBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(732, 22, 50, 50, 8);
+  };
+  drawMenuFs(false);
+  const menuFsIcon = scene.add.image(757, 47, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
+  const menuFsHit = scene.add.rectangle(757, 47, 50, 50, 0x000000, 0).setInteractive({ useHandCursor: true });
+  menuContainer.updateMenuFullscreen = () => {
+    if (menuFsIcon && menuFsIcon.active) menuFsIcon.setFrame(isGameFullscreen(scene) ? 1 : 0);
+  };
+  menuFsHit.on('pointerover', () => drawMenuFs(true));
+  menuFsHit.on('pointerout', () => drawMenuFs(false));
+  menuFsHit.on('pointerdown', () => {
+    sound.playButtonClick();
+    toggleFullscreen(scene);
   });
 
   // Painel de Ações à Direita (Com Indicador de Recorde + Tesouro de Ouro + Loja de Upgrades)
@@ -3649,11 +4103,11 @@ function showMainMenu(scene) {
   };
 
   const startBtn = createButton(scene, 605, 324, 'COMEÇAR JORNADA', launchGame, 276, 42);
-  const shopBtn = createButton(scene, 605, 376, 'LOJA DE UPGRADES 🪙', () => {
+  const shopBtn = createButton(scene, 605, 376, 'LOJA DE UPGRADES', () => {
     clearMenuKeys();
     sound.ensureContext();
     sound.startMenuBGM();
-    showShopMenu(scene);
+    showShopMenu(scene, 'items');
   }, 276, 42);
   const recordsBtn = createButton(scene, 605, 428, 'RECORDES', () => {
     clearMenuKeys();
@@ -3673,13 +4127,14 @@ function showMainMenu(scene) {
   // Faixa de Rodapé Completa
   const footerBg = scene.add.rectangle(400, 578, 800, 32, 0x0c0907, 0.92);
   const footerLine = scene.add.graphics().lineStyle(1, 0x8d5524, 0.8).lineBetween(0, 562, 800, 562);
-  const footerTxt = scene.add.text(400, 578, 'Mover: WASD ou Setas   |   Pausar: ESC   |   Alternar Áudio: M', textStyle('#d6c8aa', 11)).setOrigin(0.5);
+  const footerTxt = scene.add.text(400, 578, 'Mover: WASD/Setas  |  Pausar: ESC  |  Áudio: M  |  Tela Cheia: F', textStyle('#d6c8aa', 11)).setOrigin(0.5);
 
   menuContainer.add([
     treeFar, menuHouse, menuBlacksmith, menuGateTower,
     treeLeft, heroSprite,
     headerBanner, titleShadow, titleMain, subtitleTxt,
     menuSoundBg, menuHorn, menuSoundHit,
+    menuFsBg, menuFsIcon, menuFsHit,
     menuPanel, crownIcon, bestBannerTxt, menuCoinIcon, menuGoldTxt,
     ...startBtn, ...shopBtn, ...recordsBtn, ...settingsBtn, startHint,
     footerBg, footerLine, footerTxt
@@ -3697,132 +4152,297 @@ function showMainMenu(scene) {
 }
 
 // -----------------------------------------------------------------------------
-// LOJA DE UPGRADES & ARSENAL DO FERREIRO REAL (DESBLOQUEIO E EVOLUÇÃO DE ARMAS)
+// LOJA DE UPGRADES & ARSENAL DO FERREIRO REAL (2 ABAS: ITENS & STATUS, ZERO OVERLAP)
 // -----------------------------------------------------------------------------
-function showShopMenu(scene) {
+function showShopMenu(scene, activeTab = currentShopTab) {
+  if (!scene) return;
+  currentShopTab = activeTab === 'status' ? 'status' : 'items';
+
+  // Garante estado de menu limpo e tweens/timers ativos (mesmo vindo do Game Over)
+  gameState = 'MENU';
+  scene.time.paused = false;
+  scene.time.timeScale = 1;
+  scene.tweens.resumeAll();
+
   if (menuContainer) menuContainer.destroy();
   sound.startMenuBGM();
 
-  menuContainer = createModal(scene, 'ARSENAL REAL & LOJA DE UPGRADES', 564, 'Forje novas relíquias e aprimore suas armas com o Ouro conquistado', 740);
+  menuContainer = createModal(
+    scene,
+    'ARSENAL REAL & LOJA DE UPGRADES',
+    564,
+    'Evolua suas relíquias e os atributos do Cavaleiro com o Ouro conquistado',
+    740
+  );
+  menuContainer.isMainMenu = false;
 
-  // Painel de Ouro Disponível no Topo Direito do Modal
-  const goldBadge = scene.add.graphics();
-  goldBadge.fillStyle(0x261c12, 0.96).fillRoundedRect(535, 36, 175, 38, 6);
-  goldBadge.lineStyle(2, 0xffca28).strokeRoundedRect(535, 36, 175, 38, 6);
-  const coinSprite = scene.add.sprite(556, 55, 'gold_coin').play('coin_spin').setScale(1.3);
-  const goldValTxt = scene.add.text(574, 55, `${getGold()} OURO`, textStyle('#ffd740', 15)).setOrigin(0, 0.5);
-  menuContainer.add([goldBadge, coinSprite, goldValTxt]);
+  // Botão Rápido "✕ SAIR [ESC]" no canto superior direito do modal (conectado a exitSubMenu)
+  const closeQuickBtn = scene.add.rectangle(712, 46, 78, 28, 0x5c241b)
+    .setStrokeStyle(1.5, 0xc5a059)
+    .setInteractive({ useHandCursor: true });
+  const closeQuickTxt = scene.add.text(712, 46, '✕ SAIR', textStyle('#ffeb3b', 11)).setOrigin(0.5);
+  closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
+  closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
+  closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
+  menuContainer.add([closeQuickBtn, closeQuickTxt]);
 
-  const upgrades = getUpgrades();
-  const currentGold = getGold();
-  const weaponKeys = ['bow', 'sword', 'shield', 'axe', 'firestaff'];
+  // ---------------------------------------------------------------------------
+  // BARRA SUBCABEÇALHO (y = 94..128): ABAS DE CATEGORIA + CONTADOR DE OURO (SEM SOBREPOSIÇÃO!)
+  // ---------------------------------------------------------------------------
+  const isItemsTab = currentShopTab === 'items';
 
-  weaponKeys.forEach((key, idx) => {
-    const cfg = WEAPON_CATALOG[key];
-    const state = upgrades[key] || { unlocked: false, level: 1 };
-    const isUnlocked = state.unlocked;
-    const lvl = state.level || 1;
-    const isMax = isUnlocked && lvl >= MAX_WEAPON_LEVEL;
-
-    const rowY = 136 + idx * 74;
-    const rowBg = scene.add.graphics();
-    rowBg.fillStyle(isUnlocked ? 0x221a13 : 0x17120e, 0.95).fillRoundedRect(56, rowY - 31, 688, 66, 7);
-    rowBg.lineStyle(1.5, isMax ? 0xffca28 : (isUnlocked ? 0x8d5524 : 0x4a3b2c)).strokeRoundedRect(56, rowY - 31, 688, 66, 7);
-
-    // Moldura do Ícone da Arma
-    const slotBg = scene.add.graphics();
-    slotBg.fillStyle(0x120d0a, 1).fillRoundedRect(68, rowY - 22, 46, 46, 5);
-    slotBg.lineStyle(1.5, isUnlocked ? 0xc5a059 : 0x5c4938).strokeRoundedRect(68, rowY - 22, 46, 46, 5);
-
-    const icon = scene.add.image(91, rowY + 1, cfg.icon).setScale(1.35);
-    if (!isUnlocked) icon.setTint(0x666666);
-
-    // Nome da Arma e Tag de Status / Nível
-    const titleColor = isUnlocked ? '#ffca28' : '#a8987b';
-    const nameTxt = scene.add.text(126, rowY - 21, cfg.name, textStyle(titleColor, 14));
-
-    // Barrinhas visuais de Nível (1 a 4)
-    const pips = scene.add.graphics();
-    for (let p = 0; p < MAX_WEAPON_LEVEL; p++) {
-      const activePip = isUnlocked && p < lvl;
-      pips.fillStyle(activePip ? 0xffca28 : 0x33271d, 1).fillRect(320 + p * 18, rowY - 19, 14, 10);
-      pips.lineStyle(1, activePip ? 0xfff3c4 : 0x5c4938).strokeRect(320 + p * 18, rowY - 19, 14, 10);
-    }
-    const lvlBadgeTxt = scene.add.text(398, rowY - 14, isUnlocked ? `NV. ${lvl}/${MAX_WEAPON_LEVEL}` : 'BLOQUEADA', textStyle(isUnlocked ? '#7fe7ff' : '#ef5350', 11)).setOrigin(0, 0.5);
-
-    // Descrição do nível atual e próximo bônus
-    const descStr = !isUnlocked
-      ? `Relíquia Bloqueada — ${cfg.levels[0]}`
-      : (isMax ? `★ MÁXIMO: ${cfg.levels[lvl - 1]}` : `Atual: ${cfg.levels[lvl - 1]}\nPróximo (Nv.${lvl + 1}): ${cfg.levels[lvl]}`);
-    const descTxt = scene.add.text(126, rowY - 2, descStr, {
-      ...textStyle(isUnlocked ? '#e0d2b4' : '#9c8d73', 11, 'normal'),
-      lineSpacing: 3
+  const makeTabButton = (x, y, w, h, label, active, onClick) => {
+    const bg = scene.add.rectangle(x, y, w, h, active ? 0x8d5524 : 0x221a13)
+      .setStrokeStyle(2, active ? 0xffeb3b : 0x6e5233)
+      .setInteractive({ useHandCursor: true });
+    const txt = scene.add.text(x, y, label, textStyle(active ? '#ffeb3b' : '#b8a686', 12)).setOrigin(0.5);
+    fitTextToBox(txt, w - 16, h - 6, 10);
+    bg.on('pointerover', () => {
+      if (!active) {
+        bg.setFillStyle(0x3a2b1f);
+        txt.setColor('#ffffff');
+      }
     });
+    bg.on('pointerout', () => {
+      if (!active) {
+        bg.setFillStyle(0x221a13);
+        txt.setColor('#b8a686');
+      }
+    });
+    bg.on('pointerdown', () => {
+      sound.playButtonClick();
+      onClick();
+    });
+    return [bg, txt];
+  };
 
-    menuContainer.add([rowBg, slotBg, icon, nameTxt, pips, lvlBadgeTxt, descTxt]);
+  const tabItemsBtn = makeTabButton(176, 111, 232, 34, '⚔ UPGRADES DE ITENS', isItemsTab, () => showShopMenu(scene, 'items'));
+  const tabStatusBtn = makeTabButton(420, 111, 232, 34, '🛡 UPGRADES DE STATUS', !isItemsTab, () => showShopMenu(scene, 'status'));
 
-    // Botão de Compra / Upgrade à Direita
-    const btnX = 636, btnY = rowY + 1, btnW = 186, btnH = 42;
-    if (isMax) {
-      const maxBox = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2418).setStrokeStyle(1.5, 0xffca28);
-      const maxTxt = scene.add.text(btnX, btnY, 'NÍVEL MÁXIMO ★', textStyle('#ffca28', 12)).setOrigin(0.5);
-      menuContainer.add([maxBox, maxTxt]);
-    } else {
-      const cost = !isUnlocked ? cfg.unlockCost : cfg.costs[lvl - 1];
-      const canAfford = currentGold >= cost;
-      const actionLabel = !isUnlocked ? `DESBLOQUEAR (${cost}🪙)` : `UPGRADE NV.${lvl + 1} (${cost}🪙)`;
+  // Painel de Ouro Disponível posicionado na barra de subcabeçalho à direita (x: 548..740, y: 94..128)
+  const goldBadge = scene.add.graphics();
+  goldBadge.fillStyle(0x261c12, 0.98).fillRoundedRect(548, 94, 192, 34, 6);
+  goldBadge.lineStyle(2, 0xffca28).strokeRoundedRect(548, 94, 192, 34, 6);
+  const coinSprite = scene.add.sprite(568, 111, 'gold_coin').play('gold_coin').setScale(1.25);
+  const goldValTxt = scene.add.text(586, 111, `OURO: ${getGold()}`, textStyle('#ffd740', 14)).setOrigin(0, 0.5);
+  fitTextToBox(goldValTxt, 144, 24, 10);
 
-      const buyBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x246b3d : 0x3b2c22)
-        .setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846)
-        .setInteractive({ useHandCursor: true });
-      const buyTxt = scene.add.text(btnX, btnY, actionLabel, textStyle(canAfford ? '#ffffff' : '#8c7b6b', 12)).setOrigin(0.5);
+  menuContainer.add([...tabItemsBtn, ...tabStatusBtn, goldBadge, coinSprite, goldValTxt]);
 
-      buyBtn.on('pointerover', () => {
-        if (canAfford) {
-          buyBtn.setFillStyle(0x2f8a4f);
-          buyBtn.setStrokeStyle(2, 0xffeb3b);
-          buyTxt.setColor('#ffeb3b');
-        }
+  const currentGold = getGold();
+
+  // ---------------------------------------------------------------------------
+  // ABA 1: UPGRADES DE ITENS (ARMAS & RELÍQUIAS)
+  // ---------------------------------------------------------------------------
+  if (isItemsTab) {
+    const upgrades = getUpgrades();
+    const weaponKeys = ['bow', 'sword', 'shield', 'axe', 'firestaff'];
+
+    weaponKeys.forEach((key, idx) => {
+      const cfg = WEAPON_CATALOG[key];
+      if (!cfg) return;
+      const maxLvl = cfg.maxLevel || MAX_WEAPON_LEVEL;
+      const state = upgrades[key] || { unlocked: Boolean(cfg.unlockedDefault), level: 1 };
+      const isUnlocked = Boolean(state.unlocked);
+      const lvl = Phaser.Math.Clamp(state.level || 1, 1, maxLvl);
+      const isMax = isUnlocked && lvl >= maxLvl;
+
+      const rowY = 166 + idx * 69;
+      const rowBg = scene.add.graphics();
+      rowBg.fillStyle(isUnlocked ? 0x221a13 : 0x17120e, 0.95).fillRoundedRect(56, rowY - 29, 688, 62, 7);
+      rowBg.lineStyle(1.5, isMax ? 0xffca28 : (isUnlocked ? 0x8d5524 : 0x4a3b2c)).strokeRoundedRect(56, rowY - 29, 688, 62, 7);
+
+      const slotBg = scene.add.graphics();
+      slotBg.fillStyle(0x120d0a, 1).fillRoundedRect(68, rowY - 21, 44, 44, 5);
+      slotBg.lineStyle(1.5, isUnlocked ? 0xc5a059 : 0x5c4938).strokeRoundedRect(68, rowY - 21, 44, 44, 5);
+
+      const icon = scene.add.image(90, rowY + 1, cfg.icon).setScale(1.3);
+      if (!isUnlocked) icon.setTint(0x666666);
+
+      const titleColor = isUnlocked ? '#ffca28' : '#a8987b';
+      const nameTxt = scene.add.text(124, rowY - 21, cfg.name, textStyle(titleColor, 13));
+
+      const pips = scene.add.graphics();
+      for (let p = 0; p < maxLvl; p++) {
+        const activePip = isUnlocked && p < lvl;
+        pips.fillStyle(activePip ? 0xffca28 : 0x33271d, 1).fillRect(320 + p * 18, rowY - 19, 14, 10);
+        pips.lineStyle(1, activePip ? 0xfff3c4 : 0x5c4938).strokeRect(320 + p * 18, rowY - 19, 14, 10);
+      }
+      const lvlBadgeTxt = scene.add.text(398, rowY - 14, isUnlocked ? `NV. ${lvl}/${maxLvl}` : 'BLOQUEADA', textStyle(isUnlocked ? '#7fe7ff' : '#ef5350', 11)).setOrigin(0, 0.5);
+
+      const levelDescs = cfg.levels || [];
+      const descStr = !isUnlocked
+        ? `Bloqueada — ${levelDescs[0] || ''}`
+        : (isMax ? `★ MÁXIMO: ${levelDescs[lvl - 1] || ''}` : `Atual: ${levelDescs[lvl - 1] || ''}\nPróximo (Nv.${lvl + 1}): ${levelDescs[lvl] || ''}`);
+      const descTxt = scene.add.text(124, rowY - 4, descStr, {
+        ...textStyle(isUnlocked ? '#e0d2b4' : '#9c8d73', 10, 'normal'),
+        lineSpacing: 2,
+        wordWrap: { width: 405, useAdvancedWrap: true }
       });
-      buyBtn.on('pointerout', () => {
-        buyBtn.setFillStyle(canAfford ? 0x246b3d : 0x3b2c22);
-        buyBtn.setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846);
-        buyTxt.setColor(canAfford ? '#ffffff' : '#8c7b6b');
-      });
-      buyBtn.on('pointerdown', () => {
-        if (getGold() < cost) {
-          sound.playShieldBlock();
-          floatText(scene, btnX, btnY - 18, 'OURO INSUFICIENTE!', '#ff5252');
-          return;
-        }
-        addGold(-cost);
-        const curr = getUpgrades();
-        if (!curr[key].unlocked) {
-          curr[key].unlocked = true;
-          curr[key].level = 1;
-        } else {
-          curr[key].level = Math.min(MAX_WEAPON_LEVEL, curr[key].level + 1);
-        }
-        saveUpgrades(curr);
-        sound.playPowerup();
-        sound.playCoin();
-        showShopMenu(scene);
-        floatText(scene, btnX, btnY - 22, !isUnlocked ? 'ARMA DESBLOQUEADA!' : `UPGRADE NV.${curr[key].level}!`, '#ffd740');
-      });
+      fitTextToBox(descTxt, 405, 34, 9);
 
-      menuContainer.add([buyBtn, buyTxt]);
-    }
-  });
+      menuContainer.add([rowBg, slotBg, icon, nameTxt, pips, lvlBadgeTxt, descTxt]);
 
-  // Botões de Rodapé da Loja: Jogar Agora ou Voltar ao Menu
-  const playNowBtn = createButton(scene, 265, 534, 'INICIAR JORNADA', () => {
+      const btnX = 638, btnY = rowY + 1, btnW = 182, btnH = 40;
+      if (isMax) {
+        const maxBox = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2418).setStrokeStyle(1.5, 0xffca28);
+        const maxTxt = scene.add.text(btnX, btnY, 'NÍVEL MÁXIMO ★', textStyle('#ffca28', 11)).setOrigin(0.5);
+        menuContainer.add([maxBox, maxTxt]);
+      } else {
+        const cost = !isUnlocked ? cfg.unlockCost : (cfg.costs[lvl - 1] || 20);
+        const canAfford = currentGold >= cost;
+        const actionLabel = !isUnlocked ? `DESBLOQUEAR (${cost}G)` : `UPGRADE NV.${lvl + 1} (${cost}G)`;
+
+        const buyBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x246b3d : 0x3b2c22)
+          .setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846)
+          .setInteractive({ useHandCursor: true });
+        const buyTxt = scene.add.text(btnX, btnY, actionLabel, textStyle(canAfford ? '#ffffff' : '#8c7b6b', 11)).setOrigin(0.5);
+        fitTextToBox(buyTxt, btnW - 12, btnH - 8, 9);
+
+        buyBtn.on('pointerover', () => {
+          if (canAfford) {
+            buyBtn.setFillStyle(0x2f8a4f);
+            buyBtn.setStrokeStyle(2, 0xffeb3b);
+            buyTxt.setColor('#ffeb3b');
+          }
+        });
+        buyBtn.on('pointerout', () => {
+          buyBtn.setFillStyle(canAfford ? 0x246b3d : 0x3b2c22);
+          buyBtn.setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846);
+          buyTxt.setColor(canAfford ? '#ffffff' : '#8c7b6b');
+        });
+        buyBtn.on('pointerdown', () => {
+          if (getGold() < cost) {
+            sound.playShieldBlock();
+            floatText(scene, btnX, btnY - 18, 'OURO INSUFICIENTE!', '#ff5252');
+            return;
+          }
+          addGold(-cost);
+          const curr = getUpgrades();
+          if (!curr[key].unlocked) {
+            curr[key].unlocked = true;
+            curr[key].level = 1;
+          } else {
+            curr[key].level = Math.min(maxLvl, curr[key].level + 1);
+          }
+          saveUpgrades(curr);
+          sound.playItemCollect();
+          sound.playCoin();
+          showShopMenu(scene, 'items');
+          floatText(scene, btnX, btnY - 22, !isUnlocked ? 'ARMA DESBLOQUEADA!' : `UPGRADE NV.${curr[key].level}!`, '#ffd740');
+        });
+
+        menuContainer.add([buyBtn, buyTxt]);
+      }
+    });
+  } else {
+    // -------------------------------------------------------------------------
+    // ABA 2: UPGRADES DE STATUS (MAGNETISMO, VIDA MÁXIMA, VELOCIDADE)
+    // -------------------------------------------------------------------------
+    const statusUpgrades = getStatusUpgrades();
+    const statusKeys = ['magnet', 'maxHp', 'moveSpeed'];
+
+    statusKeys.forEach((key, idx) => {
+      const cfg = STATUS_CATALOG[key];
+      if (!cfg) return;
+      const maxLvl = cfg.maxLevel || 5;
+      const lvl = Phaser.Math.Clamp(statusUpgrades[key] || 1, 1, maxLvl);
+      const isMax = lvl >= maxLvl;
+
+      const rowY = 185 + idx * 104;
+      const rowBg = scene.add.graphics();
+      rowBg.fillStyle(0x221a13, 0.96).fillRoundedRect(56, rowY - 40, 688, 86, 8);
+      rowBg.lineStyle(2, isMax ? 0xffca28 : 0x8d5524).strokeRoundedRect(56, rowY - 40, 688, 86, 8);
+
+      const slotBg = scene.add.graphics();
+      slotBg.fillStyle(0x120d0a, 1).fillRoundedRect(70, rowY - 26, 54, 54, 6);
+      slotBg.lineStyle(1.5, 0xc5a059).strokeRoundedRect(70, rowY - 26, 54, 54, 6);
+
+      const icon = scene.add.image(97, rowY + 1, cfg.icon).setScale(1.45);
+      const nameTxt = scene.add.text(136, rowY - 28, cfg.name, textStyle('#ffca28', 14));
+
+      const pips = scene.add.graphics();
+      for (let p = 0; p < maxLvl; p++) {
+        const activePip = p < lvl;
+        pips.fillStyle(activePip ? 0x7fe7ff : 0x33271d, 1).fillRect(420 + p * 18, rowY - 26, 14, 10);
+        pips.lineStyle(1, activePip ? 0xffffff : 0x5c4938).strokeRect(420 + p * 18, rowY - 26, 14, 10);
+      }
+      const lvlBadgeTxt = scene.add.text(516, rowY - 21, `NV. ${lvl}/${maxLvl}`, textStyle('#7fe7ff', 11)).setOrigin(0, 0.5);
+
+      const levelDescs = cfg.levels || [];
+      const descStr = isMax
+        ? `★ NÍVEL MÁXIMO ALCANÇADO: ${levelDescs[lvl - 1] || ''}`
+        : `Efeito Atual: ${levelDescs[lvl - 1] || ''}\nPróximo Nível (Nv.${lvl + 1}): ${levelDescs[lvl] || ''}`;
+      const descTxt = scene.add.text(136, rowY - 6, descStr, {
+        ...textStyle('#e8dcbe', 11, 'normal'),
+        lineSpacing: 4,
+        wordWrap: { width: 390, useAdvancedWrap: true }
+      });
+      fitTextToBox(descTxt, 390, 44, 9);
+
+      menuContainer.add([rowBg, slotBg, icon, nameTxt, pips, lvlBadgeTxt, descTxt]);
+
+      const btnX = 638, btnY = rowY + 2, btnW = 182, btnH = 44;
+      if (isMax) {
+        const maxBox = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2418).setStrokeStyle(1.5, 0xffca28);
+        const maxTxt = scene.add.text(btnX, btnY, 'NÍVEL MÁXIMO ★', textStyle('#ffca28', 11)).setOrigin(0.5);
+        menuContainer.add([maxBox, maxTxt]);
+      } else {
+        const cost = cfg.costs[lvl - 1] || 20;
+        const canAfford = currentGold >= cost;
+        const actionLabel = `EVOLUIR NV.${lvl + 1} (${cost}G)`;
+
+        const buyBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x246b3d : 0x3b2c22)
+          .setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846)
+          .setInteractive({ useHandCursor: true });
+        const buyTxt = scene.add.text(btnX, btnY, actionLabel, textStyle(canAfford ? '#ffffff' : '#8c7b6b', 11)).setOrigin(0.5);
+        fitTextToBox(buyTxt, btnW - 12, btnH - 8, 9);
+
+        buyBtn.on('pointerover', () => {
+          if (canAfford) {
+            buyBtn.setFillStyle(0x2f8a4f);
+            buyBtn.setStrokeStyle(2, 0xffeb3b);
+            buyTxt.setColor('#ffeb3b');
+          }
+        });
+        buyBtn.on('pointerout', () => {
+          buyBtn.setFillStyle(canAfford ? 0x246b3d : 0x3b2c22);
+          buyBtn.setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846);
+          buyTxt.setColor(canAfford ? '#ffffff' : '#8c7b6b');
+        });
+        buyBtn.on('pointerdown', () => {
+          if (getGold() < cost) {
+            sound.playShieldBlock();
+            floatText(scene, btnX, btnY - 18, 'OURO INSUFICIENTE!', '#ff5252');
+            return;
+          }
+          addGold(-cost);
+          const curr = getStatusUpgrades();
+          curr[key] = Math.min(maxLvl, (curr[key] || 1) + 1);
+          saveStatusUpgrades(curr);
+          playerMaxHp = getPlayerMaxHp();
+          sound.playItemCollect();
+          sound.playCoin();
+          showShopMenu(scene, 'status');
+          floatText(scene, btnX, btnY - 22, `STATUS NV.${curr[key]}!`, '#7fe7ff');
+        });
+
+        menuContainer.add([buyBtn, buyTxt]);
+      }
+    });
+  }
+
+  // Botões de Rodapé da Loja: Iniciar Jornada + Botão Visível de Voltar/Sair conectado ao ESC
+  const playNowBtn = createButton(scene, 255, 536, 'INICIAR JORNADA', () => {
     sound.ensureContext();
-    menuContainer.destroy();
-    menuContainer = null;
+    if (menuContainer) {
+      menuContainer.destroy();
+      menuContainer = null;
+    }
     startGameplay(scene);
-  }, 240, 42);
+  }, 240, 40);
 
-  const backMenuBtn = createButton(scene, 535, 534, 'VOLTAR AO MENU', () => showMainMenu(scene), 240, 42);
+  const backMenuBtn = createButton(scene, 545, 536, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 240, 40);
   menuContainer.add([...playNowBtn, ...backMenuBtn]);
 }
 
@@ -3832,6 +4452,7 @@ function showShopMenu(scene) {
 function showRecordsMenu(scene) {
   if (menuContainer) menuContainer.destroy();
   menuContainer = createModal(scene, 'TÁBULA DOS CAMPEÕES', 520, 'Os maiores guerreiros imortalizados pelas eras', 520);
+  menuContainer.isMainMenu = false;
 
   const scores = getHighScores();
   const ranks = ['1º LUGAR', '2º LUGAR', '3º LUGAR', '4º LUGAR', '5º LUGAR'];
@@ -3850,59 +4471,79 @@ function showRecordsMenu(scene) {
     menuContainer.add([rowBg, rankTxt, nameTxt, scoreTxt]);
   });
 
-  menuContainer.add(createButton(scene, 400, 485, 'VOLTAR AO MENU', () => showMainMenu(scene), 260, 44));
+  menuContainer.add(createButton(scene, 400, 485, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 44));
 }
 
 // -----------------------------------------------------------------------------
-// TELA DE CONFIGURAÇÕES (ÁUDIO E PERGAMINHO DE COMBATE)
+// TELA DE CONFIGURAÇÕES (ÁUDIO, TELA CHEIA E PERGAMINHO DE COMBATE)
 // -----------------------------------------------------------------------------
 function showSettingsMenu(scene) {
   if (menuContainer) menuContainer.destroy();
-  menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', 520, 'Ajustes sonoros e pergaminho de batalha', 520);
+  menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', 540, 'Ajustes de áudio, vídeo (Tela Cheia) e pergaminho de batalha', 540);
+  menuContainer.isMainMenu = false;
 
-  // Seção 1: Áudio
+  // Seção 1: Áudio & Tela Cheia
   const audioBox = scene.add.graphics();
-  audioBox.fillStyle(0x221a13, 0.9).fillRoundedRect(170, 132, 460, 82, 6);
-  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(170, 132, 460, 82, 6);
+  audioBox.fillStyle(0x221a13, 0.92).fillRoundedRect(160, 118, 480, 108, 6);
+  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 118, 480, 108, 6);
 
-  const audioTitle = scene.add.text(190, 146, 'ÁUDIO & EFEITOS SONOROS', textStyle('#ffca28', 12));
-  const audioHint = scene.add.text(190, 192, 'Atalho rápido: pressione a tecla M durante o jogo', textStyle('#a8987b', 11));
+  const audioTitle = scene.add.text(180, 130, 'ÁUDIO & TELA CHEIA (FULLSCREEN)', textStyle('#ffca28', 12));
+  const audioHint = scene.add.text(180, 202, 'Atalhos rápidos: [M] Alternar Áudio   |   [F] Alternar Tela Cheia', textStyle('#a8987b', 11));
 
-  const audioToggleBtn = scene.add.rectangle(510, 172, 180, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+  const audioToggleBtn = scene.add.rectangle(285, 172, 210, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioToggleTxt = scene.add.text(510, 172, sound.isMuted() ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ATIVADO', textStyle('#ffffff', 13))
+  const audioToggleTxt = scene.add.text(285, 172, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
     .setOrigin(0.5);
 
   audioToggleBtn.on('pointerdown', () => {
     sound.toggleMute();
     sound.playButtonClick();
     audioToggleBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
-    audioToggleTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ATIVADO');
+    audioToggleTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+  });
+
+  const fsToggleBtn = scene.add.rectangle(515, 172, 210, 36, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const fsToggleTxt = scene.add.text(515, 172, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
+    .setOrigin(0.5);
+
+  const refreshFsBtn = () => {
+    if (!fsToggleBtn.active) return;
+    const active = isGameFullscreen(scene);
+    fsToggleBtn.setFillStyle(active ? 0x247a46 : 0x6e3d1b);
+    fsToggleTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
+  };
+  menuContainer.updateMenuFullscreen = refreshFsBtn;
+
+  fsToggleBtn.on('pointerdown', () => {
+    sound.playButtonClick();
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, refreshFsBtn);
   });
 
   // Seção 2: Pergaminho de Dicas
   const guideBox = scene.add.graphics();
-  guideBox.fillStyle(0x1d1611, 0.9).fillRoundedRect(170, 226, 460, 215, 6);
-  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(170, 226, 460, 215, 6);
+  guideBox.fillStyle(0x1d1611, 0.92).fillRoundedRect(160, 238, 480, 215, 6);
+  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(160, 238, 480, 215, 6);
 
-  const guideTitle = scene.add.text(400, 244, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
+  const guideTitle = scene.add.text(400, 256, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
-    '• O Escudo Sagrado reflete flechas inimigas em Flechas de Ouro (+Ouro!).',
-    '• Use seu Ouro na Loja de Upgrades para desbloquear e evoluir armas.',
-    '• O Arco evoluído dispara múltiplos tiros em leque (Multiple Shots).',
-    '• Machado Bumerangue e Cajado de Fogo podem ser desbloqueados na Loja.',
-    '• Cuidado com as Gárgulas Aladas e o leque triplo dos Magos Sombrios!',
-    '• Pressione ESC a qualquer momento para pausar a partida.'
+    '• Inimigos derrotados dropam Moedas de Prata durante a partida.',
+    '• No fim da partida, suas Moedas de Prata são convertidas em Ouro!',
+    '• Use Ouro na Loja para evoluir Armas (Aba 1) e Status (Aba 2).',
+    '• O Escudo Sagrado reflete projéteis mantendo o disparo normal.',
+    '• Evolua Magnetismo, Vida Máxima (Corações) e Velocidade na Loja!',
+    '• Pressione ESC para pausar/voltar ou F para Tela Cheia.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
-    scene.add.text(186, 270 + i * 26, txt, { ...textStyle('#d6c8aa', 11, 'normal'), lineSpacing: 4 })
+    scene.add.text(176, 280 + i * 26, txt, { ...textStyle('#d6c8aa', 11, 'normal'), lineSpacing: 4 })
   );
 
   menuContainer.add([
-    audioBox, audioTitle, audioHint, audioToggleBtn, audioToggleTxt,
+    audioBox, audioTitle, audioHint, audioToggleBtn, audioToggleTxt, fsToggleBtn, fsToggleTxt,
     guideBox, guideTitle, ...guideTexts,
-    ...createButton(scene, 400, 495, 'VOLTAR AO MENU', () => showMainMenu(scene), 260, 44)
+    ...createButton(scene, 400, 498, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 44)
   ]);
 }
 
@@ -3914,8 +4555,8 @@ function handleEscPress(scene) {
     pauseGame(scene);
   } else if (gameState === 'PAUSED') {
     resumeGame(scene);
-  } else if (gameState === 'MENU' && menuContainer) {
-    showMainMenu(scene);
+  } else if (gameState === 'MENU' && menuContainer && !menuContainer.isMainMenu) {
+    exitSubMenu(scene);
   }
 }
 
@@ -3956,28 +4597,31 @@ function resumeGame(scene) {
 function showPauseModal(scene) {
   if (pauseModal) pauseModal.destroy();
 
-  const height = 430;
-  const top = (600 - height) / 2;
+  const height = 470;
+  const top = (GAME_HEIGHT - height) / 2;
   pauseModal = createModal(scene, 'JOGO PAUSADO', height, '★ JORNADA EM ESPERA ★', 480);
 
-  // Status de sobrevivência e relíquia
+  // Status de sobrevivência, prata e relíquia
   const statsBox = scene.add.graphics();
-  statsBox.fillStyle(0x221a13, 0.9).fillRoundedRect(190, top + 92, 420, 62, 6);
-  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(190, top + 92, 420, 62, 6);
+  statsBox.fillStyle(0x221a13, 0.92).fillRoundedRect(190, top + 84, 420, 62, 6);
+  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(190, top + 84, 420, 62, 6);
 
-  const timeTxt = scene.add.text(210, top + 107, `TEMPO: ${survivalTime}s   |   OURO TOTAL: ${getGold()}🪙`, textStyle('#ffca28', 13));
+  const timeTxt = scene.add.text(208, top + 98, `TEMPO: ${survivalTime}s  |  PRATA: ${runSilver}  |  OURO: ${getGold()}`, textStyle('#ffca28', 12));
+  fitTextToBox(timeTxt, 384, 22, 10);
   const relicName = buff.type ? `${BUFF_NAMES[buff.type]} NV.${getWeaponLevel(buff.type)} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
   const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
-  const relicTxt = scene.add.text(210, top + 130, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 13));
+  const relicTxt = scene.add.text(208, top + 122, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
+  fitTextToBox(relicTxt, 384, 22, 10);
 
-  const continueBtn = createButton(scene, 400, top + 182, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 280, 40);
+  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 290, 38);
 
-  const audioBtn = scene.add.rectangle(400, top + 232, 280, 40, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+  const audioBtn = scene.add.rectangle(400, top + 220, 290, 38, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioTxt = scene.add.text(400, top + 232, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 13))
+  const audioTxt = scene.add.text(400, top + 220, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
     .setOrigin(0.5);
 
   const updateAudioUI = () => {
+    if (!audioBtn.active) return;
     audioBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
     audioTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
@@ -3989,16 +4633,36 @@ function showPauseModal(scene) {
     updateAudioUI();
   });
 
-  pauseModal.updateAudio = updateAudioUI;
+  const fsBtn = scene.add.rectangle(400, top + 266, 290, 38, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const fsTxt = scene.add.text(400, top + 266, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
+    .setOrigin(0.5);
 
-  const restartBtn = createButton(scene, 400, top + 282, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 280, 40);
-  const menuBtn = createButton(scene, 400, top + 332, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 280, 40);
-  const footerHint = scene.add.text(400, top + 390, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
+  const updateFsUI = () => {
+    if (!fsBtn.active) return;
+    const active = isGameFullscreen(scene);
+    fsBtn.setFillStyle(active ? 0x247a46 : 0x6e3d1b);
+    fsTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
+  };
+
+  fsBtn.on('pointerdown', () => {
+    sound.playButtonClick();
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, updateFsUI);
+  });
+
+  pauseModal.updateAudio = updateAudioUI;
+  pauseModal.updateFullscreen = updateFsUI;
+
+  const restartBtn = createButton(scene, 400, top + 312, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 38);
+  const menuBtn = createButton(scene, 400, top + 358, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 38);
+  const footerHint = scene.add.text(400, top + 412, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
 
   pauseModal.add([
     statsBox, timeTxt, relicTxt,
     ...continueBtn,
     audioBtn, audioTxt,
+    fsBtn, fsTxt,
     ...restartBtn,
     ...menuBtn,
     footerHint
@@ -4006,33 +4670,98 @@ function showPauseModal(scene) {
 }
 
 // -----------------------------------------------------------------------------
-// GAME OVER (INICIAIS, OURO CONQUISTADO E ACESSO À LOJA DE UPGRADES)
+// GAME OVER: CONVERSÃO PRATA -> OURO, BOUNDING BOX COM WORD WRAP & AUTO-SIZE
 // -----------------------------------------------------------------------------
 function showInitials(scene) {
   let name = '', done = false;
-  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', 450, '', 500);
-  const info = scene.add.text(400, 168,
-    `Tempo de bravura: ${survivalTime}s   |   Ouro na partida: +${runGold}🪙 (Total: ${getGold()}🪙)\n\nDigite suas 3 iniciais de honra:`,
-    { ...textStyle('#e8dcbe', 14), align: 'center', lineSpacing: 5 }).setOrigin(0.5);
+  const modalW = 540;
+  const modalH = 510;
+  const cx = GAME_WIDTH / 2;
+  const top = (GAME_HEIGHT - modalH) / 2;
+  const boxW = modalW - 56;
+  const boxLeft = cx - boxW / 2;
+
+  const summary = lastRunSummary || {
+    silverCollected: runSilver,
+    goldFromSilver: runSilver,
+    timeBonusGold: Math.floor(survivalTime / 15),
+    bossBonusGold: bossDefeated ? 15 : 0,
+    totalGoldEarned: runGold,
+    newTotalGold: getGold()
+  };
+
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', modalH, '★ CONSOLIDAÇÃO DE FIM DE JORNADA ★', modalW);
+
+  // Bounding Box interna com limites estritos para o resumo e conversão Prata -> Ouro
+  const summaryBox = scene.add.graphics();
+  summaryBox.fillStyle(0x1f1711, 0.96).fillRoundedRect(boxLeft, top + 80, boxW, 132, 8);
+  summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(boxLeft, top + 80, boxW, 132, 8);
+  summaryBox.lineStyle(1, 0xc5a059, 0.35).lineBetween(boxLeft + 20, top + 114, boxLeft + boxW - 20, top + 114);
+
+  const braveryTxt = scene.add.text(cx, top + 97, `Tempo de bravura em combate: ${survivalTime}s`, {
+    ...textStyle('#f5e6c8', 14),
+    align: 'center',
+    wordWrap: { width: boxW - 28, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+  fitTextToBox(braveryTxt, boxW - 28, 26, 11);
+
+  // Linha visual de Conversão: Moedas de Prata ➔ Moedas de Ouro
+  const silverSprite = scene.add.sprite(cx - 165, top + 138, 'silver_coin').play('silver_coin').setScale(1.3);
+  const goldSprite = scene.add.sprite(cx + 28, top + 138, 'gold_coin').play('gold_coin').setScale(1.3);
+
+  const conversionLine = scene.add.text(
+    cx - 148,
+    top + 138,
+    `${summary.silverCollected} Pratas   ➔`,
+    textStyle('#e0f7fa', 14)
+  ).setOrigin(0, 0.5);
+
+  const goldEarnedLine = scene.add.text(
+    cx + 45,
+    top + 138,
+    `+${summary.totalGoldEarned} OURO REAL`,
+    textStyle('#ffd740', 14)
+  ).setOrigin(0, 0.5);
+  fitTextToBox(goldEarnedLine, 165, 24, 10);
+
+  const bonusParts = [`Prata convertida: +${summary.goldFromSilver}G`];
+  if (summary.timeBonusGold > 0) bonusParts.push(`Glória (${survivalTime}s): +${summary.timeBonusGold}G`);
+  if (summary.bossBonusGold > 0) bonusParts.push(`Golem: +${summary.bossBonusGold}G`);
+  bonusParts.push(`Cofre Total: ${summary.newTotalGold}G`);
+
+  const breakdownTxt = scene.add.text(cx, top + 182, bonusParts.join('  •  '), {
+    ...textStyle('#c5a059', 11, 'normal'),
+    align: 'center',
+    wordWrap: { width: boxW - 24, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+  fitTextToBox(breakdownTxt, boxW - 24, 38, 9);
+
+  // Seção de Registro de Iniciais ancorada abaixo da Bounding Box
+  const promptTxt = scene.add.text(cx, top + 234, 'Digite suas 3 iniciais de honra para a Tábula:', {
+    ...textStyle('#e8dcbe', 13),
+    align: 'center',
+    wordWrap: { width: boxW - 20, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+  fitTextToBox(promptTxt, boxW - 20, 24, 10);
 
   const inputBg = scene.add.graphics();
-  inputBg.fillStyle(0x0e0b08, 0.95).fillRoundedRect(260, 220, 280, 56, 6);
-  inputBg.lineStyle(2, 0xc5a059).strokeRoundedRect(260, 220, 280, 56, 6);
-  inputBg.lineStyle(1, 0x4a3b2c).strokeRoundedRect(263, 223, 274, 50, 4);
+  inputBg.fillStyle(0x0e0b08, 0.95).fillRoundedRect(cx - 140, top + 256, 280, 54, 6);
+  inputBg.lineStyle(2, 0xc5a059).strokeRoundedRect(cx - 140, top + 256, 280, 54, 6);
+  inputBg.lineStyle(1, 0x4a3b2c).strokeRoundedRect(cx - 137, top + 259, 274, 48, 4);
 
-  const placeholder = scene.add.text(400, 248, 'EX: ART', {
-    ...textStyle('#736148', 24),
+  const placeholder = scene.add.text(cx, top + 283, 'EX: ART', {
+    ...textStyle('#736148', 23),
     fontStyle: 'bold',
     fontFamily: 'Courier New, monospace'
   }).setOrigin(0.5);
 
-  const display = scene.add.text(400, 248, '', {
-    ...textStyle('#ffca28', 30),
+  const display = scene.add.text(cx, top + 283, '', {
+    ...textStyle('#ffca28', 28),
     fontStyle: 'bold',
     fontFamily: 'Courier New, monospace'
   }).setOrigin(0.5);
 
-  const cursor = scene.add.text(465, 248, '|', { ...textStyle('#ffca28', 26) }).setOrigin(0.5);
+  const cursor = scene.add.text(cx + 65, top + 283, '|', { ...textStyle('#ffca28', 25) }).setOrigin(0.5);
   const cursorTween = scene.tweens.add({
     targets: cursor,
     alpha: { from: 1, to: 0 },
@@ -4041,17 +4770,21 @@ function showInitials(scene) {
     repeat: -1
   });
 
-  const inputHint = scene.add.text(400, 290, '⌨️ Digite 3 letras no teclado', textStyle('#a8987b', 12)).setOrigin(0.5);
+  const inputHint = scene.add.text(cx, top + 328, 'Digite 3 letras no teclado e confirme abaixo', {
+    ...textStyle('#a8987b', 11),
+    align: 'center',
+    wordWrap: { width: boxW - 20, useAdvancedWrap: true }
+  }).setOrigin(0.5);
 
   const updateDisplay = () => {
     if (name.length === 0) {
       placeholder.setVisible(true);
       display.setText('');
-      cursor.setVisible(true).setX(465);
+      cursor.setVisible(true).setX(cx + 65);
     } else {
       placeholder.setVisible(false);
       display.setText(name.padEnd(3, '_').split('').join(' '));
-      cursor.setVisible(name.length < 3).setX(400 + (name.length - 1) * 22 + 16);
+      cursor.setVisible(name.length < 3).setX(cx + (name.length - 1) * 22 + 16);
     }
   };
   updateDisplay();
@@ -4061,7 +4794,7 @@ function showInitials(scene) {
       name = name.slice(0, -1);
       sound.playButtonClick();
     } else if (e.key === 'Enter') {
-      return submit();
+      return submit(false);
     } else if (/^[a-zA-Z]$/.test(e.key) && name.length < 3) {
       name += e.key.toUpperCase();
       sound.playButtonClick();
@@ -4069,7 +4802,7 @@ function showInitials(scene) {
     updateDisplay();
   };
 
-  const submit = () => {
+  const submit = (goDirectlyToShop = false) => {
     if (done) return;
     done = true;
     sound.playButtonClick();
@@ -4077,26 +4810,52 @@ function showInitials(scene) {
     scene.input.keyboard.off('keydown', onKey);
     modal.destroy();
     const finalName = name.padEnd(3, 'A');
-    showLeaderboard(scene, saveHighScore(finalName, survivalTime), finalName);
+    const scores = saveHighScore(finalName, survivalTime);
+    if (goDirectlyToShop) {
+      restartScene(scene, false, true);
+    } else {
+      showLeaderboard(scene, scores, finalName);
+    }
   };
 
   modal.add([
-    info, inputBg, placeholder, display, cursor, inputHint,
-    ...createButton(scene, 400, 355, 'CONFIRMAR HONRA', submit, 260, 46)
+    summaryBox, braveryTxt, silverSprite, conversionLine, goldSprite, goldEarnedLine, breakdownTxt,
+    promptTxt, inputBg, placeholder, display, cursor, inputHint,
+    ...createButton(scene, cx - 118, top + 392, 'CONFIRMAR HONRA', () => submit(false), 216, 44),
+    ...createButton(scene, cx + 118, top + 392, 'LOJA DE UPGRADES', () => submit(true), 216, 44)
   ]);
   scene.input.keyboard.on('keydown', onKey);
 }
 
 function showLeaderboard(scene, topScores, currentName) {
-  const modal = createModal(scene, 'CAMPEÕES DO REINO', 490, `Tesouro Acumulado: ${getGold()}🪙 — Visite a Loja para evoluir suas armas!`, 580);
+  const modalW = 580;
+  const modalH = 500;
+  const cx = GAME_WIDTH / 2;
+  const top = (GAME_HEIGHT - modalH) / 2;
+
+  const summary = lastRunSummary || { silverCollected: runSilver, totalGoldEarned: runGold };
+  const subtitle = `Prata Convertida: ${summary.silverCollected} ➔ +${summary.totalGoldEarned} Ouro  |  Cofre Total: ${getGold()} Ouro`;
+
+  const modal = createModal(scene, 'CAMPEÕES DO REINO', modalH, subtitle, modalW);
   let marked = false;
 
   topScores.forEach((entry, i) => {
     const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
     if (isMine) marked = true;
     const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
-    modal.add(scene.add.text(400, 165 + i * 40, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`,
-      { ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 17), fontStyle: isMine ? 'bold' : 'normal' }).setOrigin(0.5));
+    const rowY = top + 118 + i * 44;
+
+    const rowBg = scene.add.graphics();
+    rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
+    rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
+
+    const rowTxt = scene.add.text(cx, rowY, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`, {
+      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 16),
+      fontStyle: isMine ? 'bold' : 'normal'
+    }).setOrigin(0.5);
+    fitTextToBox(rowTxt, 430, 28, 12);
+
+    modal.add([rowBg, rowTxt]);
   });
 
   let restarting = false;
@@ -4114,9 +4873,9 @@ function showLeaderboard(scene, topScores, currentName) {
     finishAndRestart(true, false);
   };
 
-  modal.add(createButton(scene, 215, 430, 'NOVA JORNADA', () => finishAndRestart(true, false), 165, 44));
-  modal.add(createButton(scene, 400, 430, 'LOJA DE UPGRADES', () => finishAndRestart(false, true), 185, 44));
-  modal.add(createButton(scene, 585, 430, 'MENU INICIAL', () => finishAndRestart(false, false), 165, 44));
+  modal.add(createButton(scene, cx - 185, top + 382, 'NOVA JORNADA', () => finishAndRestart(true, false), 165, 44));
+  modal.add(createButton(scene, cx, top + 382, 'LOJA DE UPGRADES', () => finishAndRestart(false, true), 185, 44));
+  modal.add(createButton(scene, cx + 185, top + 382, 'MENU INICIAL', () => finishAndRestart(false, false), 165, 44));
 
   scene.time.delayedCall(200, () => {
     if (!restarting) {

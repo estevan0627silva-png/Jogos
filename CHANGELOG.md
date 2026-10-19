@@ -4,6 +4,43 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v1.1.0] - 2026-10-18 (Modo Tela Cheia, Escalonamento Dinâmico 4:3, Economia Prata -> Ouro, Loja de Upgrades em 2 Abas com Status, Correção de Crash e Coleta Magnética)
+### 🖥️ Tela Cheia (Fullscreen), Escalonamento Dinâmico e Proporção 4:3 (`config.scale` + `toggleFullscreen`)
+- **Ativação de Tela Cheia (`toggleFullscreen`)**: Implementado suporte nativo à Fullscreen API via `scene.scale.toggleFullscreen()` com fallback para `document.documentElement.requestFullscreen()`. Pode ser ativada pela tecla `[F]` (protegida durante a digitação de iniciais no *Game Over*) ou pelos botões clicáveis no HUD (`hud_fullscreen`), Menu Principal, Modal de Pausa e Configurações.
+- **Escalonamento Dinâmico de Resolução (`Phaser.Scale.FIT` + `CENTER_BOTH`)**: O mundo do jogo (`GAME_WIDTH = 800`, `GAME_HEIGHT = 600`) redimensiona automaticamente para qualquer monitor ou janela preservando estritamente o **Aspect Ratio 4:3**, sem esticar ou achatar os gráficos, mantendo `image-rendering: pixelated` em [`JS_Teste/style.css`](file:///f:/programação%20de%20jogos/Jogos/JS_Teste/style.css).
+- **Ancoragem de UI e Containers (`hudContainer`, `menuContainer`, `createModal`)**: Todos os elementos de interface utilizam coordenadas relativas a `GAME_WIDTH`/`GAME_HEIGHT` e `.setScrollFactor(0)`.
+
+### 🛡️ Correção do Reflexo do Escudo & Economia de Moedas de Prata -> Ouro (`consolidateSilverToGold`)
+- **Reflexo Normal de Flechas (`playerHit`)**: Ao bloquear projéteis com o Escudo Sagrado (`buff.type === 'shield'`), as flechas refletidas agora mantêm a textura e o comportamento normais (`arrow_player`) com feedback `✦ REFLETIDO! ✦`, removendo o antigo comportamento de "flechas de ouro" e o ganho instantâneo de ouro por reflexo.
+- **Drop de Moedas de Prata na Partida (`silver_coin` / `runSilver`)**: Inimigos derrotados durante a jornada dropam **Moedas de Prata (`drawSilverCoin`)** contabilizadas em tempo real no HUD (`PRATA`).
+- **Conversão de Fim de Partida (Prata -> Ouro Persistente)**: Ao encerrar a partida (`gameOver` -> `consolidateSilverToGold`), todas as Moedas de Prata coletadas (somadas ao bônus de sobrevivência e de Boss derrotado) são consolidadas e convertidas em **Ouro persistente (`STORAGE_GOLD_KEY`)** para uso na Loja de Upgrades.
+
+### 🛠️ Correção Definitiva do Crash ao Acessar a Loja de Upgrades Após a Morte (`showShopMenu` + `gameOver`)
+- **Causas Raiz Eliminadas**:
+  1. Definida a constante global `MAX_WEAPON_LEVEL = 4` (que antes gerava `ReferenceError` ao abrir a loja).
+  2. Padronizada a propriedade `levels` em `WEAPON_CATALOG` com validação defensiva `Array.isArray(cfg.levels)` (evitando `TypeError: Cannot read properties of undefined (reading '0')`).
+  3. Corrigida a chave de animação do ícone de moeda na loja de `'coin_spin'` (inexistente) para `'gold_coin'`.
+  4. Adicionados os métodos `playPowerup()` e `playPlayerHurt()` em `SoundSystem`.
+  5. Removido `scene.tweens.pauseAll()` de `gameOver()` e garantido `scene.tweens.resumeAll()` + `scene.time.timeScale = 1` ao abrir `showShopMenu` e `restartScene`, impedindo que os botões da loja ficassem congelados após a morte.
+
+### 📜 Correção de Texto Transbordando no Pop-up de Fim de Partida (`showInitials` & `showLeaderboard`)
+- **Bounding Box Interna, WordWrap e Auto-Ajuste (`fitTextToBox`)**: Os modais de *Game Over* (`620x480`) e *Tábula dos Campeões* (`580x450`) agora contam com um painel interno delimitado (`summaryBox`), `wordWrap` configurado para a largura útil e redução automática de `fontSize` caso o texto ultrapasse a caixa, mantendo alinhamento centralizado (`setOrigin(0.5)`).
+
+### 🏪 Loja de Upgrades em 2 Abas (Itens e Status), Sem Sobreposição e com Botão Voltar `[ESC]` (`showShopMenu` + `STATUS_CATALOG`)
+- **Divisão em 2 Abas**:
+  - **⚔️ UPGRADES DE ITENS (`items`)**: Evolução das 5 relíquias (`Arco Real`, `Espada Vorpal`, `Escudo Sagrado`, `Machado Bumerangue` e `Cajado de Fogo`).
+  - **❤️ UPGRADES DE STATUS (`status`)**: Novos atributos permanentes (`STORAGE_STATUS_KEY`) com ícones em pixel art (`stat_magnet`, `stat_health`, `stat_speed`):
+    - **Magnetismo Real (`magnet`)**: Aumenta o raio de atração das moedas (`68px` → `200px`).
+    - **Coração de Ferro (`maxHp`)**: Aumenta a Vida Máxima do Cavaleiro (`1` → `4` Corações no HUD, com `1.2s` de invulnerabilidade após dano).
+    - **Grevas Aladas (`moveSpeed`)**: Aumenta a velocidade de movimento (`195` → `255`).
+- **Fim da Sobreposição do Contador de Ouro**: O saldo de Ouro foi reposicionado em uma barra dedicada abaixo do título (`x: 548..740, y: 94..128`), alinhada às abas e totalmente separada do cabeçalho e dos cartões.
+- **Botão Visível `VOLTAR / SAIR [ESC]` (`exitSubMenu`)**: Adicionado no topo direito e no rodapé da Loja e de todos os submenus, executando exatamente a mesma função do atalho `ESC`.
+
+### 🧲 Correção da Física e Fluidez na Coleta de Moedas (`spawnCoinDrop` + `updateGameplay`)
+- **Atração Magnética Suave**: Removido o tween infinito no eixo Y (`repeat: -1`) que conflitava com `physics.moveToObject` e travava o movimento vertical da moeda. Adicionado `scene.tweens.killTweensOf(c)` ao entrar no raio magnético (`getMagnetRadius()`), hitbox generosa (`28x28`) e coleta instantânea a `< 28px` do herói.
+
+---
+
 ## [v1.0.0] - 2026-10-18 (Escudo Reflete Flechas em Ouro, Loja de Upgrades, Novas Armas, Inimigos Bullet-Hell & Correção da Arte das Casas da Vila)
 ### 🛡️ Escudo Sagrado Reflete Projéteis em Ouro (`playerHit`)
 - **Reflexão Dourada Instantânea**: Quando uma flecha ou orbe inimigo (`enemyArrows`) atinge o Escudo Sagrado do Cavaleiro, o projétil é convertido e **refletido para a frente como Flechas de Ouro (`arrow_gold`)** de alto dano (`2 de dano` e perfuração no Nv.4), além de conceder **Ouro imediato (`+2🪙` a `+4🪙`)** com efeito sonoro cristalino e texto flutuante `REFLETIDO EM OURO!`.

@@ -4,11 +4,18 @@
   box-sizing: border-box;
 }
 
-body {
-  background-color: #121212;
+html, body {
+  width: 100vw;
+  height: 100vh;
+  background-color: #0c0907;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
   overflow: hidden;
+}
+
+canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
