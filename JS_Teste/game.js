@@ -27,7 +27,7 @@ const config = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
-    expandParent: true,
+    expandParent: false,
     fullscreenTarget: 'game-container'
   },
   physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
@@ -2408,7 +2408,6 @@ function create(data) {
   });
 
   const onScaleChange = () => {
-    if (scene.scale) scene.scale.refresh();
     scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
     scene.cameras.main.centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
     scene.cameras.main.setRoundPixels(true);
