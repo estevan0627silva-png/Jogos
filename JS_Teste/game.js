@@ -4,6 +4,13 @@
 //        Spawns/Director → Combate/XP → Interface (Ferreiro, Mago, Draft)
 // =============================================================================
 
+// =============================================================================
+// CONTROLE DE VERSÃO (SemVer — Sincronizado para Releases do GitHub)
+// =============================================================================
+const GAME_VERSION = 'v1.3.0';
+const VERSION_TITLE = 'Art & Architecture Overhaul';
+const VERSION_DESC = 'Refatoração da arquitetura em microssistemas desacoplados (EventBus, Strategy Pattern de armas e Facade de persistência), eliminação de código morto e refinamento técnico de Pixel Art e VFX (projéteis fluidos, mago sombrio com sobretudo longo, orbes esféricas 3D e calçamento orgânico da vila).';
+
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 
@@ -1819,38 +1826,66 @@ function drawGargoyle(r, f) {
   r(C.bone, 5, 13, 1, 1); r(C.bone, 10, 13, 1, 1);
 }
 
-// Novo Inimigo Bullet-Hell 2: Mago Sombrio / Necromante (32x32 — manto arcano com runas luminosas e cajado vivo)
+// Inimigo 5: Mago Sombrio Arcano (32x32 — Sobretudo longo estilizado, gola alta, caimento em A e cajado)
 function drawDarkMage(r, f) {
-  // 1. Capuz Profundo com Olhos Espectrais Ciano Reluzentes
-  r(C.voidDark, 4, 1, 7, 6);
-  r(C.arcanaDeep, 5, 1, 5, 5);
-  r(C.arcanaBase, 5, 2, 4, 2);
-  // Escuridão abissal no interior do capuz
-  r(C.outline, 6, 4, 4, 3);
-  r(C.manaLight, 7, 5, 1, 1); r(C.manaLight, 9, 5, 1, 1);
-  r.shine(7, 5, 0, 0, C.white); r.shine(9, 5, 0, 0, C.white);
+  const sway = f === 0 ? 0 : 1;
 
-  // 2. Manto Arcano Púrpura-Abissal com Runas Luminosas nas Bordas
-  r(C.voidDark, 4, 7, 7, 6);
-  r(C.arcanaDeep, 5, 7, 5, 5);
-  r(C.arcanaBase, 5, 8, 4, 3);
-  // Orlas de runas arcanas luminosas douradas e ciano
-  r(C.goldHighlight, 4, 10, 7, 1);
-  r(C.manaLight, 5, 12, 5, 1);
-  r(C.goldBase, 7, 8, 1, 4);
+  // 1. Capuz Arcano Pontiagudo com Gola Alta Estilizada
+  r(C.voidDark, 4, 0, 6, 6);
+  r(C.arcanaDeep, 5, 0, 4, 5);
+  r(C.arcanaBase, 5, 1, 3, 2);
+  // Interior abissal do capuz com sombras profundas e olhos espectrais ciano
+  r(C.outline, 5, 3, 4, 3);
+  r(C.manaLight, 6, 4, 1, 1); r(C.manaLight, 8, 4, 1, 1);
+  r.shine(6, 4, 0, 0, C.white); r.shine(8, 4, 0, 0, C.white);
 
-  // 3. Cajado Rúnico Retorcido com Cristal Arcano Levadouro e Pulsante
+  // Gola alta levantada do sobretudo (estilo aristocrata arcano / trench coat)
+  r(C.arcanaLight, 3, 4, 2, 3);
+  r(C.arcanaBase, 4, 5, 1, 2);
+
+  // 2. Tronco do Sobretudo: corte justo com abotoadura dupla e cinto
+  r(C.voidDark, 4, 6, 6, 3);
+  r(C.arcanaDeep, 5, 6, 5, 3);
+  r(C.arcanaBase, 5, 7, 4, 2);
+  // Fechos / broches de ouro no peito do casaco
+  r(C.goldHighlight, 6, 6, 1, 1); r(C.goldHighlight, 8, 6, 1, 1);
+  r(C.goldHighlight, 6, 7, 1, 1); r(C.goldHighlight, 8, 7, 1, 1);
+
+  // Cinto de couro escuro com fivela dourada na cintura
+  r(C.leatherDark, 4, 8, 6, 1);
+  r(C.goldBase, 6, 8, 2, 1);
+
+  // 3. Abas Longas do Sobretudo (Caimento em "A", fenda central e drapeado nobre)
+  // Aba esquerda do casaco
+  r(C.voidDark, 3, 9, 3, 5 + (sway ? -1 : 0));
+  r(C.arcanaDeep, 4, 9, 2, 5 + (sway ? -1 : 0));
+  r(C.arcanaBase, 4, 10, 2, 3);
+  // Barra debruada dourada da aba esquerda
+  r(C.goldBase, 3, 13 + (sway ? -1 : 0), 3, 1);
+
+  // Fenda central do sobretudo / forro escuro interno
+  r(C.outline, 6, 9, 2, 5);
+
+  // Aba direita do casaco (ondulação suave na marcha)
+  r(C.voidDark, 8, 9, 3 + sway, 5);
+  r(C.arcanaDeep, 8, 9, 2 + sway, 5);
+  r(C.arcanaBase, 8, 10, 2, 3);
+  // Barra debruada dourada da aba direita
+  r(C.goldBase, 8, 13, 2 + sway, 1);
+
+  // 4. Botas de bico fino aparecendo sob a fenda frontal
+  r(C.boot, 5, 14, 2, 1);
+  r(C.boot, 7, 14, 2, 1);
+
+  // 5. Cajado Rúnico com Cristal Arcano Flutuante
   const staffY = f === 0 ? 0 : 1;
-  r(C.woodDeep, 12, 4 + staffY, 1, 10);
-  r(C.woodHighlight, 12, 6 + staffY, 1, 4);
-  r(C.goldBase, 11, 3 + staffY, 3, 1);
-  r(C.arcanaLight, 11, 1 + staffY, 3, 2);
-  r(C.manaLight, 12, 1 + staffY, 1, 2);
-  r.shine(12, 1 + staffY, 0, 0, C.white);
-
-  // 4. Pés Ocultos sob a Barra do Manto
-  r(C.boot, 5, 13, 2, 2);
-  r(C.boot, 8, 13, 2, 2);
+  r(C.woodDeep, 12, 3 + staffY, 1, 11);
+  r(C.woodHighlight, 12, 5 + staffY, 1, 5);
+  r(C.goldBase, 11, 2 + staffY, 3, 1);
+  // Cristal arcano flutuante e pulsante
+  r(C.arcanaLight, 11, 0 + staffY, 3, 2);
+  r(C.manaLight, 12, 0 + staffY, 1, 2);
+  r.shine(12, 0 + staffY, 0, 0, C.white);
 }
 
 function drawTree(r) {
@@ -1953,38 +1988,58 @@ function drawFireStaffIcon(r) {
   r(C.red, 3, 1, 3, 3); r(C.yellow, 4, 1, 1, 2); r(C.white, 4, 2, 1, 1);   // orbe solar flamejante
 }
 
+// Projétil do Cajado de Fogo (Aerodinâmico, fluido e sem poluição visual)
 function drawFireballProj(r) {
-  // 1. Cauda de fumaça rubi e brasas turbulentas
-  r(C.rubyDeep, 0, 2, 3, 4);
-  r(C.fireDeep, 1, 1, 3, 6);
-  r(C.fireShadow, 2, 2, 3, 4);
+  // Cauda afilada fluida em chama decrescente
+  r(C.fireDeep, 0, 3, 2, 2);
+  r(C.fireShadow, 1, 2, 2, 4);
+  r(C.fireBase, 2, 2, 3, 4);
 
-  // 2. Manto de labaredas vivas
-  r(C.fireBase, 3, 1, 5, 6);
-  r(C.fireLight, 4, 1, 5, 6);
-  r(C.fireHighlight, 6, 2, 4, 4);
+  // Manto flamejante aerodinâmico
+  r(C.fireBase, 4, 1, 4, 6);
+  r(C.fireLight, 5, 2, 4, 4);
+  r(C.fireHighlight, 7, 2, 3, 4);
 
-  // 3. Esfera central incandescente solar
-  r(C.white, 8, 2, 3, 4);
-  r(C.white, 7, 3, 5, 2);
-  r.shine(9, 3, 0, 0, C.white);
+  // Núcleo solar concentrado e brilhante
+  r(C.white, 8, 3, 3, 2);
+  r(C.white, 9, 2, 2, 4);
+  r.shine(10, 3, 0, 0, C.white);
 }
 
-// Orbe Arcano do Mago Sombrio (Bullet-Hell — Núcleo negro com aura magenta/púrpura)
+// Orbe Arcano do Mago Sombrio (Geometria 100% esférica, suave e orgânica)
 function drawMageOrb(r) {
-  // 1. Aura espectral pulsante do Vazio em magenta e púrpura
-  r(C.arcanaDeep, 0, 1, 8, 6);
-  r(C.arcanaDeep, 1, 0, 6, 8);
-  r(C.arcanaShadow, 1, 1, 6, 6);
-  r(0xe040fb, 1, 2, 6, 4); // Magenta luminoso
-  r(0xaa00ff, 2, 1, 4, 6); // Violeta místico
+  // Corona externa esférica com cantos recortados (rasterização circular pura em 8x8)
+  // Topo e base arredondados (x: 2..5, w: 4)
+  r(C.arcanaDeep, 2, 0, 4, 1);
+  r(C.arcanaDeep, 2, 7, 4, 1);
 
-  // 2. Singularidade Negra (Núcleo do Abismo)
-  r(0x0a0012, 2, 2, 4, 4);
+  // Anéis intermediários (x: 1..6, w: 6)
+  r(C.arcanaShadow, 1, 1, 6, 1);
+  r(C.arcanaDeep, 1, 6, 6, 1);
 
-  // 3. Centelha arcana espectral no centro da singularidade
+  // Equador e corpo volumétrico da esfera (x: 0..7, w: 8)
+  r(C.arcanaShadow, 0, 2, 8, 4);
+
+  // Gradiente esférico púrpura/magenta luminoso
+  r(0xba68c8, 2, 1, 4, 1);
+  r(0xab47bc, 1, 2, 6, 1);
+  r(0x8e24aa, 1, 3, 6, 2);
+  r(0x4a148c, 1, 5, 6, 1);
+  r(0x311b92, 2, 6, 4, 1);
+
+  // Núcleo abissal central arredondado (círculo interior, não-quadrado)
+  r(0x100020, 3, 2, 2, 1);
+  r(0x0a0014, 2, 3, 4, 2);
+  r(0x100020, 3, 5, 2, 1);
+
+  // Centelha mística interior de mana
   r(C.cyan, 3, 3, 2, 2);
   r(C.white, 3, 3, 1, 1);
+
+  // Curva de brilho especular 3D no topo esquerdo (volume esférico realista)
+  r(C.white, 2, 1, 2, 1);
+  r(C.arcanaLight, 1, 2, 1, 2);
+  r.shine(2, 1, 0, 0, C.white);
 }
 
 function drawBlade(r) {                                  // Espada Vorpal (lâmina usada no golpe)
@@ -2375,63 +2430,55 @@ function drawMiniGolem(r, f) {
 function makeWorldTextures(scene) {
   const g = scene.make.graphics({ add: false });
 
-  // 1. Gramado Medieval da Floresta ('ground' 128x128 — repetição infinita sem costuras)
-  // Base verde natural com variações orgânicas de relevo e micro-sombreamento
-  g.fillStyle(0x527e34).fillRect(0, 0, 128, 128);
+  // 1. Gramado Medieval da Floresta ('ground' 128x128 — suave, sutil e sem repetição pesada)
+  g.fillStyle(0x568638).fillRect(0, 0, 128, 128);
 
-  // Micro-textura de relva (variação sutil de solo e luz de fundo)
+  // Variação orgânica suave de relevo (dithering de tons harmônicos)
   for (let px = 0; px < 128; px += 4) {
     for (let py = 0; py < 128; py += 4) {
-      if ((px * 3 + py * 7) % 5 === 0) {
-        g.fillStyle(0x4a732f).fillRect(px, py, 2, 2);
-      } else if ((px * 5 + py * 11) % 7 === 0) {
-        g.fillStyle(0x5a8739).fillRect(px + 1, py + 1, 2, 2);
+      const hash = (px * 7 + py * 13) % 11;
+      if (hash === 0) {
+        g.fillStyle(0x4e7b32).fillRect(px, py, 2, 2);
+      } else if (hash === 3) {
+        g.fillStyle(0x5f9140).fillRect(px + 1, py + 1, 2, 2);
       }
     }
   }
 
-  // Tufos de grama volumosos com 3 camadas (sombra na base, verde vivo e ponta iluminada)
-  const grassSeeds = [
-    [12, 18], [34, 45], [68, 22], [96, 54], [118, 14],
-    [16, 78], [48, 92], [82, 74], [108, 102], [28, 116],
-    [74, 118], [54, 32], [88, 38], [24, 62], [112, 70]
+  // Tufos de grama sutis, delicados e assimétricos (reduzidos e com lâminas finas para quebrar repetição)
+  const delicateGrass = [
+    [18, 22], [76, 14], [112, 36], [42, 68],
+    [94, 82], [26, 106], [80, 114]
   ];
-  grassSeeds.forEach(([gx, gy]) => {
-    // Sombra inferior do tufo
-    g.fillStyle(C.leafDeep).fillRect(gx, gy + 4, 6, 2);
-    // Lâminas de grama em leque
-    g.fillStyle(C.leafDark).fillRect(gx + 1, gy + 1, 2, 4).fillRect(gx + 3, gy + 2, 2, 3);
-    g.fillStyle(C.leafBase).fillRect(gx + 1, gy, 2, 3).fillRect(gx + 3, gy + 1, 2, 2);
-    g.fillStyle(C.leafLight).fillRect(gx + 1, gy, 1, 2).fillRect(gx + 4, gy + 1, 1, 1);
+  delicateGrass.forEach(([gx, gy], i) => {
+    const isSmall = i % 2 === 0;
+    // Base verde-musgo suave
+    g.fillStyle(0x2f6e35).fillRect(gx + 1, gy + 2, isSmall ? 2 : 3, 2);
+    // Lâminas finas e pontiagudas
+    g.fillStyle(0x47a04a).fillRect(gx, gy, 1, 3).fillRect(gx + 2, gy - 1, 1, 4);
+    if (!isSmall) g.fillStyle(0x47a04a).fillRect(gx + 3, gy + 1, 1, 2);
+    // Pontinhas iluminadas
+    g.fillStyle(0x72c96b).fillRect(gx, gy, 1, 1).fillRect(gx + 2, gy - 1, 1, 1);
   });
 
-  // Pedrinhas de cascalho incrustadas no solo (relevo 3D com luz e sombra)
-  const pebbleCoords = [[42, 16], [86, 88], [22, 104], [102, 32], [64, 60]];
-  pebbleCoords.forEach(([rx, ry]) => {
-    g.fillStyle(C.stoneDeep).fillRect(rx, ry + 2, 5, 2);
-    g.fillStyle(C.stoneBase).fillRect(rx, ry, 5, 2);
-    g.fillStyle(C.stoneHighlight).fillRect(rx + 1, ry, 2, 1);
-  });
-
-  // Flores silvestres campestres (margaridas brancas, campânulas rubi e miosótis)
-  const flowerSpecs = [
-    { x: 18, y: 38, col: C.white, center: C.yellow },
-    { x: 78, y: 12, col: C.rubyLight, center: C.goldHighlight },
-    { x: 114, y: 44, col: C.manaLight, center: C.yellow },
-    { x: 38, y: 72, col: C.goldLight, center: C.rubyDeep },
-    { x: 92, y: 110, col: C.white, center: C.yellow },
-    { x: 60, y: 98, col: C.rubyLight, center: C.goldHighlight }
+  // Margaridinhas minúsculas e esparsas (pétalas discretas de 2x2 com miolinho de 1px)
+  const subtleFlowers = [
+    [52, 28, 0xffffff, 0xffeb3b],
+    [104, 60, 0xb2ebf2, 0xfff9c4],
+    [34, 88, 0xffffff, 0xffeb3b],
+    [70, 96, 0xff80ab, 0xffeb3b]
   ];
-  flowerSpecs.forEach(f => {
-    g.fillStyle(C.leafDeep).fillRect(f.x + 1, f.y + 2, 2, 2); // caule/sombra
-    g.fillStyle(f.col).fillRect(f.x, f.y, 4, 3);               // pétalas
-    g.fillStyle(f.center).fillRect(f.x + 1, f.y + 1, 2, 1);    // miolo
+  subtleFlowers.forEach(([fx, fy, petCol, dotCol]) => {
+    g.fillStyle(0x2f6e35).fillRect(fx + 1, fy + 2, 1, 1);
+    g.fillStyle(petCol).fillRect(fx, fy, 3, 2);
+    g.fillStyle(dotCol).fillRect(fx + 1, fy, 1, 1);
   });
 
-  // Folhas outonais caídas (toque de floresta ancestral)
-  [[26, 84], [72, 48], [120, 86]].forEach(([lx, ly]) => {
-    g.fillStyle(C.leafAmber).fillRect(lx, ly, 2, 2);
-    g.fillStyle(C.mossGold).fillRect(lx + 1, ly + 1, 1, 1);
+  // Pedrinhas suaves de calcário (pequenas e integradas)
+  [[88, 44], [16, 56], [62, 120]].forEach(([rx, ry]) => {
+    g.fillStyle(0x69707c).fillRect(rx, ry + 1, 3, 1);
+    g.fillStyle(0x949ba6).fillRect(rx, ry, 3, 1);
+    g.fillStyle(0xffffff).fillRect(rx + 1, ry, 1, 1);
   });
 
   g.generateTexture('ground', 128, 128);
@@ -2597,52 +2644,69 @@ function makeWorldTextures(scene) {
   g.fillStyle(C.steelDark).fillRect(11, 15, 1, 1).fillRect(43, 17, 1, 1).fillRect(33, 29, 1, 1);
   g.generateTexture('cracked_ground', 56, 40);
 
-  // 7. Piso e Praça Unificada da Vila ("village_plaza" 480x440 — pátio calçado e grande alameda)
+  // 7. Piso e Praça da Vila ("village_plaza" 480x440 — tons claros, calçamento orgânico, sem grade)
   g.clear();
-  // Gramado limpo da vila
-  g.fillStyle(0x47702e, 1).fillRect(0, 0, 480, 440);
+  // Gramado limpo de base da vila
+  g.fillStyle(0x568638, 1).fillRect(0, 0, 480, 440);
 
-  // Pátios calçados Norte e Sul (base de argamassa e terra batida)
-  g.fillStyle(C.dirtShadow, 0.95).fillRoundedRect(14, 18, 424, 148, 12);
-  g.fillStyle(C.dirtShadow, 0.95).fillRoundedRect(14, 274, 424, 148, 12);
-  g.fillStyle(C.stoneDeep, 0.92).fillRoundedRect(26, 28, 396, 130, 8);
-  g.fillStyle(C.stoneDeep, 0.92).fillRoundedRect(26, 282, 396, 130, 8);
+  // Pátios calçados Norte e Sul (arenito e argamassa nobre clara acolhedora)
+  g.fillStyle(0x9e886b, 0.95).fillRoundedRect(14, 18, 424, 148, 12);
+  g.fillStyle(0x9e886b, 0.95).fillRoundedRect(14, 274, 424, 148, 12);
+  g.fillStyle(0x737d8c, 0.92).fillRoundedRect(24, 26, 400, 132, 8);
+  g.fillStyle(0x737d8c, 0.92).fillRoundedRect(24, 280, 400, 132, 8);
 
-  // Lajotas de pedra dos pátios (com chanfro de luz e sombra de argamassa)
-  for (let px = 34; px < 410; px += 22) {
-    for (let py = 36; py < 150; py += 16) {
-      const stoneCol = (px + py) % 4 === 0 ? C.stoneLight : C.stoneBase;
-      g.fillStyle(C.stoneDeep).fillRect(px, py, 19, 13);
-      g.fillStyle(stoneCol).fillRect(px, py, 18, 12);
-      g.fillStyle(C.stoneHighlight, 0.5).fillRect(px, py, 18, 2).fillRect(px, py, 2, 12);
+  // Calçamento de pedras de cantaria orgânicas (Cobblestone / Flagstone claro com padrão entrelaçado)
+  const drawCourtyardPaving = (startY, endY) => {
+    let row = 0;
+    for (let py = startY; py < endY; py += 15) {
+      row++;
+      const shift = (row % 2 === 0) ? 9 : 0;
+      for (let px = 28 + shift; px < 416; px += 19) {
+        // Variação orgânica de tamanho e tom
+        const salt = ((px * 13 + py * 17) % 7);
+        const w = (salt === 0) ? 22 : (salt === 1 ? 15 : 18);
+        const h = 12;
+        const stoneCol = salt % 3 === 0 ? 0xb5bdc8 : (salt % 2 === 0 ? 0xa2abb7 : 0x8e97a3);
+
+        // Fresta / argamassa suave
+        g.fillStyle(0x565e69).fillRect(px, py, w + 1, h + 1);
+        // Face da pedra clara
+        g.fillStyle(stoneCol).fillRect(px, py, w, h);
+        // Chanfro superior de luz (realce 3D suave)
+        g.fillStyle(0xd5dbe3, 0.6).fillRect(px, py, w, 2).fillRect(px, py, 2, h);
+        // Sombra inferior suave da pedra
+        g.fillStyle(0x4a515c, 0.35).fillRect(px, py + h - 1, w, 1).fillRect(px + w - 1, py, 1, h);
+      }
     }
-    for (let py = 290; py < 404; py += 16) {
-      const stoneCol = (px + py) % 4 === 0 ? C.stoneLight : C.stoneBase;
-      g.fillStyle(C.stoneDeep).fillRect(px, py, 19, 13);
-      g.fillStyle(stoneCol).fillRect(px, py, 18, 12);
-      g.fillStyle(C.stoneHighlight, 0.5).fillRect(px, py, 18, 2).fillRect(px, py, 2, 12);
-    }
+  };
+
+  drawCourtyardPaving(32, 150);
+  drawCourtyardPaving(286, 404);
+
+  // A Grande Alameda Central da Vila (y: 172..268 — Caminho de Cantaria Claro e Acolhedor)
+  g.fillStyle(0x917f65, 1).fillRect(0, 172, 472, 96); // leito arenoso
+  g.fillStyle(0x798391, 1).fillRect(0, 178, 470, 84); // base de pedras claras
+
+  // Meio-fio de cantaria iluminado nas margens da alameda
+  for (let cx = 0; cx < 466; cx += 16) {
+    const curbCol = cx % 32 === 0 ? 0xc2cad4 : 0xa4acb8;
+    g.fillStyle(curbCol, 1).fillRect(cx, 174, 15, 6).fillRect(cx, 260, 15, 6);
+    g.fillStyle(0xffffff, 0.7).fillRect(cx, 174, 15, 2);
+    g.fillStyle(0x515863, 0.4).fillRect(cx, 179, 15, 1).fillRect(cx, 265, 15, 1);
   }
 
-  // A Grande Alameda Central da Vila (Caminho Real de Pedras de Cantaria, y: 172..268)
-  g.fillStyle(C.dirtDeep, 1).fillRect(0, 172, 472, 96);
-  g.fillStyle(C.stoneDeep, 1).fillRect(0, 178, 470, 84);
-
-  // Meio-fio reforçado de cantaria nas margens da estrada
-  for (let cx = 0; cx < 466; cx += 18) {
-    g.fillStyle(cx % 36 === 0 ? C.stoneLight : C.stoneBase, 1)
-      .fillRect(cx, 174, 16, 6)
-      .fillRect(cx, 260, 16, 6);
-    g.fillStyle(C.stoneHighlight, 0.6).fillRect(cx, 174, 16, 2);
-  }
-
-  // Blocos centrais de paralelepípedos chanfrados com amarração
-  for (let rx = 4; rx < 462; rx += 16) {
-    for (let ry = 184; ry < 252; ry += 14) {
-      const off = (ry % 28 === 0) ? 7 : 0;
-      g.fillStyle(C.stoneDeep, 1).fillRect(rx + off, ry, 14, 11);
-      g.fillStyle((rx + ry) % 3 === 0 ? C.stoneLight : C.stoneBase, 1).fillRect(rx + off, ry, 13, 10);
-      g.fillStyle(C.stoneHighlight, 0.6).fillRect(rx + off, ry, 13, 2).fillRect(rx + off, ry, 2, 10);
+  // Paralelepípedos claros entrelaçados na estrada central
+  let rCount = 0;
+  for (let ry = 184; ry < 252; ry += 13) {
+    rCount++;
+    const rShift = (rCount % 2 === 0) ? 7 : 0;
+    for (let rx = 4 + rShift; rx < 462; rx += 15) {
+      const pSalt = (rx * 11 + ry * 19) % 5;
+      const roadStoneCol = pSalt === 0 ? 0xc0c8d2 : (pSalt === 1 ? 0xadb5bf : 0x98a0aa);
+      g.fillStyle(0x525964, 1).fillRect(rx, ry, 14, 11);
+      g.fillStyle(roadStoneCol, 1).fillRect(rx, ry, 13, 10);
+      g.fillStyle(0xffffff, 0.55).fillRect(rx, ry, 13, 2).fillRect(rx, ry, 2, 10);
+      g.fillStyle(0x424851, 0.35).fillRect(rx, ry + 8, 13, 2);
     }
   }
 
@@ -3452,10 +3516,10 @@ function create(data) {
     tint: [0xffffff, 0x7fe7ff, 0xffe082, 0x80deea], emitting: false
   }).setDepth(1620);
 
-  // Brasas e fagulhas para explosões do Cajado de Fogo e impactos vulcânicos
+  // Brasas e fagulhas sutis para o Cajado de Fogo e impactos (leves e legíveis)
   emberFx = scene.add.particles(0, 0, 'spark', {
-    lifespan: 380, speed: { min: 90, max: 240 }, scale: { start: 1.8, end: 0 },
-    tint: [0xffeb3b, 0xff7043, 0xff1744, 0xd83a3a], emitting: false
+    lifespan: 220, speed: { min: 40, max: 120 }, scale: { start: 0.95, end: 0 },
+    tint: [0xffeb3b, 0xffca28, 0xff7043], emitting: false
   }).setDepth(1560);
 
   createHUD(scene);
@@ -3642,16 +3706,16 @@ function updateGameplay(scene, time, dt) {
         p.projId = ++slashCounter;
       }
     }
-    // Rastro de labaredas e fagulhas da Bola de Fogo
-    if (p.isFireball && p.active && Math.random() < 0.45) {
-      emberFx.emitParticleAt(p.x - 8, p.y + Phaser.Math.Between(-2, 2), 1);
+    // Rastro sutil e fluido da Bola de Fogo (baixa densidade para máxima legibilidade)
+    if (p.isFireball && p.active && Math.random() < 0.16) {
+      emberFx.emitParticleAt(p.x - 6, p.y + Phaser.Math.Between(-1, 1), 1);
     }
   });
 
-  // Rastro mágico verde-esmeralda inconfundível das flechas élficas
+  // Flechas élficas: rastro limpo e direto sem estrelas ofuscantes
   enemyArrows.getChildren().forEach(a => {
-    if (a.texture.key === 'arrow_elf' && a.active && Math.random() < 0.35) {
-      holyFx.emitParticleAt(a.x + 8, a.y + Phaser.Math.Between(-2, 2), 1);
+    if (a.texture.key === 'arrow_elf' && a.active && Math.random() < 0.08) {
+      dustFx.emitParticleAt(a.x + 6, a.y, 1);
     }
   });
 
@@ -4466,21 +4530,21 @@ function elfShoot(scene, elf) {
   if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
   if (elf.x > 790 || elf.x < player.x + 25) return;
 
-  elf.setTint(0xff80ff);
+  elf.setTint(0xa7ffeb);
   if (elf.chargeRing && elf.chargeRing.active) elf.chargeRing.destroy();
-  const chargeRing = scene.add.circle(elf.x - 12, elf.y, 12, 0xc36bff, 0.35)
-    .setStrokeStyle(1.5, 0xffeb3b).setDepth(elf.depth + 2);
+  const chargeRing = scene.add.circle(elf.x - 10, elf.y, 8, 0x26a69a, 0.22)
+    .setStrokeStyle(1.5, 0x69f0ae, 0.75).setDepth(elf.depth + 2);
   elf.chargeRing = chargeRing;
 
   scene.tweens.add({
     targets: chargeRing,
-    scale: { from: 1.3, to: 0.2 },
-    alpha: { from: 0.9, to: 0 },
-    duration: 360,
+    scale: { from: 1.2, to: 0.3 },
+    alpha: { from: 0.8, to: 0 },
+    duration: 320,
     onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
   });
 
-  scene.time.delayedCall(360, () => {
+  scene.time.delayedCall(320, () => {
     if (!elf.active || !player || !player.active || !player.body || gameState !== 'PLAYING') return;
     elf.clearTint();
     sound.playElfShot();
@@ -5273,28 +5337,27 @@ function shootFireball(scene) {
 
 function explodeFireball(scene, x, y, radius, dmg) {
   sound.playEarthSmash();
-  emberFx.explode(18, x, y);
-  hitFx.explode(8, x, y);
-  sparksFx.explode(6, x, y);
+  emberFx.explode(8, x, y);
+  hitFx.explode(5, x, y);
 
-  const blastOuter = scene.add.circle(x, y, 14, 0xff7043, 0.60)
-    .setStrokeStyle(3, 0xffeb3b, 0.95).setDepth(1550);
-  const blastInner = scene.add.circle(x, y, 8, 0xffffff, 0.85)
-    .setStrokeStyle(2, 0xffca28, 1).setDepth(1551);
+  const blastOuter = scene.add.circle(x, y, 10, 0xff7043, 0.40)
+    .setStrokeStyle(2, 0xffeb3b, 0.85).setDepth(1550);
+  const blastInner = scene.add.circle(x, y, 6, 0xffffff, 0.65)
+    .setStrokeStyle(1.5, 0xffca28, 0.9).setDepth(1551);
 
   scene.tweens.add({
     targets: blastOuter,
     radius,
     alpha: 0,
-    duration: 260,
+    duration: 220,
     ease: 'Cubic.easeOut',
     onComplete: () => blastOuter.destroy()
   });
   scene.tweens.add({
     targets: blastInner,
-    radius: Math.round(radius * 0.65),
+    radius: Math.round(radius * 0.60),
     alpha: 0,
-    duration: 180,
+    duration: 160,
     ease: 'Cubic.easeOut',
     onComplete: () => blastInner.destroy()
   });
@@ -6435,7 +6498,8 @@ function showMainMenu(scene) {
   // Faixa de Rodapé Completa
   const footerBg = scene.add.rectangle(400, 578, 800, 32, 0x0c0907, 0.92);
   const footerLine = scene.add.graphics().lineStyle(1, 0x8d5524, 0.8).lineBetween(0, 562, 800, 562);
-  const footerTxt = scene.add.text(400, 578, 'Mover: WASD/Setas  |  Pausar: ESC  |  Áudio: M  |  Tela Cheia: F', textStyle('#d6c8aa', 11)).setOrigin(0.5);
+  const footerTxt = scene.add.text(370, 578, 'Mover: WASD/Setas  |  Pausar: ESC  |  Áudio: M  |  Tela Cheia: F', textStyle('#d6c8aa', 11)).setOrigin(0.5);
+  const versionTxt = scene.add.text(750, 578, GAME_VERSION, textStyle('#c5a059', 11)).setOrigin(0.5);
 
   menuContainer.add([
     treeFar, menuHouse, menuBlacksmith, menuGateTower,
@@ -6445,7 +6509,7 @@ function showMainMenu(scene) {
     menuFsBg, menuFsIcon, menuFsHit,
     menuPanel, crownIcon, bestBannerTxt, menuCoinIcon, menuGoldTxt,
     ...startBtn, ...blacksmithBtn, ...mageBtn, ...achBtn, ...recordsBtn, ...settingsBtn, startHint,
-    footerBg, footerLine, footerTxt
+    footerBg, footerLine, footerTxt, versionTxt
   ]);
 
   function onKeyStart(e) {
