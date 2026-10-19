@@ -309,14 +309,10 @@ function create(data) {
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, s.dmg || 1);
-      // Regra 22: Espada aplica empurrão (knockback) escalonado com o nível
-      if (!e.isBoss) {
-        const kb = s.knockback || 22;
-        e.x = Math.min(790, e.x + kb);
-        if (e.body) {
-          e.body.updateFromGameObject();
-          e.body.velocity.x += kb * 4;
-        }
+      // Regra 22: Espada aplica empurrão suave (knockback) exclusivo se o inimigo sobreviver
+      if (!e.isBoss && e.active && e.hp > 0) {
+        const kbDist = Math.min(34, s.knockback ? Math.round(s.knockback * 0.65) : 22);
+        applySmoothKnockback(scene, e, kbDist, 130);
       }
     }
   });
@@ -745,4 +741,6 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+window.game = game;
+
 

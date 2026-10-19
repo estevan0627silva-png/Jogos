@@ -322,6 +322,39 @@ class SoundSystem {
     noise.stop(now + 0.28);
   }
 
+  // Disparo / Labareda do Cajado de Fogo ou despertar ardente dos olhos do Golem
+  playFireStaff() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.getNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(320, now + 0.22);
+    filter.Q.setValueAtTime(3, now);
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.42, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain);
+    noise.start(now);
+    noise.stop(now + 0.22);
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(65, now + 0.2);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
   // Disparo de flecha pelo jogador (corda do arco vibrando + silvo)
   playBow() {
     if (this.muted || !this.ensureContext()) return;

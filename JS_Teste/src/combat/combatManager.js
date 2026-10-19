@@ -57,8 +57,46 @@ function damageEnemy(scene, enemy, dmg = 1) {
     killEnemy(enemy);
   } else {
     sound.playShieldBlock();
-    enemy.x = Math.min(785, enemy.x + 22);
+    // Projéteis e dano geral não alteram a posição do inimigo (knockback exclusivo da espada)
   }
+}
+
+// Empurrão suave exclusivo da espada: interpola a posição X com desaceleração Cubic.easeOut
+// e pausa temporariamente a velocidade para evitar conflitos de física ou marcha a ré involuntária
+function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
+  if (!enemy || !enemy.active || enemy.isBoss || enemy.hp <= 0) return;
+  if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+
+  const cfg = ENEMIES[enemy.enemyType] || { speed: 1 };
+  const baseVx = -Math.max(60, (enemySpeed || 85) * (cfg.speed || 1));
+  const currentX = enemy.x;
+  const targetX = Math.min(780, currentX + distance);
+
+  scene.tweens.killTweensOf(enemy, ['x']);
+
+  if (enemy.body) {
+    enemy.setVelocityX(0);
+  }
+
+  scene.tweens.add({
+    targets: enemy,
+    x: targetX,
+    duration: duration,
+    ease: 'Cubic.easeOut',
+    onUpdate: () => {
+      if (enemy && enemy.active && enemy.body) {
+        enemy.body.updateFromGameObject();
+      }
+    },
+    onComplete: () => {
+      if (!enemy || !enemy.active || enemy.hp <= 0) return;
+      if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+      if (enemy.body) {
+        enemy.body.updateFromGameObject();
+        enemy.setVelocityX(baseVx);
+      }
+    }
+  });
 }
 
 // =============================================================================

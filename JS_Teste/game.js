@@ -1165,6 +1165,39 @@ class SoundSystem {
     noise.stop(now + 0.28);
   }
 
+  // Disparo / Labareda do Cajado de Fogo ou despertar ardente dos olhos do Golem
+  playFireStaff() {
+    if (this.muted || !this.ensureContext()) return;
+    const now = this.ctx.currentTime;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this.getNoiseBuffer();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(320, now + 0.22);
+    filter.Q.setValueAtTime(3, now);
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.42, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain);
+    noise.start(now);
+    noise.stop(now + 0.22);
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(65, now + 0.2);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
   // Disparo de flecha pelo jogador (corda do arco vibrando + silvo)
   playBow() {
     if (this.muted || !this.ensureContext()) return;
@@ -3502,7 +3535,7 @@ const WeaponStrategies = {
       return Math.max(160, Math.round(660 - (lvl - 1) * 60));
     },
     attack({ player, arrows, nextProjId }) {
-      sound.playBow();
+      sound.playFireStaff();
       const lvl = getWeaponLevel('firestaff');
       let angles = [0];
       if (lvl >= 5) {
@@ -3732,8 +3765,46 @@ function damageEnemy(scene, enemy, dmg = 1) {
     killEnemy(enemy);
   } else {
     sound.playShieldBlock();
-    enemy.x = Math.min(785, enemy.x + 22);
+    // Projéteis e dano geral não alteram a posição do inimigo (knockback exclusivo da espada)
   }
+}
+
+// Empurrão suave exclusivo da espada: interpola a posição X com desaceleração Cubic.easeOut
+// e pausa temporariamente a velocidade para evitar conflitos de física ou marcha a ré involuntária
+function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
+  if (!enemy || !enemy.active || enemy.isBoss || enemy.hp <= 0) return;
+  if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+
+  const cfg = ENEMIES[enemy.enemyType] || { speed: 1 };
+  const baseVx = -Math.max(60, (enemySpeed || 85) * (cfg.speed || 1));
+  const currentX = enemy.x;
+  const targetX = Math.min(780, currentX + distance);
+
+  scene.tweens.killTweensOf(enemy, ['x']);
+
+  if (enemy.body) {
+    enemy.setVelocityX(0);
+  }
+
+  scene.tweens.add({
+    targets: enemy,
+    x: targetX,
+    duration: duration,
+    ease: 'Cubic.easeOut',
+    onUpdate: () => {
+      if (enemy && enemy.active && enemy.body) {
+        enemy.body.updateFromGameObject();
+      }
+    },
+    onComplete: () => {
+      if (!enemy || !enemy.active || enemy.hp <= 0) return;
+      if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+      if (enemy.body) {
+        enemy.body.updateFromGameObject();
+        enemy.setVelocityX(baseVx);
+      }
+    }
+  });
 }
 
 // =============================================================================
@@ -7559,14 +7630,10 @@ function create(data) {
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, s.dmg || 1);
-      // Regra 22: Espada aplica empurrão (knockback) escalonado com o nível
-      if (!e.isBoss) {
-        const kb = s.knockback || 22;
-        e.x = Math.min(790, e.x + kb);
-        if (e.body) {
-          e.body.updateFromGameObject();
-          e.body.velocity.x += kb * 4;
-        }
+      // Regra 22: Espada aplica empurrão suave (knockback) exclusivo se o inimigo sobreviver
+      if (!e.isBoss && e.active && e.hp > 0) {
+        const kbDist = Math.min(34, s.knockback ? Math.round(s.knockback * 0.65) : 22);
+        applySmoothKnockback(scene, e, kbDist, 130);
       }
     }
   });
@@ -7995,4 +8062,6 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+window.game = game;
+
 

@@ -181,7 +181,7 @@ const WeaponStrategies = {
       return Math.max(160, Math.round(660 - (lvl - 1) * 60));
     },
     attack({ player, arrows, nextProjId }) {
-      sound.playBow();
+      sound.playFireStaff();
       const lvl = getWeaponLevel('firestaff');
       let angles = [0];
       if (lvl >= 5) {

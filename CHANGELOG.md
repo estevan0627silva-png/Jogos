@@ -19,7 +19,8 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
   - **Pausa de Inimigos Comuns:** Durante a luta contra o Boss, apenas o Golem e Mini-Golems estão presentes.
   - **Ejeção Física do Torso:** Mini-Golems saltam com arco parabólico e estilhaços de pedra do peito do Boss.
   - **Spawn Dinâmico & Teto de 5 Mini-Golems:** Ejeção escala com o HP restante, com cap rígido de 5 Mini-Golems ativos simultaneamente e ciclo de 3.4s em fúria.
-  - **Estado Inerte & Despertar:** Mini-Golems caem imóveis por 1.1s a 1.3s com eyes off, tremem e despertam com olhos vermelhos incandescentes.
+  - **Estado Inerte & Despertar com Correção de Áudio:** Mini-Golems caem imóveis por 1.1s a 1.3s com eyes off, tremem e despertam com olhos vermelhos incandescentes. Adicionado método `playFireStaff()` nativo em `SoundSystem` e chamada defensiva em `boss.js`, sanando o crash fatal `TypeError: sound.playFireStaff is not a function`.
+  - **Knockback Suave Exclusivo da Espada:** Remoção do deslocamento em X para todos os projéteis (zero knockback de projéteis). Substituída a corrupção de velocidade (`velocity.x += kb * 4`) por um `Tween` amortecido suave (`Quad.easeOut`, 110ms) exclusivo da Espada Vorpal, acabando com o teletransporte e o bug do inimigo andando para trás.
 - **👺 IA e Trajetória dos Inimigos:**
   - **Zigue-Zague dos Goblins:** Movimentação senoidal oscilante no eixo Y limitada estritamente ao solo útil [130, 520].
 - **❤️ Padronização de Vida em Corações / Hits:**
@@ -28,7 +29,7 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
   - Joystick ancorado no canto inferior esquerdo (110, 485), botão de alternância no menu de configurações e remoção total do botão de ação.
 - **⚔️ Balanceamento, Progressão Infinita e Escalonamento da Espada:**
   - Progressão infinita além do nível 5 com escalonamento equilibrado (+12% dano, limites de segurança de cadência).
-  - Aumento progressivo de tamanho e Knockback da Espada Vorpal.
+  - Aumento progressivo de tamanho e empurrão proporcional da Espada Vorpal.
   - Purga de ~215 linhas de código legado obsoleto em `weapons.js`.
 
 ---
