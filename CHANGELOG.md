@@ -2,6 +2,30 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v1.2.3] - 2026-10-19 (Modernização de Entidades de Combate 16-bit: Cavaleiro com Ciclo de Corrida de 4 Quadros, 6 Criaturas Ameaçadoras com Silhueta Expressiva e Chefe Golem Ancestral Monumental)
+### 🛡️ O Cavaleiro da Alvorada (`drawKnight`, 32x32, 4 frames)
+- **Elmo de Aço Polido**: Viseira em T com chanfro metálico de aço temperado, reflexo especular de alto brilho e fresta de olhar heróico.
+- **Pluma Real Vermelha Vibrante**: Tecido esvoaçante em 3 tons de carmesim/rubi que balança suavemente acompanhando a passada.
+- **Armadura e Heráldica Imperial**: Peitoral de placas de aço espelhado sobre cota de malha, tabardo azul real com a Cruz Dourada Imperial em alto relevo, ombreiras torneadas e cinto de couro com fivela de ouro imperial.
+- **Ciclo de Corrida Fluido de 4 Quadros (`knight_run`)**: Animação em 12 FPS com passadas alternadas, impulso e contato ao solo com física e cadência realistas, preservando 100% da caixa de colisão física do jogador (`16x22`, offset `8x8`).
+
+### 👹 Criaturas da Floresta e Inimigos Sombrios
+- **Goblin Ladrão (`drawGoblin`, 28x28, 2 frames)**: Pele esverdeada texturizada em 4 tons, orelhas pontudas destacadas com sombra anatômica interna, vestes de couro esfarrapadas, bolsa de saques nas costas e adaga enferrujada com gume polido ameaçador.
+- **Guerreiro de Ferro Corrompido (`drawWarrior`, 36x36, 2 frames)**: Couraça pesada de ferro forjado bruto, elmo fechado com chifres afiados de osso curvado, capa carmesim rasgada esvoaçante e espada larga de ferro com runa brilhante de sangue na lâmina.
+- **Elfa Arqueira Silvestre (`drawElf`, 32x32, 2 frames)**: Capa esvoaçante em verde-musgo e teal profundo, arco longo de teixo entalhado com empunhadura reforçada, aljava com flechas de ponta de aço, cabelos loiros dourados esvoaçantes e botas de camurça.
+- **Mago do Abismo (`drawDarkMage`, 32x32, 2 frames)**: Manto arcano roxo com bordas de runas mágicas luminosas em ciano, capuz sombrio com olhos arcanos espectrais brilhantes e cajado com orbe mágica levitante que pulsa energia mística.
+- **Gárgula de Pedra Alada (`drawGargoyle`, 32x32, 2 frames)**: Asas pétreas com articulações marcadas e membranas carmesins, garras de rocha afiadas e olhos vermelhos incandescentes em voo rasante ameaçador.
+- **Mini Golem de Pedra (`drawMiniGolem`, 28x28, 2 frames)**: Granito maciço rachado com fissuras de magma carmesim brilhantes, tufo de musgo ancestral no topo da cabeça, punhos de pedra e olhos vermelhos incandescentes com reflexos de calor.
+
+### 🗿 Chefe Golem Ancestral Desperto (`drawBossGolem`, 88x88, 2 frames)
+- **Monólito Titânico em Alta Definição**: Sprite monumental com placas tectônicas chanfradas de granito e dithering 16-bit suave.
+- **Musgo Ancestral em Camadas**: Vegetação secular cobrindo o crânio e os ombros tectônicos em degradê natural de folhas e musgo dourado.
+- **Coração Rúnico e Veios de Magma**: Fornalha elemental central no peitoral esculpido com runas antigas que pulsam entre os quadros de animação, com ramificações incandescentes irradiando para os braços ciclópicos e ombros.
+- **Olhos de Fogo Incandescente**: Fendas de calor fundido com núcleo de rubi vivo, reflexos especulares e respiração de calor.
+- **Alinhamento e Hitbox Intactos**: Caixa de colisão física estritamente preservada em `62x74` com offset `13x8`, mantendo 100% do balanceamento e ataques da Boss Fight.
+
+---
+
 ## [v1.2.2] - 2026-10-19 (Modernização de Cenário 16-bit: Terreno com Relevo, Estrada com Sulcos e Franjas Orgânicas, Parallax Florestal Volumétrico e Estruturas Rústicas da Vila dos Cavaleiros)
 ### 🌲 Parallax Florestal & Terreno Orgânico ('ground', 'road', 'forest_top', 'forest_bottom')
 - **Gramado Medieval (`ground` 128x128)**: Solo verde rico com micro-texturas em dithering suave, tufos volumosos em leque com sombra inferior, pedrinhas 3D incrustadas, folhas caídas de outono e flores silvestres (margaridas, campânulas e miosótis) com contraste equilibrado para máxima legibilidade de combate.
