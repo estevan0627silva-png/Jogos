@@ -36,6 +36,37 @@ function rollLevelUpCards() {
     }
   });
 
+  // Cartas de Pergaminhos Arcanos (Regra: apenas 1 pergaminho por partida, até Nv. 5)
+  const scrollCards = [];
+  const scrollKeys = ['multishot', 'growth', 'attackspeed'];
+  scrollKeys.forEach(sKey => {
+    if (chosenScroll !== null && chosenScroll !== sKey) return;
+    const currLvl = scrollLevels[sKey] || 0;
+    if (currLvl >= 5) return;
+    const nextLvl = currLvl + 1;
+    const sCfg = SCROLL_CATALOG[sKey];
+    if (!sCfg) return;
+    const lvlDesc = sCfg.levels[nextLvl - 1] || `+Poder arcano NV. ${nextLvl}`;
+    scrollCards.push({
+      id: `scroll_${sKey}_${nextLvl}`,
+      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO EXCLUSIVO',
+      title: sCfg.name,
+      badge: currLvl === 0 ? 'NOVO! NV. 1' : `NV. ${currLvl} ➔ NV. ${nextLvl}`,
+      badgeColor: '#b388ff',
+      borderColor: 0xb388ff,
+      icon: sCfg.icon,
+      desc: `${lvlDesc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida (Nv. Máx 5)!' : 'Aprimora seu pergaminho exclusivo nesta partida!'}`,
+      weight: chosenScroll === sKey ? 3 : 2,
+      apply: (scene) => {
+        chosenScroll = sKey;
+        scrollLevels[sKey] = nextLvl;
+        sound.playLevelUp();
+        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} NV.${nextLvl}!`, '#b388ff');
+        updateScrollHUD();
+      }
+    });
+  });
+
   // Cartas de Itens e Relíquias Táticas da Partida (garantem sempre 3 opções distintas!)
   const itemCards = [
     {
@@ -127,9 +158,17 @@ function rollLevelUpCards() {
   // Sorteio RNG sem repetição: prioriza Cartas de Armas e completa até ter exatamente 3 cartas distintas
   const shuffledWeapons = Phaser.Utils.Array.Shuffle(weaponCards.slice());
   const shuffledItems = Phaser.Utils.Array.Shuffle(itemCards.slice());
+  const shuffledScrolls = Phaser.Utils.Array.Shuffle(scrollCards.slice());
 
   const selected = [];
   const usedIds = new Set();
+
+  // 1. Inclui 1 opção de Pergaminho Arcano se houver pergaminho elegível
+  if (shuffledScrolls.length > 0) {
+    const sCard = shuffledScrolls[0];
+    selected.push(sCard);
+    usedIds.add(sCard.id);
+  }
 
   // Garante pelo menos 2 cartas de evolução de armas (se disponíveis) e 1 carta versátil/arma
   shuffledWeapons.forEach(card => {

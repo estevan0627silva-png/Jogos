@@ -1,4 +1,5 @@
-// >>> START: src/config/constants.js
+﻿
+// --- BUNDLE FILE: JS_Teste/src/config/constants.js ---
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
@@ -25,9 +26,9 @@ const ENEMIES = {                                    // vida, velocidade relativ
   goblin:     { hp: 1, speed: 1.12, w: 16, h: 20, xp: 2 },
   warrior:    { hp: 2, speed: 0.86, w: 20, h: 26, xp: 5 },
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
-  gargoyle:   { hp: 1, speed: 1.16, w: 18, h: 20, xp: 3 },  // voo senoidal estilo Bullet-Hell
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
-  mini_golem: { hp: 1, speed: 0.94, w: 18, h: 20, xp: 2 }
+  mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
+  boss_golem: { hp: 50, speed: 0.35, w: 60, h: 72, xp: 50 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
 const BOSS_MAX_HP = 50;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
@@ -42,7 +43,9 @@ const STORAGE_ACHIEVEMENTS_KEY = 'knight_quest_achievements_v1';
 const STORAGE_JOYSTICK_KEY = 'knight_quest_joystick_mode_v1';
 
 // Catálogo do Ferreiro (Apenas Desbloqueio no Menu; os Níveis 1 a 5 evoluem IN-GAME via XP Level Up!)
-// >>> START: src/config/palette.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/config/palette.js ---
 // PALETA DE CORES DA PIXEL ART (Padrão 16-bit com rampas de 3 a 4 sub-tons)
 // Todas as chaves originais foram preservadas para garantir 100% de retrocompatibilidade.
 // =============================================================================
@@ -203,7 +206,9 @@ const C = {
 };
 
 // =============================================================================
-// >>> START: src/config/catalogs.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/config/catalogs.js ---
 // =============================================================================
 // CATÁLOGOS DE EQUIPAMENTOS, STATUS E CONQUISTAS
 // =============================================================================
@@ -214,13 +219,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 5,
-    forgeLore: 'Arco de teixo real. Começa simples (Nv.1) e evolui na partida até a Tempestade de 5 Flechas (Nv.5).',
+    forgeLore: 'Arco de teixo real. Projétil veloz com cadência escalável a cada nível.',
     levels: [
-      'Nv.1 (Base): 1 flecha simples e cadência lenta (520ms, 1 dano).',
-      'Nv.2: Corda Tensionada — Disparo mais veloz (420ms, 1 dano).',
-      'Nv.3: Tiro Duplo — Dispara 2 flechas em V (350ms, 1 dano).',
-      'Nv.4: Saraivada Real — 3 flechas perfurantes em leque (280ms, 2 dano).',
-      'Nv.5 (MÁX): Tempestade Imperial — 5 flechas perfurantes a cada 220ms (2 dano)!'
+      'Nv.1 (Base): 1 flecha precisa (500ms, 1 dano, 0 knockback).',
+      'Nv.2: Corda Tensionada — Cadência aprimorada (410ms, 1 dano).',
+      'Nv.3: Fôlego Ágil — Cadência veloz (330ms, 1 dano).',
+      'Nv.4: Disparo Rápido — Cadência fulminante (260ms, 1 dano).',
+      'Nv.5 (MÁX): Tempestade de Flechas — Cadência máxima a cada 200ms (1 dano)!'
     ]
   },
   sword: {
@@ -229,13 +234,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 5,
-    forgeLore: 'Lâmina de aço encantado. Começa curta (Nv.1) e evolui na partida até lançar Ondas Vorpais (Nv.5).',
+    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área crescente.',
     levels: [
-      'Nv.1 (Base): Corte curto e estreito (480ms, 1 dano).',
-      'Nv.2: Fio Temperado — Alcance normal e golpe mais ágil (400ms, 1 dano).',
-      'Nv.3: Lâmina Larga — +25% área de corte e 2 de dano (330ms).',
-      'Nv.4: Fúria Vorpal — Grande arco cortante, 3 de dano e alta velocidade (265ms).',
-      'Nv.5 (MÁX): Colosso Vorpal — Corte gigante (4 dano, 210ms) + Onda de Vento Perfurante!'
+      'Nv.1 (Base): Corte inicial equilibrado (área 1.0x, 1 dano, 480ms, knockback ativo).',
+      'Nv.2: Fio Expandido — Área 1.35x (+35% de raio de corte).',
+      'Nv.3: Lâmina Ampla — Área 1.70x (+70% de cobertura de corte).',
+      'Nv.4: Fúria Circular — Área 2.10x (+110% de alcance amplo).',
+      'Nv.5 (MÁX): Colosso Vorpal — Área 2.60x (+160% de varredura colossal)!'
     ]
   },
   shield: {
@@ -259,13 +264,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 25,
     maxLevel: 5,
-    forgeLore: 'Machado duplo rúnico forjado pelo Mestre Ferreiro. Vai e volta cortando fileiras inteiras.',
+    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com knockback repulsor escalável.',
     levels: [
-      'Nv.1 (Base): 1 machado lento que perfura até 2 inimigos (600ms, 1 dano).',
-      'Nv.2: Giro Contínuo — Perfuração ilimitada na ida e na volta (500ms, 1 dano).',
-      'Nv.3: Machados Gêmeos — Lança 2 machados em ângulos opostos (420ms, 2 dano).',
-      'Nv.4: Tríade Bárbara — Lança 3 machados largos e velozes (340ms, 2 dano).',
-      'Nv.5 (MÁX): Turbilhão Ancestral — 4 machados gigantes (270ms, 3 dano na ida e volta)!'
+      'Nv.1 (Base): 1 machado bumerangue (1 dano, 560ms, knockback base 28px).',
+      'Nv.2: Impacto Pesado — Knockback 44px (+16px de força de empurrão).',
+      'Nv.3: Golpe Sísmico — Knockback 62px (+34px de força de empurrão).',
+      'Nv.4: Repulsão Rúnica — Knockback 82px (+54px de força de empurrão).',
+      'Nv.5 (MÁX): Fúria dos Titãs — Knockback 105px (arremesso massivo de inimigos)!'
     ]
   },
   firestaff: {
@@ -274,13 +279,59 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 45,
     maxLevel: 5,
-    forgeLore: 'Cetro engastado na brasa da forja. Dispara orbes solares que explodem em área.',
+    forgeLore: 'Cetro ardente. Lança orbes solares que explodem e deixam poças de fogo que danificam apenas monstros.',
     levels: [
-      'Nv.1 (Base): 1 fagulha lenta com explosão pequena (650ms, raio 42px, 1 dano).',
-      'Nv.2: Brasa Viva — Explosão ampliada (540ms, raio 58px, 1 dano).',
-      'Nv.3: Chama Dupla — 2 orbes explosivos em V (450ms, raio 74px, 2 dano).',
-      'Nv.4: Sol Ardente — 2 grandes orbes solares (360ms, raio 92px, 3 dano).',
-      'Nv.5 (MÁX): Cataclismo Solar — 3 mega meteoros limpa-tela (285ms, raio 115px, 4 dano)!'
+      'Nv.1 (Base): Orbe solar com explosão e poça de fogo (raio 45px, 1 dano, 600ms, 0 knockback).',
+      'Nv.2: Brasa Alastrada — Raio 62px de explosão e poça ardente no chão.',
+      'Nv.3: Labareda Intensa — Raio 80px de explosão e poça de fogo contínua.',
+      'Nv.4: Inferno Crescente — Raio 100px de explosão e poça de fogo massiva.',
+      'Nv.5 (MÁX): Cataclismo Solar — Raio 125px de explosão devastadora e mar de chamas no solo!'
+    ]
+  }
+};
+
+// Catálogo do Sistema de Pergaminhos Arcanos (Escolha Única por partida, até Nível 5)
+const SCROLL_CATALOG = {
+  multishot: {
+    id: 'multishot',
+    name: 'PERGAMINHO DE DISPARO MÚLTIPLO',
+    shortName: 'MULTI-SHOT',
+    icon: 'scroll_multishot',
+    maxLevel: 5,
+    levels: [
+      'Nv.1: +1 Projétil / Onda de Vento cortante em todos os ataques.',
+      'Nv.2: +2 Projéteis / Ondas cortantes adicionais.',
+      'Nv.3: +3 Projéteis / Ondas cortantes em leque.',
+      'Nv.4: +4 Projéteis / Saraivada cortante contínua.',
+      'Nv.5 (MÁX): +5 Projéteis / Chuva maciça de projéteis e cortes!'
+    ]
+  },
+  growth: {
+    id: 'growth',
+    name: 'PERGAMINHO DE CRESCIMENTO',
+    shortName: 'CRESCIMENTO',
+    icon: 'scroll_growth',
+    maxLevel: 5,
+    levels: [
+      'Nv.1: +20% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.2: +40% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.3: +65% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.4: +90% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.5 (MÁX): +120% de tamanho/área titânica em todos os ataques!'
+    ]
+  },
+  attackspeed: {
+    id: 'attackspeed',
+    name: 'PERGAMINHO DE VELOCIDADE DE ATAQUE',
+    shortName: 'VEL. ATAQUE',
+    icon: 'scroll_speed',
+    maxLevel: 5,
+    levels: [
+      'Nv.1: +15% de velocidade de ataque (cadência mais rápida).',
+      'Nv.2: +30% de velocidade de ataque em todas as armas.',
+      'Nv.3: +45% de velocidade de ataque em todas as armas.',
+      'Nv.4: +60% de velocidade de ataque em todas as armas.',
+      'Nv.5 (MÁX): +80% de velocidade de ataque frenética!'
     ]
   }
 };
@@ -428,8 +479,8 @@ const ACHIEVEMENTS_CATALOG = [
   }
 ];
 
-// =============================================================================
-// >>> START: src/core/events.js
+
+// --- BUNDLE FILE: JS_Teste/src/core/events.js ---
 // SISTEMA DE EVENTOS DESACOPLADO (Observer Pattern / EventBus)
 // Permite que combate, áudio, interface, conquistas e drops reajam a eventos do jogo
 // sem dependência cíclica ou chamadas diretas rígidas.
@@ -503,7 +554,9 @@ class GameEventBus {
 const events = new GameEventBus();
 
 // =============================================================================
-// >>> START: src/core/state.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/core/state.js ---
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, cursors, keys;
@@ -519,11 +572,17 @@ let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
+let chosenScroll = null;
+let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
+let activeFirePools = [];
+let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, buff, slashCounter = 0;
 let virtualJoystick = null;
 
 // =============================================================================
-// >>> START: src/core/storage.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/core/storage.js ---
 // GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
@@ -840,7 +899,9 @@ function getJoystickMode() { return StorageManager.getJoystickMode(); }
 function setJoystickMode(mode) { return StorageManager.setJoystickMode(mode); }
 
 // =============================================================================
-// >>> START: src/core/audio.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/core/audio.js ---
 // SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
 // =============================================================================
 const BGM_MELODY = [
@@ -1536,7 +1597,9 @@ class SoundSystem {
 const sound = new SoundSystem();
 
 // =============================================================================
-// >>> START: src/art/drawHelpers.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/art/drawHelpers.js ---
 // ARTE: FERRAMENTAS DE PIXEL ART
 // Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
 // carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
@@ -1627,7 +1690,9 @@ function makeItem(scene, key, glow, drawIcon) {
 }
 
 // =============================================================================
-// >>> START: src/art/characterArt.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/art/characterArt.js ---
 // =============================================================================
 // ARTE PROCEDURAL: PERSONAGENS, INIMIGOS, CHEFES E NPCS
 // =============================================================================
@@ -1827,33 +1892,6 @@ function drawElf(r, f) {
     r(C.boot, x, up ? 13 : 14, 2, 1);
   };
   leg(5, f === 0); leg(8, f === 1);
-}
-
-// Novo Inimigo Bullet-Hell 1: Gárgula Alada de Sangue (32x32 — asas de pedra, membranas carmesins e garras)
-function drawGargoyle(r, f) {
-  // 1. Asas Pétreas com Articulações Marcadas e Membranas Carmesins
-  if (f === 0) {
-    // Asas erguidas prontas para o mergulho
-    r(C.ironDeep, 1, 1, 5, 7); r(C.deepBlood, 2, 2, 4, 5); r(C.redBase, 3, 3, 2, 3);
-    r(C.ironDeep, 10, 1, 5, 7); r(C.deepBlood, 10, 2, 4, 5); r(C.redBase, 11, 3, 2, 3);
-  } else {
-    // Asas impulsionando para baixo no voo senoidal
-    r(C.ironDeep, 1, 5, 5, 6); r(C.deepBlood, 2, 6, 4, 4); r(C.redBase, 3, 7, 2, 2);
-    r(C.ironDeep, 10, 5, 5, 6); r(C.deepBlood, 10, 6, 4, 4); r(C.redBase, 11, 7, 2, 2);
-  }
-
-  // 2. Chifres Pétreos e Cabeça de Granito Demoníaco
-  r(C.stoneHighlight, 5, 1, 1, 2); r(C.stoneHighlight, 10, 1, 1, 2);
-  r(C.stoneDeep, 5, 3, 6, 4);
-  r(C.stoneBase, 6, 3, 4, 3);
-  r(C.yellow, 6, 4, 1, 1); r(C.yellow, 9, 4, 1, 1);
-  r(C.rubyLight, 7, 6, 2, 1); // mandíbula de sangue
-
-  // 3. Torso Blindado de Rocha Negra e Garras Ameaçadoras
-  r(C.stoneDeep, 5, 7, 6, 5);
-  r(C.redBase, 6, 8, 4, 2);
-  r(C.stoneHighlight, 5, 12, 2, 2); r(C.stoneHighlight, 9, 12, 2, 2);
-  r(C.bone, 5, 13, 1, 1); r(C.bone, 10, 13, 1, 1);
 }
 
 // Inimigo 5: Mago Sombrio Arcano (32x32 — Sobretudo longo estilizado, gola alta, caimento em A e cajado)
@@ -2302,7 +2340,9 @@ function drawMageMaster(r, f) {
   r(C.gold, 18, 9 + pY, 2, 1);
 }
 
-// >>> START: src/art/itemArt.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/art/itemArt.js ---
 // =============================================================================
 // ARTE PROCEDURAL: ÍCONES DE ARMAS, PROJÉTEIS, COLETÁVEIS E HUD
 // =============================================================================
@@ -2717,7 +2757,42 @@ function drawFullscreenIcon(r, f) {
   }
 }
 
-// >>> START: src/art/worldArt.js
+// Ícones dos 3 Novos Pergaminhos de Bônus Global (Multi-Shot, Crescimento e Velocidade)
+function drawScrollMultiShotIcon(r) {
+  // Pergaminho aberto (pergaminho envelhecido com bordas de madeira)
+  r(C.woodDark, 1, 1, 8, 1); r(C.woodDark, 1, 9, 8, 1);
+  r(C.bone, 2, 2, 6, 7);
+  r(C.wood, 1, 2, 1, 7); r(C.wood, 8, 2, 1, 7);
+  // Glifo de Disparo Múltiplo: 3 setas de energia ciano irradiando
+  r(C.cyan, 4, 3, 2, 3); r(C.cyan, 2, 4, 1, 2); r(C.cyan, 7, 4, 1, 2);
+  r(C.gold, 4, 7, 2, 1);
+}
+
+function drawScrollGrowthIcon(r) {
+  // Pergaminho aberto
+  r(C.woodDark, 1, 1, 8, 1); r(C.woodDark, 1, 9, 8, 1);
+  r(C.bone, 2, 2, 6, 7);
+  r(C.wood, 1, 2, 1, 7); r(C.wood, 8, 2, 1, 7);
+  // Glifo de Crescimento: anel rúnico em expansão com núcleo esmeralda
+  r(C.leafLight, 3, 3, 4, 1); r(C.leafLight, 3, 7, 4, 1);
+  r(C.leafLight, 3, 3, 1, 5); r(C.leafLight, 6, 3, 1, 5);
+  r(C.goldLight, 4, 4, 2, 3);
+}
+
+function drawScrollSpeedIcon(r) {
+  // Pergaminho aberto
+  r(C.woodDark, 1, 1, 8, 1); r(C.woodDark, 1, 9, 8, 1);
+  r(C.bone, 2, 2, 6, 7);
+  r(C.wood, 1, 2, 1, 7); r(C.wood, 8, 2, 1, 7);
+  // Glifo de Velocidade: raio dourado e branco veloz
+  r(C.yellow, 5, 2, 2, 2);
+  r(C.yellow, 4, 4, 3, 1);
+  r(C.white, 3, 5, 3, 2);
+  r(C.goldLight, 4, 7, 2, 2);
+}
+
+
+// --- BUNDLE FILE: JS_Teste/src/art/worldArt.js ---
 // =============================================================================
 // ARTE PROCEDURAL: CENÁRIO, TEXTURAS DO MUNDO E CONSTRUÇÕES DA VILA
 // =============================================================================
@@ -3351,11 +3426,104 @@ function drawGateTower(r) {
   r.shine(11, 1, 0, 0, C.white);
 }
 
-// >>> START: src/combat/weapons.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/combat/weapons.js ---
+// =============================================================================
 // SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
 // Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
 // permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
 // =============================================================================
+
+// Schema Unificado de Status de Armas:
+// damage, area, attackRate, knockback, projectiles
+const WEAPON_SCHEMAS = {
+  sword: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 480,
+    knockback: 28, // knockback ativo
+    projectiles: 1
+  },
+  bow: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 500,
+    knockback: 0, // estritamente 0 para projéteis
+    projectiles: 1
+  },
+  axe: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 560,
+    knockback: 28, // knockback ativo que escala com o nível
+    projectiles: 1
+  },
+  firestaff: {
+    damage: 1,
+    area: 45, // raio de explosão e poça de fogo
+    attackRate: 600,
+    knockback: 0, // estritamente 0 para projéteis
+    projectiles: 1
+  },
+  shield: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 0,
+    knockback: 0,
+    projectiles: 0
+  }
+};
+
+function getWeaponStats(type, lvl = 1) {
+  const base = WEAPON_SCHEMAS[type] || { damage: 1, area: 1.0, attackRate: 500, knockback: 0, projectiles: 1 };
+  const stats = {
+    damage: base.damage,
+    area: base.area,
+    attackRate: base.attackRate,
+    knockback: base.knockback,
+    projectiles: base.projectiles
+  };
+
+  // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
+  if (type === 'sword') {
+    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível
+    stats.area = 1.0 + (lvl - 1) * 0.40;
+  } else if (type === 'bow') {
+    // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
+    stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
+  } else if (type === 'axe') {
+    // Machado: Aumenta SOMENTE o Knockback por nível
+    stats.knockback = 28 + (lvl - 1) * 19;
+  } else if (type === 'firestaff') {
+    // Cajado de Fogo: Aumenta SOMENTE o Tamanho da Explosão e Poça por nível
+    stats.area = 45 + (lvl - 1) * 20;
+  }
+
+  // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
+  const msLvl = (chosenScroll === 'multishot') ? (scrollLevels.multishot || 0) : 0;
+  const grLvl = (chosenScroll === 'growth') ? (scrollLevels.growth || 0) : 0;
+  const asLvl = (chosenScroll === 'attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
+
+  if (msLvl > 0) {
+    stats.projectiles += msLvl;
+  }
+
+  if (grLvl > 0) {
+    const growthMult = 1.0 + grLvl * 0.22;
+    stats.area *= growthMult;
+  }
+
+  if (asLvl > 0) {
+    const asMult = 1.0 + asLvl * 0.16;
+    if (stats.attackRate > 0) {
+      stats.attackRate = Math.max(80, Math.round(stats.attackRate / asMult));
+    }
+  }
+
+  return stats;
+}
+
 const WeaponStrategies = {
   bow: {
     id: 'bow',
@@ -3365,31 +3533,38 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(130, Math.round(540 - (lvl - 1) * 45));
+      return getWeaponStats('bow', lvl).attackRate;
     },
     attack({ player, arrows, nextProjId }) {
       sound.playBow();
       const lvl = getWeaponLevel('bow');
+      const stats = getWeaponStats('bow', lvl);
+
+      const count = stats.projectiles;
       let spreads = [0];
-      if (lvl >= 7) {
-        spreads = [-0.32, -0.21, -0.11, 0, 0.11, 0.21, 0.32];
-      } else if (lvl >= 5) {
-        spreads = [-0.26, -0.13, 0, 0.13, 0.26];
-      } else if (lvl >= 4) {
-        spreads = [-0.18, 0, 0.18];
-      } else if (lvl >= 3) {
-        spreads = [-0.09, 0.09];
+      if (count === 2) spreads = [-0.10, 0.10];
+      else if (count === 3) spreads = [-0.18, 0, 0.18];
+      else if (count === 4) spreads = [-0.24, -0.08, 0.08, 0.24];
+      else if (count >= 5) {
+        spreads = [];
+        const step = 0.56 / (count - 1);
+        for (let i = 0; i < count; i++) {
+          spreads.push(-0.28 + i * step);
+        }
       }
 
-      const spd = Math.min(950, 520 + (lvl - 1) * 55);
-      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.4));
-      const pierce = lvl >= 4 ? Math.min(6, 2 + Math.floor((lvl - 4) * 0.6)) : 1;
-      const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
+      const spd = 620;
+      const dmg = stats.damage;
+      const pierce = 1;
+      const arrowKey = 'arrow_player';
+      const arrowScale = 0.95 * stats.area;
 
       spreads.forEach(ang => {
         const arrow = arrows.create(player.x + 20, player.y + 2, arrowKey);
+        arrow.setScale(arrowScale);
         arrow.body.setSize(18, 6);
         arrow.dmg = dmg;
+        arrow.knockback = 0; // Projéteis: 0 knockback
         arrow.pierceCount = pierce;
         arrow.projId = nextProjId();
         arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
@@ -3405,29 +3580,30 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(140, Math.round(480 - (lvl - 1) * 40));
+      return getWeaponStats('sword', lvl).attackRate;
     },
     attack({ scene, player, arrows, slashes, fx, nextProjId }) {
       slashes.getChildren().slice().forEach(old => old.destroy());
       sound.playSword();
       const lvl = getWeaponLevel('sword');
+      const stats = getWeaponStats('sword', lvl);
 
-      // Escalonamento contínuo de tamanho (hitbox) e força de repulsão (knockback)
-      const scale = 0.75 + (lvl - 1) * 0.22;
-      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
-      const knockback = 22 + (lvl - 1) * 16;
-      const offsetX = Math.round(24 + (lvl - 1) * 7);
+      // SOMENTE Tamanho/Área escala com nível da espada (+ bônus de Crescimento)
+      const scale = 0.80 * stats.area;
+      const dmg = stats.damage;
+      const knockback = stats.knockback;
+      const offsetX = Math.round(24 + (stats.area - 1.0) * 16);
 
       const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
       slash.setScale(scale);
       slash.offsetX = offsetX;
-      slash.body.setSize(Math.round(40 * scale), Math.round(62 * scale));
+      slash.body.setSize(Math.round(42 * scale), Math.round(64 * scale));
       slash.slashId = nextProjId();
       slash.dmg = dmg;
       slash.knockback = knockback;
       slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
         .setOrigin(0.5, 0.78)
-        .setScale(0.80 + (lvl - 1) * 0.20);
+        .setScale(0.85 * stats.area);
 
       fx.sparks.explode(5, player.x + offsetX, player.y);
 
@@ -3441,19 +3617,28 @@ const WeaponStrategies = {
         onComplete: () => slash.destroy()
       });
 
-      // Nv >= 5: Dispara Onda de Vento Cortante Perfurante que também escala
-      if (lvl >= 5) {
-        const waveScale = 1.35 + (lvl - 5) * 0.15;
-        const waveDmg = 2 + Math.floor((lvl - 5) * 0.75);
-        const waveProj = arrows.create(player.x + 34, player.y, 'arrow_player');
-        waveProj.setTint(0x7fe7ff);
-        waveProj.setScale(waveScale);
-        waveProj.body.setSize(22, 14);
-        waveProj.dmg = waveDmg;
-        waveProj.pierceCount = 4 + Math.floor((lvl - 5) * 0.5);
-        waveProj.projId = nextProjId();
-        waveProj.setVelocityX(720 + (lvl - 5) * 35);
-        fx.holy.explode(8, player.x + 34, player.y);
+      // Pergaminho Multi-Shot: Adiciona ondas cortantes de vento para frente
+      if (stats.projectiles > 1) {
+        const extraWaves = stats.projectiles - 1;
+        let waveAngles = [0];
+        if (extraWaves === 2) waveAngles = [-0.14, 0.14];
+        else if (extraWaves === 3) waveAngles = [-0.20, 0, 0.20];
+        else if (extraWaves === 4) waveAngles = [-0.26, -0.09, 0.09, 0.26];
+        else if (extraWaves >= 5) waveAngles = [-0.30, -0.15, 0, 0.15, 0.30];
+
+        waveAngles.forEach(ang => {
+          const waveProj = arrows.create(player.x + 36, player.y, 'arrow_player');
+          waveProj.setTint(0x7fe7ff);
+          waveProj.setScale(scale * 1.15);
+          waveProj.body.setSize(22, 14);
+          waveProj.dmg = dmg;
+          waveProj.knockback = 0; // Ondas são projéteis
+          waveProj.pierceCount = 3;
+          waveProj.projId = nextProjId();
+          waveProj.setVelocity(Math.cos(ang) * 720, Math.sin(ang) * 720);
+          waveProj.rotation = ang;
+        });
+        fx.holy.explode(6, player.x + 34, player.y);
       }
     }
   },
@@ -3489,38 +3674,37 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(150, Math.round(620 - (lvl - 1) * 55));
+      return getWeaponStats('axe', lvl).attackRate;
     },
     attack({ player, arrows, nextProjId }) {
       sound.playSword();
       const lvl = getWeaponLevel('axe');
-      let angles = [0];
-      if (lvl >= 5) {
-        angles = [-0.32, -0.11, 0.11, 0.32];
-      } else if (lvl >= 4) {
-        angles = [-0.24, 0, 0.24];
-      } else if (lvl >= 3) {
-        angles = [-0.16, 0.16];
-      }
+      const stats = getWeaponStats('axe', lvl);
 
-      const scale = 0.80 + (lvl - 1) * 0.12;
-      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.45));
-      const spd = Math.min(780, 440 + (lvl - 1) * 40);
+      const count = stats.projectiles;
+      let angles = [0];
+      if (count === 2) angles = [-0.15, 0.15];
+      else if (count === 3) angles = [-0.24, 0, 0.24];
+      else if (count === 4) angles = [-0.30, -0.10, 0.10, 0.30];
+      else if (count >= 5) angles = [-0.36, -0.18, 0, 0.18, 0.36];
+
+      const scale = 0.85 * stats.area;
+      const dmg = stats.damage;
+      const spd = 500;
 
       angles.forEach(ang => {
         const axe = arrows.create(player.x + 18, player.y, 'axe_proj');
         axe.setScale(scale);
         axe.body.setSize(20, 20);
-        axe.isBoomerang = lvl >= 2;
-        axe.pierceCount = lvl === 1 ? 1 : 99; // Nv 1 atinge 1 inimigo sem perfurar
+        axe.isBoomerang = true;
+        axe.pierceCount = 99;
         axe.returning = false;
         axe.dmg = dmg;
+        axe.knockback = stats.knockback; // Machado: SOMENTE Knockback escala por nível
         axe.projId = nextProjId();
 
         axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        if (axe.isBoomerang) {
-          axe.body.setAccelerationX(-680);
-        }
+        axe.body.setAccelerationX(-680);
       });
     }
   },
@@ -3532,30 +3716,34 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(160, Math.round(660 - (lvl - 1) * 60));
+      return getWeaponStats('firestaff', lvl).attackRate;
     },
     attack({ player, arrows, nextProjId }) {
       sound.playFireStaff();
       const lvl = getWeaponLevel('firestaff');
-      let angles = [0];
-      if (lvl >= 5) {
-        angles = [-0.24, 0, 0.24];
-      } else if (lvl >= 3) {
-        angles = [-0.14, 0.14];
-      }
+      const stats = getWeaponStats('firestaff', lvl);
 
-      const blastRadius = 36 + (lvl - 1) * 16;
-      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
-      const scale = 0.78 + (lvl - 1) * 0.12;
-      const spd = Math.min(720, 420 + (lvl - 1) * 35);
+      const count = stats.projectiles;
+      let angles = [0];
+      if (count === 2) angles = [-0.14, 0.14];
+      else if (count === 3) angles = [-0.22, 0, 0.22];
+      else if (count === 4) angles = [-0.28, -0.10, 0.10, 0.28];
+      else if (count >= 5) angles = [-0.34, -0.17, 0, 0.17, 0.34];
+
+      // REGRA CRÍTICA: Não aumenta o tamanho da bola de fogo voando, apenas a explosão e poça!
+      const projScale = 0.85;
+      const blastRadius = Math.round(stats.area);
+      const dmg = stats.damage;
+      const spd = 480;
 
       angles.forEach(ang => {
         const fb = arrows.create(player.x + 22, player.y, 'fireball_proj');
-        fb.setScale(scale);
+        fb.setScale(projScale);
         fb.body.setSize(18, 12);
         fb.isFireball = true;
         fb.blastRadius = blastRadius;
         fb.dmg = dmg;
+        fb.knockback = 0; // Projéteis: knockback estritamente 0
         fb.projId = nextProjId();
 
         fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
@@ -3662,10 +3850,88 @@ function endBuff() {
   WeaponSystem.end();
 }
 
+function createFirePool(scene, x, y, radius, dmg) {
+  const pool = {
+    x,
+    y,
+    radius: Math.max(26, radius * 0.85),
+    dmg: 1, // 1 de dano por pulso
+    duration: 3.0, // 3 segundos no chão
+    elapsed: 0,
+    tickCooldown: 0.35, // pulso a cada 0.35s
+    tickTimer: 0.1,
+    graphics: scene.add.graphics().setDepth(-4) // Desenha no chão (abaixo dos personagens, acima da estrada)
+  };
+  activeFirePools.push(pool);
+}
+
+function updateFirePools(scene, dt) {
+  if (!activeFirePools.length) return;
+  for (let i = activeFirePools.length - 1; i >= 0; i--) {
+    const p = activeFirePools[i];
+    p.elapsed += dt;
+    p.x -= worldSpeed * dt;
+    p.tickTimer -= dt;
+
+    p.graphics.clear();
+    const progress = p.elapsed / p.duration;
+    const alpha = Math.max(0, 1 - progress);
+    const pulse = 1 + Math.sin(p.elapsed * 12) * 0.08;
+    const curRad = p.radius * pulse;
+
+    // Círculo externo de brasas
+    p.graphics.fillStyle(0xd84315, alpha * 0.35);
+    p.graphics.fillCircle(p.x, p.y, curRad);
+
+    // Círculo médio de fogo
+    p.graphics.fillStyle(0xff7043, alpha * 0.55);
+    p.graphics.fillCircle(p.x, p.y, curRad * 0.65);
+
+    // Núcleo incandescente
+    p.graphics.fillStyle(0xffeb3b, alpha * 0.75);
+    p.graphics.fillCircle(p.x, p.y, curRad * 0.3);
+
+    // Borda rúnica
+    p.graphics.lineStyle(2, 0xffa000, alpha * 0.8);
+    p.graphics.strokeCircle(p.x, p.y, curRad);
+
+    if (Math.random() < 0.25) {
+      emberFx.emitParticleAt(
+        p.x + Phaser.Math.Between(-curRad * 0.7, curRad * 0.7),
+        p.y + Phaser.Math.Between(-curRad * 0.5, curRad * 0.5),
+        1
+      );
+    }
+
+    // Aplica dano contínuo SOMENTE a inimigos que pisarem no fogo (NUNCA ao jogador!)
+    if (p.tickTimer <= 0) {
+      p.tickTimer = p.tickCooldown;
+      enemies.getChildren().forEach(e => {
+        if (e.active && Phaser.Math.Distance.Between(p.x, p.y, e.x, e.y) <= curRad) {
+          damageEnemy(scene, e, p.dmg);
+          hitFx.explode(2, e.x, e.y);
+        }
+      });
+    }
+
+    if (p.elapsed >= p.duration || p.x < -100) {
+      p.graphics.destroy();
+      activeFirePools.splice(i, 1);
+    }
+  }
+}
+
+function clearFirePools() {
+  activeFirePools.forEach(p => {
+    if (p.graphics && p.graphics.destroy) p.graphics.destroy();
+  });
+  activeFirePools = [];
+}
+
 function explodeFireball(scene, x, y, radius, dmg) {
   sound.playEarthSmash();
-  emberFx.explode(8, x, y);
-  hitFx.explode(5, x, y);
+  emberFx.explode(10, x, y);
+  hitFx.explode(6, x, y);
 
   const blastOuter = scene.add.circle(x, y, 10, 0xff7043, 0.40)
     .setStrokeStyle(2, 0xffeb3b, 0.85).setDepth(1550);
@@ -3689,10 +3955,13 @@ function explodeFireball(scene, x, y, radius, dmg) {
     onComplete: () => blastInner.destroy()
   });
 
+  // Cria poça de fogo circular no solo que queima apenas inimigos
+  createFirePool(scene, x, y, radius, dmg);
+
   enemies.getChildren().slice().forEach(e => {
     if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
       if (e.enemyType === 'dark_mage') {
-        teleportMage(scene, e); // Mago Sombrio esquiva do splash damage de projétil!
+        teleportMage(scene, e); // Mago Sombrio esquiva do impacto direto de projéteis!
         return;
       }
       damageEnemy(scene, e, dmg);
@@ -3705,7 +3974,8 @@ function explodeFireball(scene, x, y, radius, dmg) {
   });
 }
 
-// >>> START: src/combat/combatManager.js
+
+// --- BUNDLE FILE: JS_Teste/src/combat/combatManager.js ---
 // =============================================================================
 // GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
 // =============================================================================
@@ -3851,7 +4121,7 @@ function setupDecoupledEventListeners(scene) {
 
   // 4. SISTEMA DE LOOT & RECOMPENSAS
   events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
-    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, gargoyle: 0.45, goblin: 0.38, mini_golem: 0.32 };
+    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, goblin: 0.38, mini_golem: 0.32 };
     const chance = dropRates[enemyType] ?? 0.40;
 
     spawnXpOrb(scene, x - 6, y, xpValue);
@@ -4027,6 +4297,7 @@ function gameOver(scene) {
   pendingLevelUps = 0;
 
   consolidateSilverToGold();
+  clearFirePools();
 
   if (shieldSprite) shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);
@@ -4068,7 +4339,9 @@ function gameOver(scene) {
   scene.time.delayedCall(700, () => showInitials(scene));
 }
 
-// >>> START: src/combat/lootManager.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/combat/lootManager.js ---
 // =============================================================================
 // GERENCIADOR DE DROPS, XP, MOEDAS E ATRAÇÃO MAGNÉTICA
 // =============================================================================
@@ -4159,7 +4432,9 @@ function collectCoin(scene, coin) {
   removeEntity(coin);
 }
 
-// >>> START: src/world/director.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/world/director.js ---
 // =============================================================================
 // DIRETOR DO MUNDO: ONDAS DE SPAWN, VILA INICIAL E ELEMENTOS AMBIENTAIS
 // =============================================================================
@@ -4241,6 +4516,9 @@ function startGameplay(scene) {
   xpToNextLevel = getXpRequiredForLevel(1);
   pendingLevelUps = 0;
   runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
+  chosenScroll = null;
+  scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
+  clearFirePools();
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();
@@ -4392,7 +4670,9 @@ function spawnItem(scene) {
   scene.tweens.add({ targets: item, scale: 1.12, duration: 400, yoyo: true, repeat: -1 });
 }
 
-// >>> START: src/world/enemies.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/world/enemies.js ---
 // =============================================================================
 // INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
 // =============================================================================
@@ -4405,10 +4685,10 @@ function spawnEnemy(scene, forcedType, customY) {
       type = 'mini_golem';
     } else if (bossDefeated) {
       // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.36 ? 'goblin' : (roll < 0.62 ? 'warrior' : (roll < 0.84 ? 'elf' : 'gargoyle')));
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.40 ? 'goblin' : (roll < 0.72 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 40) {
-      // Fase pré-boss avançada: Goblins, guerreiros, elfos e gárgulas (SEM MAGO)
-      type = roll < 0.38 ? 'goblin' : (roll < 0.65 ? 'warrior' : (roll < 0.85 ? 'elf' : 'gargoyle'));
+      // Fase pré-boss avançada: Goblins, guerreiros e elfos (SEM MAGO)
+      type = roll < 0.45 ? 'goblin' : (roll < 0.75 ? 'warrior' : 'elf');
     } else if (survivalTime >= 20) {
       // Fase pré-boss intermediária
       type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
@@ -4427,9 +4707,6 @@ function spawnEnemy(scene, forcedType, customY) {
       const stacked = enemies.getChildren().some(e => !e.isBoss && e.x > 760 && Math.abs(e.y - candidate) < 36);
       if (!stacked) { y = candidate; break; }
     }
-  }
-  if (type === 'gargoyle') {
-    y = Phaser.Math.Clamp(y, 175, 470);
   }
 
   const enemy = enemies.create(860, y, type, 0);
@@ -4566,7 +4843,8 @@ function teleportMage(scene, mage) {
   }
 }
 
-// >>> START: src/world/boss.js
+
+// --- BUNDLE FILE: JS_Teste/src/world/boss.js ---
 // =============================================================================
 // BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (ATAQUES, TELEGRAFIAS E CONTROLE)
 // =============================================================================
@@ -4736,10 +5014,14 @@ function ejectMiniGolemsFromBoss(scene, boss) {
               if (debrisFx) debrisFx.explode(7, golem.x, golem.y + 10);
               sound.playShieldBlock();
 
-              // Estado: DORMANT (Inconsciente como rocha, olhos apagados, totalmente imóvel)
+              // Estado: DORMANT (Inconsciente fixo no solo real)
               golem.golemState = 'DORMANT';
               golem.setFrame(2);
-              golem.setVelocity(0, 0);
+              golem.setVelocityX(-worldSpeed);
+              golem.setVelocityY(0);
+              golem.golemState = 'DORMANT';
+              golem.setFrame(2);
+
 
               // Transição de despertar após breve momento (1.1s a 1.3s calibrado)
               const dormantTime = Phaser.Math.Between(1100, 1300);
@@ -5041,7 +5323,9 @@ function defeatBoss(scene, boss) {
   spawnItem(scene);
 }
 
-// >>> START: src/ui/hud.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/ui/hud.js ---
 // =============================================================================
 // INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS
 // =============================================================================
@@ -5153,8 +5437,10 @@ function createHUD(scene) {
   hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
   hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(478, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
-  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime]);
+  hudItemTime = scene.add.text(460, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
+  hudScrollBadge = scene.add.image(495, 28, 'scroll_multishot').setScale(0.95).setVisible(false);
+  hudScrollText = scene.add.text(495, 43, '', textStyle('#b388ff', 9)).setOrigin(0.5, 0.5).setVisible(false);
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, hudScrollBadge, hudScrollText]);
 
   // 4. PAINEL DE RECORDE DO REINO — Direita (x: 520..682)
   const bestBg = scene.add.graphics();
@@ -5362,7 +5648,25 @@ function updateItemHUD() {
   }
 }
 
-// >>> START: src/ui/modals.js
+
+
+function updateScrollHUD() {
+  if (!hudScrollBadge || !hudScrollText) return;
+  if (!chosenScroll) {
+    hudScrollBadge.setVisible(false);
+    hudScrollText.setVisible(false);
+    return;
+  }
+  const sCfg = SCROLL_CATALOG[chosenScroll];
+  const lvl = scrollLevels[chosenScroll] || 1;
+  if (sCfg) {
+    hudScrollBadge.setTexture(sCfg.icon).setVisible(true);
+    hudScrollText.setText(`NV.${lvl}`).setVisible(true);
+  }
+}
+
+
+// --- BUNDLE FILE: JS_Teste/src/ui/modals.js ---
 // =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
@@ -5399,6 +5703,37 @@ function rollLevelUpCards() {
         }
       });
     }
+  });
+
+  // Cartas de Pergaminhos Arcanos (Regra: apenas 1 pergaminho por partida, até Nv. 5)
+  const scrollCards = [];
+  const scrollKeys = ['multishot', 'growth', 'attackspeed'];
+  scrollKeys.forEach(sKey => {
+    if (chosenScroll !== null && chosenScroll !== sKey) return;
+    const currLvl = scrollLevels[sKey] || 0;
+    if (currLvl >= 5) return;
+    const nextLvl = currLvl + 1;
+    const sCfg = SCROLL_CATALOG[sKey];
+    if (!sCfg) return;
+    const lvlDesc = sCfg.levels[nextLvl - 1] || `+Poder arcano NV. ${nextLvl}`;
+    scrollCards.push({
+      id: `scroll_${sKey}_${nextLvl}`,
+      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO EXCLUSIVO',
+      title: sCfg.name,
+      badge: currLvl === 0 ? 'NOVO! NV. 1' : `NV. ${currLvl} ➔ NV. ${nextLvl}`,
+      badgeColor: '#b388ff',
+      borderColor: 0xb388ff,
+      icon: sCfg.icon,
+      desc: `${lvlDesc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida (Nv. Máx 5)!' : 'Aprimora seu pergaminho exclusivo nesta partida!'}`,
+      weight: chosenScroll === sKey ? 3 : 2,
+      apply: (scene) => {
+        chosenScroll = sKey;
+        scrollLevels[sKey] = nextLvl;
+        sound.playLevelUp();
+        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} NV.${nextLvl}!`, '#b388ff');
+        updateScrollHUD();
+      }
+    });
   });
 
   // Cartas de Itens e Relíquias Táticas da Partida (garantem sempre 3 opções distintas!)
@@ -5492,9 +5827,17 @@ function rollLevelUpCards() {
   // Sorteio RNG sem repetição: prioriza Cartas de Armas e completa até ter exatamente 3 cartas distintas
   const shuffledWeapons = Phaser.Utils.Array.Shuffle(weaponCards.slice());
   const shuffledItems = Phaser.Utils.Array.Shuffle(itemCards.slice());
+  const shuffledScrolls = Phaser.Utils.Array.Shuffle(scrollCards.slice());
 
   const selected = [];
   const usedIds = new Set();
+
+  // 1. Inclui 1 opção de Pergaminho Arcano se houver pergaminho elegível
+  if (shuffledScrolls.length > 0) {
+    const sCard = shuffledScrolls[0];
+    selected.push(sCard);
+    usedIds.add(sCard.id);
+  }
 
   // Garante pelo menos 2 cartas de evolução de armas (se disponíveis) e 1 carta versátil/arma
   shuffledWeapons.forEach(card => {
@@ -6075,7 +6418,9 @@ function showLeaderboard(scene, topScores, currentName) {
     }
   });
 }
-// >>> START: src/ui/menus.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/ui/menus.js ---
 // =============================================================================
 // TELAS E MENUS DO JOGO: MENU PRINCIPAL, FORJA, MAGO, CONQUISTAS E OPÇÕES
 // =============================================================================
@@ -7000,7 +7345,9 @@ function showSettingsMenu(scene) {
   ]);
 }
 
-// >>> START: src/ui/virtualJoystick.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/ui/virtualJoystick.js ---
 // =============================================================================
 // SISTEMA DE CONTROLE POR JOYSTICK VIRTUAL MOBILE (FIXO E ANCORADO NA UI)
 // =============================================================================
@@ -7318,7 +7665,9 @@ class VirtualJoystick {
 if (typeof window !== 'undefined') {
   window.VirtualJoystick = VirtualJoystick;
 }
-// >>> START: src/main.js
+
+
+// --- BUNDLE FILE: JS_Teste/src/main.js ---
 // =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
@@ -7331,7 +7680,7 @@ function preload() {
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
-  makeSheet(this, 'gargoyle', 32, 32, 2, drawGargoyle);
+
   makeSheet(this, 'dark_mage', 32, 32, 2, drawDarkMage);
   makeSheet(this, 'mini_golem', 28, 28, 3, drawMiniGolem);
   makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
@@ -7371,6 +7720,9 @@ function preload() {
   makeItem(this, 'stat_health', 0xff5252, drawHealthIcon);
   makeItem(this, 'stat_speed', 0xffeb3b, drawSpeedIcon);
   makeItem(this, 'stat_wisdom', 0xc36bff, drawWisdomIcon);
+  makeItem(this, 'scroll_multishot', 0xb388ff, drawScrollMultiShotIcon);
+  makeItem(this, 'scroll_growth', 0x81c784, drawScrollGrowthIcon);
+  makeItem(this, 'scroll_speed', 0xffb74d, drawScrollSpeedIcon);
   makeWorldTextures(this);
 
   // Garante filtro NEAREST puro em todas as texturas geradas (sem aspecto borrado ou esfarelado)
@@ -7447,7 +7799,7 @@ function create(data) {
     goblin: { fps: 12, frames: 2 },
     warrior: { fps: 8, frames: 2 },
     elf: { fps: 9, frames: 2 },
-    gargoyle: { fps: 10, frames: 2 },
+
     dark_mage: { fps: 8, frames: 2 },
     mini_golem: { fps: 10, frames: 2 },
     boss_golem: { fps: 6, frames: 2 },
@@ -7619,6 +7971,9 @@ function create(data) {
     }
 
     damageEnemy(scene, e, a.dmg || 1);
+    if (!e.isBoss && e.active && e.hp > 0 && a.knockback && a.knockback > 0) {
+      applySmoothKnockback(scene, e, a.knockback, 130);
+    }
     if (a.pierceCount && a.pierceCount > 1) {
       a.pierceCount--;
     } else if (!a.isBoomerang) {
@@ -7782,10 +8137,7 @@ function updateGameplay(scene, time, dt) {
   enemies.getChildren().forEach(e => {
     if (!e.isBoss) {
       e.setAngle(0);
-      if (e.enemyType === 'gargoyle' && e.baseY !== undefined) {
-        e.y = Math.round(Phaser.Math.Clamp(e.baseY + Math.sin(time * 0.0055 + e.phase) * 46, 125, 520));
-        if (e.body) e.body.updateFromGameObject();
-      } else if (e.enemyType === 'goblin') {
+      if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
         // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
@@ -7793,10 +8145,14 @@ function updateGameplay(scene, time, dt) {
         e.y = Phaser.Math.Clamp(e.y, 130, 520);
         if (e.body) e.body.updateFromGameObject();
       } else if (e.enemyType === 'mini_golem') {
-        // Regras 9 e 10: Mini-Golems inconscientes/em ejeção permanecem estáticos como pedra
+        // Regras 4, 9 e 10: Mini-Golems inconscientes ficam ancorados ao solo (-worldSpeed); ativos perseguem lentamente
         if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {
-          e.setVelocity(0, 0);
+          e.setVelocityX(-worldSpeed);
+          e.setVelocityY(0);
           e.setFrame(2);
+        } else if (e.golemState === 'ACTIVE') {
+          const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
+          scene.physics.moveToObject(e, player, slowSpeed);
         }
       }
     }
@@ -7846,6 +8202,7 @@ function updateGameplay(scene, time, dt) {
 
   // 4. Sistema Modular de Armas: cadência e tempo processados pela estratégia ativa
   WeaponSystem.update(scene, time, dt);
+  updateFirePools(scene, dt);
   updateItemHUD();
 
   // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
@@ -7930,11 +8287,6 @@ function sortAndShade() {
       pw = 22; ph = 6; cw = 14; ch = 3;
       pAlpha = 0.16; cAlpha = 0.22;
       groundY = feet + 4;
-    } else if (s.enemyType === 'gargoyle') {
-      // Gárgula projeta sombra no chão enquanto bate asas no ar
-      pw = 22; ph = 6; cw = 12; ch = 3;
-      pAlpha = 0.16; cAlpha = 0.20;
-      groundY = Math.round((s.baseY || s.y) + 16);
     } else if (s.enemyType === 'mini_golem') {
       pw = 20; ph = 7; cw = 14; ch = 4;
       cAlpha = 0.36;
@@ -8063,5 +8415,6 @@ const config = {
 
 const game = new Phaser.Game(config);
 window.game = game;
+
 
 

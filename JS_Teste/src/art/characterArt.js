@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // ARTE PROCEDURAL: PERSONAGENS, INIMIGOS, CHEFES E NPCS
 // =============================================================================
 // ARTE: DESENHOS (r = cor, x, y, largura, altura — em pixels do desenho)
@@ -197,33 +197,6 @@ function drawElf(r, f) {
     r(C.boot, x, up ? 13 : 14, 2, 1);
   };
   leg(5, f === 0); leg(8, f === 1);
-}
-
-// Novo Inimigo Bullet-Hell 1: Gárgula Alada de Sangue (32x32 — asas de pedra, membranas carmesins e garras)
-function drawGargoyle(r, f) {
-  // 1. Asas Pétreas com Articulações Marcadas e Membranas Carmesins
-  if (f === 0) {
-    // Asas erguidas prontas para o mergulho
-    r(C.ironDeep, 1, 1, 5, 7); r(C.deepBlood, 2, 2, 4, 5); r(C.redBase, 3, 3, 2, 3);
-    r(C.ironDeep, 10, 1, 5, 7); r(C.deepBlood, 10, 2, 4, 5); r(C.redBase, 11, 3, 2, 3);
-  } else {
-    // Asas impulsionando para baixo no voo senoidal
-    r(C.ironDeep, 1, 5, 5, 6); r(C.deepBlood, 2, 6, 4, 4); r(C.redBase, 3, 7, 2, 2);
-    r(C.ironDeep, 10, 5, 5, 6); r(C.deepBlood, 10, 6, 4, 4); r(C.redBase, 11, 7, 2, 2);
-  }
-
-  // 2. Chifres Pétreos e Cabeça de Granito Demoníaco
-  r(C.stoneHighlight, 5, 1, 1, 2); r(C.stoneHighlight, 10, 1, 1, 2);
-  r(C.stoneDeep, 5, 3, 6, 4);
-  r(C.stoneBase, 6, 3, 4, 3);
-  r(C.yellow, 6, 4, 1, 1); r(C.yellow, 9, 4, 1, 1);
-  r(C.rubyLight, 7, 6, 2, 1); // mandíbula de sangue
-
-  // 3. Torso Blindado de Rocha Negra e Garras Ameaçadoras
-  r(C.stoneDeep, 5, 7, 6, 5);
-  r(C.redBase, 6, 8, 4, 2);
-  r(C.stoneHighlight, 5, 12, 2, 2); r(C.stoneHighlight, 9, 12, 2, 2);
-  r(C.bone, 5, 13, 1, 1); r(C.bone, 10, 13, 1, 1);
 }
 
 // Inimigo 5: Mago Sombrio Arcano (32x32 — Sobretudo longo estilizado, gola alta, caimento em A e cajado)

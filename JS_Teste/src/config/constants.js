@@ -24,9 +24,9 @@ const ENEMIES = {                                    // vida, velocidade relativ
   goblin:     { hp: 1, speed: 1.12, w: 16, h: 20, xp: 2 },
   warrior:    { hp: 2, speed: 0.86, w: 20, h: 26, xp: 5 },
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
-  gargoyle:   { hp: 1, speed: 1.16, w: 18, h: 20, xp: 3 },  // voo senoidal estilo Bullet-Hell
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
-  mini_golem: { hp: 1, speed: 0.94, w: 18, h: 20, xp: 2 }
+  mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
+  boss_golem: { hp: 50, speed: 0.35, w: 60, h: 72, xp: 50 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
 const BOSS_MAX_HP = 50;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)

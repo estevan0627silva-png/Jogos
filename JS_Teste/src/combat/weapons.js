@@ -1,7 +1,98 @@
+// =============================================================================
 // SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
 // Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
 // permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
 // =============================================================================
+
+// Schema Unificado de Status de Armas:
+// damage, area, attackRate, knockback, projectiles
+const WEAPON_SCHEMAS = {
+  sword: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 480,
+    knockback: 28, // knockback ativo
+    projectiles: 1
+  },
+  bow: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 500,
+    knockback: 0, // estritamente 0 para projéteis
+    projectiles: 1
+  },
+  axe: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 560,
+    knockback: 28, // knockback ativo que escala com o nível
+    projectiles: 1
+  },
+  firestaff: {
+    damage: 1,
+    area: 45, // raio de explosão e poça de fogo
+    attackRate: 600,
+    knockback: 0, // estritamente 0 para projéteis
+    projectiles: 1
+  },
+  shield: {
+    damage: 1,
+    area: 1.0,
+    attackRate: 0,
+    knockback: 0,
+    projectiles: 0
+  }
+};
+
+function getWeaponStats(type, lvl = 1) {
+  const base = WEAPON_SCHEMAS[type] || { damage: 1, area: 1.0, attackRate: 500, knockback: 0, projectiles: 1 };
+  const stats = {
+    damage: base.damage,
+    area: base.area,
+    attackRate: base.attackRate,
+    knockback: base.knockback,
+    projectiles: base.projectiles
+  };
+
+  // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
+  if (type === 'sword') {
+    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível
+    stats.area = 1.0 + (lvl - 1) * 0.40;
+  } else if (type === 'bow') {
+    // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
+    stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
+  } else if (type === 'axe') {
+    // Machado: Aumenta SOMENTE o Knockback por nível
+    stats.knockback = 28 + (lvl - 1) * 19;
+  } else if (type === 'firestaff') {
+    // Cajado de Fogo: Aumenta SOMENTE o Tamanho da Explosão e Poça por nível
+    stats.area = 45 + (lvl - 1) * 20;
+  }
+
+  // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
+  const msLvl = (chosenScroll === 'multishot') ? (scrollLevels.multishot || 0) : 0;
+  const grLvl = (chosenScroll === 'growth') ? (scrollLevels.growth || 0) : 0;
+  const asLvl = (chosenScroll === 'attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
+
+  if (msLvl > 0) {
+    stats.projectiles += msLvl;
+  }
+
+  if (grLvl > 0) {
+    const growthMult = 1.0 + grLvl * 0.22;
+    stats.area *= growthMult;
+  }
+
+  if (asLvl > 0) {
+    const asMult = 1.0 + asLvl * 0.16;
+    if (stats.attackRate > 0) {
+      stats.attackRate = Math.max(80, Math.round(stats.attackRate / asMult));
+    }
+  }
+
+  return stats;
+}
+
 const WeaponStrategies = {
   bow: {
     id: 'bow',
@@ -11,31 +102,38 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(130, Math.round(540 - (lvl - 1) * 45));
+      return getWeaponStats('bow', lvl).attackRate;
     },
     attack({ player, arrows, nextProjId }) {
       sound.playBow();
       const lvl = getWeaponLevel('bow');
+      const stats = getWeaponStats('bow', lvl);
+
+      const count = stats.projectiles;
       let spreads = [0];
-      if (lvl >= 7) {
-        spreads = [-0.32, -0.21, -0.11, 0, 0.11, 0.21, 0.32];
-      } else if (lvl >= 5) {
-        spreads = [-0.26, -0.13, 0, 0.13, 0.26];
-      } else if (lvl >= 4) {
-        spreads = [-0.18, 0, 0.18];
-      } else if (lvl >= 3) {
-        spreads = [-0.09, 0.09];
+      if (count === 2) spreads = [-0.10, 0.10];
+      else if (count === 3) spreads = [-0.18, 0, 0.18];
+      else if (count === 4) spreads = [-0.24, -0.08, 0.08, 0.24];
+      else if (count >= 5) {
+        spreads = [];
+        const step = 0.56 / (count - 1);
+        for (let i = 0; i < count; i++) {
+          spreads.push(-0.28 + i * step);
+        }
       }
 
-      const spd = Math.min(950, 520 + (lvl - 1) * 55);
-      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.4));
-      const pierce = lvl >= 4 ? Math.min(6, 2 + Math.floor((lvl - 4) * 0.6)) : 1;
-      const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
+      const spd = 620;
+      const dmg = stats.damage;
+      const pierce = 1;
+      const arrowKey = 'arrow_player';
+      const arrowScale = 0.95 * stats.area;
 
       spreads.forEach(ang => {
         const arrow = arrows.create(player.x + 20, player.y + 2, arrowKey);
+        arrow.setScale(arrowScale);
         arrow.body.setSize(18, 6);
         arrow.dmg = dmg;
+        arrow.knockback = 0; // Projéteis: 0 knockback
         arrow.pierceCount = pierce;
         arrow.projId = nextProjId();
         arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
@@ -51,29 +149,30 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(140, Math.round(480 - (lvl - 1) * 40));
+      return getWeaponStats('sword', lvl).attackRate;
     },
     attack({ scene, player, arrows, slashes, fx, nextProjId }) {
       slashes.getChildren().slice().forEach(old => old.destroy());
       sound.playSword();
       const lvl = getWeaponLevel('sword');
+      const stats = getWeaponStats('sword', lvl);
 
-      // Escalonamento contínuo de tamanho (hitbox) e força de repulsão (knockback)
-      const scale = 0.75 + (lvl - 1) * 0.22;
-      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
-      const knockback = 22 + (lvl - 1) * 16;
-      const offsetX = Math.round(24 + (lvl - 1) * 7);
+      // SOMENTE Tamanho/Área escala com nível da espada (+ bônus de Crescimento)
+      const scale = 0.80 * stats.area;
+      const dmg = stats.damage;
+      const knockback = stats.knockback;
+      const offsetX = Math.round(24 + (stats.area - 1.0) * 16);
 
       const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
       slash.setScale(scale);
       slash.offsetX = offsetX;
-      slash.body.setSize(Math.round(40 * scale), Math.round(62 * scale));
+      slash.body.setSize(Math.round(42 * scale), Math.round(64 * scale));
       slash.slashId = nextProjId();
       slash.dmg = dmg;
       slash.knockback = knockback;
       slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
         .setOrigin(0.5, 0.78)
-        .setScale(0.80 + (lvl - 1) * 0.20);
+        .setScale(0.85 * stats.area);
 
       fx.sparks.explode(5, player.x + offsetX, player.y);
 
@@ -87,19 +186,28 @@ const WeaponStrategies = {
         onComplete: () => slash.destroy()
       });
 
-      // Nv >= 5: Dispara Onda de Vento Cortante Perfurante que também escala
-      if (lvl >= 5) {
-        const waveScale = 1.35 + (lvl - 5) * 0.15;
-        const waveDmg = 2 + Math.floor((lvl - 5) * 0.75);
-        const waveProj = arrows.create(player.x + 34, player.y, 'arrow_player');
-        waveProj.setTint(0x7fe7ff);
-        waveProj.setScale(waveScale);
-        waveProj.body.setSize(22, 14);
-        waveProj.dmg = waveDmg;
-        waveProj.pierceCount = 4 + Math.floor((lvl - 5) * 0.5);
-        waveProj.projId = nextProjId();
-        waveProj.setVelocityX(720 + (lvl - 5) * 35);
-        fx.holy.explode(8, player.x + 34, player.y);
+      // Pergaminho Multi-Shot: Adiciona ondas cortantes de vento para frente
+      if (stats.projectiles > 1) {
+        const extraWaves = stats.projectiles - 1;
+        let waveAngles = [0];
+        if (extraWaves === 2) waveAngles = [-0.14, 0.14];
+        else if (extraWaves === 3) waveAngles = [-0.20, 0, 0.20];
+        else if (extraWaves === 4) waveAngles = [-0.26, -0.09, 0.09, 0.26];
+        else if (extraWaves >= 5) waveAngles = [-0.30, -0.15, 0, 0.15, 0.30];
+
+        waveAngles.forEach(ang => {
+          const waveProj = arrows.create(player.x + 36, player.y, 'arrow_player');
+          waveProj.setTint(0x7fe7ff);
+          waveProj.setScale(scale * 1.15);
+          waveProj.body.setSize(22, 14);
+          waveProj.dmg = dmg;
+          waveProj.knockback = 0; // Ondas são projéteis
+          waveProj.pierceCount = 3;
+          waveProj.projId = nextProjId();
+          waveProj.setVelocity(Math.cos(ang) * 720, Math.sin(ang) * 720);
+          waveProj.rotation = ang;
+        });
+        fx.holy.explode(6, player.x + 34, player.y);
       }
     }
   },
@@ -135,38 +243,37 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(150, Math.round(620 - (lvl - 1) * 55));
+      return getWeaponStats('axe', lvl).attackRate;
     },
     attack({ player, arrows, nextProjId }) {
       sound.playSword();
       const lvl = getWeaponLevel('axe');
-      let angles = [0];
-      if (lvl >= 5) {
-        angles = [-0.32, -0.11, 0.11, 0.32];
-      } else if (lvl >= 4) {
-        angles = [-0.24, 0, 0.24];
-      } else if (lvl >= 3) {
-        angles = [-0.16, 0.16];
-      }
+      const stats = getWeaponStats('axe', lvl);
 
-      const scale = 0.80 + (lvl - 1) * 0.12;
-      const dmg = Math.max(1, Math.floor(1 + (lvl - 1) * 0.45));
-      const spd = Math.min(780, 440 + (lvl - 1) * 40);
+      const count = stats.projectiles;
+      let angles = [0];
+      if (count === 2) angles = [-0.15, 0.15];
+      else if (count === 3) angles = [-0.24, 0, 0.24];
+      else if (count === 4) angles = [-0.30, -0.10, 0.10, 0.30];
+      else if (count >= 5) angles = [-0.36, -0.18, 0, 0.18, 0.36];
+
+      const scale = 0.85 * stats.area;
+      const dmg = stats.damage;
+      const spd = 500;
 
       angles.forEach(ang => {
         const axe = arrows.create(player.x + 18, player.y, 'axe_proj');
         axe.setScale(scale);
         axe.body.setSize(20, 20);
-        axe.isBoomerang = lvl >= 2;
-        axe.pierceCount = lvl === 1 ? 1 : 99; // Nv 1 atinge 1 inimigo sem perfurar
+        axe.isBoomerang = true;
+        axe.pierceCount = 99;
         axe.returning = false;
         axe.dmg = dmg;
+        axe.knockback = stats.knockback; // Machado: SOMENTE Knockback escala por nível
         axe.projId = nextProjId();
 
         axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        if (axe.isBoomerang) {
-          axe.body.setAccelerationX(-680);
-        }
+        axe.body.setAccelerationX(-680);
       });
     }
   },
@@ -178,30 +285,34 @@ const WeaponStrategies = {
       return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
-      return Math.max(160, Math.round(660 - (lvl - 1) * 60));
+      return getWeaponStats('firestaff', lvl).attackRate;
     },
     attack({ player, arrows, nextProjId }) {
       sound.playFireStaff();
       const lvl = getWeaponLevel('firestaff');
-      let angles = [0];
-      if (lvl >= 5) {
-        angles = [-0.24, 0, 0.24];
-      } else if (lvl >= 3) {
-        angles = [-0.14, 0.14];
-      }
+      const stats = getWeaponStats('firestaff', lvl);
 
-      const blastRadius = 36 + (lvl - 1) * 16;
-      const dmg = 1 + Math.floor((lvl - 1) * 0.75);
-      const scale = 0.78 + (lvl - 1) * 0.12;
-      const spd = Math.min(720, 420 + (lvl - 1) * 35);
+      const count = stats.projectiles;
+      let angles = [0];
+      if (count === 2) angles = [-0.14, 0.14];
+      else if (count === 3) angles = [-0.22, 0, 0.22];
+      else if (count === 4) angles = [-0.28, -0.10, 0.10, 0.28];
+      else if (count >= 5) angles = [-0.34, -0.17, 0, 0.17, 0.34];
+
+      // REGRA CRÍTICA: Não aumenta o tamanho da bola de fogo voando, apenas a explosão e poça!
+      const projScale = 0.85;
+      const blastRadius = Math.round(stats.area);
+      const dmg = stats.damage;
+      const spd = 480;
 
       angles.forEach(ang => {
         const fb = arrows.create(player.x + 22, player.y, 'fireball_proj');
-        fb.setScale(scale);
+        fb.setScale(projScale);
         fb.body.setSize(18, 12);
         fb.isFireball = true;
         fb.blastRadius = blastRadius;
         fb.dmg = dmg;
+        fb.knockback = 0; // Projéteis: knockback estritamente 0
         fb.projId = nextProjId();
 
         fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
@@ -308,10 +419,88 @@ function endBuff() {
   WeaponSystem.end();
 }
 
+function createFirePool(scene, x, y, radius, dmg) {
+  const pool = {
+    x,
+    y,
+    radius: Math.max(26, radius * 0.85),
+    dmg: 1, // 1 de dano por pulso
+    duration: 3.0, // 3 segundos no chão
+    elapsed: 0,
+    tickCooldown: 0.35, // pulso a cada 0.35s
+    tickTimer: 0.1,
+    graphics: scene.add.graphics().setDepth(-4) // Desenha no chão (abaixo dos personagens, acima da estrada)
+  };
+  activeFirePools.push(pool);
+}
+
+function updateFirePools(scene, dt) {
+  if (!activeFirePools.length) return;
+  for (let i = activeFirePools.length - 1; i >= 0; i--) {
+    const p = activeFirePools[i];
+    p.elapsed += dt;
+    p.x -= worldSpeed * dt;
+    p.tickTimer -= dt;
+
+    p.graphics.clear();
+    const progress = p.elapsed / p.duration;
+    const alpha = Math.max(0, 1 - progress);
+    const pulse = 1 + Math.sin(p.elapsed * 12) * 0.08;
+    const curRad = p.radius * pulse;
+
+    // Círculo externo de brasas
+    p.graphics.fillStyle(0xd84315, alpha * 0.35);
+    p.graphics.fillCircle(p.x, p.y, curRad);
+
+    // Círculo médio de fogo
+    p.graphics.fillStyle(0xff7043, alpha * 0.55);
+    p.graphics.fillCircle(p.x, p.y, curRad * 0.65);
+
+    // Núcleo incandescente
+    p.graphics.fillStyle(0xffeb3b, alpha * 0.75);
+    p.graphics.fillCircle(p.x, p.y, curRad * 0.3);
+
+    // Borda rúnica
+    p.graphics.lineStyle(2, 0xffa000, alpha * 0.8);
+    p.graphics.strokeCircle(p.x, p.y, curRad);
+
+    if (Math.random() < 0.25) {
+      emberFx.emitParticleAt(
+        p.x + Phaser.Math.Between(-curRad * 0.7, curRad * 0.7),
+        p.y + Phaser.Math.Between(-curRad * 0.5, curRad * 0.5),
+        1
+      );
+    }
+
+    // Aplica dano contínuo SOMENTE a inimigos que pisarem no fogo (NUNCA ao jogador!)
+    if (p.tickTimer <= 0) {
+      p.tickTimer = p.tickCooldown;
+      enemies.getChildren().forEach(e => {
+        if (e.active && Phaser.Math.Distance.Between(p.x, p.y, e.x, e.y) <= curRad) {
+          damageEnemy(scene, e, p.dmg);
+          hitFx.explode(2, e.x, e.y);
+        }
+      });
+    }
+
+    if (p.elapsed >= p.duration || p.x < -100) {
+      p.graphics.destroy();
+      activeFirePools.splice(i, 1);
+    }
+  }
+}
+
+function clearFirePools() {
+  activeFirePools.forEach(p => {
+    if (p.graphics && p.graphics.destroy) p.graphics.destroy();
+  });
+  activeFirePools = [];
+}
+
 function explodeFireball(scene, x, y, radius, dmg) {
   sound.playEarthSmash();
-  emberFx.explode(8, x, y);
-  hitFx.explode(5, x, y);
+  emberFx.explode(10, x, y);
+  hitFx.explode(6, x, y);
 
   const blastOuter = scene.add.circle(x, y, 10, 0xff7043, 0.40)
     .setStrokeStyle(2, 0xffeb3b, 0.85).setDepth(1550);
@@ -335,10 +524,13 @@ function explodeFireball(scene, x, y, radius, dmg) {
     onComplete: () => blastInner.destroy()
   });
 
+  // Cria poça de fogo circular no solo que queima apenas inimigos
+  createFirePool(scene, x, y, radius, dmg);
+
   enemies.getChildren().slice().forEach(e => {
     if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
       if (e.enemyType === 'dark_mage') {
-        teleportMage(scene, e); // Mago Sombrio esquiva do splash damage de projétil!
+        teleportMage(scene, e); // Mago Sombrio esquiva do impacto direto de projéteis!
         return;
       }
       damageEnemy(scene, e, dmg);
@@ -350,4 +542,3 @@ function explodeFireball(scene, x, y, radius, dmg) {
     }
   });
 }
-

@@ -143,7 +143,7 @@ function setupDecoupledEventListeners(scene) {
 
   // 4. SISTEMA DE LOOT & RECOMPENSAS
   events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
-    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, gargoyle: 0.45, goblin: 0.38, mini_golem: 0.32 };
+    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, goblin: 0.38, mini_golem: 0.32 };
     const chance = dropRates[enemyType] ?? 0.40;
 
     spawnXpOrb(scene, x - 6, y, xpValue);
@@ -319,6 +319,7 @@ function gameOver(scene) {
   pendingLevelUps = 0;
 
   consolidateSilverToGold();
+  clearFirePools();
 
   if (shieldSprite) shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);

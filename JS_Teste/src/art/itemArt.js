@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // ARTE PROCEDURAL: ÍCONES DE ARMAS, PROJÉTEIS, COLETÁVEIS E HUD
 // =============================================================================
 function drawShieldIcon(r) {
@@ -412,3 +412,36 @@ function drawFullscreenIcon(r, f) {
   }
 }
 
+// Ícones dos 3 Novos Pergaminhos de Bônus Global (Multi-Shot, Crescimento e Velocidade)
+function drawScrollMultiShotIcon(r) {
+  // Pergaminho aberto (pergaminho envelhecido com bordas de madeira)
+  r(C.woodDark, 1, 1, 8, 1); r(C.woodDark, 1, 9, 8, 1);
+  r(C.bone, 2, 2, 6, 7);
+  r(C.wood, 1, 2, 1, 7); r(C.wood, 8, 2, 1, 7);
+  // Glifo de Disparo Múltiplo: 3 setas de energia ciano irradiando
+  r(C.cyan, 4, 3, 2, 3); r(C.cyan, 2, 4, 1, 2); r(C.cyan, 7, 4, 1, 2);
+  r(C.gold, 4, 7, 2, 1);
+}
+
+function drawScrollGrowthIcon(r) {
+  // Pergaminho aberto
+  r(C.woodDark, 1, 1, 8, 1); r(C.woodDark, 1, 9, 8, 1);
+  r(C.bone, 2, 2, 6, 7);
+  r(C.wood, 1, 2, 1, 7); r(C.wood, 8, 2, 1, 7);
+  // Glifo de Crescimento: anel rúnico em expansão com núcleo esmeralda
+  r(C.leafLight, 3, 3, 4, 1); r(C.leafLight, 3, 7, 4, 1);
+  r(C.leafLight, 3, 3, 1, 5); r(C.leafLight, 6, 3, 1, 5);
+  r(C.goldLight, 4, 4, 2, 3);
+}
+
+function drawScrollSpeedIcon(r) {
+  // Pergaminho aberto
+  r(C.woodDark, 1, 1, 8, 1); r(C.woodDark, 1, 9, 8, 1);
+  r(C.bone, 2, 2, 6, 7);
+  r(C.wood, 1, 2, 1, 7); r(C.wood, 8, 2, 1, 7);
+  // Glifo de Velocidade: raio dourado e branco veloz
+  r(C.yellow, 5, 2, 2, 2);
+  r(C.yellow, 4, 4, 3, 1);
+  r(C.white, 3, 5, 3, 2);
+  r(C.goldLight, 4, 7, 2, 2);
+}

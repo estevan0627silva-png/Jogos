@@ -2,12 +2,23 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>A Jornada do Cavaleiro (Knight's Quest)</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
     <link rel="stylesheet" href="JS_Teste/style.css">
 </head>
 <body>
+    <div id="game-container"></div>
+    <script>
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        var div = document.createElement('div');
+        div.id = 'debug-error-box';
+        div.style = 'position:fixed;top:10px;left:10px;z-index:99999;background:rgba(0,0,0,0.92);color:#ff5252;padding:20px;font-family:monospace;font-size:16px;border:2px solid #ff5252;max-width:90%;word-wrap:break-word;';
+        div.innerHTML = '<h3>ERRO ENCONTRADO:</h3><p><b>Mensagem:</b> ' + msg + '</p><p><b>Linha:</b> ' + lineNo + ':' + columnNo + '</p><p><b>Stack:</b> ' + (error ? error.stack : 'N/A') + '</p>';
+        document.body.appendChild(div);
+        console.error('DEBUG-GLOBAL-ERROR:', msg, lineNo, error);
+      };
+    </script>
     <script src="JS_Teste/game.js"></script>
 </body>
 </html>

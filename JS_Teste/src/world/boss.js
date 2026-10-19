@@ -167,10 +167,14 @@ function ejectMiniGolemsFromBoss(scene, boss) {
               if (debrisFx) debrisFx.explode(7, golem.x, golem.y + 10);
               sound.playShieldBlock();
 
-              // Estado: DORMANT (Inconsciente como rocha, olhos apagados, totalmente imóvel)
+              // Estado: DORMANT (Inconsciente fixo no solo real)
               golem.golemState = 'DORMANT';
               golem.setFrame(2);
-              golem.setVelocity(0, 0);
+              golem.setVelocityX(-worldSpeed);
+              golem.setVelocityY(0);
+              golem.golemState = 'DORMANT';
+              golem.setFrame(2);
+
 
               // Transição de despertar após breve momento (1.1s a 1.3s calibrado)
               const dormantTime = Phaser.Math.Between(1100, 1300);

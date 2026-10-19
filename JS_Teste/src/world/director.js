@@ -79,6 +79,9 @@ function startGameplay(scene) {
   xpToNextLevel = getXpRequiredForLevel(1);
   pendingLevelUps = 0;
   runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
+  chosenScroll = null;
+  scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
+  clearFirePools();
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();

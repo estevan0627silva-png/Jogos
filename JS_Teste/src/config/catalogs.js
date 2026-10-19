@@ -8,13 +8,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 5,
-    forgeLore: 'Arco de teixo real. Começa simples (Nv.1) e evolui na partida até a Tempestade de 5 Flechas (Nv.5).',
+    forgeLore: 'Arco de teixo real. Projétil veloz com cadência escalável a cada nível.',
     levels: [
-      'Nv.1 (Base): 1 flecha simples e cadência lenta (520ms, 1 dano).',
-      'Nv.2: Corda Tensionada — Disparo mais veloz (420ms, 1 dano).',
-      'Nv.3: Tiro Duplo — Dispara 2 flechas em V (350ms, 1 dano).',
-      'Nv.4: Saraivada Real — 3 flechas perfurantes em leque (280ms, 2 dano).',
-      'Nv.5 (MÁX): Tempestade Imperial — 5 flechas perfurantes a cada 220ms (2 dano)!'
+      'Nv.1 (Base): 1 flecha precisa (500ms, 1 dano, 0 knockback).',
+      'Nv.2: Corda Tensionada — Cadência aprimorada (410ms, 1 dano).',
+      'Nv.3: Fôlego Ágil — Cadência veloz (330ms, 1 dano).',
+      'Nv.4: Disparo Rápido — Cadência fulminante (260ms, 1 dano).',
+      'Nv.5 (MÁX): Tempestade de Flechas — Cadência máxima a cada 200ms (1 dano)!'
     ]
   },
   sword: {
@@ -23,13 +23,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 5,
-    forgeLore: 'Lâmina de aço encantado. Começa curta (Nv.1) e evolui na partida até lançar Ondas Vorpais (Nv.5).',
+    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área crescente.',
     levels: [
-      'Nv.1 (Base): Corte curto e estreito (480ms, 1 dano).',
-      'Nv.2: Fio Temperado — Alcance normal e golpe mais ágil (400ms, 1 dano).',
-      'Nv.3: Lâmina Larga — +25% área de corte e 2 de dano (330ms).',
-      'Nv.4: Fúria Vorpal — Grande arco cortante, 3 de dano e alta velocidade (265ms).',
-      'Nv.5 (MÁX): Colosso Vorpal — Corte gigante (4 dano, 210ms) + Onda de Vento Perfurante!'
+      'Nv.1 (Base): Corte inicial equilibrado (área 1.0x, 1 dano, 480ms, knockback ativo).',
+      'Nv.2: Fio Expandido — Área 1.35x (+35% de raio de corte).',
+      'Nv.3: Lâmina Ampla — Área 1.70x (+70% de cobertura de corte).',
+      'Nv.4: Fúria Circular — Área 2.10x (+110% de alcance amplo).',
+      'Nv.5 (MÁX): Colosso Vorpal — Área 2.60x (+160% de varredura colossal)!'
     ]
   },
   shield: {
@@ -53,13 +53,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 25,
     maxLevel: 5,
-    forgeLore: 'Machado duplo rúnico forjado pelo Mestre Ferreiro. Vai e volta cortando fileiras inteiras.',
+    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com knockback repulsor escalável.',
     levels: [
-      'Nv.1 (Base): 1 machado lento que perfura até 2 inimigos (600ms, 1 dano).',
-      'Nv.2: Giro Contínuo — Perfuração ilimitada na ida e na volta (500ms, 1 dano).',
-      'Nv.3: Machados Gêmeos — Lança 2 machados em ângulos opostos (420ms, 2 dano).',
-      'Nv.4: Tríade Bárbara — Lança 3 machados largos e velozes (340ms, 2 dano).',
-      'Nv.5 (MÁX): Turbilhão Ancestral — 4 machados gigantes (270ms, 3 dano na ida e volta)!'
+      'Nv.1 (Base): 1 machado bumerangue (1 dano, 560ms, knockback base 28px).',
+      'Nv.2: Impacto Pesado — Knockback 44px (+16px de força de empurrão).',
+      'Nv.3: Golpe Sísmico — Knockback 62px (+34px de força de empurrão).',
+      'Nv.4: Repulsão Rúnica — Knockback 82px (+54px de força de empurrão).',
+      'Nv.5 (MÁX): Fúria dos Titãs — Knockback 105px (arremesso massivo de inimigos)!'
     ]
   },
   firestaff: {
@@ -68,13 +68,59 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 45,
     maxLevel: 5,
-    forgeLore: 'Cetro engastado na brasa da forja. Dispara orbes solares que explodem em área.',
+    forgeLore: 'Cetro ardente. Lança orbes solares que explodem e deixam poças de fogo que danificam apenas monstros.',
     levels: [
-      'Nv.1 (Base): 1 fagulha lenta com explosão pequena (650ms, raio 42px, 1 dano).',
-      'Nv.2: Brasa Viva — Explosão ampliada (540ms, raio 58px, 1 dano).',
-      'Nv.3: Chama Dupla — 2 orbes explosivos em V (450ms, raio 74px, 2 dano).',
-      'Nv.4: Sol Ardente — 2 grandes orbes solares (360ms, raio 92px, 3 dano).',
-      'Nv.5 (MÁX): Cataclismo Solar — 3 mega meteoros limpa-tela (285ms, raio 115px, 4 dano)!'
+      'Nv.1 (Base): Orbe solar com explosão e poça de fogo (raio 45px, 1 dano, 600ms, 0 knockback).',
+      'Nv.2: Brasa Alastrada — Raio 62px de explosão e poça ardente no chão.',
+      'Nv.3: Labareda Intensa — Raio 80px de explosão e poça de fogo contínua.',
+      'Nv.4: Inferno Crescente — Raio 100px de explosão e poça de fogo massiva.',
+      'Nv.5 (MÁX): Cataclismo Solar — Raio 125px de explosão devastadora e mar de chamas no solo!'
+    ]
+  }
+};
+
+// Catálogo do Sistema de Pergaminhos Arcanos (Escolha Única por partida, até Nível 5)
+const SCROLL_CATALOG = {
+  multishot: {
+    id: 'multishot',
+    name: 'PERGAMINHO DE DISPARO MÚLTIPLO',
+    shortName: 'MULTI-SHOT',
+    icon: 'scroll_multishot',
+    maxLevel: 5,
+    levels: [
+      'Nv.1: +1 Projétil / Onda de Vento cortante em todos os ataques.',
+      'Nv.2: +2 Projéteis / Ondas cortantes adicionais.',
+      'Nv.3: +3 Projéteis / Ondas cortantes em leque.',
+      'Nv.4: +4 Projéteis / Saraivada cortante contínua.',
+      'Nv.5 (MÁX): +5 Projéteis / Chuva maciça de projéteis e cortes!'
+    ]
+  },
+  growth: {
+    id: 'growth',
+    name: 'PERGAMINHO DE CRESCIMENTO',
+    shortName: 'CRESCIMENTO',
+    icon: 'scroll_growth',
+    maxLevel: 5,
+    levels: [
+      'Nv.1: +20% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.2: +40% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.3: +65% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.4: +90% de tamanho/área em todos os ataques e poças de fogo.',
+      'Nv.5 (MÁX): +120% de tamanho/área titânica em todos os ataques!'
+    ]
+  },
+  attackspeed: {
+    id: 'attackspeed',
+    name: 'PERGAMINHO DE VELOCIDADE DE ATAQUE',
+    shortName: 'VEL. ATAQUE',
+    icon: 'scroll_speed',
+    maxLevel: 5,
+    levels: [
+      'Nv.1: +15% de velocidade de ataque (cadência mais rápida).',
+      'Nv.2: +30% de velocidade de ataque em todas as armas.',
+      'Nv.3: +45% de velocidade de ataque em todas as armas.',
+      'Nv.4: +60% de velocidade de ataque em todas as armas.',
+      'Nv.5 (MÁX): +80% de velocidade de ataque frenética!'
     ]
   }
 };
@@ -221,5 +267,3 @@ const ACHIEVEMENTS_CATALOG = [
     icon: 'item_shield'
   }
 ];
-
-// =============================================================================

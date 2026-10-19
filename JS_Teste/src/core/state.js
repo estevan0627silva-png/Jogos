@@ -1,4 +1,4 @@
-// ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
+﻿// ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
@@ -13,6 +13,10 @@ let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
+let chosenScroll = null;
+let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
+let activeFirePools = [];
+let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, buff, slashCounter = 0;
 let virtualJoystick = null;
 

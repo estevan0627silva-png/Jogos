@@ -109,8 +109,10 @@ function createHUD(scene) {
   hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
   hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(478, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
-  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime]);
+  hudItemTime = scene.add.text(460, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
+  hudScrollBadge = scene.add.image(495, 28, 'scroll_multishot').setScale(0.95).setVisible(false);
+  hudScrollText = scene.add.text(495, 43, '', textStyle('#b388ff', 9)).setOrigin(0.5, 0.5).setVisible(false);
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, hudScrollBadge, hudScrollText]);
 
   // 4. PAINEL DE RECORDE DO REINO — Direita (x: 520..682)
   const bestBg = scene.add.graphics();
@@ -318,3 +320,19 @@ function updateItemHUD() {
   }
 }
 
+
+
+function updateScrollHUD() {
+  if (!hudScrollBadge || !hudScrollText) return;
+  if (!chosenScroll) {
+    hudScrollBadge.setVisible(false);
+    hudScrollText.setVisible(false);
+    return;
+  }
+  const sCfg = SCROLL_CATALOG[chosenScroll];
+  const lvl = scrollLevels[chosenScroll] || 1;
+  if (sCfg) {
+    hudScrollBadge.setTexture(sCfg.icon).setVisible(true);
+    hudScrollText.setText(`NV.${lvl}`).setVisible(true);
+  }
+}

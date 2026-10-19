@@ -10,10 +10,10 @@ function spawnEnemy(scene, forcedType, customY) {
       type = 'mini_golem';
     } else if (bossDefeated) {
       // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.36 ? 'goblin' : (roll < 0.62 ? 'warrior' : (roll < 0.84 ? 'elf' : 'gargoyle')));
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.40 ? 'goblin' : (roll < 0.72 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 40) {
-      // Fase pré-boss avançada: Goblins, guerreiros, elfos e gárgulas (SEM MAGO)
-      type = roll < 0.38 ? 'goblin' : (roll < 0.65 ? 'warrior' : (roll < 0.85 ? 'elf' : 'gargoyle'));
+      // Fase pré-boss avançada: Goblins, guerreiros e elfos (SEM MAGO)
+      type = roll < 0.45 ? 'goblin' : (roll < 0.75 ? 'warrior' : 'elf');
     } else if (survivalTime >= 20) {
       // Fase pré-boss intermediária
       type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
@@ -32,9 +32,6 @@ function spawnEnemy(scene, forcedType, customY) {
       const stacked = enemies.getChildren().some(e => !e.isBoss && e.x > 760 && Math.abs(e.y - candidate) < 36);
       if (!stacked) { y = candidate; break; }
     }
-  }
-  if (type === 'gargoyle') {
-    y = Phaser.Math.Clamp(y, 175, 470);
   }
 
   const enemy = enemies.create(860, y, type, 0);
@@ -170,4 +167,3 @@ function teleportMage(scene, mage) {
     floatText(scene, targetX, targetY - 24, 'ESQUIVA / TELEPORTE!', '#b388ff');
   }
 }
-

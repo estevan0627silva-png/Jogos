@@ -10,7 +10,7 @@ function preload() {
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
-  makeSheet(this, 'gargoyle', 32, 32, 2, drawGargoyle);
+
   makeSheet(this, 'dark_mage', 32, 32, 2, drawDarkMage);
   makeSheet(this, 'mini_golem', 28, 28, 3, drawMiniGolem);
   makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
@@ -50,6 +50,9 @@ function preload() {
   makeItem(this, 'stat_health', 0xff5252, drawHealthIcon);
   makeItem(this, 'stat_speed', 0xffeb3b, drawSpeedIcon);
   makeItem(this, 'stat_wisdom', 0xc36bff, drawWisdomIcon);
+  makeItem(this, 'scroll_multishot', 0xb388ff, drawScrollMultiShotIcon);
+  makeItem(this, 'scroll_growth', 0x81c784, drawScrollGrowthIcon);
+  makeItem(this, 'scroll_speed', 0xffb74d, drawScrollSpeedIcon);
   makeWorldTextures(this);
 
   // Garante filtro NEAREST puro em todas as texturas geradas (sem aspecto borrado ou esfarelado)
@@ -126,7 +129,7 @@ function create(data) {
     goblin: { fps: 12, frames: 2 },
     warrior: { fps: 8, frames: 2 },
     elf: { fps: 9, frames: 2 },
-    gargoyle: { fps: 10, frames: 2 },
+
     dark_mage: { fps: 8, frames: 2 },
     mini_golem: { fps: 10, frames: 2 },
     boss_golem: { fps: 6, frames: 2 },
@@ -298,6 +301,9 @@ function create(data) {
     }
 
     damageEnemy(scene, e, a.dmg || 1);
+    if (!e.isBoss && e.active && e.hp > 0 && a.knockback && a.knockback > 0) {
+      applySmoothKnockback(scene, e, a.knockback, 130);
+    }
     if (a.pierceCount && a.pierceCount > 1) {
       a.pierceCount--;
     } else if (!a.isBoomerang) {
@@ -461,10 +467,7 @@ function updateGameplay(scene, time, dt) {
   enemies.getChildren().forEach(e => {
     if (!e.isBoss) {
       e.setAngle(0);
-      if (e.enemyType === 'gargoyle' && e.baseY !== undefined) {
-        e.y = Math.round(Phaser.Math.Clamp(e.baseY + Math.sin(time * 0.0055 + e.phase) * 46, 125, 520));
-        if (e.body) e.body.updateFromGameObject();
-      } else if (e.enemyType === 'goblin') {
+      if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
         // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
@@ -472,10 +475,14 @@ function updateGameplay(scene, time, dt) {
         e.y = Phaser.Math.Clamp(e.y, 130, 520);
         if (e.body) e.body.updateFromGameObject();
       } else if (e.enemyType === 'mini_golem') {
-        // Regras 9 e 10: Mini-Golems inconscientes/em ejeção permanecem estáticos como pedra
+        // Regras 4, 9 e 10: Mini-Golems inconscientes ficam ancorados ao solo (-worldSpeed); ativos perseguem lentamente
         if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {
-          e.setVelocity(0, 0);
+          e.setVelocityX(-worldSpeed);
+          e.setVelocityY(0);
           e.setFrame(2);
+        } else if (e.golemState === 'ACTIVE') {
+          const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
+          scene.physics.moveToObject(e, player, slowSpeed);
         }
       }
     }
@@ -525,6 +532,7 @@ function updateGameplay(scene, time, dt) {
 
   // 4. Sistema Modular de Armas: cadência e tempo processados pela estratégia ativa
   WeaponSystem.update(scene, time, dt);
+  updateFirePools(scene, dt);
   updateItemHUD();
 
   // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
@@ -609,11 +617,6 @@ function sortAndShade() {
       pw = 22; ph = 6; cw = 14; ch = 3;
       pAlpha = 0.16; cAlpha = 0.22;
       groundY = feet + 4;
-    } else if (s.enemyType === 'gargoyle') {
-      // Gárgula projeta sombra no chão enquanto bate asas no ar
-      pw = 22; ph = 6; cw = 12; ch = 3;
-      pAlpha = 0.16; cAlpha = 0.20;
-      groundY = Math.round((s.baseY || s.y) + 16);
     } else if (s.enemyType === 'mini_golem') {
       pw = 20; ph = 7; cw = 14; ch = 4;
       cAlpha = 0.36;
