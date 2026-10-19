@@ -2,6 +2,37 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v1.6.0] — 2026-10-19
+### 🗿 Título da Versão: **Combat Overhaul, Stone Golem & Refined Touch Controls**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Boss Golem aos 60s com ejeção física e despertar de Mini-Golems conforme o HP, defesa do Mago com esquiva/teletransporte contra projéteis, movimentação em zigue-zague dos Goblins, sistema de vida padronizado em Corações/Hits, progressão infinita de armas com balanceamento, escalonamento de tamanho e Knockback da Espada, joystick virtual ancorado com toggle nas configurações e remoção do botão de ação.
+
+### 🚀 O que mudou (22 Diretrizes Implementadas):
+- **🧙 Defesa e Mecânicas do Mago Sombrio:**
+  - **Imunidade a Projéteis:** O Mago agora ignora totalmente dano ao ser atingido por projéteis (flechas, bumerangues e bolas de fogo).
+  - **Teletransporte Instantâneo de Esquiva:** Ao colidir com projéteis, o Mago teletransporta-se para coordenada segura aleatória no campo de batalha [380, 740] com aviso tático de *"ESQUIVA / TELEPORTE!"*.
+  - **Spawn Raro:** Peso reduzido para ~8% de spawn rate.
+  - **Bloqueio de Progressão Pré-Boss:** Mago só surge após a primeira derrota do Boss.
+- **🗿 Boss Fight do Golem de Pedra & Mini-Golems:**
+  - **Surgimento Pontual aos 60s & Calibração de HP:** O Golem desperta exatamente aos 60s com 50 HP (fase de fúria aos ≤18 HP), proporcionando uma batalha ágil e tensa de 24 a 32s.
+  - **Pausa de Inimigos Comuns:** Durante a luta contra o Boss, apenas o Golem e Mini-Golems estão presentes.
+  - **Ejeção Física do Torso:** Mini-Golems saltam com arco parabólico e estilhaços de pedra do peito do Boss.
+  - **Spawn Dinâmico & Teto de 5 Mini-Golems:** Ejeção escala com o HP restante, com cap rígido de 5 Mini-Golems ativos simultaneamente e ciclo de 3.4s em fúria.
+  - **Estado Inerte & Despertar:** Mini-Golems caem imóveis por 1.1s a 1.3s com eyes off, tremem e despertam com olhos vermelhos incandescentes.
+- **👺 IA e Trajetória dos Inimigos:**
+  - **Zigue-Zague dos Goblins:** Movimentação senoidal oscilante no eixo Y limitada estritamente ao solo útil [130, 520].
+- **❤️ Padronização de Vida em Corações / Hits:**
+  - Substituição da barra por ícones de coração em Pixel Art; cada dano subtrai 1 Coração com i-frames generosos.
+- **🕹️ Controles Mobile e Joystick Virtual Aprimorado:**
+  - Joystick ancorado no canto inferior esquerdo (110, 485), botão de alternância no menu de configurações e remoção total do botão de ação.
+- **⚔️ Balanceamento, Progressão Infinita e Escalonamento da Espada:**
+  - Progressão infinita além do nível 5 com escalonamento equilibrado (+12% dano, limites de segurança de cadência).
+  - Aumento progressivo de tamanho e Knockback da Espada Vorpal.
+  - Purga de ~215 linhas de código legado obsoleto em `weapons.js`.
+
+---
+
 ## [v1.2.4] - 2026-10-19 (Efeitos Visuais de Ação 16-bit: Projéteis Detalhados, Rastros de Corte Luminosos, Faíscas Metálicas, Sombras com Oclusão de Contato e Emitters Pré-Alocados)
 ### ⚔️ Arsenal Refinado do Cavaleiro & Projéteis das 5 Armas
 - **Flechas Reais & Flechas de Ouro (`arrow_player`, `arrow_gold`)**: Penas azuis reais/douradas com pontas afiadas de navalha, anel metálico de reforço e esteira translúcida de vento e velocidade. Flechas douradas ativadas nos níveis 4 e 5.

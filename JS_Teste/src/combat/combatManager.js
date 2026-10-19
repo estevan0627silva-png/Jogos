@@ -8,6 +8,7 @@ function removeEntity(obj) {
   obj.scene.tweens.killTweensOf(obj);
   if (obj.shootTimer) obj.shootTimer.remove();
   if (obj.attackTimer) obj.attackTimer.remove();
+  if (obj.dormantTimer) obj.dormantTimer.remove();
   if (obj.activeTelegraphs) clearBossTelegraphs(obj);
   if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
   if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
@@ -157,18 +158,16 @@ function playerHit(scene, hazard) {
       floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
       recordAchievementProgress(scene, 'reflected', 1);
 
-      const spreads = {
-        1: [0],
-        2: [0],
-        3: [-0.12, 0.12],
-        4: [-0.20, 0, 0.20],
-        5: [-0.28, -0.14, 0, 0.14, 0.28]
-      }[lvl] || [0];
+      const effectiveLvl = Math.max(1, lvl);
+      let spreads = [-0.28, -0.14, 0, 0.14, 0.28];
+      if (effectiveLvl === 1 || effectiveLvl === 2) spreads = [0];
+      else if (effectiveLvl === 3) spreads = [-0.12, 0.12];
+      else if (effectiveLvl === 4) spreads = [-0.20, 0, 0.20];
 
       spreads.forEach(ang => {
         const reflArrow = playerArrows.create(player.x + 20, player.y, 'arrow_player');
         reflArrow.body.setSize(18, 8);
-        reflArrow.dmg = lvl >= 4 ? 2 : 1;
+        reflArrow.dmg = lvl >= 4 ? (lvl >= 6 ? Math.round(2 * (1 + 0.12 * (lvl - 5))) : 2) : 1;
         reflArrow.pierceCount = lvl >= 4 ? 2 : 1;
         reflArrow.projId = ++slashCounter;
         const spd = lvl === 1 ? 620 : 760;
@@ -186,7 +185,7 @@ function playerHit(scene, hazard) {
     floatText(scene, player.x, player.y - 32, 'ONDA DE CHOQUE!', '#7fe7ff');
 
     const shockRadius = 95 + (lvl - 1) * 30;
-    const bossDmg = [2, 3, 5, 7, 10][lvl - 1] || 2;
+    const bossDmg = lvl <= 5 ? [2, 3, 5, 7, 10][lvl - 1] : 10 + (lvl - 5) * 2;
 
     holyFx.explode(28, player.x, player.y);
     sparksFx.explode(16, player.x, player.y);

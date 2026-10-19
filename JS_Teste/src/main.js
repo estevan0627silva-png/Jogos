@@ -473,6 +473,8 @@ function updateGameplay(scene, time, dt) {
         // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
         e.setVelocityY(zigZagSpeed);
+        e.y = Phaser.Math.Clamp(e.y, 130, 520);
+        if (e.body) e.body.updateFromGameObject();
       } else if (e.enemyType === 'mini_golem') {
         // Regras 9 e 10: Mini-Golems inconscientes/em ejeção permanecem estáticos como pedra
         if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {

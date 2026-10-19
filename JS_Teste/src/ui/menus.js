@@ -904,7 +904,7 @@ function showSettingsMenu(scene) {
 
   const guideTitle = scene.add.text(400, 256, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
-    '• Mobile (Touch): Joystick Virtual analógico à esquerda e Botão de Ação à direita.',
+    '• Mobile (Touch): Joystick Virtual analógico à esquerda para movimentação (ataque automático).',
     '• Inimigos derrotados dropam Moedas de Prata durante a partida.',
     '• No fim da partida, suas Moedas de Prata são convertidas em Ouro!',
     '• Use Ouro na Loja para evoluir Armas (Aba 1) e Status (Aba 2).',

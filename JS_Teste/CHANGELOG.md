@@ -17,12 +17,14 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
   - **Spawn Raro:** Peso do Mago reduzido no pool de inimigos para ~8% de spawn rate, conferindo presença imponente e estratégica.
   - **Bloqueio de Progressão Pré-Boss:** O Mago só é adicionado ao pool de geração após a primeira derrota do Boss (\`bossDefeated === true\`).
 - **🗿 Boss Fight do Golem de Pedra & Mini-Golems:**
-  - **Surgimento Pontual aos 60s:** O Golem Ancestral agora desperta exatamente aos 60 segundos de partida (\`BOSS_TRIGGER_TIME = 60\`).
+  - **Surgimento Pontual aos 60s & Calibração de HP:** O Golem Ancestral agora desperta exatamente aos 60 segundos de partida (`BOSS_TRIGGER_TIME = 60`) com vida calibrada em 50 HP (fase de fúria aos ≤18 HP), proporcionando uma batalha intensa de 24 a 32 segundos sem se tornar uma esponja de dano.
   - **Pausa de Inimigos Comuns:** Durante toda a Boss Fight, a geração de monstros comuns fica suspensa; a arena é povoada exclusivamente pelo Golem e seus Mini-Golems.
   - **Ejeção Física com Salto do Torso:** Mini-Golems saltam fisicamente do peito do Boss em um arco parabólico com emissão de estilhaços de pedra e recuo no corpo do Golem, criando o efeito visual de lascarem da sua carcaça.
-  - **Spawn Dinâmico Atrelado ao HP do Boss:** O número de Mini-Golems expelidos escala com o dano sofrido pelo Chefão (HP alto: 1–2; HP médio: 2–3; HP crítico <35%: 3–4 mini-golems por ciclo).
-  - **Estado Inerte "Inconsciente/Pedra":** Ao aterrissarem, os Mini-Golems assumem o frame 2 com olhos fechados/apagados e corpo imóvel, sem ferir o jogador enquanto repousam no chão por 1.1s a 1.5s.
+  - **Spawn Dinâmico & Teto Máximo de Mini-Golems:** O número de Mini-Golems expelidos escala com o dano sofrido pelo Chefão, com um **cap estrito de no máximo 5 Mini-Golems simultâneos na arena** e ciclo de ataque em fúria ajustado para 3.4s, prevenindo saturação da tela (*body block* fatal).
+  - **Estado Inerte "Inconsciente/Pedra" & Gestão de Timers:** Ao aterrissarem, os Mini-Golems assumem o frame 2 com olhos fechados/apagados e corpo imóvel, sem ferir o jogador enquanto repousam no chão por 1.1s a 1.3s com limpeza garantida de `dormantTimer` ao serem derrotados.
   - **Transição e Despertar Ameaçador:** Após o período inerte, os Mini-Golems tremem o corpo, acendem olhos vermelhos incandescentes em efeito sonoro místico e iniciam a perseguição ativa ao Cavaleiro.
+  - **Blindagem de Teletransporte & Limites de Pista:** Coordenadas de fuga do Mago fixadas em [380, 740] (eliminando risco de culling fora da tela) e zigue-zague dos Goblins delimitado em [130, 520].
+  - **Refatoração & Limpeza de Código Morto:** Purga de ~215 linhas de funções legadas obsoletas em `weapons.js` e correção de regressão de dano e dispersão do Escudo Nv.6+.
 - **👺 IA e Trajetória dos Inimigos:**
   - **Movimentação em Zigue-Zague dos Goblins:** Os Goblins agora avançam em trajetórias senoidais oscilantes no eixo Y, tornando a aproximação mais dinâmica e imprevisível.
 - **❤️ Padronização de Vida em Corações / Hits:**

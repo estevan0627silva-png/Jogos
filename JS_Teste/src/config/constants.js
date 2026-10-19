@@ -29,7 +29,7 @@ const ENEMIES = {                                    // vida, velocidade relativ
   mini_golem: { hp: 1, speed: 0.94, w: 18, h: 20, xp: 2 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
-const BOSS_MAX_HP = 75;                              // HP calibrado para armas evoluídas via Level Up
+const BOSS_MAX_HP = 50;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
 const MAX_ENEMY_SPEED = 365;                         // teto máximo justo de velocidade
 const MIN_SPAWN_DELAY = 450;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
 const MAX_WEAPON_LEVEL = Infinity;                   // Progressão infinita de armas dentro da partida (via XP)

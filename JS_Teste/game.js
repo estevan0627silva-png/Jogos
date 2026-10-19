@@ -30,7 +30,7 @@ const ENEMIES = {                                    // vida, velocidade relativ
   mini_golem: { hp: 1, speed: 0.94, w: 18, h: 20, xp: 2 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
-const BOSS_MAX_HP = 75;                              // HP calibrado para armas evoluídas via Level Up
+const BOSS_MAX_HP = 50;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
 const MAX_ENEMY_SPEED = 365;                         // teto máximo justo de velocidade
 const MIN_SPAWN_DELAY = 450;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
 const MAX_WEAPON_LEVEL = Infinity;                   // Progressão infinita de armas dentro da partida (via XP)
@@ -42,9 +42,6 @@ const STORAGE_ACHIEVEMENTS_KEY = 'knight_quest_achievements_v1';
 const STORAGE_JOYSTICK_KEY = 'knight_quest_joystick_mode_v1';
 
 // Catálogo do Ferreiro (Apenas Desbloqueio no Menu; os Níveis 1 a 5 evoluem IN-GAME via XP Level Up!)
-
-// <<< END: src/config/constants.js
-
 // >>> START: src/config/palette.js
 // PALETA DE CORES DA PIXEL ART (Padrão 16-bit com rampas de 3 a 4 sub-tons)
 // Todas as chaves originais foram preservadas para garantir 100% de retrocompatibilidade.
@@ -206,9 +203,6 @@ const C = {
 };
 
 // =============================================================================
-
-// <<< END: src/config/palette.js
-
 // >>> START: src/config/catalogs.js
 // =============================================================================
 // CATÁLOGOS DE EQUIPAMENTOS, STATUS E CONQUISTAS
@@ -435,9 +429,6 @@ const ACHIEVEMENTS_CATALOG = [
 ];
 
 // =============================================================================
-
-// <<< END: src/config/catalogs.js
-
 // >>> START: src/core/events.js
 // SISTEMA DE EVENTOS DESACOPLADO (Observer Pattern / EventBus)
 // Permite que combate, áudio, interface, conquistas e drops reajam a eventos do jogo
@@ -512,9 +503,6 @@ class GameEventBus {
 const events = new GameEventBus();
 
 // =============================================================================
-
-// <<< END: src/core/events.js
-
 // >>> START: src/core/state.js
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
@@ -535,9 +523,6 @@ let enemySpeed, spawnDelay, buff, slashCounter = 0;
 let virtualJoystick = null;
 
 // =============================================================================
-
-// <<< END: src/core/state.js
-
 // >>> START: src/core/storage.js
 // GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
@@ -855,9 +840,6 @@ function getJoystickMode() { return StorageManager.getJoystickMode(); }
 function setJoystickMode(mode) { return StorageManager.setJoystickMode(mode); }
 
 // =============================================================================
-
-// <<< END: src/core/storage.js
-
 // >>> START: src/core/audio.js
 // SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
 // =============================================================================
@@ -1521,9 +1503,6 @@ class SoundSystem {
 const sound = new SoundSystem();
 
 // =============================================================================
-
-// <<< END: src/core/audio.js
-
 // >>> START: src/art/drawHelpers.js
 // ARTE: FERRAMENTAS DE PIXEL ART
 // Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
@@ -1615,9 +1594,6 @@ function makeItem(scene, key, glow, drawIcon) {
 }
 
 // =============================================================================
-
-// <<< END: src/art/drawHelpers.js
-
 // >>> START: src/art/characterArt.js
 // =============================================================================
 // ARTE PROCEDURAL: PERSONAGENS, INIMIGOS, CHEFES E NPCS
@@ -2293,9 +2269,6 @@ function drawMageMaster(r, f) {
   r(C.gold, 18, 9 + pY, 2, 1);
 }
 
-
-// <<< END: src/art/characterArt.js
-
 // >>> START: src/art/itemArt.js
 // =============================================================================
 // ARTE PROCEDURAL: ÍCONES DE ARMAS, PROJÉTEIS, COLETÁVEIS E HUD
@@ -2710,9 +2683,6 @@ function drawFullscreenIcon(r, f) {
     r(C.cyan, 4, 4, 2, 2);
   }
 }
-
-
-// <<< END: src/art/itemArt.js
 
 // >>> START: src/art/worldArt.js
 // =============================================================================
@@ -3348,9 +3318,6 @@ function drawGateTower(r) {
   r.shine(11, 1, 0, 0, C.white);
 }
 
-
-// <<< END: src/art/worldArt.js
-
 // >>> START: src/combat/weapons.js
 // SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
 // Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
@@ -3644,81 +3611,12 @@ const WeaponSystem = {
   }
 };
 
-function triggerPlayerAction(scene) {
-  if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
-  if (!player || !player.active) return;
-  if (buff && buff.type && WeaponStrategies[buff.type]) {
-    const s = WeaponStrategies[buff.type];
-    const lvl = getWeaponLevel(buff.type);
-    s.attack({
-      scene,
-      player,
-      arrows: playerArrows,
-      slashes,
-      fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
-      getLevel: getWeaponLevel,
-      nextProjId: () => ++slashCounter
-    });
-    const rate = s.getAttackRate(lvl);
-    buff.nextAttack = (scene ? scene.time.now : Date.now()) + (rate || 400);
-    sound.playButtonClick();
-  } else {
-    if (holyFx) holyFx.explode(6, player.x, player.y);
-    sound.playShieldDeflect();
-    if (typeof floatText === 'function') {
-      floatText(scene, player.x, player.y - 20, 'GUARDA', '#ffe082');
-    }
-  }
-}
-
 function getWeaponDuration(type) {
   return WeaponSystem.getDuration(type);
-}
-function _original_unused_getWeaponDuration(type) {
-  const base = BUFF_TIME[type] || 6.0;
-  const wisdomAdd = getWisdomBonusDuration();
-  const lvl = getWeaponLevel(type);
-  if (type === 'shield') {
-    return base + (lvl - 1) * 1.65 + wisdomAdd + runBonusDuration;
-  }
-  return base + (lvl - 1) * 0.75 + wisdomAdd + runBonusDuration;
-}
-
-// Cadência rebalanceada: Nv.1 é lento/básico, acelerando drasticamente até o Nv.5!
-function getWeaponAttackRate(type) {
-  const lvl = getWeaponLevel(type);
-  if (type === 'bow') return [520, 420, 350, 280, 220][lvl - 1] || 520;
-  if (type === 'sword') return [480, 400, 330, 265, 210][lvl - 1] || 480;
-  if (type === 'axe') return [600, 500, 420, 340, 270][lvl - 1] || 600;
-  if (type === 'firestaff') return [650, 540, 450, 360, 285][lvl - 1] || 650;
-  return ATTACK_RATE[type] || 0;
 }
 
 function equipWeaponBuff(scene, type, announce = true) {
   WeaponSystem.equip(scene, type, announce);
-}
-function _legacy_equipWeaponBuff(scene, type, announce = true) {
-  const sameType = buff.type === type;
-  const dur = getWeaponDuration(type);
-  const lvl = getWeaponLevel(type);
-  buff = {
-    type,
-    timeLeft: dur,
-    maxTime: dur,
-    nextAttack: sameType ? buff.nextAttack : 0
-  };
-  shieldSprite.setVisible(buff.type === 'shield');
-  if (shieldAura) {
-    shieldAura.setVisible(buff.type === 'shield');
-    if (buff.type === 'shield' && player) {
-      shieldAura.setPosition(Math.round(player.x), Math.round(player.y));
-      holyFx.explode(10, player.x, player.y);
-    }
-  }
-  if (announce && player) {
-    floatText(scene, player.x, player.y - 24, `${BUFF_NAMES[type]} NV.${lvl}!`, '#ffca28');
-  }
-  updateItemHUD();
 }
 
 function collectItem(scene, item) {
@@ -3729,149 +3627,6 @@ function collectItem(scene, item) {
 
 function endBuff() {
   WeaponSystem.end();
-}
-function _legacy_endBuff() {
-  buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
-  shieldSprite.setVisible(false);
-  if (shieldAura) shieldAura.setVisible(false);
-  if (playerBuffBar) playerBuffBar.clear();
-}
-
-// ARMA 1: Arco Real (Nv.1 fraco com 1 flecha lenta -> Nv.5 Tempestade Imperial com 5 flechas perfurantes!)
-function shootArrow() {
-  sound.playBow();
-  const lvl = getWeaponLevel('bow');
-  const spreads = {
-    1: [0],
-    2: [0],
-    3: [-0.09, 0.09],
-    4: [-0.18, 0, 0.18],
-    5: [-0.28, -0.14, 0, 0.14, 0.28]
-  }[lvl] || [0];
-
-  const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
-  const dmg = lvl >= 4 ? 2 : 1;
-  const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
-  const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
-
-  spreads.forEach(ang => {
-    const arrow = playerArrows.create(player.x + 20, player.y + 2, arrowKey);
-    arrow.body.setSize(18, 6);
-    arrow.dmg = dmg;
-    arrow.pierceCount = pierce;
-    arrow.projId = ++slashCounter;
-    arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-    arrow.rotation = ang;
-  });
-}
-
-// ARMA 2: Espada Vorpal (Nv.1 corte curto e 1 dano -> Nv.5 Colosso Vorpal 4 dano + Onda Perfurante!)
-function swingSword(scene) {
-  slashes.getChildren().slice().forEach(old => old.destroy());
-  sound.playSword();
-  const lvl = getWeaponLevel('sword');
-  const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
-  const damages = [1, 1, 2, 3, 4];
-  const scale = scales[lvl - 1] || 0.72;
-  const offsetX = Math.round(24 + (lvl - 1) * 7);
-
-  const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
-  slash.setScale(scale);
-  slash.offsetX = offsetX;
-  slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
-  slash.slashId = ++slashCounter;
-  slash.dmg = damages[lvl - 1] || 1;
-  slash.knockback = 22 + (lvl - 1) * 16;
-  slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
-    .setOrigin(0.5, 0.78)
-    .setScale(0.82 + (lvl - 1) * 0.18);
-
-  sparksFx.explode(5, player.x + offsetX, player.y);
-
-  slash.on('destroy', () => {
-    if (slash.blade && slash.blade.active) slash.blade.destroy();
-  });
-
-  scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
-  scene.tweens.add({
-    targets: slash, alpha: { from: 1, to: 0 }, duration: 190,
-    onComplete: () => slash.destroy()
-  });
-
-  // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
-  if (lvl >= 5) {
-    const waveProj = playerArrows.create(player.x + 34, player.y, 'arrow_player');
-    waveProj.setTint(0x7fe7ff);
-    waveProj.setScale(1.45);
-    waveProj.body.setSize(22, 14);
-    waveProj.dmg = 3;
-    waveProj.pierceCount = 4;
-    waveProj.projId = ++slashCounter;
-    waveProj.setVelocityX(720);
-    holyFx.explode(8, player.x + 34, player.y);
-  }
-}
-
-// ARMA 4 (Desbloqueável no Ferreiro): Machado Bumerangue (Nv.1 1 machado lento -> Nv.5 4 machados gigantes!)
-function throwAxe(scene) {
-  sound.playSword();
-  const lvl = getWeaponLevel('axe');
-  const angles = {
-    1: [0],
-    2: [0],
-    3: [-0.16, 0.16],
-    4: [-0.24, 0, 0.24],
-    5: [-0.32, -0.11, 0.11, 0.32]
-  }[lvl] || [0];
-
-  const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
-  const damages = [1, 1, 2, 2, 3];
-
-  angles.forEach(ang => {
-    const axe = playerArrows.create(player.x + 18, player.y, 'axe_proj');
-    axe.setScale(scales[lvl - 1] || 0.82);
-    axe.body.setSize(20, 20);
-    axe.isBoomerang = lvl >= 2; // Nv.1 perfura até 2; Nv.2+ perfura ilimitado na ida e volta!
-    axe.pierceCount = lvl === 1 ? 2 : 99;
-    axe.returning = false;
-    axe.dmg = damages[lvl - 1] || 1;
-    axe.projId = ++slashCounter;
-
-    const spd = 460 + (lvl - 1) * 40;
-    axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-    axe.body.setAccelerationX(-680);
-  });
-}
-
-// ARMA 5 (Desbloqueável no Ferreiro): Cajado de Fogo (Nv.1 explosão curta 1 dano -> Nv.5 Cataclismo Solar!)
-function shootFireball(scene) {
-  sound.playBow();
-  const lvl = getWeaponLevel('firestaff');
-  const angles = {
-    1: [0],
-    2: [0],
-    3: [-0.13, 0.13],
-    4: [-0.15, 0.15],
-    5: [-0.24, 0, 0.24]
-  }[lvl] || [0];
-
-  const radii = [42, 58, 74, 92, 115];
-  const damages = [1, 1, 2, 3, 4];
-  const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
-
-  angles.forEach(ang => {
-    const fb = playerArrows.create(player.x + 22, player.y, 'fireball_proj');
-    fb.setScale(scales[lvl - 1] || 0.85);
-    fb.body.setSize(18, 12);
-    fb.isFireball = true;
-    fb.blastRadius = radii[lvl - 1] || 42;
-    fb.dmg = damages[lvl - 1] || 1;
-    fb.projId = ++slashCounter;
-
-    const spd = 440 + (lvl - 1) * 35;
-    fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-    fb.rotation = ang;
-  });
 }
 
 function explodeFireball(scene, x, y, radius, dmg) {
@@ -3903,6 +3658,10 @@ function explodeFireball(scene, x, y, radius, dmg) {
 
   enemies.getChildren().slice().forEach(e => {
     if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
+      if (e.enemyType === 'dark_mage') {
+        teleportMage(scene, e); // Mago Sombrio esquiva do splash damage de projétil!
+        return;
+      }
       damageEnemy(scene, e, dmg);
     }
   });
@@ -3912,9 +3671,6 @@ function explodeFireball(scene, x, y, radius, dmg) {
     }
   });
 }
-
-
-// <<< END: src/combat/weapons.js
 
 // >>> START: src/combat/combatManager.js
 // =============================================================================
@@ -3927,6 +3683,7 @@ function removeEntity(obj) {
   obj.scene.tweens.killTweensOf(obj);
   if (obj.shootTimer) obj.shootTimer.remove();
   if (obj.attackTimer) obj.attackTimer.remove();
+  if (obj.dormantTimer) obj.dormantTimer.remove();
   if (obj.activeTelegraphs) clearBossTelegraphs(obj);
   if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
   if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
@@ -4076,18 +3833,16 @@ function playerHit(scene, hazard) {
       floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
       recordAchievementProgress(scene, 'reflected', 1);
 
-      const spreads = {
-        1: [0],
-        2: [0],
-        3: [-0.12, 0.12],
-        4: [-0.20, 0, 0.20],
-        5: [-0.28, -0.14, 0, 0.14, 0.28]
-      }[lvl] || [0];
+      const effectiveLvl = Math.max(1, lvl);
+      let spreads = [-0.28, -0.14, 0, 0.14, 0.28];
+      if (effectiveLvl === 1 || effectiveLvl === 2) spreads = [0];
+      else if (effectiveLvl === 3) spreads = [-0.12, 0.12];
+      else if (effectiveLvl === 4) spreads = [-0.20, 0, 0.20];
 
       spreads.forEach(ang => {
         const reflArrow = playerArrows.create(player.x + 20, player.y, 'arrow_player');
         reflArrow.body.setSize(18, 8);
-        reflArrow.dmg = lvl >= 4 ? 2 : 1;
+        reflArrow.dmg = lvl >= 4 ? (lvl >= 6 ? Math.round(2 * (1 + 0.12 * (lvl - 5))) : 2) : 1;
         reflArrow.pierceCount = lvl >= 4 ? 2 : 1;
         reflArrow.projId = ++slashCounter;
         const spd = lvl === 1 ? 620 : 760;
@@ -4105,7 +3860,7 @@ function playerHit(scene, hazard) {
     floatText(scene, player.x, player.y - 32, 'ONDA DE CHOQUE!', '#7fe7ff');
 
     const shockRadius = 95 + (lvl - 1) * 30;
-    const bossDmg = [2, 3, 5, 7, 10][lvl - 1] || 2;
+    const bossDmg = lvl <= 5 ? [2, 3, 5, 7, 10][lvl - 1] : 10 + (lvl - 5) * 2;
 
     holyFx.explode(28, player.x, player.y);
     sparksFx.explode(16, player.x, player.y);
@@ -4242,9 +3997,6 @@ function gameOver(scene) {
   scene.time.delayedCall(700, () => showInitials(scene));
 }
 
-
-// <<< END: src/combat/combatManager.js
-
 // >>> START: src/combat/lootManager.js
 // =============================================================================
 // GERENCIADOR DE DROPS, XP, MOEDAS E ATRAÇÃO MAGNÉTICA
@@ -4335,9 +4087,6 @@ function collectCoin(scene, coin) {
   floatText(scene, cx, cy - 16, `+${val} PRATA`, '#e0f7fa');
   removeEntity(coin);
 }
-
-
-// <<< END: src/combat/lootManager.js
 
 // >>> START: src/world/director.js
 // =============================================================================
@@ -4572,9 +4321,6 @@ function spawnItem(scene) {
   scene.tweens.add({ targets: item, scale: 1.12, duration: 400, yoyo: true, repeat: -1 });
 }
 
-
-// <<< END: src/world/director.js
-
 // >>> START: src/world/enemies.js
 // =============================================================================
 // INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
@@ -4721,10 +4467,10 @@ function teleportMage(scene, mage) {
   if (sparksFx) sparksFx.explode(8, mage.x, mage.y);
   sound.playShieldBlock();
 
-  let targetX = Phaser.Math.Between(180, 720);
+  let targetX = Phaser.Math.Between(380, 740);
   let targetY = Phaser.Math.Between(140, 500);
   for (let tries = 0; tries < 8; tries++) {
-    const candidateX = Phaser.Math.Between(180, 720);
+    const candidateX = Phaser.Math.Between(380, 740);
     const candidateY = Phaser.Math.Between(140, 500);
     if (!player || !player.active || Phaser.Math.Distance.Between(candidateX, candidateY, player.x, player.y) >= 140) {
       targetX = candidateX;
@@ -4748,9 +4494,6 @@ function teleportMage(scene, mage) {
     floatText(scene, targetX, targetY - 24, 'ESQUIVA / TELEPORTE!', '#b388ff');
   }
 }
-
-
-// <<< END: src/world/enemies.js
 
 // >>> START: src/world/boss.js
 // =============================================================================
@@ -4816,7 +4559,7 @@ function startBossFight(scene) {
   ejectMiniGolemsFromBoss(scene, boss);
 
   boss.attackTimer = scene.time.addEvent({
-    delay: 2800,
+    delay: 3400,
     loop: true,
     callback: () => {
       if (gameState !== 'PLAYING' || !boss.active || boss.entering || boss.isLunging) return;
@@ -4835,20 +4578,25 @@ function startBossFight(scene) {
 }
 
 // EJEÇÃO DINÂMICA DE MINI-GOLEMS DO CORPO DO BOSS:
-// Quanto menor a vida do Chefão, maior o número de Mini-Golems expelidos.
+// Quanto menor a vida do Chefão, maior o número de Mini-Golems expelidos (teto máximo de 5 simultâneos).
 // Saltam com física/arco do torso do Boss, caem como pedra inativa, tremem e despertam com olhos vermelhos.
 function ejectMiniGolemsFromBoss(scene, boss) {
   if (!boss || !boss.active || gameState !== 'PLAYING') return;
 
+  const currentMiniGolems = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
+  if (currentMiniGolems >= 5) return;
+
   const hpRatio = (boss.hp ?? BOSS_MAX_HP) / (boss.maxHp || BOSS_MAX_HP);
   let count = 1;
   if (hpRatio <= 0.35) {
-    count = Phaser.Math.Between(3, 4);
-  } else if (hpRatio <= 0.70) {
     count = Phaser.Math.Between(2, 3);
-  } else {
+  } else if (hpRatio <= 0.70) {
     count = Phaser.Math.Between(1, 2);
+  } else {
+    count = 1;
   }
+  count = Math.min(count, 5 - currentMiniGolems);
+  if (count <= 0) return;
 
   sound.playEarthSmash();
   scene.cameras.main.shake(160, 0.006);
@@ -4865,6 +4613,8 @@ function ejectMiniGolemsFromBoss(scene, boss) {
   for (let i = 0; i < count; i++) {
     scene.time.delayedCall(i * 180, () => {
       if (!boss || !boss.active || gameState !== 'PLAYING') return;
+      const activeCount = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
+      if (activeCount >= 5) return;
 
       const originX = boss.x - 22;
       const originY = boss.y - 8;
@@ -4920,9 +4670,9 @@ function ejectMiniGolemsFromBoss(scene, boss) {
               golem.setFrame(2);
               golem.setVelocity(0, 0);
 
-              // Transição de despertar após breve momento (1.1s a 1.5s)
-              const dormantTime = Phaser.Math.Between(1100, 1500);
-              scene.time.delayedCall(dormantTime, () => {
+              // Transição de despertar após breve momento (1.1s a 1.3s calibrado)
+              const dormantTime = Phaser.Math.Between(1100, 1300);
+              golem.dormantTimer = scene.time.delayedCall(dormantTime, () => {
                 if (!golem || !golem.active || gameState !== 'PLAYING') return;
 
                 // Animação de tremor pré-despertar
@@ -5219,9 +4969,6 @@ function defeatBoss(scene, boss) {
   }
   spawnItem(scene);
 }
-
-
-// <<< END: src/world/boss.js
 
 // >>> START: src/ui/hud.js
 // =============================================================================
@@ -5543,9 +5290,6 @@ function updateItemHUD() {
     playerBuffBar.fillStyle(overheadColor, 1).fillRect(pX, pY, fillW, pH);
   }
 }
-
-
-// <<< END: src/ui/hud.js
 
 // >>> START: src/ui/modals.js
 // =============================================================================
@@ -6260,9 +6004,6 @@ function showLeaderboard(scene, topScores, currentName) {
     }
   });
 }
-
-// <<< END: src/ui/modals.js
-
 // >>> START: src/ui/menus.js
 // =============================================================================
 // TELAS E MENUS DO JOGO: MENU PRINCIPAL, FORJA, MAGO, CONQUISTAS E OPÇÕES
@@ -7170,7 +6911,7 @@ function showSettingsMenu(scene) {
 
   const guideTitle = scene.add.text(400, 256, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
-    '• Mobile (Touch): Joystick Virtual analógico à esquerda e Botão de Ação à direita.',
+    '• Mobile (Touch): Joystick Virtual analógico à esquerda para movimentação (ataque automático).',
     '• Inimigos derrotados dropam Moedas de Prata durante a partida.',
     '• No fim da partida, suas Moedas de Prata são convertidas em Ouro!',
     '• Use Ouro na Loja para evoluir Armas (Aba 1) e Status (Aba 2).',
@@ -7187,9 +6928,6 @@ function showSettingsMenu(scene) {
     ...createButton(scene, 400, 498, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 44)
   ]);
 }
-
-
-// <<< END: src/ui/menus.js
 
 // >>> START: src/ui/virtualJoystick.js
 // =============================================================================
@@ -7509,9 +7247,6 @@ class VirtualJoystick {
 if (typeof window !== 'undefined') {
   window.VirtualJoystick = VirtualJoystick;
 }
-
-// <<< END: src/ui/virtualJoystick.js
-
 // >>> START: src/main.js
 // =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
@@ -7988,6 +7723,8 @@ function updateGameplay(scene, time, dt) {
         // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
         e.setVelocityY(zigZagSpeed);
+        e.y = Phaser.Math.Clamp(e.y, 130, 520);
+        if (e.body) e.body.updateFromGameObject();
       } else if (e.enemyType === 'mini_golem') {
         // Regras 9 e 10: Mini-Golems inconscientes/em ejeção permanecem estáticos como pedra
         if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {
@@ -8259,5 +7996,3 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-
-// <<< END: src/main.js

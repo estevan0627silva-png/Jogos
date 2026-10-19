@@ -61,7 +61,7 @@ function startBossFight(scene) {
   ejectMiniGolemsFromBoss(scene, boss);
 
   boss.attackTimer = scene.time.addEvent({
-    delay: 2800,
+    delay: 3400,
     loop: true,
     callback: () => {
       if (gameState !== 'PLAYING' || !boss.active || boss.entering || boss.isLunging) return;
@@ -80,20 +80,25 @@ function startBossFight(scene) {
 }
 
 // EJEÇÃO DINÂMICA DE MINI-GOLEMS DO CORPO DO BOSS:
-// Quanto menor a vida do Chefão, maior o número de Mini-Golems expelidos.
+// Quanto menor a vida do Chefão, maior o número de Mini-Golems expelidos (teto máximo de 5 simultâneos).
 // Saltam com física/arco do torso do Boss, caem como pedra inativa, tremem e despertam com olhos vermelhos.
 function ejectMiniGolemsFromBoss(scene, boss) {
   if (!boss || !boss.active || gameState !== 'PLAYING') return;
 
+  const currentMiniGolems = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
+  if (currentMiniGolems >= 5) return;
+
   const hpRatio = (boss.hp ?? BOSS_MAX_HP) / (boss.maxHp || BOSS_MAX_HP);
   let count = 1;
   if (hpRatio <= 0.35) {
-    count = Phaser.Math.Between(3, 4);
-  } else if (hpRatio <= 0.70) {
     count = Phaser.Math.Between(2, 3);
-  } else {
+  } else if (hpRatio <= 0.70) {
     count = Phaser.Math.Between(1, 2);
+  } else {
+    count = 1;
   }
+  count = Math.min(count, 5 - currentMiniGolems);
+  if (count <= 0) return;
 
   sound.playEarthSmash();
   scene.cameras.main.shake(160, 0.006);
@@ -110,6 +115,8 @@ function ejectMiniGolemsFromBoss(scene, boss) {
   for (let i = 0; i < count; i++) {
     scene.time.delayedCall(i * 180, () => {
       if (!boss || !boss.active || gameState !== 'PLAYING') return;
+      const activeCount = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
+      if (activeCount >= 5) return;
 
       const originX = boss.x - 22;
       const originY = boss.y - 8;
@@ -165,9 +172,9 @@ function ejectMiniGolemsFromBoss(scene, boss) {
               golem.setFrame(2);
               golem.setVelocity(0, 0);
 
-              // Transição de despertar após breve momento (1.1s a 1.5s)
-              const dormantTime = Phaser.Math.Between(1100, 1500);
-              scene.time.delayedCall(dormantTime, () => {
+              // Transição de despertar após breve momento (1.1s a 1.3s calibrado)
+              const dormantTime = Phaser.Math.Between(1100, 1300);
+              golem.dormantTimer = scene.time.delayedCall(dormantTime, () => {
                 if (!golem || !golem.active || gameState !== 'PLAYING') return;
 
                 // Animação de tremor pré-despertar

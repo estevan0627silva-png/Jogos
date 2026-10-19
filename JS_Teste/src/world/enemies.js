@@ -143,10 +143,10 @@ function teleportMage(scene, mage) {
   if (sparksFx) sparksFx.explode(8, mage.x, mage.y);
   sound.playShieldBlock();
 
-  let targetX = Phaser.Math.Between(180, 720);
+  let targetX = Phaser.Math.Between(380, 740);
   let targetY = Phaser.Math.Between(140, 500);
   for (let tries = 0; tries < 8; tries++) {
-    const candidateX = Phaser.Math.Between(180, 720);
+    const candidateX = Phaser.Math.Between(380, 740);
     const candidateY = Phaser.Math.Between(140, 500);
     if (!player || !player.active || Phaser.Math.Distance.Between(candidateX, candidateY, player.x, player.y) >= 140) {
       targetX = candidateX;
