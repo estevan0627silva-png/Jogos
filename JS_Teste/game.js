@@ -1460,7 +1460,7 @@ function drawVillageBlacksmith(r) {
   r(C.steelDark, 8, 19, 40, 3);
   r(C.ironDark, 4, 38, 48, 2);
 
-  // Chaminé robusta de pedra à esquerda (integrada ao telhado)
+  // Chaminé robusta de pedra à esquerda (integrada ao telhado
   r(C.ironDark, 7, 2, 7, 15);
   r(C.iron, 8, 3, 5, 13);
   r(C.steelDark, 7, 2, 7, 2);
