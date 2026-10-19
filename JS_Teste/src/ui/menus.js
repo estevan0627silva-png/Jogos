@@ -874,12 +874,12 @@ function showSettingsMenu(scene) {
 
   const guideTitle = scene.add.text(400, 256, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
+    '• Mobile (Touch): Joystick Virtual analógico à esquerda e Botão de Ação à direita.',
     '• Inimigos derrotados dropam Moedas de Prata durante a partida.',
     '• No fim da partida, suas Moedas de Prata são convertidas em Ouro!',
     '• Use Ouro na Loja para evoluir Armas (Aba 1) e Status (Aba 2).',
     '• O Escudo Sagrado reflete projéteis mantendo o disparo normal.',
-    '• Evolua Magnetismo, Vida Máxima (Corações) e Velocidade na Loja!',
-    '• Pressione ESC para pausar/voltar ou F para Tela Cheia.'
+    '• Atalho de Pausa: Botão [||] no topo direito ou tecla ESC.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
     scene.add.text(176, 280 + i * 26, txt, { ...textStyle('#d6c8aa', 11, 'normal'), lineSpacing: 4 })

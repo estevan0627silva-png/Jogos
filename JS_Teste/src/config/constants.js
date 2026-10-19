@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v1.4.0';
-const VERSION_TITLE = 'Modular Architecture & Separation of Concerns';
-const VERSION_DESC = 'Desmembramento e modularização completa do monólito (7.450+ linhas) em arquitetura desacoplada em 21 submódulos organizados em src/ (config, core, art, combat, world, ui, main). Preservação de 100% da mecânica, física, balanceamento e pixel art procedural com zero regressão e compatibilidade nativa com carregamento via script tags e navegação local.';
+const GAME_VERSION = 'v1.5.0';
+const VERSION_TITLE = 'Mobile Web Touch & Virtual Joystick System';
+const VERSION_DESC = 'Suporte completo a dispositivos móveis no navegador web com Joystick Virtual analógico dinâmico de temática medieval, isolamento Multi-Touch por pointerId, botão dedicado de Ação/Ataque, botão de Pausa rápida no HUD e prevenção nativa de gestos indesejados no navegador.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;

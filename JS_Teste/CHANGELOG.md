@@ -4,6 +4,32 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
 
 ---
 
+## [v1.5.0] — 2026-10-19
+### 📱 Título da Versão: **Mobile Web Touch & Virtual Joystick System**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Suporte completo a dispositivos móveis no navegador web com Joystick Virtual analógico dinâmico de estética medieval integrada, isolamento real Multi-Touch por pointerId, botão dedicado de Ação/Ataque, atalho de Pausa rápida no HUD e prevenção nativa de comportamentos indesejados no navegador (scroll, pull-to-refresh e pinch zoom).
+
+### 🚀 O que mudou:
+- **Detecção Automática de Dispositivos Móveis (Web Mobile):**
+  - Identificação precisa combinando touch capabilities (\`ontouchstart\`, \`maxTouchPoints > 0\`), media query \`(pointer: coarse)\` e detecção dinâmica do primeiro toque na tela (sem necessidade de recarregar a página em notebooks touch ou emuladores).
+  - Ocultação automática em PCs desktop com mouse e teclado tradicionais, preservando a tela 100% limpa.
+- **Mecânica do Joystick Virtual Analógico & Suporte Multi-Touch:**
+  - Base flutuante dinâmica na lateral esquerda que surge sob o polegar do jogador (\`maxRadius = 54px\`, \`deadzone = 6px\`), retornando suavemente ao centro e à posição de repouso por interpolação senoidal ao soltar.
+  - Movimentação analógica de 360° com modulação de velocidade proporcional à inclinação do pino (creeping x corrida total) respeitando rigorosamente a velocidade máxima do herói.
+  - Rastreamento isolado de múltiplos toques por \`pointer.id\`, permitindo mover o personagem com o polegar esquerdo enquanto golpeia ou usa botões com o polegar direito.
+- **Botão de Ação Tátil & Atalho de Pausa no HUD:**
+  - Botão de Ação dedicado na lateral inferior direita (\`x: 695, y: 475\`) para disparo manual imediato ou postura de guarda/impulso defensivo.
+  - Novo botão de Pausa rápida no HUD (\`x: 658, y: 34\`) para pausar a partida com um único toque sem depender da tecla \`ESC\` física em smartphones.
+  - Tecla \`[ESPAÇO]\` mapeada no Desktop para disparar a mesma ação manual imediata.
+- **Identidade Visual Medieval & Harmonia com o HUD:**
+  - Base rúnica em ferro forjado e ouro envelhecido (\`0xc5a059\`) com marcadores cardeais e preenchimento em obsidiana translúcida.
+  - Pino central estilizado como broquel nobre com cabochão de rubi radiante que se ilumina ao ser inclinado e emite uma linha de energia dourada conectada à base.
+- **Prevenção de Gestos do Navegador:**
+  - Inclusão de \`touch-action: none;\`, \`overscroll-behavior: none;\` e bloqueio de pull-to-refresh no \`style.css\` e meta tag de viewport com \`maximum-scale=1.0, user-scalable=no, viewport-fit=cover\`.
+
+---
+
 ## [v1.4.0] — 2026-10-19
 ### 🏛️ Título da Versão: **Modular Architecture & Separation of Concerns**
 

@@ -285,6 +285,33 @@ const WeaponSystem = {
   }
 };
 
+function triggerPlayerAction(scene) {
+  if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
+  if (!player || !player.active) return;
+  if (buff && buff.type && WeaponStrategies[buff.type]) {
+    const s = WeaponStrategies[buff.type];
+    const lvl = getWeaponLevel(buff.type);
+    s.attack({
+      scene,
+      player,
+      arrows: playerArrows,
+      slashes,
+      fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
+      getLevel: getWeaponLevel,
+      nextProjId: () => ++slashCounter
+    });
+    const rate = s.getAttackRate(lvl);
+    buff.nextAttack = (scene ? scene.time.now : Date.now()) + (rate || 400);
+    sound.playButtonClick();
+  } else {
+    if (holyFx) holyFx.explode(6, player.x, player.y);
+    sound.playShieldDeflect();
+    if (typeof floatText === 'function') {
+      floatText(scene, player.x, player.y - 20, 'GUARDA', '#ffe082');
+    }
+  }
+}
+
 function getWeaponDuration(type) {
   return WeaponSystem.getDuration(type);
 }

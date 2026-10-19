@@ -181,9 +181,30 @@ function create(data) {
   shieldSprite = scene.add.image(0, 0, 'shield_worn').setVisible(false);
   shieldAura = scene.add.image(0, 0, 'shield_aura').setVisible(false).setAlpha(0.85);
 
-  // Controles
+  // Controles Desktop & Suporte Multi-Touch Mobile
   cursors = scene.input.keyboard.createCursorKeys();
   keys = scene.input.keyboard.addKeys('W,A,S,D');
+
+  // Suporte a multi-touch para até 4 toques simultâneos (joystick + ataque + botões)
+  scene.input.addPointer(3);
+
+  // Inicialização do Joystick Virtual Modular
+  if (virtualJoystick) {
+    virtualJoystick.destroy();
+    virtualJoystick = null;
+  }
+  if (typeof VirtualJoystick === 'function') {
+    virtualJoystick = new VirtualJoystick(scene);
+  }
+
+  // Tecla ESPAÇO para Golpe/Ação manual imediata no Desktop
+  scene.input.keyboard.on('keydown-SPACE', () => {
+    if (gameState === 'PLAYING' && !isPaused && !activeModal) {
+      if (typeof triggerPlayerAction === 'function') {
+        triggerPlayerAction(scene);
+      }
+    }
+  });
 
   pauseModal = null;
   enemyHpBars = scene.add.graphics().setDepth(2400);
@@ -331,6 +352,7 @@ function create(data) {
 // =============================================================================
 function update(time, delta) {
   const dt = Math.min(delta / 1000, 0.05); // clamp dt para evitar saltos bruscos de frame
+  if (virtualJoystick) virtualJoystick.update(dt);
   if (gameState === 'PLAYING') updateGameplay(this, time, dt);
   else if (gameState === 'MENU') updateMenuBackground(dt);
   sortAndShade();
@@ -386,14 +408,27 @@ function updateGameplay(scene, time, dt) {
   pullCollectibles(coins, collectCoin);
   pullCollectibles(xpOrbs, collectXpOrb);
 
-  // 2. Cavaleiro: 8 direções com pixels 100% nítidos (sem rotação sub-pixel setAngle que esfarela a Pixel Art!)
+  // 2. Cavaleiro: 8 direções e analógico 360° com pixels 100% nítidos (sem rotação sub-pixel setAngle que esfarela a Pixel Art!)
   const moveSpd = getPlayerMoveSpeed();
   let dirX = 0, dirY = 0;
   if (cursors.left.isDown || keys.A.isDown) dirX -= 1;
   if (cursors.right.isDown || keys.D.isDown) dirX += 1;
   if (cursors.up.isDown || keys.W.isDown) dirY -= 1;
   if (cursors.down.isDown || keys.S.isDown) dirY += 1;
-  player.setVelocity(dirX, dirY).body.velocity.normalize().scale(moveSpd);
+
+  if (virtualJoystick && virtualJoystick.active) {
+    const joyVec = virtualJoystick.getVector();
+    dirX += joyVec.x;
+    dirY += joyVec.y;
+  }
+
+  const inputLen = Math.hypot(dirX, dirY);
+  if (inputLen > 0) {
+    const clampedScale = Math.min(inputLen, 1.0) * moveSpd;
+    player.setVelocity((dirX / inputLen) * clampedScale, (dirY / inputLen) * clampedScale);
+  } else {
+    player.setVelocity(0, 0);
+  }
   player.setFlipX(false);
   player.setAngle(0); // ângulo zero mantém linhas e cores perfeitamente nítidas!
   const isMoving = dirX !== 0 || dirY !== 0;
@@ -484,9 +519,10 @@ function separatePlayerFromObstacle(p, obs) {
   const oy = Math.min(pb.bottom, ob.bottom) - Math.max(pb.top, ob.top);
   if (ox <= 0 || oy <= 0) return;
 
-  // Direção do desvio: respeita a intenção do jogador (W/S) ou desvia pelo lado mais próximo do centro
-  let slideDir = (keys.W.isDown || cursors.up.isDown) ? -1 :
-                 (keys.S.isDown || cursors.down.isDown) ? 1 :
+  // Direção do desvio: respeita a intenção do jogador (W/S/Joystick) ou desvia pelo lado mais próximo do centro
+  const joyVec = (virtualJoystick && virtualJoystick.active) ? virtualJoystick.getVector() : { x: 0, y: 0 };
+  let slideDir = (keys.W.isDown || cursors.up.isDown || joyVec.y < -0.25) ? -1 :
+                 (keys.S.isDown || cursors.down.isDown || joyVec.y > 0.25) ? 1 :
                  (pb.center.y < ob.center.y ? -1 : 1);
   if (p.y <= 112) slideDir = 1;
   else if (p.y >= 533) slideDir = -1;

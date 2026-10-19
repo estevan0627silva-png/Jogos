@@ -14,5 +14,6 @@ let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
 let enemySpeed, spawnDelay, buff, slashCounter = 0;
+let virtualJoystick = null;
 
 // =============================================================================

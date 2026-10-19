@@ -173,7 +173,30 @@ function createHUD(scene) {
     toggleFullscreen(scene);
   });
 
-  hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
+  // 6. BOTÃO DE PAUSA RÁPIDO [ESC] — (x: 634..682) — Essencial para Mobile & Atalho de PC
+  const pauseBtnBg = scene.add.graphics();
+  const drawPauseBtn = (hover = false) => {
+    pauseBtnBg.clear();
+    pauseBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(634, 10, 48, 48, 6);
+    pauseBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(634, 10, 48, 48, 6);
+    pauseBtnBg.fillStyle(hover ? 0xffe082 : 0xc5a059, 1);
+    pauseBtnBg.fillRect(651, 22, 4, 24);
+    pauseBtnBg.fillRect(661, 22, 4, 24);
+  };
+  drawPauseBtn(false);
+
+  const pauseHitArea = scene.add.rectangle(658, 34, 48, 48, 0x000000, 0)
+    .setInteractive({ useHandCursor: true });
+  pauseHitArea.on('pointerover', () => drawPauseBtn(true));
+  pauseHitArea.on('pointerout', () => drawPauseBtn(false));
+  pauseHitArea.on('pointerdown', () => {
+    sound.playButtonClick();
+    if (typeof handleEscPress === 'function') {
+      handleEscPress(scene);
+    }
+  });
+
+  hudContainer.add([pauseBtnBg, pauseHitArea, soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
 
   // 7. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre (x: 10..790, y: 61..77)
   const xpFrame = scene.add.graphics();

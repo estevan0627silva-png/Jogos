@@ -1,49 +1,14 @@
+// >>> START: src/config/constants.js
 // =============================================================================
-// A JORNADA DO CAVALEIRO — Pixel Art Edition (Phaser 3)
-// Ordem: Config → Ajustes → Estado → Recordes/Conquistas → Arte → Cena →
-//        Spawns/Director → Combate/XP → Interface (Ferreiro, Mago, Draft)
+// CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-
-// =============================================================================
-// CONTROLE DE VERSÃO (SemVer — Sincronizado para Releases do GitHub)
-// =============================================================================
-const GAME_VERSION = 'v1.4.0';
-const VERSION_TITLE = 'Modular Architecture & Separation of Concerns';
-const VERSION_DESC = 'Desmembramento e modularização completa do monólito (7.450+ linhas) em arquitetura desacoplada em 21 submódulos organizados em src/ (config, core, art, combat, world, ui, main). Preservação de 100% da mecânica, física, balanceamento e pixel art procedural com zero regressão e compatibilidade nativa com carregamento via script tags e navegação local (file:/// e web).';
+const GAME_VERSION = 'v1.5.0';
+const VERSION_TITLE = 'Mobile Web Touch & Virtual Joystick System';
+const VERSION_DESC = 'Suporte completo a dispositivos móveis no navegador web com Joystick Virtual analógico dinâmico de temática medieval, isolamento Multi-Touch por pointerId, botão dedicado de Ação/Ataque, botão de Pausa rápida no HUD e prevenção nativa de gestos indesejados no navegador.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 
-const config = {
-  type: Phaser.AUTO,
-  parent: 'game-container',
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
-  pixelArt: true,
-  roundPixels: true,
-  backgroundColor: '#5b8a3c',
-  render: {
-    pixelArt: true,
-    antialias: false,
-    antialiasGL: false,
-    roundPixels: true,
-    powerPreference: 'high-performance'
-  },
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
-    expandParent: false,
-    fullscreenTarget: 'game-container'
-  },
-  physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
-  scene: { preload, create, update }
-};
-
-const game = new Phaser.Game(config);
-
-// =============================================================================
 // AJUSTES DO JOGO (Rebalanceamento v1.2.0: Nível 1 fraco -> Nível 5 muito forte)
 // =============================================================================
 const PLAYER_SPEED = 280;
@@ -76,6 +41,177 @@ const STORAGE_STATUS_KEY = 'knight_quest_status_v1';
 const STORAGE_ACHIEVEMENTS_KEY = 'knight_quest_achievements_v1';
 
 // Catálogo do Ferreiro (Apenas Desbloqueio no Menu; os Níveis 1 a 5 evoluem IN-GAME via XP Level Up!)
+
+// <<< END: src/config/constants.js
+
+// >>> START: src/config/palette.js
+// PALETA DE CORES DA PIXEL ART (Padrão 16-bit com rampas de 3 a 4 sub-tons)
+// Todas as chaves originais foram preservadas para garantir 100% de retrocompatibilidade.
+// =============================================================================
+const C = {
+  // --- CONTORNOS, BASE & OSSO ---
+  outline: 0x1a1410,
+  outlineSoft: 0x2c221a,
+  white: 0xffffff,
+  bone: 0xe8dcc0,
+  boneDark: 0xbdb094,
+
+  // --- AÇO POLIDO & LÂMINAS ---
+  steelHighlight: 0xffffff,
+  steelLight: 0xf2f4f8,
+  steel: 0xc9ced8,
+  steelBase: 0xc9ced8,
+  steelShadow: 0x8a909c,
+  steelDark: 0x8a909c,
+  steelDeep: 0x5a606e,
+
+  // --- FERRO BRUTO & ARMADURA PESADA ---
+  ironHighlight: 0x6e7382,
+  iron: 0x454852,
+  ironBase: 0x454852,
+  ironShadow: 0x26272e,
+  ironDark: 0x26272e,
+  ironDeep: 0x15161a,
+
+  // --- OURO REAL & BRONZE ---
+  yellow: 0xffeb3b,
+  goldHighlight: 0xfff9c4,
+  goldLight: 0xffe082,
+  gold: 0xf2c14e,
+  goldBase: 0xf2c14e,
+  goldShadow: 0xc49000,
+  goldDark: 0x946500,
+  goldDeep: 0x5a3c00,
+
+  // --- PRATA & METAL BRUNIDO ---
+  silverHighlight: 0xffffff,
+  silverLight: 0xe2e8f0,
+  silver: 0xb0bec5,
+  silverBase: 0xb0bec5,
+  silverShadow: 0x78909c,
+  silverDark: 0x455a64,
+  silverDeep: 0x263238,
+
+  // --- TONS CARMESINS & RUBI ---
+  redHighlight: 0xff7b7b,
+  red: 0xd83a3a,
+  redBase: 0xd83a3a,
+  darkRed: 0x8e1b1b,
+  redShadow: 0x8e1b1b,
+  redDeep: 0x4a0e0e,
+  eye: 0xff3030,
+  rubyGlow: 0xff5252,
+  rubyLight: 0xff1744,
+  rubyBase: 0xd83a3a,
+  rubyShadow: 0x8e1b1b,
+  rubyDeep: 0x4a0e0e,
+
+  // --- AZUL REAL & HERÁLDICA ---
+  blueLight: 0x5b93f0,
+  blue: 0x2f6fd6,
+  blueBase: 0x2f6fd6,
+  blueShadow: 0x1c4ba6,
+  blueDeep: 0x0f2b69,
+
+  // --- PELE & EXPRESSÃO ---
+  skinHighlight: 0xffebd2,
+  skinLight: 0xfde2b8,
+  skin: 0xf1c27d,
+  skinBase: 0xf1c27d,
+  skinShadow: 0xc68b59,
+  skinDark: 0x8c5731,
+  skinDeep: 0x5c3619,
+
+  // --- MADEIRA, COURO & VESTES ---
+  woodHighlight: 0xba854d,
+  woodLight: 0xba854d,
+  wood: 0x9c6b3a,
+  woodBase: 0x9c6b3a,
+  woodShadow: 0x5c3a1b,
+  woodDark: 0x5c3a1b,
+  woodDeep: 0x331e0b,
+  bark: 0x422610,
+  rag: 0x7a5230,
+  boot: 0x4e342e,
+  leatherLight: 0x8d5c38,
+  leatherBase: 0x6d4426,
+  leatherShadow: 0x4e342e,
+  leatherDark: 0x2e1e19,
+
+  // --- GOBLIN & CRIATURAS TERRESTRES ---
+  gobHighlight: 0xcddc39,
+  gobLight: 0xaed581,
+  gob: 0x9ccc65,
+  gobBase: 0x9ccc65,
+  gobShadow: 0x5f8f2f,
+  gobDark: 0x5f8f2f,
+  gobDeep: 0x33691e,
+
+  // --- ELFO & FLORESTA PROFUNDA ---
+  elfHairLight: 0xfff176,
+  elfHair: 0xf7e27a,
+  elfHairShadow: 0xc9a432,
+  elfTunicLight: 0x4db6ac,
+  elfTunic: 0x26a69a,
+  elfTunicShadow: 0x00796b,
+  elfCloakLight: 0x00796b,
+  elfCloak: 0x00574b,
+  elfCloakShadow: 0x003d33,
+  elfCloakDark: 0x00261f,
+
+  // --- MAGIA ARCANA & VAZIO ---
+  arcanaLight: 0xda9bff,
+  purple: 0xc36bff,
+  arcanaBase: 0xc36bff,
+  arcanaShadow: 0x8e24aa,
+  arcanaDeep: 0x4a148c,
+  voidDark: 0x240046,
+
+  // --- MANA CELESTE & ELEMENTAL ---
+  manaLight: 0xb2ebf2,
+  cyan: 0x7fe7ff,
+  manaBase: 0x7fe7ff,
+  manaShadow: 0x00b4d8,
+  manaDeep: 0x0077b6,
+
+  // --- FOGO & BRASA ---
+  fireHighlight: 0xfff9c4,
+  fireLight: 0xffca28,
+  fireBase: 0xff7043,
+  fireShadow: 0xd83a3a,
+  fireDeep: 0x8e1b1b,
+
+  // --- NATUREZA, FOLHAGEM & MUSGO ---
+  leafHighlight: 0x72c96b,
+  leafLight: 0x47a04a,
+  leaf: 0x2f6e35,
+  leafBase: 0x2f6e35,
+  leafShadow: 0x1d4a22,
+  leafDark: 0x1d4a22,
+  leafDeep: 0x0e2912,
+  leafAmber: 0xd97724,
+  leafRust: 0x9c3d18,
+  mossGold: 0x827717,
+
+  // --- TERRA, PEDRA & CAMINHO ---
+  dirtLight: 0xb89a6c,
+  dirtBase: 0x9b7b4f,
+  dirtShadow: 0x6e5233,
+  dirtDeep: 0x422f1c,
+  stoneLight: 0x949ba6,
+  stoneBase: 0x69707c,
+  stoneShadow: 0x484e58,
+  stoneDeep: 0x292d33
+};
+
+// =============================================================================
+
+// <<< END: src/config/palette.js
+
+// >>> START: src/config/catalogs.js
+// =============================================================================
+// CATÁLOGOS DE EQUIPAMENTOS, STATUS E CONQUISTAS
+// =============================================================================
 const WEAPON_CATALOG = {
   bow: {
     name: 'ARCO REAL',
@@ -298,166 +434,10 @@ const ACHIEVEMENTS_CATALOG = [
 ];
 
 // =============================================================================
-// PALETA DE CORES DA PIXEL ART (Padrão 16-bit com rampas de 3 a 4 sub-tons)
-// Todas as chaves originais foram preservadas para garantir 100% de retrocompatibilidade.
-// =============================================================================
-const C = {
-  // --- CONTORNOS, BASE & OSSO ---
-  outline: 0x1a1410,
-  outlineSoft: 0x2c221a,
-  white: 0xffffff,
-  bone: 0xe8dcc0,
-  boneDark: 0xbdb094,
 
-  // --- AÇO POLIDO & LÂMINAS ---
-  steelHighlight: 0xffffff,
-  steelLight: 0xf2f4f8,
-  steel: 0xc9ced8,
-  steelBase: 0xc9ced8,
-  steelShadow: 0x8a909c,
-  steelDark: 0x8a909c,
-  steelDeep: 0x5a606e,
+// <<< END: src/config/catalogs.js
 
-  // --- FERRO BRUTO & ARMADURA PESADA ---
-  ironHighlight: 0x6e7382,
-  iron: 0x454852,
-  ironBase: 0x454852,
-  ironShadow: 0x26272e,
-  ironDark: 0x26272e,
-  ironDeep: 0x15161a,
-
-  // --- OURO REAL & BRONZE ---
-  yellow: 0xffeb3b,
-  goldHighlight: 0xfff9c4,
-  goldLight: 0xffe082,
-  gold: 0xf2c14e,
-  goldBase: 0xf2c14e,
-  goldShadow: 0xc49000,
-  goldDark: 0x946500,
-  goldDeep: 0x5a3c00,
-
-  // --- PRATA & METAL BRUNIDO ---
-  silverHighlight: 0xffffff,
-  silverLight: 0xe2e8f0,
-  silver: 0xb0bec5,
-  silverBase: 0xb0bec5,
-  silverShadow: 0x78909c,
-  silverDark: 0x455a64,
-  silverDeep: 0x263238,
-
-  // --- TONS CARMESINS & RUBI ---
-  redHighlight: 0xff7b7b,
-  red: 0xd83a3a,
-  redBase: 0xd83a3a,
-  darkRed: 0x8e1b1b,
-  redShadow: 0x8e1b1b,
-  redDeep: 0x4a0e0e,
-  eye: 0xff3030,
-  rubyGlow: 0xff5252,
-  rubyLight: 0xff1744,
-  rubyBase: 0xd83a3a,
-  rubyShadow: 0x8e1b1b,
-  rubyDeep: 0x4a0e0e,
-
-  // --- AZUL REAL & HERÁLDICA ---
-  blueLight: 0x5b93f0,
-  blue: 0x2f6fd6,
-  blueBase: 0x2f6fd6,
-  blueShadow: 0x1c4ba6,
-  blueDeep: 0x0f2b69,
-
-  // --- PELE & EXPRESSÃO ---
-  skinHighlight: 0xffebd2,
-  skinLight: 0xfde2b8,
-  skin: 0xf1c27d,
-  skinBase: 0xf1c27d,
-  skinShadow: 0xc68b59,
-  skinDark: 0x8c5731,
-  skinDeep: 0x5c3619,
-
-  // --- MADEIRA, COURO & VESTES ---
-  woodHighlight: 0xba854d,
-  woodLight: 0xba854d,
-  wood: 0x9c6b3a,
-  woodBase: 0x9c6b3a,
-  woodShadow: 0x5c3a1b,
-  woodDark: 0x5c3a1b,
-  woodDeep: 0x331e0b,
-  bark: 0x422610,
-  rag: 0x7a5230,
-  boot: 0x4e342e,
-  leatherLight: 0x8d5c38,
-  leatherBase: 0x6d4426,
-  leatherShadow: 0x4e342e,
-  leatherDark: 0x2e1e19,
-
-  // --- GOBLIN & CRIATURAS TERRESTRES ---
-  gobHighlight: 0xcddc39,
-  gobLight: 0xaed581,
-  gob: 0x9ccc65,
-  gobBase: 0x9ccc65,
-  gobShadow: 0x5f8f2f,
-  gobDark: 0x5f8f2f,
-  gobDeep: 0x33691e,
-
-  // --- ELFO & FLORESTA PROFUNDA ---
-  elfHairLight: 0xfff176,
-  elfHair: 0xf7e27a,
-  elfHairShadow: 0xc9a432,
-  elfTunicLight: 0x4db6ac,
-  elfTunic: 0x26a69a,
-  elfTunicShadow: 0x00796b,
-  elfCloakLight: 0x00796b,
-  elfCloak: 0x00574b,
-  elfCloakShadow: 0x003d33,
-  elfCloakDark: 0x00261f,
-
-  // --- MAGIA ARCANA & VAZIO ---
-  arcanaLight: 0xda9bff,
-  purple: 0xc36bff,
-  arcanaBase: 0xc36bff,
-  arcanaShadow: 0x8e24aa,
-  arcanaDeep: 0x4a148c,
-  voidDark: 0x240046,
-
-  // --- MANA CELESTE & ELEMENTAL ---
-  manaLight: 0xb2ebf2,
-  cyan: 0x7fe7ff,
-  manaBase: 0x7fe7ff,
-  manaShadow: 0x00b4d8,
-  manaDeep: 0x0077b6,
-
-  // --- FOGO & BRASA ---
-  fireHighlight: 0xfff9c4,
-  fireLight: 0xffca28,
-  fireBase: 0xff7043,
-  fireShadow: 0xd83a3a,
-  fireDeep: 0x8e1b1b,
-
-  // --- NATUREZA, FOLHAGEM & MUSGO ---
-  leafHighlight: 0x72c96b,
-  leafLight: 0x47a04a,
-  leaf: 0x2f6e35,
-  leafBase: 0x2f6e35,
-  leafShadow: 0x1d4a22,
-  leafDark: 0x1d4a22,
-  leafDeep: 0x0e2912,
-  leafAmber: 0xd97724,
-  leafRust: 0x9c3d18,
-  mossGold: 0x827717,
-
-  // --- TERRA, PEDRA & CAMINHO ---
-  dirtLight: 0xb89a6c,
-  dirtBase: 0x9b7b4f,
-  dirtShadow: 0x6e5233,
-  dirtDeep: 0x422f1c,
-  stoneLight: 0x949ba6,
-  stoneBase: 0x69707c,
-  stoneShadow: 0x484e58,
-  stoneDeep: 0x292d33
-};
-
-// =============================================================================
+// >>> START: src/core/events.js
 // SISTEMA DE EVENTOS DESACOPLADO (Observer Pattern / EventBus)
 // Permite que combate, áudio, interface, conquistas e drops reajam a eventos do jogo
 // sem dependência cíclica ou chamadas diretas rígidas.
@@ -531,6 +511,10 @@ class GameEventBus {
 const events = new GameEventBus();
 
 // =============================================================================
+
+// <<< END: src/core/events.js
+
+// >>> START: src/core/state.js
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, cursors, keys;
@@ -547,8 +531,13 @@ let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
 let enemySpeed, spawnDelay, buff, slashCounter = 0;
+let virtualJoystick = null;
 
 // =============================================================================
+
+// <<< END: src/core/state.js
+
+// >>> START: src/core/storage.js
 // GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
@@ -849,6 +838,10 @@ function updateFullscreenIcons(scene) { return StorageManager.updateFullscreenIc
 function toggleFullscreen(scene) { return StorageManager.toggleFullscreen(scene); }
 
 // =============================================================================
+
+// <<< END: src/core/storage.js
+
+// >>> START: src/core/audio.js
 // SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
 // =============================================================================
 const BGM_MELODY = [
@@ -1511,6 +1504,10 @@ class SoundSystem {
 const sound = new SoundSystem();
 
 // =============================================================================
+
+// <<< END: src/core/audio.js
+
+// >>> START: src/art/drawHelpers.js
 // ARTE: FERRAMENTAS DE PIXEL ART
 // Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
 // carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
@@ -1600,6 +1597,13 @@ function makeItem(scene, key, glow, drawIcon) {
   g.destroy();
 }
 
+// =============================================================================
+
+// <<< END: src/art/drawHelpers.js
+
+// >>> START: src/art/characterArt.js
+// =============================================================================
+// ARTE PROCEDURAL: PERSONAGENS, INIMIGOS, CHEFES E NPCS
 // =============================================================================
 // ARTE: DESENHOS (r = cor, x, y, largura, altura — em pixels do desenho)
 // Todos olham para a direita; inimigos são espelhados com setFlipX.
@@ -1888,290 +1892,7 @@ function drawDarkMage(r, f) {
   r.shine(12, 0 + staffY, 0, 0, C.white);
 }
 
-function drawTree(r) {
-  r(C.woodDark, 10, 19, 4, 11); r(C.wood, 10, 19, 1, 11); r(C.woodDark, 8, 29, 8, 1); // tronco
-  r(C.leafDark, 5, 2, 14, 3); r(C.leafDark, 3, 5, 18, 16); r(C.leafDark, 2, 8, 20, 10); // copa
-  r(C.leaf, 6, 3, 12, 13); r(C.leaf, 4, 6, 16, 10); r(C.leaf, 3, 9, 18, 6);
-  r(C.leafLight, 7, 4, 5, 2); r(C.leafLight, 5, 7, 3, 2); r(C.leafLight, 14, 6, 3, 2); // brilhos
-}
 
-function drawRock(r, f) {
-  r(C.ironDark, 4, 10, 8, 1);
-  r(C.ironDark, 3, 9, 10, 1);
-  r(C.ironDark, 2, 7, 12, 2);
-  r(C.iron, 2, 4, 12, 3);
-  r(C.iron, 1, 5, 1, 3);
-  r(C.iron, 14, 5, 1, 3);
-  r(C.steelDark, 3, 2, 10, 3);
-  r(C.steelDark, 2, 3, 1, 2);
-  r(C.steelDark, 13, 3, 1, 2);
-  r(C.steel, 4, 1, 8, 2);
-  r(C.steelLight, 6, 1, 4, 1);
-  r(C.white, 7, 2, 2, 1);
-  r(C.ironDark, 6, 4, 1, 3);
-  r(C.ironDark, 7, 6, 2, 1);
-  r(C.ironDark, 11, 6, 1, 2);
-
-  if (f === 1) {
-    r(C.leafDark, 2, 3, 3, 2);
-    r(C.leaf, 3, 3, 2, 2);
-    r(C.leafLight, 3, 2, 1, 1);
-    r(C.leafDark, 9, 2, 4, 2);
-    r(C.leaf, 10, 2, 3, 1);
-    r(C.leafLight, 11, 1, 2, 1);
-    r(C.leafDark, 1, 6, 2, 2);
-    r(C.leaf, 1, 7, 1, 1);
-    r(C.leafDark, 13, 6, 2, 2);
-    r(C.leaf, 13, 7, 1, 1);
-  }
-}
-
-function drawShieldIcon(r) {
-  r(C.gold, 1, 1, 7, 6); r(C.gold, 2, 7, 5, 2); r(C.gold, 3, 9, 3, 1);
-  r(C.blue, 2, 2, 5, 5); r(C.blue, 3, 7, 3, 1);
-  r(C.white, 4, 2, 1, 6); r(C.white, 2, 4, 5, 1);
-}
-
-function drawBowIcon(r) {
-  r(C.wood, 3, 1, 2, 1); r(C.wood, 5, 2, 1, 1); r(C.wood, 6, 3, 1, 5); r(C.wood, 5, 8, 1, 1); r(C.wood, 3, 9, 2, 1);
-  r(C.white, 3, 2, 1, 7);                                // corda
-  r(C.bone, 1, 5, 6, 1); r(C.steelLight, 7, 4, 1, 3);    // flecha
-  r(C.red, 1, 4, 1, 1); r(C.red, 1, 6, 1, 1);            // penas
-}
-
-function drawSwordIcon(r) {
-  r(C.steelLight, 4, 1, 1, 6); r(C.steel, 5, 2, 1, 5);   // lâmina
-  r(C.gold, 2, 7, 5, 1);                                 // guarda
-  r(C.woodDark, 4, 8, 2, 2); r(C.gold, 4, 10, 2, 1);     // cabo e pomo
-}
-
-// Nova Arma 1: Ícone e Projétil do Machado Bumerangue
-function drawAxeIcon(r) {
-  r(C.woodDark, 4, 2, 1, 8); r(C.gold, 4, 1, 1, 1); r(C.gold, 4, 9, 1, 1); // cabo
-  r(C.steelLight, 1, 2, 3, 5); r(C.steel, 2, 3, 2, 3);                     // lâmina esquerda
-  r(C.steelLight, 5, 2, 3, 5); r(C.steel, 5, 3, 2, 3);                     // lâmina direita
-  r(C.cyan, 4, 4, 1, 2);                                                   // runa central
-}
-
-function drawAxeProj(r) {
-  // 1. Haste de carvalho reforçada com amarras e pomo de ouro
-  r(C.woodDark, 5, 1, 2, 10);
-  r(C.leatherBase, 5, 5, 2, 3);
-  r(C.goldDark, 5, 10, 2, 2);
-  r(C.goldLight, 5, 10, 2, 1);
-
-  // 2. Lâmina Dupla Reluzente com chanfro e gume curvo afiado
-  // Lâmina Esquerda (meia-lua agressiva)
-  r(C.steelDark, 1, 2, 4, 7);
-  r(C.steelBase, 1, 3, 3, 5);
-  r(C.steelLight, 0, 3, 2, 5);
-  r(C.white, 0, 4, 1, 3); // Gume afiado de alto contraste
-  r.shine(0, 3, 0, 0, C.white);
-
-  // Lâmina Direita (meia-lua agressiva)
-  r(C.steelDark, 7, 2, 4, 7);
-  r(C.steelBase, 8, 3, 3, 5);
-  r(C.steelLight, 10, 3, 2, 5);
-  r(C.white, 11, 4, 1, 3); // Gume afiado de alto contraste
-  r.shine(11, 3, 0, 0, C.white);
-
-  // 3. Olho de fixação central de ferro com Runa Ciano reluzente
-  r(C.ironDeep, 4, 3, 4, 4);
-  r(C.goldBase, 4, 3, 4, 1);
-  r(C.cyan, 5, 4, 2, 2);
-  r(C.white, 5, 4, 1, 1);
-}
-
-// Nova Arma 2: Ícone e Projétil do Cajado de Fogo Arcano
-function drawFireStaffIcon(r) {
-  r(C.woodDark, 4, 4, 1, 7); r(C.gold, 3, 3, 3, 2);                        // haste e garras de ouro
-  r(C.red, 3, 1, 3, 3); r(C.yellow, 4, 1, 1, 2); r(C.white, 4, 2, 1, 1);   // orbe solar flamejante
-}
-
-// Projétil do Cajado de Fogo (Aerodinâmico, fluido e sem poluição visual)
-function drawFireballProj(r) {
-  // Cauda afilada fluida em chama decrescente
-  r(C.fireDeep, 0, 3, 2, 2);
-  r(C.fireShadow, 1, 2, 2, 4);
-  r(C.fireBase, 2, 2, 3, 4);
-
-  // Manto flamejante aerodinâmico
-  r(C.fireBase, 4, 1, 4, 6);
-  r(C.fireLight, 5, 2, 4, 4);
-  r(C.fireHighlight, 7, 2, 3, 4);
-
-  // Núcleo solar concentrado e brilhante
-  r(C.white, 8, 3, 3, 2);
-  r(C.white, 9, 2, 2, 4);
-  r.shine(10, 3, 0, 0, C.white);
-}
-
-// Orbe Arcano do Mago Sombrio (Geometria 100% esférica, suave e orgânica)
-function drawMageOrb(r) {
-  // Corona externa esférica com cantos recortados (rasterização circular pura em 8x8)
-  // Topo e base arredondados (x: 2..5, w: 4)
-  r(C.arcanaDeep, 2, 0, 4, 1);
-  r(C.arcanaDeep, 2, 7, 4, 1);
-
-  // Anéis intermediários (x: 1..6, w: 6)
-  r(C.arcanaShadow, 1, 1, 6, 1);
-  r(C.arcanaDeep, 1, 6, 6, 1);
-
-  // Equador e corpo volumétrico da esfera (x: 0..7, w: 8)
-  r(C.arcanaShadow, 0, 2, 8, 4);
-
-  // Gradiente esférico púrpura/magenta luminoso
-  r(0xba68c8, 2, 1, 4, 1);
-  r(0xab47bc, 1, 2, 6, 1);
-  r(0x8e24aa, 1, 3, 6, 2);
-  r(0x4a148c, 1, 5, 6, 1);
-  r(0x311b92, 2, 6, 4, 1);
-
-  // Núcleo abissal central arredondado (círculo interior, não-quadrado)
-  r(0x100020, 3, 2, 2, 1);
-  r(0x0a0014, 2, 3, 4, 2);
-  r(0x100020, 3, 5, 2, 1);
-
-  // Centelha mística interior de mana
-  r(C.cyan, 3, 3, 2, 2);
-  r(C.white, 3, 3, 1, 1);
-
-  // Curva de brilho especular 3D no topo esquerdo (volume esférico realista)
-  r(C.white, 2, 1, 2, 1);
-  r(C.arcanaLight, 1, 2, 1, 2);
-  r.shine(2, 1, 0, 0, C.white);
-}
-
-function drawBlade(r) {                                  // Espada Vorpal (lâmina usada no golpe)
-  // 1. Lâmina de aço temperado com gume reluzente e canaleta de sangue
-  r(C.steelShadow, 1, 1, 4, 12);
-  r(C.steelBase, 2, 1, 2, 12);
-  r(C.steelLight, 2, 1, 1, 12);
-  r(C.white, 2, 0, 1, 2); // Ponta afiada
-  r.shine(2, 1, 0, 0, C.white);
-
-  // 2. Runa ciano luminosa entalhada na lâmina
-  r(C.cyan, 2, 6, 1, 4);
-  r(C.white, 2, 7, 1, 2);
-
-  // 3. Guarda de ouro maciço com gavilhões chanfrados
-  r(C.goldDark, 0, 13, 6, 2);
-  r(C.goldBase, 0, 13, 6, 1);
-  r(C.goldLight, 1, 13, 4, 1);
-  r.shine(1, 13, 0, 0, C.white);
-
-  // 4. Cabo de couro nobre trançado e pomo com rubi cravado
-  r(C.woodDark, 2, 15, 2, 3);
-  r(C.leatherBase, 2, 16, 2, 1);
-  r(C.goldBase, 1, 18, 4, 2);
-  r(C.rubyLight, 2, 18, 2, 1);
-}
-
-const arrowDrawer = (feather, tip, trailCol = C.manaLight) => (r) => {
-  // 1. Rastro de velocidade / esteira de vento translúcida atrás da flecha
-  r(trailCol, 0, 2, 2, 1);
-  r(trailCol, 1, 1, 1, 1);
-  r(trailCol, 1, 3, 1, 1);
-
-  // 2. Empenamento / Penas do projétil
-  r(feather, 2, 0, 2, 2);
-  r(feather, 2, 3, 2, 2);
-  r(C.white, 3, 1, 1, 1);
-  r(C.white, 3, 3, 1, 1);
-
-  // 3. Haste de madeira torneada com anel metálico de reforço
-  r(C.woodDark, 4, 2, 6, 1);
-  r(C.woodBase, 5, 2, 5, 1);
-  r(C.goldBase, 7, 2, 1, 1);
-
-  // 4. Ponta afiada perfurante de navalha com reflexo especular
-  r(tip, 10, 1, 2, 3);
-  r(tip, 11, 2, 1, 1);
-  r(C.white, 11, 2, 1, 1);
-  r.shine(11, 2, 0, 0, C.white);
-};
-
-// Ícones de Pixel Art para o HUD
-function drawHourglass(r) {
-  r(C.woodDark, 1, 1, 8, 1); r(C.wood, 2, 2, 6, 1);
-  r(C.woodDark, 1, 11, 8, 1); r(C.wood, 2, 10, 6, 1);
-  r(C.cyan, 2, 3, 6, 2);
-  r(C.cyan, 3, 5, 4, 2);
-  r(C.cyan, 2, 7, 6, 3);
-  r(C.gold, 3, 3, 4, 1);
-  r(C.yellow, 4, 4, 2, 3);
-  r(C.gold, 3, 8, 4, 2);
-  r(C.white, 2, 3, 1, 1); r(C.white, 2, 9, 1, 1);
-}
-
-function drawCrown(r) {
-  r(C.gold, 1, 6, 9, 2);
-  r(C.woodDark, 1, 8, 9, 1);
-  r(C.gold, 1, 3, 1, 3);
-  r(C.gold, 3, 2, 1, 4);
-  r(C.gold, 5, 1, 1, 5);
-  r(C.gold, 7, 2, 1, 4);
-  r(C.gold, 9, 3, 1, 3);
-  r(C.gold, 2, 5, 7, 1);
-  r(C.red, 5, 3, 1, 1);
-  r(C.blue, 3, 4, 1, 1);
-  r(C.blue, 7, 4, 1, 1);
-  r(C.white, 5, 1, 1, 1);
-}
-
-function drawHorn(r, f) {
-  r(C.gold, 1, 3, 2, 2);
-  r(C.gold, 3, 2, 3, 4);
-  r(C.gold, 6, 1, 3, 6);
-  r(C.gold, 9, 1, 2, 7);
-  r(C.woodDark, 10, 2, 1, 5);
-  if (f === 0) {
-    r(C.cyan, 12, 1, 1, 2);
-    r(C.cyan, 13, 3, 1, 2);
-    r(C.cyan, 12, 5, 1, 2);
-  } else {
-    r(C.red, 2, 1, 2, 2); r(C.red, 4, 3, 2, 2);
-    r(C.red, 6, 5, 2, 2); r(C.red, 8, 6, 2, 2);
-  }
-}
-
-// Cavaleiro Heróico para a Capa (equipado com Arco Real nas costas, Escudo de Aço e Espada Vorpal)
-function drawKnightBanner(r) {
-  r(C.wood, 4, 3, 2, 1); r(C.wood, 3, 4, 1, 5); r(C.gold, 4, 2, 1, 1);
-  r(C.white, 5, 4, 1, 5);
-  r(C.woodDark, 6, 5, 2, 4); r(C.red, 6, 3, 1, 2); r(C.red, 8, 4, 1, 1);
-
-  r(C.red, 10, 1, 5, 2); r(C.red, 9, 2, 6, 2); r(C.darkRed, 14, 3, 3, 2);
-  r(C.steel, 9, 4, 7, 6); r(C.steelLight, 10, 4, 3, 2);
-  r(C.steelDark, 9, 9, 7, 1);
-  r(C.outline, 11, 7, 4, 1); r(C.outline, 12, 8, 2, 2);
-
-  r(C.darkRed, 4, 10, 5, 14); r(C.red, 5, 12, 4, 10);
-  r(C.steel, 6, 10, 4, 3); r(C.steelLight, 7, 10, 2, 1);
-  r(C.steel, 15, 10, 4, 3); r(C.steelLight, 16, 10, 2, 1);
-  r(C.steel, 9, 10, 7, 8);
-  r(C.blue, 10, 10, 5, 8);
-  r(C.gold, 12, 11, 1, 6); r(C.gold, 11, 13, 3, 1);
-  r(C.woodDark, 9, 17, 7, 2); r(C.gold, 12, 17, 1, 2);
-
-  r(C.steelDark, 6, 13, 3, 4); r(C.steel, 6, 17, 3, 2);
-  r(C.steelDark, 16, 13, 3, 4); r(C.steel, 16, 17, 3, 2);
-
-  r(C.gold, 2, 12, 6, 6); r(C.gold, 3, 18, 4, 2);
-  r(C.blue, 3, 13, 4, 5); r(C.blue, 4, 18, 2, 1);
-  r(C.white, 4, 13, 2, 5); r(C.cyan, 3, 15, 4, 1);
-
-  r(C.steelLight, 19, 3, 2, 16); r(C.cyan, 19, 3, 1, 14); r(C.steel, 20, 4, 1, 15);
-  r(C.gold, 17, 10, 6, 2);
-  r(C.woodDark, 19, 8, 2, 2);
-  r(C.gold, 19, 7, 2, 1);
-
-  r(C.steelDark, 9, 19, 3, 6); r(C.steelLight, 9, 20, 1, 3);
-  r(C.steelDark, 13, 19, 3, 6); r(C.steelLight, 13, 20, 1, 3);
-  r(C.woodDark, 8, 24, 4, 2); r(C.woodDark, 13, 24, 4, 2);
-}
-
-// Boss 1: Golem Ancestral de Pedra (88x88 — Colosso Titânico em Pixel Art 16-bit com runas, musgo e olhos incandescentes)
 function drawBossGolem(r, f) {
   // Grade 44x44 (margem de segurança 1..42 para nunca cortar o outline 4-pass)
   const armBob = f === 0 ? 0 : -2;
@@ -2425,7 +2146,572 @@ function drawMiniGolem(r, f) {
   r(C.steelShadow, 8, 9 + legR, 3, 1);
 }
 
-// Cenário (chão, estrada, florestas das bordas) e efeitos
+
+function drawVillageNpc(r, f) {
+  // Gorro camponês de lã e rosto
+  r(C.leatherBase, 4, 1, 4, 2);
+  r(C.skinBase, 4, 3, 4, 3);
+  r(C.skinShadow, 4, 5, 4, 1);
+  r(C.outline, 7, 4, 1, 1);
+
+  // Túnica e avental
+  r(C.elfTunic, 3, 6, 6, 5);
+  r(C.bone, 5, 7, 3, 4);
+  r(C.leatherDark, 3, 9, 6, 1);
+
+  // Braço esquerdo na cintura
+  r(C.skinBase, 2, 6, 1, 3);
+
+  // Braço direito acenando com lenço branco para o herói
+  if (f === 0) {
+    r(C.elfTunic, 9, 5, 1, 2);
+    r(C.skinBase, 10, 3, 2, 2);
+    r(C.white, 11, 2, 3, 3);
+    r.shine(12, 2, 0, 0, C.goldHighlight);
+  } else {
+    r(C.elfTunic, 9, 4, 1, 2);
+    r(C.skinBase, 9, 1, 2, 2);
+    r(C.white, 9, 0, 3, 3);
+    r.shine(10, 0, 0, 0, C.goldHighlight);
+  }
+
+  // Botas de couro
+  r(C.boot, 4, 11, 2, 2);
+  r(C.boot, 7, 11, 2, 2);
+}
+
+
+function drawBlacksmithMaster(r, f) {
+  const bob = f === 0 ? 0 : 1;
+  // Cabeça, bandana de couro e barba espessa de mestre anão/ferreiro
+  r(C.darkRed, 7, 2 + bob, 8, 2);
+  r(C.skin, 7, 4 + bob, 8, 4);
+  r(C.outline, 9, 5 + bob, 1, 1); r(C.outline, 13, 5 + bob, 1, 1);
+  r(C.woodDark, 6, 7 + bob, 10, 5);
+  r(C.wood, 7, 8 + bob, 8, 3);
+  r(C.gold, 10, 9 + bob, 2, 2); // fivela da barba
+
+  // Ombros largos, camisa de linho e avental de couro pesado de forja
+  r(C.bone, 4, 11 + bob, 14, 6);
+  r(C.boot, 6, 11 + bob, 10, 9);
+  r(C.wood, 7, 12 + bob, 8, 7);
+  r(C.gold, 6, 15 + bob, 10, 1);
+
+  // Braço esquerdo segurando tenaz com lâmina em brasa
+  r(C.skin, 3, 12 + bob, 2, 4);
+  r(C.ironDark, 2, 15 + bob, 3, 2);
+  r(C.red, 1, 14 + bob, 2, 2); r(C.yellow, 1, 14 + bob, 1, 1);
+
+  // Braço direito erguendo/descendo o Martelo de Forja
+  const hY = f === 0 ? 0 : 3;
+  r(C.skin, 16, 11 + hY, 3, 4);
+  r(C.ironDark, 16, 14 + hY, 3, 2); // munhequeira
+  r(C.woodDark, 18, 6 + hY, 1, 9);  // cabo do martelo
+  r(C.steelDark, 16, 4 + hY, 5, 3); // cabeça do martelo
+  r(C.steelLight, 17, 4 + hY, 3, 1);
+}
+
+// Mestre Mago Alquimista (44x44 — 2 frames com chapéu místico, poção borbulhante e ervas)
+function drawMageMaster(r, f) {
+  const bob = f === 0 ? 0 : 1;
+  // Chapéu pontudo místico violeta com aba larga e fivela dourada
+  r(0x4a148c, 9, 1 + bob, 4, 2);
+  r(0x4a148c, 7, 3 + bob, 8, 2);
+  r(0x311b92, 4, 5 + bob, 14, 2);
+  r(C.gold, 8, 4 + bob, 6, 1);
+  r(C.cyan, 10, 4 + bob, 2, 1);
+
+  // Rosto sábio, olhos arcanos brilhantes e longa barba prateada
+  r(0x26173e, 7, 7 + bob, 8, 3);
+  r(C.cyan, 8, 8 + bob, 2, 1); r(C.cyan, 12, 8 + bob, 2, 1);
+  r(C.steelLight, 7, 10 + bob, 8, 5);
+  r(C.white, 8, 10 + bob, 6, 3);
+  r(C.steel, 9, 15 + bob, 4, 2);
+
+  // Manto estrelado de alquimista
+  r(0x311b92, 4, 12 + bob, 14, 8);
+  r(C.purple, 6, 13 + bob, 10, 7);
+  r(C.gold, 5, 12 + bob, 2, 7); r(C.gold, 15, 12 + bob, 2, 7);
+  r(C.yellow, 8, 17 + bob, 1, 1); r(C.cyan, 13, 16 + bob, 1, 1);
+
+  // Mão esquerda segurando ramo de ervas místicas douradas/verdes
+  r(C.skin, 3, 14 + bob, 2, 2);
+  r(C.leaf, 2, 11 + bob, 3, 3);
+  r(C.leafLight, 1, 10 + bob, 2, 2);
+  r(C.yellow, 3, 10 + bob, 1, 1);
+
+  // Mão direita erguendo frasco de poção rubi/ciano borbulhante
+  const pY = f === 0 ? 0 : -1;
+  r(C.skin, 17, 14 + pY, 2, 2);
+  r(C.white, 17, 10 + pY, 4, 4);
+  r(f === 0 ? C.red : C.cyan, 18, 11 + pY, 2, 3);
+  r(C.gold, 18, 9 + pY, 2, 1);
+}
+
+
+// <<< END: src/art/characterArt.js
+
+// >>> START: src/art/itemArt.js
+// =============================================================================
+// ARTE PROCEDURAL: ÍCONES DE ARMAS, PROJÉTEIS, COLETÁVEIS E HUD
+// =============================================================================
+function drawShieldIcon(r) {
+  r(C.gold, 1, 1, 7, 6); r(C.gold, 2, 7, 5, 2); r(C.gold, 3, 9, 3, 1);
+  r(C.blue, 2, 2, 5, 5); r(C.blue, 3, 7, 3, 1);
+  r(C.white, 4, 2, 1, 6); r(C.white, 2, 4, 5, 1);
+}
+
+function drawBowIcon(r) {
+  r(C.wood, 3, 1, 2, 1); r(C.wood, 5, 2, 1, 1); r(C.wood, 6, 3, 1, 5); r(C.wood, 5, 8, 1, 1); r(C.wood, 3, 9, 2, 1);
+  r(C.white, 3, 2, 1, 7);                                // corda
+  r(C.bone, 1, 5, 6, 1); r(C.steelLight, 7, 4, 1, 3);    // flecha
+  r(C.red, 1, 4, 1, 1); r(C.red, 1, 6, 1, 1);            // penas
+}
+
+function drawSwordIcon(r) {
+  r(C.steelLight, 4, 1, 1, 6); r(C.steel, 5, 2, 1, 5);   // lâmina
+  r(C.gold, 2, 7, 5, 1);                                 // guarda
+  r(C.woodDark, 4, 8, 2, 2); r(C.gold, 4, 10, 2, 1);     // cabo e pomo
+}
+
+// Nova Arma 1: Ícone e Projétil do Machado Bumerangue
+function drawAxeIcon(r) {
+  r(C.woodDark, 4, 2, 1, 8); r(C.gold, 4, 1, 1, 1); r(C.gold, 4, 9, 1, 1); // cabo
+  r(C.steelLight, 1, 2, 3, 5); r(C.steel, 2, 3, 2, 3);                     // lâmina esquerda
+  r(C.steelLight, 5, 2, 3, 5); r(C.steel, 5, 3, 2, 3);                     // lâmina direita
+  r(C.cyan, 4, 4, 1, 2);                                                   // runa central
+}
+
+function drawAxeProj(r) {
+  // 1. Haste de carvalho reforçada com amarras e pomo de ouro
+  r(C.woodDark, 5, 1, 2, 10);
+  r(C.leatherBase, 5, 5, 2, 3);
+  r(C.goldDark, 5, 10, 2, 2);
+  r(C.goldLight, 5, 10, 2, 1);
+
+  // 2. Lâmina Dupla Reluzente com chanfro e gume curvo afiado
+  // Lâmina Esquerda (meia-lua agressiva)
+  r(C.steelDark, 1, 2, 4, 7);
+  r(C.steelBase, 1, 3, 3, 5);
+  r(C.steelLight, 0, 3, 2, 5);
+  r(C.white, 0, 4, 1, 3); // Gume afiado de alto contraste
+  r.shine(0, 3, 0, 0, C.white);
+
+  // Lâmina Direita (meia-lua agressiva)
+  r(C.steelDark, 7, 2, 4, 7);
+  r(C.steelBase, 8, 3, 3, 5);
+  r(C.steelLight, 10, 3, 2, 5);
+  r(C.white, 11, 4, 1, 3); // Gume afiado de alto contraste
+  r.shine(11, 3, 0, 0, C.white);
+
+  // 3. Olho de fixação central de ferro com Runa Ciano reluzente
+  r(C.ironDeep, 4, 3, 4, 4);
+  r(C.goldBase, 4, 3, 4, 1);
+  r(C.cyan, 5, 4, 2, 2);
+  r(C.white, 5, 4, 1, 1);
+}
+
+// Nova Arma 2: Ícone e Projétil do Cajado de Fogo Arcano
+function drawFireStaffIcon(r) {
+  r(C.woodDark, 4, 4, 1, 7); r(C.gold, 3, 3, 3, 2);                        // haste e garras de ouro
+  r(C.red, 3, 1, 3, 3); r(C.yellow, 4, 1, 1, 2); r(C.white, 4, 2, 1, 1);   // orbe solar flamejante
+}
+
+// Projétil do Cajado de Fogo (Aerodinâmico, fluido e sem poluição visual)
+function drawFireballProj(r) {
+  // Cauda afilada fluida em chama decrescente
+  r(C.fireDeep, 0, 3, 2, 2);
+  r(C.fireShadow, 1, 2, 2, 4);
+  r(C.fireBase, 2, 2, 3, 4);
+
+  // Manto flamejante aerodinâmico
+  r(C.fireBase, 4, 1, 4, 6);
+  r(C.fireLight, 5, 2, 4, 4);
+  r(C.fireHighlight, 7, 2, 3, 4);
+
+  // Núcleo solar concentrado e brilhante
+  r(C.white, 8, 3, 3, 2);
+  r(C.white, 9, 2, 2, 4);
+  r.shine(10, 3, 0, 0, C.white);
+}
+
+// Orbe Arcano do Mago Sombrio (Geometria 100% esférica, suave e orgânica)
+function drawMageOrb(r) {
+  // Corona externa esférica com cantos recortados (rasterização circular pura em 8x8)
+  // Topo e base arredondados (x: 2..5, w: 4)
+  r(C.arcanaDeep, 2, 0, 4, 1);
+  r(C.arcanaDeep, 2, 7, 4, 1);
+
+  // Anéis intermediários (x: 1..6, w: 6)
+  r(C.arcanaShadow, 1, 1, 6, 1);
+  r(C.arcanaDeep, 1, 6, 6, 1);
+
+  // Equador e corpo volumétrico da esfera (x: 0..7, w: 8)
+  r(C.arcanaShadow, 0, 2, 8, 4);
+
+  // Gradiente esférico púrpura/magenta luminoso
+  r(0xba68c8, 2, 1, 4, 1);
+  r(0xab47bc, 1, 2, 6, 1);
+  r(0x8e24aa, 1, 3, 6, 2);
+  r(0x4a148c, 1, 5, 6, 1);
+  r(0x311b92, 2, 6, 4, 1);
+
+  // Núcleo abissal central arredondado (círculo interior, não-quadrado)
+  r(0x100020, 3, 2, 2, 1);
+  r(0x0a0014, 2, 3, 4, 2);
+  r(0x100020, 3, 5, 2, 1);
+
+  // Centelha mística interior de mana
+  r(C.cyan, 3, 3, 2, 2);
+  r(C.white, 3, 3, 1, 1);
+
+  // Curva de brilho especular 3D no topo esquerdo (volume esférico realista)
+  r(C.white, 2, 1, 2, 1);
+  r(C.arcanaLight, 1, 2, 1, 2);
+  r.shine(2, 1, 0, 0, C.white);
+}
+
+function drawBlade(r) {                                  // Espada Vorpal (lâmina usada no golpe)
+  // 1. Lâmina de aço temperado com gume reluzente e canaleta de sangue
+  r(C.steelShadow, 1, 1, 4, 12);
+  r(C.steelBase, 2, 1, 2, 12);
+  r(C.steelLight, 2, 1, 1, 12);
+  r(C.white, 2, 0, 1, 2); // Ponta afiada
+  r.shine(2, 1, 0, 0, C.white);
+
+  // 2. Runa ciano luminosa entalhada na lâmina
+  r(C.cyan, 2, 6, 1, 4);
+  r(C.white, 2, 7, 1, 2);
+
+  // 3. Guarda de ouro maciço com gavilhões chanfrados
+  r(C.goldDark, 0, 13, 6, 2);
+  r(C.goldBase, 0, 13, 6, 1);
+  r(C.goldLight, 1, 13, 4, 1);
+  r.shine(1, 13, 0, 0, C.white);
+
+  // 4. Cabo de couro nobre trançado e pomo com rubi cravado
+  r(C.woodDark, 2, 15, 2, 3);
+  r(C.leatherBase, 2, 16, 2, 1);
+  r(C.goldBase, 1, 18, 4, 2);
+  r(C.rubyLight, 2, 18, 2, 1);
+}
+
+const arrowDrawer = (feather, tip, trailCol = C.manaLight) => (r) => {
+  // 1. Rastro de velocidade / esteira de vento translúcida atrás da flecha
+  r(trailCol, 0, 2, 2, 1);
+  r(trailCol, 1, 1, 1, 1);
+  r(trailCol, 1, 3, 1, 1);
+
+  // 2. Empenamento / Penas do projétil
+  r(feather, 2, 0, 2, 2);
+  r(feather, 2, 3, 2, 2);
+  r(C.white, 3, 1, 1, 1);
+  r(C.white, 3, 3, 1, 1);
+
+  // 3. Haste de madeira torneada com anel metálico de reforço
+  r(C.woodDark, 4, 2, 6, 1);
+  r(C.woodBase, 5, 2, 5, 1);
+  r(C.goldBase, 7, 2, 1, 1);
+
+  // 4. Ponta afiada perfurante de navalha com reflexo especular
+  r(tip, 10, 1, 2, 3);
+  r(tip, 11, 2, 1, 1);
+  r(C.white, 11, 2, 1, 1);
+  r.shine(11, 2, 0, 0, C.white);
+};
+
+// Ícones de Pixel Art para o HUD
+function drawHourglass(r) {
+  r(C.woodDark, 1, 1, 8, 1); r(C.wood, 2, 2, 6, 1);
+  r(C.woodDark, 1, 11, 8, 1); r(C.wood, 2, 10, 6, 1);
+  r(C.cyan, 2, 3, 6, 2);
+  r(C.cyan, 3, 5, 4, 2);
+  r(C.cyan, 2, 7, 6, 3);
+  r(C.gold, 3, 3, 4, 1);
+  r(C.yellow, 4, 4, 2, 3);
+  r(C.gold, 3, 8, 4, 2);
+  r(C.white, 2, 3, 1, 1); r(C.white, 2, 9, 1, 1);
+}
+
+function drawCrown(r) {
+  r(C.gold, 1, 6, 9, 2);
+  r(C.woodDark, 1, 8, 9, 1);
+  r(C.gold, 1, 3, 1, 3);
+  r(C.gold, 3, 2, 1, 4);
+  r(C.gold, 5, 1, 1, 5);
+  r(C.gold, 7, 2, 1, 4);
+  r(C.gold, 9, 3, 1, 3);
+  r(C.gold, 2, 5, 7, 1);
+  r(C.red, 5, 3, 1, 1);
+  r(C.blue, 3, 4, 1, 1);
+  r(C.blue, 7, 4, 1, 1);
+  r(C.white, 5, 1, 1, 1);
+}
+
+function drawHorn(r, f) {
+  r(C.gold, 1, 3, 2, 2);
+  r(C.gold, 3, 2, 3, 4);
+  r(C.gold, 6, 1, 3, 6);
+  r(C.gold, 9, 1, 2, 7);
+  r(C.woodDark, 10, 2, 1, 5);
+  if (f === 0) {
+    r(C.cyan, 12, 1, 1, 2);
+    r(C.cyan, 13, 3, 1, 2);
+    r(C.cyan, 12, 5, 1, 2);
+  } else {
+    r(C.red, 2, 1, 2, 2); r(C.red, 4, 3, 2, 2);
+    r(C.red, 6, 5, 2, 2); r(C.red, 8, 6, 2, 2);
+  }
+}
+
+// Cavaleiro Heróico para a Capa (equipado com Arco Real nas costas, Escudo de Aço e Espada Vorpal)
+function drawKnightBanner(r) {
+  r(C.wood, 4, 3, 2, 1); r(C.wood, 3, 4, 1, 5); r(C.gold, 4, 2, 1, 1);
+  r(C.white, 5, 4, 1, 5);
+  r(C.woodDark, 6, 5, 2, 4); r(C.red, 6, 3, 1, 2); r(C.red, 8, 4, 1, 1);
+
+  r(C.red, 10, 1, 5, 2); r(C.red, 9, 2, 6, 2); r(C.darkRed, 14, 3, 3, 2);
+  r(C.steel, 9, 4, 7, 6); r(C.steelLight, 10, 4, 3, 2);
+  r(C.steelDark, 9, 9, 7, 1);
+  r(C.outline, 11, 7, 4, 1); r(C.outline, 12, 8, 2, 2);
+
+  r(C.darkRed, 4, 10, 5, 14); r(C.red, 5, 12, 4, 10);
+  r(C.steel, 6, 10, 4, 3); r(C.steelLight, 7, 10, 2, 1);
+  r(C.steel, 15, 10, 4, 3); r(C.steelLight, 16, 10, 2, 1);
+  r(C.steel, 9, 10, 7, 8);
+  r(C.blue, 10, 10, 5, 8);
+  r(C.gold, 12, 11, 1, 6); r(C.gold, 11, 13, 3, 1);
+  r(C.woodDark, 9, 17, 7, 2); r(C.gold, 12, 17, 1, 2);
+
+  r(C.steelDark, 6, 13, 3, 4); r(C.steel, 6, 17, 3, 2);
+  r(C.steelDark, 16, 13, 3, 4); r(C.steel, 16, 17, 3, 2);
+
+  r(C.gold, 2, 12, 6, 6); r(C.gold, 3, 18, 4, 2);
+  r(C.blue, 3, 13, 4, 5); r(C.blue, 4, 18, 2, 1);
+  r(C.white, 4, 13, 2, 5); r(C.cyan, 3, 15, 4, 1);
+
+  r(C.steelLight, 19, 3, 2, 16); r(C.cyan, 19, 3, 1, 14); r(C.steel, 20, 4, 1, 15);
+  r(C.gold, 17, 10, 6, 2);
+  r(C.woodDark, 19, 8, 2, 2);
+  r(C.gold, 19, 7, 2, 1);
+
+  r(C.steelDark, 9, 19, 3, 6); r(C.steelLight, 9, 20, 1, 3);
+  r(C.steelDark, 13, 19, 3, 6); r(C.steelLight, 13, 20, 1, 3);
+  r(C.woodDark, 8, 24, 4, 2); r(C.woodDark, 13, 24, 4, 2);
+}
+
+
+function drawGoldCoin(r, f) {
+  if (f === 0) {
+    // Silhueta octagonal chanfrada (diâmetro 6 em grid 8x8)
+    r(C.goldDark, 2, 1, 4, 1);
+    r(C.goldDark, 1, 2, 6, 4);
+    r(C.goldDark, 2, 6, 4, 1);
+
+    // Borda superior e esquerda iluminada (luz solar incidente)
+    r(C.goldLight, 2, 1, 3, 1);
+    r(C.goldLight, 1, 2, 1, 3);
+
+    // Borda inferior e direita sombreada (oclusão profunda)
+    r(C.goldDeep, 5, 2, 1, 4);
+    r(C.goldDeep, 2, 6, 4, 1);
+    r(C.goldDeep, 4, 5, 2, 1);
+
+    // Disco interior rebaixado com dithering de ouro suave
+    r(C.goldBase, 2, 2, 4, 4);
+    r.dither(C.goldLight, C.goldBase, 2, 2, 4, 2);
+
+    // Emblema nobre cunhado no centro (cruz/selo imperial)
+    r(C.goldDeep, 3, 3, 2, 2);
+    r(C.goldHighlight, 3, 3, 1, 1);
+
+    // Ponto de brilho especular no topo
+    r.shine(2, 1, 1, 0, C.white);
+  } else {
+    // Frame 1: Perfil elíptico durante a rotação da moeda
+    r(C.goldDark, 3, 1, 2, 1);
+    r(C.goldDark, 2, 2, 4, 4);
+    r(C.goldDark, 3, 6, 2, 1);
+
+    // Face visível com brilho de giro
+    r(C.goldBase, 2, 2, 3, 4);
+    r(C.goldDeep, 5, 2, 1, 4); // espessura da moeda na lateral
+    r(C.goldHighlight, 3, 2, 1, 4); // reflexo vertical de rotação
+
+    // Ponto de brilho especular no vértice
+    r.shine(3, 1, 1, 1, C.white);
+  }
+}
+
+// 8. Moeda de Prata Brunida (16x16 — 2 frames com chanfro 3D e reflexo especular)
+function drawSilverCoin(r, f) {
+  if (f === 0) {
+    // Silhueta octagonal chanfrada (diâmetro 6 em grid 8x8)
+    r(C.silverShadow, 2, 1, 4, 1);
+    r(C.silverShadow, 1, 2, 6, 4);
+    r(C.silverShadow, 2, 6, 4, 1);
+
+    // Borda superior e esquerda iluminada
+    r(C.silverHighlight, 2, 1, 3, 1);
+    r(C.silverHighlight, 1, 2, 1, 3);
+
+    // Borda inferior e direita sombreada
+    r(C.silverDeep, 5, 2, 1, 4);
+    r(C.silverDeep, 2, 6, 4, 1);
+    r(C.silverDeep, 4, 5, 2, 1);
+
+    // Disco interior com textura de prata brunida
+    r(C.silverBase, 2, 2, 4, 4);
+    r.dither(C.silverLight, C.silverBase, 2, 2, 4, 2);
+
+    // Emblema central de prata nobre
+    r(C.silverDeep, 3, 3, 2, 2);
+    r(C.silverHighlight, 3, 3, 1, 1);
+
+    // Brilho especular no topo
+    r.shine(2, 1, 1, 0, C.white);
+  } else {
+    // Frame 1: Perfil elíptico durante a rotação da moeda
+    r(C.silverShadow, 3, 1, 2, 1);
+    r(C.silverShadow, 2, 2, 4, 4);
+    r(C.silverShadow, 3, 6, 2, 1);
+
+    // Face e reflexo vertical
+    r(C.silverBase, 2, 2, 3, 4);
+    r(C.silverDeep, 5, 2, 1, 4);
+    r(C.silverHighlight, 3, 2, 1, 4);
+
+    // Ponto especular
+    r.shine(3, 1, 1, 1, C.white);
+  }
+}
+
+// 9. Ícones de Upgrades de Status (Magnetismo, Vida, Velocidade, Sabedoria/Ervas) + Orbe XP + Mestres (Ferreiro & Mago)
+function drawMagnetIcon(r) {
+  r(C.red, 1, 2, 2, 3); r(C.red, 6, 2, 2, 3);
+  r(C.steelDark, 1, 5, 2, 3); r(C.steelDark, 6, 5, 2, 3);
+  r(C.steelDark, 2, 7, 5, 2);
+  r(C.steelLight, 1, 1, 2, 1); r(C.steelLight, 6, 1, 2, 1);
+  r(C.cyan, 4, 2, 1, 2);
+}
+
+function drawHealthIcon(r) {
+  r(C.red, 1, 2, 3, 3); r(C.red, 5, 2, 3, 3);
+  r(C.red, 2, 5, 5, 2);
+  r(C.red, 3, 7, 3, 1);
+  r(C.darkRed, 4, 8, 1, 1);
+  r(C.white, 2, 2, 1, 1);
+}
+
+function drawSpeedIcon(r) {
+  r(C.wood, 2, 3, 3, 4);
+  r(C.boot, 2, 7, 6, 2);
+  r(C.gold, 2, 3, 3, 1);
+  r(C.cyan, 5, 2, 3, 1);
+  r(C.white, 6, 1, 2, 1);
+}
+
+function drawWisdomIcon(r) {
+  // Frasco alquímico roxo/ciano com folha de erva dourada
+  r(C.gold, 3, 1, 3, 1);
+  r(C.steelLight, 4, 2, 1, 2);
+  r(C.purple, 2, 4, 5, 4);
+  r(C.cyan, 3, 5, 3, 2);
+  r(C.white, 3, 4, 1, 1);
+  r(C.leafLight, 6, 2, 2, 2);
+  r(C.leaf, 5, 3, 2, 1);
+}
+
+// Orbe / Cristal de XP (14x14 — 2 frames cintilando em esmeralda e ciano)
+function drawXpOrb(r, f) {
+  if (f === 0) {
+    r(0x00c853, 2, 1, 3, 5);
+    r(0x00c853, 1, 2, 5, 3);
+    r(C.cyan, 2, 2, 3, 3);
+    r(C.white, 3, 2, 1, 2);
+  } else {
+    r(C.cyan, 2, 1, 3, 5);
+    r(0x69f0ae, 1, 2, 5, 3);
+    r(C.white, 2, 2, 3, 3);
+    r(C.yellow, 3, 3, 1, 1);
+  }
+}
+
+
+function drawHeartHUD(r, f) {
+  const main = f === 0 ? C.red : C.iron;
+  const shade = f === 0 ? C.darkRed : C.ironDark;
+  r(main, 1, 1, 2, 2); r(main, 4, 1, 2, 2);
+  r(main, 1, 3, 5, 2);
+  r(shade, 2, 5, 3, 1);
+  r(shade, 3, 6, 1, 1);
+  if (f === 0) r(C.white, 1, 1, 1, 1);
+}
+
+function drawFullscreenIcon(r, f) {
+  if (f === 0) {
+    // Expandir para Tela Cheia
+    r(C.gold, 1, 1, 3, 1); r(C.gold, 1, 1, 1, 3);
+    r(C.gold, 6, 1, 3, 1); r(C.gold, 8, 1, 1, 3);
+    r(C.gold, 1, 8, 3, 1); r(C.gold, 1, 6, 1, 3);
+    r(C.gold, 6, 8, 3, 1); r(C.gold, 8, 6, 1, 3);
+    r(C.yellow, 4, 4, 2, 2);
+  } else {
+    // Sair da Tela Cheia
+    r(C.gold, 2, 3, 2, 1); r(C.gold, 3, 2, 1, 2);
+    r(C.gold, 6, 3, 2, 1); r(C.gold, 6, 2, 1, 2);
+    r(C.gold, 2, 6, 2, 1); r(C.gold, 3, 6, 1, 2);
+    r(C.gold, 6, 6, 2, 1); r(C.gold, 6, 6, 1, 2);
+    r(C.cyan, 4, 4, 2, 2);
+  }
+}
+
+
+// <<< END: src/art/itemArt.js
+
+// >>> START: src/art/worldArt.js
+// =============================================================================
+// ARTE PROCEDURAL: CENÁRIO, TEXTURAS DO MUNDO E CONSTRUÇÕES DA VILA
+// =============================================================================
+function drawTree(r) {
+  r(C.woodDark, 10, 19, 4, 11); r(C.wood, 10, 19, 1, 11); r(C.woodDark, 8, 29, 8, 1); // tronco
+  r(C.leafDark, 5, 2, 14, 3); r(C.leafDark, 3, 5, 18, 16); r(C.leafDark, 2, 8, 20, 10); // copa
+  r(C.leaf, 6, 3, 12, 13); r(C.leaf, 4, 6, 16, 10); r(C.leaf, 3, 9, 18, 6);
+  r(C.leafLight, 7, 4, 5, 2); r(C.leafLight, 5, 7, 3, 2); r(C.leafLight, 14, 6, 3, 2); // brilhos
+}
+
+function drawRock(r, f) {
+  r(C.ironDark, 4, 10, 8, 1);
+  r(C.ironDark, 3, 9, 10, 1);
+  r(C.ironDark, 2, 7, 12, 2);
+  r(C.iron, 2, 4, 12, 3);
+  r(C.iron, 1, 5, 1, 3);
+  r(C.iron, 14, 5, 1, 3);
+  r(C.steelDark, 3, 2, 10, 3);
+  r(C.steelDark, 2, 3, 1, 2);
+  r(C.steelDark, 13, 3, 1, 2);
+  r(C.steel, 4, 1, 8, 2);
+  r(C.steelLight, 6, 1, 4, 1);
+  r(C.white, 7, 2, 2, 1);
+  r(C.ironDark, 6, 4, 1, 3);
+  r(C.ironDark, 7, 6, 2, 1);
+  r(C.ironDark, 11, 6, 1, 2);
+
+  if (f === 1) {
+    r(C.leafDark, 2, 3, 3, 2);
+    r(C.leaf, 3, 3, 2, 2);
+    r(C.leafLight, 3, 2, 1, 1);
+    r(C.leafDark, 9, 2, 4, 2);
+    r(C.leaf, 10, 2, 3, 1);
+    r(C.leafLight, 11, 1, 2, 1);
+    r(C.leafDark, 1, 6, 2, 2);
+    r(C.leaf, 1, 7, 1, 1);
+    r(C.leafDark, 13, 6, 2, 2);
+    r(C.leaf, 13, 7, 1, 1);
+  }
+}
+
+
 // Cenário (chão, estrada, florestas das bordas, praça da vila) e efeitos
 function makeWorldTextures(scene) {
   const g = scene.make.graphics({ add: false });
@@ -3017,911 +3303,993 @@ function drawGateTower(r) {
   r.shine(11, 1, 0, 0, C.white);
 }
 
-// 6. Moradores NPCs da Vila dando Tchau (24x28 — 2 frames acenando para o Cavaleiro)
-function drawVillageNpc(r, f) {
-  // Gorro camponês de lã e rosto
-  r(C.leatherBase, 4, 1, 4, 2);
-  r(C.skinBase, 4, 3, 4, 3);
-  r(C.skinShadow, 4, 5, 4, 1);
-  r(C.outline, 7, 4, 1, 1);
 
-  // Túnica e avental
-  r(C.elfTunic, 3, 6, 6, 5);
-  r(C.bone, 5, 7, 3, 4);
-  r(C.leatherDark, 3, 9, 6, 1);
+// <<< END: src/art/worldArt.js
 
-  // Braço esquerdo na cintura
-  r(C.skinBase, 2, 6, 1, 3);
-
-  // Braço direito acenando com lenço branco para o herói
-  if (f === 0) {
-    r(C.elfTunic, 9, 5, 1, 2);
-    r(C.skinBase, 10, 3, 2, 2);
-    r(C.white, 11, 2, 3, 3);
-    r.shine(12, 2, 0, 0, C.goldHighlight);
-  } else {
-    r(C.elfTunic, 9, 4, 1, 2);
-    r(C.skinBase, 9, 1, 2, 2);
-    r(C.white, 9, 0, 3, 3);
-    r.shine(10, 0, 0, 0, C.goldHighlight);
-  }
-
-  // Botas de couro
-  r(C.boot, 4, 11, 2, 2);
-  r(C.boot, 7, 11, 2, 2);
-}
-
-// 7. Peça de Ouro Real (16x16 — 2 frames com chanfro 3D, dithering sub-pixel e brilho especular)
-function drawGoldCoin(r, f) {
-  if (f === 0) {
-    // Silhueta octagonal chanfrada (diâmetro 6 em grid 8x8)
-    r(C.goldDark, 2, 1, 4, 1);
-    r(C.goldDark, 1, 2, 6, 4);
-    r(C.goldDark, 2, 6, 4, 1);
-
-    // Borda superior e esquerda iluminada (luz solar incidente)
-    r(C.goldLight, 2, 1, 3, 1);
-    r(C.goldLight, 1, 2, 1, 3);
-
-    // Borda inferior e direita sombreada (oclusão profunda)
-    r(C.goldDeep, 5, 2, 1, 4);
-    r(C.goldDeep, 2, 6, 4, 1);
-    r(C.goldDeep, 4, 5, 2, 1);
-
-    // Disco interior rebaixado com dithering de ouro suave
-    r(C.goldBase, 2, 2, 4, 4);
-    r.dither(C.goldLight, C.goldBase, 2, 2, 4, 2);
-
-    // Emblema nobre cunhado no centro (cruz/selo imperial)
-    r(C.goldDeep, 3, 3, 2, 2);
-    r(C.goldHighlight, 3, 3, 1, 1);
-
-    // Ponto de brilho especular no topo
-    r.shine(2, 1, 1, 0, C.white);
-  } else {
-    // Frame 1: Perfil elíptico durante a rotação da moeda
-    r(C.goldDark, 3, 1, 2, 1);
-    r(C.goldDark, 2, 2, 4, 4);
-    r(C.goldDark, 3, 6, 2, 1);
-
-    // Face visível com brilho de giro
-    r(C.goldBase, 2, 2, 3, 4);
-    r(C.goldDeep, 5, 2, 1, 4); // espessura da moeda na lateral
-    r(C.goldHighlight, 3, 2, 1, 4); // reflexo vertical de rotação
-
-    // Ponto de brilho especular no vértice
-    r.shine(3, 1, 1, 1, C.white);
-  }
-}
-
-// 8. Moeda de Prata Brunida (16x16 — 2 frames com chanfro 3D e reflexo especular)
-function drawSilverCoin(r, f) {
-  if (f === 0) {
-    // Silhueta octagonal chanfrada (diâmetro 6 em grid 8x8)
-    r(C.silverShadow, 2, 1, 4, 1);
-    r(C.silverShadow, 1, 2, 6, 4);
-    r(C.silverShadow, 2, 6, 4, 1);
-
-    // Borda superior e esquerda iluminada
-    r(C.silverHighlight, 2, 1, 3, 1);
-    r(C.silverHighlight, 1, 2, 1, 3);
-
-    // Borda inferior e direita sombreada
-    r(C.silverDeep, 5, 2, 1, 4);
-    r(C.silverDeep, 2, 6, 4, 1);
-    r(C.silverDeep, 4, 5, 2, 1);
-
-    // Disco interior com textura de prata brunida
-    r(C.silverBase, 2, 2, 4, 4);
-    r.dither(C.silverLight, C.silverBase, 2, 2, 4, 2);
-
-    // Emblema central de prata nobre
-    r(C.silverDeep, 3, 3, 2, 2);
-    r(C.silverHighlight, 3, 3, 1, 1);
-
-    // Brilho especular no topo
-    r.shine(2, 1, 1, 0, C.white);
-  } else {
-    // Frame 1: Perfil elíptico durante a rotação da moeda
-    r(C.silverShadow, 3, 1, 2, 1);
-    r(C.silverShadow, 2, 2, 4, 4);
-    r(C.silverShadow, 3, 6, 2, 1);
-
-    // Face e reflexo vertical
-    r(C.silverBase, 2, 2, 3, 4);
-    r(C.silverDeep, 5, 2, 1, 4);
-    r(C.silverHighlight, 3, 2, 1, 4);
-
-    // Ponto especular
-    r.shine(3, 1, 1, 1, C.white);
-  }
-}
-
-// 9. Ícones de Upgrades de Status (Magnetismo, Vida, Velocidade, Sabedoria/Ervas) + Orbe XP + Mestres (Ferreiro & Mago)
-function drawMagnetIcon(r) {
-  r(C.red, 1, 2, 2, 3); r(C.red, 6, 2, 2, 3);
-  r(C.steelDark, 1, 5, 2, 3); r(C.steelDark, 6, 5, 2, 3);
-  r(C.steelDark, 2, 7, 5, 2);
-  r(C.steelLight, 1, 1, 2, 1); r(C.steelLight, 6, 1, 2, 1);
-  r(C.cyan, 4, 2, 1, 2);
-}
-
-function drawHealthIcon(r) {
-  r(C.red, 1, 2, 3, 3); r(C.red, 5, 2, 3, 3);
-  r(C.red, 2, 5, 5, 2);
-  r(C.red, 3, 7, 3, 1);
-  r(C.darkRed, 4, 8, 1, 1);
-  r(C.white, 2, 2, 1, 1);
-}
-
-function drawSpeedIcon(r) {
-  r(C.wood, 2, 3, 3, 4);
-  r(C.boot, 2, 7, 6, 2);
-  r(C.gold, 2, 3, 3, 1);
-  r(C.cyan, 5, 2, 3, 1);
-  r(C.white, 6, 1, 2, 1);
-}
-
-function drawWisdomIcon(r) {
-  // Frasco alquímico roxo/ciano com folha de erva dourada
-  r(C.gold, 3, 1, 3, 1);
-  r(C.steelLight, 4, 2, 1, 2);
-  r(C.purple, 2, 4, 5, 4);
-  r(C.cyan, 3, 5, 3, 2);
-  r(C.white, 3, 4, 1, 1);
-  r(C.leafLight, 6, 2, 2, 2);
-  r(C.leaf, 5, 3, 2, 1);
-}
-
-// Orbe / Cristal de XP (14x14 — 2 frames cintilando em esmeralda e ciano)
-function drawXpOrb(r, f) {
-  if (f === 0) {
-    r(0x00c853, 2, 1, 3, 5);
-    r(0x00c853, 1, 2, 5, 3);
-    r(C.cyan, 2, 2, 3, 3);
-    r(C.white, 3, 2, 1, 2);
-  } else {
-    r(C.cyan, 2, 1, 3, 5);
-    r(0x69f0ae, 1, 2, 5, 3);
-    r(C.white, 2, 2, 3, 3);
-    r(C.yellow, 3, 3, 1, 1);
-  }
-}
-
-// Mestre Ferreiro da Forja Real (44x44 — 2 frames martelando / respirando junto à bigorna)
-function drawBlacksmithMaster(r, f) {
-  const bob = f === 0 ? 0 : 1;
-  // Cabeça, bandana de couro e barba espessa de mestre anão/ferreiro
-  r(C.darkRed, 7, 2 + bob, 8, 2);
-  r(C.skin, 7, 4 + bob, 8, 4);
-  r(C.outline, 9, 5 + bob, 1, 1); r(C.outline, 13, 5 + bob, 1, 1);
-  r(C.woodDark, 6, 7 + bob, 10, 5);
-  r(C.wood, 7, 8 + bob, 8, 3);
-  r(C.gold, 10, 9 + bob, 2, 2); // fivela da barba
-
-  // Ombros largos, camisa de linho e avental de couro pesado de forja
-  r(C.bone, 4, 11 + bob, 14, 6);
-  r(C.boot, 6, 11 + bob, 10, 9);
-  r(C.wood, 7, 12 + bob, 8, 7);
-  r(C.gold, 6, 15 + bob, 10, 1);
-
-  // Braço esquerdo segurando tenaz com lâmina em brasa
-  r(C.skin, 3, 12 + bob, 2, 4);
-  r(C.ironDark, 2, 15 + bob, 3, 2);
-  r(C.red, 1, 14 + bob, 2, 2); r(C.yellow, 1, 14 + bob, 1, 1);
-
-  // Braço direito erguendo/descendo o Martelo de Forja
-  const hY = f === 0 ? 0 : 3;
-  r(C.skin, 16, 11 + hY, 3, 4);
-  r(C.ironDark, 16, 14 + hY, 3, 2); // munhequeira
-  r(C.woodDark, 18, 6 + hY, 1, 9);  // cabo do martelo
-  r(C.steelDark, 16, 4 + hY, 5, 3); // cabeça do martelo
-  r(C.steelLight, 17, 4 + hY, 3, 1);
-}
-
-// Mestre Mago Alquimista (44x44 — 2 frames com chapéu místico, poção borbulhante e ervas)
-function drawMageMaster(r, f) {
-  const bob = f === 0 ? 0 : 1;
-  // Chapéu pontudo místico violeta com aba larga e fivela dourada
-  r(0x4a148c, 9, 1 + bob, 4, 2);
-  r(0x4a148c, 7, 3 + bob, 8, 2);
-  r(0x311b92, 4, 5 + bob, 14, 2);
-  r(C.gold, 8, 4 + bob, 6, 1);
-  r(C.cyan, 10, 4 + bob, 2, 1);
-
-  // Rosto sábio, olhos arcanos brilhantes e longa barba prateada
-  r(0x26173e, 7, 7 + bob, 8, 3);
-  r(C.cyan, 8, 8 + bob, 2, 1); r(C.cyan, 12, 8 + bob, 2, 1);
-  r(C.steelLight, 7, 10 + bob, 8, 5);
-  r(C.white, 8, 10 + bob, 6, 3);
-  r(C.steel, 9, 15 + bob, 4, 2);
-
-  // Manto estrelado de alquimista
-  r(0x311b92, 4, 12 + bob, 14, 8);
-  r(C.purple, 6, 13 + bob, 10, 7);
-  r(C.gold, 5, 12 + bob, 2, 7); r(C.gold, 15, 12 + bob, 2, 7);
-  r(C.yellow, 8, 17 + bob, 1, 1); r(C.cyan, 13, 16 + bob, 1, 1);
-
-  // Mão esquerda segurando ramo de ervas místicas douradas/verdes
-  r(C.skin, 3, 14 + bob, 2, 2);
-  r(C.leaf, 2, 11 + bob, 3, 3);
-  r(C.leafLight, 1, 10 + bob, 2, 2);
-  r(C.yellow, 3, 10 + bob, 1, 1);
-
-  // Mão direita erguendo frasco de poção rubi/ciano borbulhante
-  const pY = f === 0 ? 0 : -1;
-  r(C.skin, 17, 14 + pY, 2, 2);
-  r(C.white, 17, 10 + pY, 4, 4);
-  r(f === 0 ? C.red : C.cyan, 18, 11 + pY, 2, 3);
-  r(C.gold, 18, 9 + pY, 2, 1);
-}
-
-function drawHeartHUD(r, f) {
-  const main = f === 0 ? C.red : C.iron;
-  const shade = f === 0 ? C.darkRed : C.ironDark;
-  r(main, 1, 1, 2, 2); r(main, 4, 1, 2, 2);
-  r(main, 1, 3, 5, 2);
-  r(shade, 2, 5, 3, 1);
-  r(shade, 3, 6, 1, 1);
-  if (f === 0) r(C.white, 1, 1, 1, 1);
-}
-
-function drawFullscreenIcon(r, f) {
-  if (f === 0) {
-    // Expandir para Tela Cheia
-    r(C.gold, 1, 1, 3, 1); r(C.gold, 1, 1, 1, 3);
-    r(C.gold, 6, 1, 3, 1); r(C.gold, 8, 1, 1, 3);
-    r(C.gold, 1, 8, 3, 1); r(C.gold, 1, 6, 1, 3);
-    r(C.gold, 6, 8, 3, 1); r(C.gold, 8, 6, 1, 3);
-    r(C.yellow, 4, 4, 2, 2);
-  } else {
-    // Sair da Tela Cheia
-    r(C.gold, 2, 3, 2, 1); r(C.gold, 3, 2, 1, 2);
-    r(C.gold, 6, 3, 2, 1); r(C.gold, 6, 2, 1, 2);
-    r(C.gold, 2, 6, 2, 1); r(C.gold, 3, 6, 1, 2);
-    r(C.gold, 6, 6, 2, 1); r(C.gold, 6, 6, 1, 2);
-    r(C.cyan, 4, 4, 2, 2);
-  }
-}
-
+// >>> START: src/combat/weapons.js
+// SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
+// Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
+// permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
 // =============================================================================
-// CENA: PRELOAD — cria todas as texturas com filtro NEAREST (zero serrilhado/esfarelado)
-// =============================================================================
-function preload() {
-  if (this.textures.exists('knight')) return;
-  makeSheet(this, 'knight', 32, 32, 4, drawKnight);
-  makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
-  makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
-  makeSheet(this, 'elf', 32, 32, 2, drawElf);
-  makeSheet(this, 'gargoyle', 32, 32, 2, drawGargoyle);
-  makeSheet(this, 'dark_mage', 32, 32, 2, drawDarkMage);
-  makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
-  makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
-  makeSheet(this, 'village_blacksmith', 112, 84, 1, drawVillageBlacksmith);
-  makeSheet(this, 'village_stable', 120, 84, 1, drawVillageStable);
-  makeSheet(this, 'village_house', 72, 64, 1, drawVillageHouse);
-  makeSheet(this, 'village_wall_v', 32, 96, 1, drawVillageWallV);
-  makeSheet(this, 'village_gate_tower', 48, 96, 1, drawGateTower);
-  makeSheet(this, 'village_npc', 24, 28, 2, drawVillageNpc);
-  makeSheet(this, 'gold_coin', 16, 16, 2, drawGoldCoin);
-  makeSheet(this, 'silver_coin', 16, 16, 2, drawSilverCoin);
-  makeSheet(this, 'xp_orb', 14, 14, 2, drawXpOrb);
-  makeSheet(this, 'blacksmith_master', 44, 44, 2, drawBlacksmithMaster);
-  makeSheet(this, 'mage_master', 44, 44, 2, drawMageMaster);
-  makeSheet(this, 'tree', 48, 64, 1, drawTree);
-  makeSheet(this, 'rock', 32, 26, 2, drawRock);
-  makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
-  makeSheet(this, 'sword_blade', 12, 40, 1, drawBlade);
-  makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blueBase, C.steelLight, C.manaLight));
-  makeSheet(this, 'arrow_gold', 26, 10, 1, arrowDrawer(C.goldDark, C.goldHighlight, C.goldLight));
-  makeSheet(this, 'arrow_elf', 26, 10, 1, arrowDrawer(0x00c853, 0x69f0ae, 0x00e676));
-  makeSheet(this, 'orb_enemy', 16, 16, 1, drawMageOrb);
-  makeSheet(this, 'axe_proj', 24, 24, 1, drawAxeProj);
-  makeSheet(this, 'fireball_proj', 24, 16, 1, drawFireballProj);
-  makeSheet(this, 'hud_hourglass', 22, 26, 1, drawHourglass);
-  makeSheet(this, 'hud_crown', 24, 22, 1, drawCrown);
-  makeSheet(this, 'hud_horn', 30, 20, 2, drawHorn);
-  makeSheet(this, 'hud_fullscreen', 20, 20, 2, drawFullscreenIcon);
-  makeSheet(this, 'hud_heart', 14, 14, 2, drawHeartHUD);
-  makeSheet(this, 'knight_banner', 48, 56, 1, drawKnightBanner);
-  makeItem(this, 'item_bow', 0xffe082, drawBowIcon);
-  makeItem(this, 'item_shield', 0x80deea, drawShieldIcon);
-  makeItem(this, 'item_sword', 0xffffff, drawSwordIcon);
-  makeItem(this, 'item_axe', 0x7fe7ff, drawAxeIcon);
-  makeItem(this, 'item_firestaff', 0xff7043, drawFireStaffIcon);
-  makeItem(this, 'stat_magnet', 0x7fe7ff, drawMagnetIcon);
-  makeItem(this, 'stat_health', 0xff5252, drawHealthIcon);
-  makeItem(this, 'stat_speed', 0xffeb3b, drawSpeedIcon);
-  makeItem(this, 'stat_wisdom', 0xc36bff, drawWisdomIcon);
-  makeWorldTextures(this);
+const WeaponStrategies = {
+  bow: {
+    id: 'bow',
+    name: BUFF_NAMES.bow,
+    baseDuration: BUFF_TIME.bow,
+    attackRates: [520, 420, 350, 280, 220],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 520;
+    },
+    attack({ player, arrows, nextProjId }) {
+      sound.playBow();
+      const lvl = getWeaponLevel('bow');
+      const spreads = {
+        1: [0],
+        2: [0],
+        3: [-0.09, 0.09],
+        4: [-0.18, 0, 0.18],
+        5: [-0.28, -0.14, 0, 0.14, 0.28]
+      }[lvl] || [0];
 
-  // Garante filtro NEAREST puro em todas as texturas geradas (sem aspecto borrado ou esfarelado)
-  Object.values(this.textures.list).forEach(tex => {
-    if (tex && tex.setFilter) tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+      const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
+      const dmg = lvl >= 4 ? 2 : 1;
+      const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
+      const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
+
+      spreads.forEach(ang => {
+        const arrow = arrows.create(player.x + 20, player.y + 2, arrowKey);
+        arrow.body.setSize(18, 6);
+        arrow.dmg = dmg;
+        arrow.pierceCount = pierce;
+        arrow.projId = nextProjId();
+        arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        arrow.rotation = ang;
+      });
+    }
+  },
+  sword: {
+    id: 'sword',
+    name: BUFF_NAMES.sword,
+    baseDuration: BUFF_TIME.sword,
+    attackRates: [480, 400, 330, 265, 210],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 480;
+    },
+    attack({ scene, player, arrows, slashes, fx, nextProjId }) {
+      slashes.getChildren().slice().forEach(old => old.destroy());
+      sound.playSword();
+      const lvl = getWeaponLevel('sword');
+      const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
+      const damages = [1, 1, 2, 3, 4];
+      const scale = scales[lvl - 1] || 0.72;
+      const offsetX = Math.round(24 + (lvl - 1) * 7);
+
+      const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
+      slash.setScale(scale);
+      slash.offsetX = offsetX;
+      slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
+      slash.slashId = nextProjId();
+      slash.dmg = damages[lvl - 1] || 1;
+      slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
+        .setOrigin(0.5, 0.78)
+        .setScale(0.82 + (lvl - 1) * 0.18);
+
+      fx.sparks.explode(5, player.x + offsetX, player.y);
+
+      slash.on('destroy', () => {
+        if (slash.blade && slash.blade.active) slash.blade.destroy();
+      });
+
+      scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
+      scene.tweens.add({
+        targets: slash, alpha: { from: 1, to: 0 }, duration: 190,
+        onComplete: () => slash.destroy()
+      });
+
+      // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
+      if (lvl >= 5) {
+        const waveProj = arrows.create(player.x + 34, player.y, 'arrow_player');
+        waveProj.setTint(0x7fe7ff);
+        waveProj.setScale(1.45);
+        waveProj.body.setSize(22, 14);
+        waveProj.dmg = 3;
+        waveProj.pierceCount = 4;
+        waveProj.projId = nextProjId();
+        waveProj.setVelocityX(720);
+        fx.holy.explode(8, player.x + 34, player.y);
+      }
+    }
+  },
+  shield: {
+    id: 'shield',
+    name: BUFF_NAMES.shield,
+    baseDuration: BUFF_TIME.shield,
+    attackRates: [],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 1.65 + wisdomDur + bonusDur;
+    },
+    getAttackRate() { return 0; },
+    attack() { /* O escudo é defensivo/reativo a impactos */ },
+    onEquip({ shieldSprite, shieldAura, player, fx }) {
+      shieldSprite.setVisible(true);
+      if (shieldAura) {
+        shieldAura.setVisible(true);
+        if (player) {
+          shieldAura.setPosition(Math.round(player.x), Math.round(player.y));
+          fx.holy.explode(10, player.x, player.y);
+        }
+      }
+    },
+    onUnequip({ shieldSprite, shieldAura }) {
+      shieldSprite.setVisible(false);
+      if (shieldAura) shieldAura.setVisible(false);
+    }
+  },
+  axe: {
+    id: 'axe',
+    name: BUFF_NAMES.axe,
+    baseDuration: BUFF_TIME.axe,
+    attackRates: [600, 500, 420, 340, 270],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 600;
+    },
+    attack({ player, arrows, nextProjId }) {
+      sound.playSword();
+      const lvl = getWeaponLevel('axe');
+      const angles = {
+        1: [0],
+        2: [0],
+        3: [-0.16, 0.16],
+        4: [-0.24, 0, 0.24],
+        5: [-0.32, -0.11, 0.11, 0.32]
+      }[lvl] || [0];
+
+      const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
+      const damages = [1, 1, 2, 2, 3];
+
+      angles.forEach(ang => {
+        const axe = arrows.create(player.x + 18, player.y, 'axe_proj');
+        axe.setScale(scales[lvl - 1] || 0.82);
+        axe.body.setSize(20, 20);
+        axe.isBoomerang = lvl >= 2;
+        axe.pierceCount = lvl === 1 ? 2 : 99;
+        axe.returning = false;
+        axe.dmg = damages[lvl - 1] || 1;
+        axe.projId = nextProjId();
+
+        const spd = 460 + (lvl - 1) * 40;
+        axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        axe.body.setAccelerationX(-680);
+      });
+    }
+  },
+  firestaff: {
+    id: 'firestaff',
+    name: BUFF_NAMES.firestaff,
+    baseDuration: BUFF_TIME.firestaff,
+    attackRates: [650, 540, 450, 360, 285],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 650;
+    },
+    attack({ player, arrows, nextProjId }) {
+      sound.playBow();
+      const lvl = getWeaponLevel('firestaff');
+      const angles = {
+        1: [0],
+        2: [0],
+        3: [-0.13, 0.13],
+        4: [-0.15, 0.15],
+        5: [-0.24, 0, 0.24]
+      }[lvl] || [0];
+
+      const radii = [42, 58, 74, 92, 115];
+      const damages = [1, 1, 2, 3, 4];
+      const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
+
+      angles.forEach(ang => {
+        const fb = arrows.create(player.x + 22, player.y, 'fireball_proj');
+        fb.setScale(scales[lvl - 1] || 0.85);
+        fb.body.setSize(18, 12);
+        fb.isFireball = true;
+        fb.blastRadius = radii[lvl - 1] || 42;
+        fb.dmg = damages[lvl - 1] || 1;
+        fb.projId = nextProjId();
+
+        const spd = 440 + (lvl - 1) * 35;
+        fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        fb.rotation = ang;
+      });
+    }
+  }
+};
+
+const WeaponSystem = {
+  strategies: WeaponStrategies,
+  get(type) {
+    return this.strategies[type];
+  },
+  getDuration(type) {
+    const s = this.get(type);
+    if (!s) return BUFF_TIME[type] || 6.0;
+    return s.getDuration(getWeaponLevel(type), runBonusDuration, getWisdomBonusDuration());
+  },
+  getAttackRate(type) {
+    const s = this.get(type);
+    if (!s) return ATTACK_RATE[type] || 0;
+    return s.getAttackRate(getWeaponLevel(type));
+  },
+  equip(scene, type, announce = true) {
+    const s = this.get(type);
+    const sameType = buff.type === type;
+    const dur = this.getDuration(type);
+    const lvl = getWeaponLevel(type);
+
+    buff = {
+      type,
+      timeLeft: dur,
+      maxTime: dur,
+      nextAttack: sameType ? buff.nextAttack : 0
+    };
+
+    if (s && s.onEquip) {
+      s.onEquip({ shieldSprite, shieldAura, player, fx: { holy: holyFx } });
+    } else {
+      shieldSprite.setVisible(false);
+      if (shieldAura) shieldAura.setVisible(false);
+    }
+
+    if (announce && player) {
+      floatText(scene, player.x, player.y - 24, `${BUFF_NAMES[type]} NV.${lvl}!`, '#ffca28');
+    }
+    events.emit(GameEvents.BUFF_EQUIPPED, { type, level: lvl, duration: dur });
+    updateItemHUD();
+  },
+  end() {
+    const prevType = buff.type;
+    const s = this.get(prevType);
+    if (s && s.onUnequip) {
+      s.onUnequip({ shieldSprite, shieldAura });
+    } else {
+      shieldSprite.setVisible(false);
+      if (shieldAura) shieldAura.setVisible(false);
+    }
+    buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
+    if (playerBuffBar) playerBuffBar.clear();
+    events.emit(GameEvents.BUFF_ENDED, { type: prevType });
+  },
+  update(scene, time, dt) {
+    if (!buff.type) return;
+    buff.timeLeft -= dt;
+    if (buff.timeLeft <= 0) {
+      this.end();
+      return;
+    }
+    const s = this.get(buff.type);
+    if (!s) return;
+    const rate = s.getAttackRate(getWeaponLevel(buff.type));
+    if (rate && time > buff.nextAttack) {
+      s.attack({
+        scene,
+        player,
+        arrows: playerArrows,
+        slashes,
+        fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
+        getLevel: getWeaponLevel,
+        nextProjId: () => ++slashCounter
+      });
+      buff.nextAttack = time + rate;
+    }
+  }
+};
+
+function triggerPlayerAction(scene) {
+  if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
+  if (!player || !player.active) return;
+  if (buff && buff.type && WeaponStrategies[buff.type]) {
+    const s = WeaponStrategies[buff.type];
+    const lvl = getWeaponLevel(buff.type);
+    s.attack({
+      scene,
+      player,
+      arrows: playerArrows,
+      slashes,
+      fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
+      getLevel: getWeaponLevel,
+      nextProjId: () => ++slashCounter
+    });
+    const rate = s.getAttackRate(lvl);
+    buff.nextAttack = (scene ? scene.time.now : Date.now()) + (rate || 400);
+    sound.playButtonClick();
+  } else {
+    if (holyFx) holyFx.explode(6, player.x, player.y);
+    sound.playShieldDeflect();
+    if (typeof floatText === 'function') {
+      floatText(scene, player.x, player.y - 20, 'GUARDA', '#ffe082');
+    }
+  }
+}
+
+function getWeaponDuration(type) {
+  return WeaponSystem.getDuration(type);
+}
+function _original_unused_getWeaponDuration(type) {
+  const base = BUFF_TIME[type] || 6.0;
+  const wisdomAdd = getWisdomBonusDuration();
+  const lvl = getWeaponLevel(type);
+  if (type === 'shield') {
+    return base + (lvl - 1) * 1.65 + wisdomAdd + runBonusDuration;
+  }
+  return base + (lvl - 1) * 0.75 + wisdomAdd + runBonusDuration;
+}
+
+// Cadência rebalanceada: Nv.1 é lento/básico, acelerando drasticamente até o Nv.5!
+function getWeaponAttackRate(type) {
+  const lvl = getWeaponLevel(type);
+  if (type === 'bow') return [520, 420, 350, 280, 220][lvl - 1] || 520;
+  if (type === 'sword') return [480, 400, 330, 265, 210][lvl - 1] || 480;
+  if (type === 'axe') return [600, 500, 420, 340, 270][lvl - 1] || 600;
+  if (type === 'firestaff') return [650, 540, 450, 360, 285][lvl - 1] || 650;
+  return ATTACK_RATE[type] || 0;
+}
+
+function equipWeaponBuff(scene, type, announce = true) {
+  WeaponSystem.equip(scene, type, announce);
+}
+function _legacy_equipWeaponBuff(scene, type, announce = true) {
+  const sameType = buff.type === type;
+  const dur = getWeaponDuration(type);
+  const lvl = getWeaponLevel(type);
+  buff = {
+    type,
+    timeLeft: dur,
+    maxTime: dur,
+    nextAttack: sameType ? buff.nextAttack : 0
+  };
+  shieldSprite.setVisible(buff.type === 'shield');
+  if (shieldAura) {
+    shieldAura.setVisible(buff.type === 'shield');
+    if (buff.type === 'shield' && player) {
+      shieldAura.setPosition(Math.round(player.x), Math.round(player.y));
+      holyFx.explode(10, player.x, player.y);
+    }
+  }
+  if (announce && player) {
+    floatText(scene, player.x, player.y - 24, `${BUFF_NAMES[type]} NV.${lvl}!`, '#ffca28');
+  }
+  updateItemHUD();
+}
+
+function collectItem(scene, item) {
+  sound.playItemCollect();
+  equipWeaponBuff(scene, item.lootType, true);
+  removeEntity(item);
+}
+
+function endBuff() {
+  WeaponSystem.end();
+}
+function _legacy_endBuff() {
+  buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
+  shieldSprite.setVisible(false);
+  if (shieldAura) shieldAura.setVisible(false);
+  if (playerBuffBar) playerBuffBar.clear();
+}
+
+// ARMA 1: Arco Real (Nv.1 fraco com 1 flecha lenta -> Nv.5 Tempestade Imperial com 5 flechas perfurantes!)
+function shootArrow() {
+  sound.playBow();
+  const lvl = getWeaponLevel('bow');
+  const spreads = {
+    1: [0],
+    2: [0],
+    3: [-0.09, 0.09],
+    4: [-0.18, 0, 0.18],
+    5: [-0.28, -0.14, 0, 0.14, 0.28]
+  }[lvl] || [0];
+
+  const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
+  const dmg = lvl >= 4 ? 2 : 1;
+  const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
+  const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
+
+  spreads.forEach(ang => {
+    const arrow = playerArrows.create(player.x + 20, player.y + 2, arrowKey);
+    arrow.body.setSize(18, 6);
+    arrow.dmg = dmg;
+    arrow.pierceCount = pierce;
+    arrow.projId = ++slashCounter;
+    arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    arrow.rotation = ang;
   });
 }
 
-// =============================================================================
-// CENA: CREATE — monta camadas, grupos, jogador, colisões e HUD
-// =============================================================================
-function create(data) {
-  const scene = this;
-  sound.stopBGM();
+// ARMA 2: Espada Vorpal (Nv.1 corte curto e 1 dano -> Nv.5 Colosso Vorpal 4 dano + Onda Perfurante!)
+function swingSword(scene) {
+  slashes.getChildren().slice().forEach(old => old.destroy());
+  sound.playSword();
+  const lvl = getWeaponLevel('sword');
+  const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
+  const damages = [1, 1, 2, 3, 4];
+  const scale = scales[lvl - 1] || 0.72;
+  const offsetX = Math.round(24 + (lvl - 1) * 7);
 
-  // Garante que tempo, tweens e física nunca venham congelados após Game Over ou Level Up
+  const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
+  slash.setScale(scale);
+  slash.offsetX = offsetX;
+  slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
+  slash.slashId = ++slashCounter;
+  slash.dmg = damages[lvl - 1] || 1;
+  slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
+    .setOrigin(0.5, 0.78)
+    .setScale(0.82 + (lvl - 1) * 0.18);
+
+  sparksFx.explode(5, player.x + offsetX, player.y);
+
+  slash.on('destroy', () => {
+    if (slash.blade && slash.blade.active) slash.blade.destroy();
+  });
+
+  scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
+  scene.tweens.add({
+    targets: slash, alpha: { from: 1, to: 0 }, duration: 190,
+    onComplete: () => slash.destroy()
+  });
+
+  // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
+  if (lvl >= 5) {
+    const waveProj = playerArrows.create(player.x + 34, player.y, 'arrow_player');
+    waveProj.setTint(0x7fe7ff);
+    waveProj.setScale(1.45);
+    waveProj.body.setSize(22, 14);
+    waveProj.dmg = 3;
+    waveProj.pierceCount = 4;
+    waveProj.projId = ++slashCounter;
+    waveProj.setVelocityX(720);
+    holyFx.explode(8, player.x + 34, player.y);
+  }
+}
+
+// ARMA 4 (Desbloqueável no Ferreiro): Machado Bumerangue (Nv.1 1 machado lento -> Nv.5 4 machados gigantes!)
+function throwAxe(scene) {
+  sound.playSword();
+  const lvl = getWeaponLevel('axe');
+  const angles = {
+    1: [0],
+    2: [0],
+    3: [-0.16, 0.16],
+    4: [-0.24, 0, 0.24],
+    5: [-0.32, -0.11, 0.11, 0.32]
+  }[lvl] || [0];
+
+  const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
+  const damages = [1, 1, 2, 2, 3];
+
+  angles.forEach(ang => {
+    const axe = playerArrows.create(player.x + 18, player.y, 'axe_proj');
+    axe.setScale(scales[lvl - 1] || 0.82);
+    axe.body.setSize(20, 20);
+    axe.isBoomerang = lvl >= 2; // Nv.1 perfura até 2; Nv.2+ perfura ilimitado na ida e volta!
+    axe.pierceCount = lvl === 1 ? 2 : 99;
+    axe.returning = false;
+    axe.dmg = damages[lvl - 1] || 1;
+    axe.projId = ++slashCounter;
+
+    const spd = 460 + (lvl - 1) * 40;
+    axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    axe.body.setAccelerationX(-680);
+  });
+}
+
+// ARMA 5 (Desbloqueável no Ferreiro): Cajado de Fogo (Nv.1 explosão curta 1 dano -> Nv.5 Cataclismo Solar!)
+function shootFireball(scene) {
+  sound.playBow();
+  const lvl = getWeaponLevel('firestaff');
+  const angles = {
+    1: [0],
+    2: [0],
+    3: [-0.13, 0.13],
+    4: [-0.15, 0.15],
+    5: [-0.24, 0, 0.24]
+  }[lvl] || [0];
+
+  const radii = [42, 58, 74, 92, 115];
+  const damages = [1, 1, 2, 3, 4];
+  const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
+
+  angles.forEach(ang => {
+    const fb = playerArrows.create(player.x + 22, player.y, 'fireball_proj');
+    fb.setScale(scales[lvl - 1] || 0.85);
+    fb.body.setSize(18, 12);
+    fb.isFireball = true;
+    fb.blastRadius = radii[lvl - 1] || 42;
+    fb.dmg = damages[lvl - 1] || 1;
+    fb.projId = ++slashCounter;
+
+    const spd = 440 + (lvl - 1) * 35;
+    fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    fb.rotation = ang;
+  });
+}
+
+function explodeFireball(scene, x, y, radius, dmg) {
+  sound.playEarthSmash();
+  emberFx.explode(8, x, y);
+  hitFx.explode(5, x, y);
+
+  const blastOuter = scene.add.circle(x, y, 10, 0xff7043, 0.40)
+    .setStrokeStyle(2, 0xffeb3b, 0.85).setDepth(1550);
+  const blastInner = scene.add.circle(x, y, 6, 0xffffff, 0.65)
+    .setStrokeStyle(1.5, 0xffca28, 0.9).setDepth(1551);
+
+  scene.tweens.add({
+    targets: blastOuter,
+    radius,
+    alpha: 0,
+    duration: 220,
+    ease: 'Cubic.easeOut',
+    onComplete: () => blastOuter.destroy()
+  });
+  scene.tweens.add({
+    targets: blastInner,
+    radius: Math.round(radius * 0.60),
+    alpha: 0,
+    duration: 160,
+    ease: 'Cubic.easeOut',
+    onComplete: () => blastInner.destroy()
+  });
+
+  enemies.getChildren().slice().forEach(e => {
+    if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
+      damageEnemy(scene, e, dmg);
+    }
+  });
+  enemyArrows.getChildren().slice().forEach(a => {
+    if (a.active && Phaser.Math.Distance.Between(x, y, a.x, a.y) <= radius * 0.9) {
+      a.destroy();
+    }
+  });
+}
+
+
+// <<< END: src/combat/weapons.js
+
+// >>> START: src/combat/combatManager.js
+// =============================================================================
+// GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
+// =============================================================================
+// COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
+// =============================================================================
+function removeEntity(obj) {
+  if (!obj || !obj.active) return;
+  obj.scene.tweens.killTweensOf(obj);
+  if (obj.shootTimer) obj.shootTimer.remove();
+  if (obj.attackTimer) obj.attackTimer.remove();
+  if (obj.activeTelegraphs) clearBossTelegraphs(obj);
+  if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
+  if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
+  if (obj.speechBubble && obj.speechBubble.active) obj.speechBubble.destroy();
+  obj.destroy();
+}
+
+function damageEnemy(scene, enemy, dmg = 1) {
+  if (!enemy || !enemy.active) return;
+  enemy.hp = (enemy.hp ?? 1) - dmg;
+
+  // Faíscas metálicas pontuais para alvos blindados (guerreiros e boss) ou hit normal
+  if (enemy.isBoss || enemy.enemyType === 'warrior') {
+    sparksFx.explode(8, enemy.x - 12, enemy.y);
+  } else if (enemy.enemyType === 'mini_golem') {
+    debrisFx.explode(6, enemy.x, enemy.y);
+  } else {
+    hitFx.explode(7, enemy.x, enemy.y);
+  }
+
+  // Flash branco estrito de impacto (65ms) sem ofuscar a visão
+  enemy.setTint(0xffffff);
+  scene.time.delayedCall(65, () => {
+    if (!enemy || !enemy.active) return;
+    if (enemy.hp > 0) {
+      enemy.setTint(0xffca28);
+      scene.time.delayedCall(65, () => {
+        if (enemy && enemy.active) enemy.clearTint();
+      });
+    } else {
+      enemy.clearTint();
+    }
+  });
+
+  if (enemy.isBoss) {
+    updateBossHUD();
+    if (enemy.hp <= 0) {
+      defeatBoss(scene, enemy);
+    } else {
+      sound.playShieldBlock();
+    }
+    return;
+  }
+
+  if (enemy.hp <= 0) {
+    killEnemy(enemy);
+  } else {
+    sound.playShieldBlock();
+    enemy.x = Math.min(785, enemy.x + 22);
+  }
+}
+
+// =============================================================================
+// OUVINTES DE EVENTOS DESACOPLADOS (Observer / Listeners)
+// Isola efeitos de áudio, partículas visuais, conquistas e drops da lógica central
+// =============================================================================
+function setupDecoupledEventListeners(scene) {
+  events.clear();
+
+  // 1. ÁUDIO REATIVO
+  events.on(GameEvents.ENEMY_KILLED, () => sound.playEnemyHit());
+  events.on(GameEvents.SHIELD_REFLECT, () => sound.playShieldBlock());
+  events.on(GameEvents.SHIELD_SHOCKWAVE, () => sound.playShieldBlock());
+  events.on(GameEvents.COIN_COLLECTED, () => sound.playCoin());
+  events.on(GameEvents.XP_GAINED, () => sound.playXpOrb());
+  events.on(GameEvents.LEVEL_UP, () => sound.playLevelUp());
+  events.on(GameEvents.ITEM_COLLECTED, () => sound.playItemCollect());
+  events.on(GameEvents.PLAYER_HIT, () => sound.playPlayerHurt());
+  events.on(GameEvents.PLAYER_DIED, () => sound.playGameOver());
+
+  // 2. EFEITOS VISUAIS (VFX)
+  events.on(GameEvents.ENEMY_KILLED, ({ x, y, enemyType }) => {
+    hitFx.explode(10, x, y);
+    if (enemyType === 'warrior') {
+      sparksFx.explode(8, x, y);
+      debrisFx.explode(5, x, y);
+    } else if (enemyType === 'mini_golem') {
+      debrisFx.explode(8, x, y);
+      sparksFx.explode(4, x, y);
+    } else if (enemyType === 'dark_mage') {
+      holyFx.explode(8, x, y);
+    }
+  });
+
+  // 3. CONQUISTAS DESACOPLADAS
+  events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType }) => {
+    if (enemyType === 'goblin') recordAchievementProgress(scene, 'goblins', 1);
+    else if (enemyType === 'warrior') recordAchievementProgress(scene, 'warriors', 1);
+    else if (enemyType === 'dark_mage') recordAchievementProgress(scene, 'mages', 1);
+  });
+  events.on(GameEvents.SHIELD_REFLECT, ({ scene }) => {
+    recordAchievementProgress(scene, 'reflected', 1);
+  });
+
+  // 4. SISTEMA DE LOOT & RECOMPENSAS
+  events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
+    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, gargoyle: 0.45, goblin: 0.38, mini_golem: 0.32 };
+    const chance = dropRates[enemyType] ?? 0.40;
+
+    spawnXpOrb(scene, x - 6, y, xpValue);
+
+    if (Math.random() < chance) {
+      const count = (enemyType === 'dark_mage' || enemyType === 'warrior') && Math.random() < 0.42 ? 2 : 1;
+      for (let i = 0; i < count; i++) {
+        spawnCoinDrop(scene, x + 8 + i * 10, y);
+      }
+    }
+  });
+}
+
+function killEnemy(enemy) {
+  if (!enemy || !enemy.active) return;
+  const scene = enemy.scene;
+  const ex = enemy.x, ey = enemy.y;
+  const eType = enemy.enemyType;
+  const xpValue = ENEMIES[eType]?.xp ?? 2;
+
+  removeEntity(enemy);
+
+  // Emite evento para que áudio, partículas, conquistas e drops respondam de forma modular
+  events.emit(GameEvents.ENEMY_KILLED, {
+    scene,
+    enemy,
+    enemyType: eType,
+    x: ex,
+    y: ey,
+    xpValue
+  });
+}
+
+
+function playerHit(scene, hazard) {
+  if (gameState !== 'PLAYING' || !hazard.active) return;
+
+  if (buff.type === 'shield') {
+    const lvl = getWeaponLevel('shield');
+
+    // 1. ESCUDO SAGRADO REFLETE PROJÉTEIS MANTENDO A COR/ASPECTO NORMAL + CONTABILIZA CONQUISTA!
+    if (enemyArrows.contains(hazard)) {
+      const hx = hazard.x, hy = hazard.y;
+      hazard.destroy();
+
+      sound.playShieldBlock();
+      sparksFx.explode(10, hx, hy);
+      holyFx.explode(8, hx, hy);
+      floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
+      recordAchievementProgress(scene, 'reflected', 1);
+
+      const spreads = {
+        1: [0],
+        2: [0],
+        3: [-0.12, 0.12],
+        4: [-0.20, 0, 0.20],
+        5: [-0.28, -0.14, 0, 0.14, 0.28]
+      }[lvl] || [0];
+
+      spreads.forEach(ang => {
+        const reflArrow = playerArrows.create(player.x + 20, player.y, 'arrow_player');
+        reflArrow.body.setSize(18, 8);
+        reflArrow.dmg = lvl >= 4 ? 2 : 1;
+        reflArrow.pierceCount = lvl >= 4 ? 2 : 1;
+        reflArrow.projId = ++slashCounter;
+        const spd = lvl === 1 ? 620 : 760;
+        reflArrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        reflArrow.rotation = ang;
+      });
+      return;
+    }
+
+    // 2. Impacto corpo a corpo ou golpe do Boss quebra o escudo em uma Onda de Choque Sagrada!
+    endBuff();
+    sound.playShieldBlock();
+    scene.cameras.main.flash(160, 120, 220, 255);
+    scene.cameras.main.shake(180, 0.008);
+    floatText(scene, player.x, player.y - 32, 'ONDA DE CHOQUE!', '#7fe7ff');
+
+    const shockRadius = 95 + (lvl - 1) * 30;
+    const bossDmg = [2, 3, 5, 7, 10][lvl - 1] || 2;
+
+    holyFx.explode(28, player.x, player.y);
+    sparksFx.explode(16, player.x, player.y);
+
+    const wave = scene.add.circle(player.x, player.y, 16, 0x7fe7ff, 0.40)
+      .setStrokeStyle(3, 0xffffff).setDepth(1600);
+    const innerWave = scene.add.circle(player.x, player.y, 10, 0xffe082, 0.60)
+      .setStrokeStyle(2, 0xffffff).setDepth(1601);
+
+    scene.tweens.add({
+      targets: [wave, innerWave],
+      radius: shockRadius,
+      alpha: 0,
+      duration: 320,
+      ease: 'Cubic.easeOut',
+      onComplete: () => {
+        if (wave.active) wave.destroy();
+        if (innerWave.active) innerWave.destroy();
+      }
+    });
+
+    enemies.getChildren().slice().forEach(e => {
+      if (e.active && Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y) <= shockRadius + 10) {
+        if (e.isBoss) {
+          damageEnemy(scene, e, bossDmg);
+        } else {
+          killEnemy(e);
+        }
+      }
+    });
+    enemyArrows.getChildren().slice().forEach(a => {
+      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= shockRadius) {
+        a.destroy();
+      }
+    });
+    return;
+  }
+
+  if (playerInvulnerable) {
+    if (enemyArrows.contains(hazard)) hazard.destroy();
+    return;
+  }
+
+  playerHp = Math.max(0, playerHp - 1);
+  updateHeartsHUD();
+
+  if (playerHp > 0) {
+    playerInvulnerable = true;
+    if (enemyArrows.contains(hazard)) {
+      hazard.destroy();
+    } else if (hazard && hazard.active && !hazard.isBoss && !hazard.isBossAttack) {
+      killEnemy(hazard);
+    }
+
+    sound.playPlayerHurt();
+    sparksFx.explode(8, player.x, player.y);
+    hitFx.explode(14, player.x, player.y);
+    player.setTint(0xffffff);
+    scene.time.delayedCall(75, () => {
+      if (player && player.active) player.clearTint();
+    });
+    scene.cameras.main.flash(140, 255, 80, 80);
+    scene.cameras.main.shake(180, 0.009);
+    floatText(scene, player.x, player.y - 30, `-1 CORAÇÃO! (${playerHp}/${playerMaxHp})`, '#ff5252');
+
+    enemyArrows.getChildren().slice().forEach(a => {
+      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= 95) {
+        a.destroy();
+      }
+    });
+
+    scene.tweens.add({
+      targets: player,
+      alpha: { from: 0.25, to: 1 },
+      duration: 110,
+      yoyo: true,
+      repeat: 5,
+      onComplete: () => {
+        if (player && player.active) player.setAlpha(1);
+        playerInvulnerable = false;
+      }
+    });
+    return;
+  }
+
+  gameOver(scene);
+}
+
+function gameOver(scene) {
+  if (gameState === 'GAMEOVER') return;
+  gameState = 'GAMEOVER';
+  playerInvulnerable = false;
+  pendingLevelUps = 0;
+
+  consolidateSilverToGold();
+
+  if (shieldSprite) shieldSprite.setVisible(false);
+  if (shieldAura) shieldAura.setVisible(false);
+  if (playerBuffBar) playerBuffBar.clear();
+  if (enemyHpBars) enemyHpBars.clear();
+  if (activeBoss) clearBossTelegraphs(activeBoss);
+  if (pauseModal) {
+    pauseModal.destroy();
+    pauseModal = null;
+  }
+  if (draftModal) {
+    draftModal.destroy();
+    draftModal = null;
+  }
+  sound.stopBGM();
+  sound.playGameOver();
+  if (hudContainer) hudContainer.setVisible(false);
+
+  scene.physics.pause();
+  scene.time.removeAllEvents();
   scene.time.paused = false;
   scene.time.timeScale = 1;
-  scene.tweens.resumeAll();
-  scene.physics.resume();
 
-  // Centraliza e trava câmera em pixels inteiros para nitidez máxima em Tela Cheia e Janela
-  scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
-  scene.cameras.main.centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-  scene.cameras.main.setRoundPixels(true);
-
-  gameState = 'MENU';
-  survivalTime = 0;
-  runSilver = 0;
-  runGold = 0;
-  runXp = 0;
-  runLevel = 1;
-  xpToNextLevel = getXpRequiredForLevel(1);
-  pendingLevelUps = 0;
-  runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
-  runBonusDuration = 0;
-  playerMaxHp = getPlayerMaxHp();
-  playerHp = playerMaxHp;
-  playerInvulnerable = false;
-  enemySpeed = 195;
-  spawnDelay = 1300;
-  buff = { type: null, timeLeft: 0, nextAttack: 0 };
-  activeBoss = null;
-  bossSpawned = false;
-  bossDefeated = false;
-  draftModal = null;
-
-  // Limpa todos os listeners de teclado e escala ao encerrar/reiniciar a cena
-  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-    events.clear();
-    scene.input.keyboard.removeAllListeners();
-    scene.scale.off('enterfullscreen', onScaleChange);
-    scene.scale.off('leavefullscreen', onScaleChange);
-    scene.scale.off('resize', onScaleChange);
-  });
-
-  // Registra Listeners de Eventos Desacoplados (Observer Pattern)
-  setupDecoupledEventListeners(scene);
-
-  const onScaleChange = () => {
-    scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
-    scene.cameras.main.centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-    scene.cameras.main.setRoundPixels(true);
-    updateFullscreenIcons(scene);
-  };
-  scene.scale.on('enterfullscreen', onScaleChange);
-  scene.scale.on('leavefullscreen', onScaleChange);
-  scene.scale.on('resize', onScaleChange);
-
-  // Animações com cadência fluida — criadas uma única vez
-  const animSpecs = {
-    knight: { fps: 12, frames: 4 },
-    goblin: { fps: 12, frames: 2 },
-    warrior: { fps: 8, frames: 2 },
-    elf: { fps: 9, frames: 2 },
-    gargoyle: { fps: 10, frames: 2 },
-    dark_mage: { fps: 8, frames: 2 },
-    mini_golem: { fps: 10, frames: 2 },
-    boss_golem: { fps: 6, frames: 2 },
-    village_npc: { fps: 4, frames: 2 },
-    gold_coin: { fps: 8, frames: 2 },
-    silver_coin: { fps: 8, frames: 2 },
-    xp_orb: { fps: 8, frames: 2 },
-    blacksmith_master: { fps: 3, frames: 2 },
-    mage_master: { fps: 3, frames: 2 }
-  };
-  Object.entries(animSpecs).forEach(([key, spec]) => {
-    if (!scene.anims.exists(key)) {
-      const frames = [];
-      for (let i = 0; i < spec.frames; i++) frames.push({ key, frame: i });
-      scene.anims.create({ key, frameRate: spec.fps, repeat: -1, frames });
-    }
-  });
-  if (!scene.anims.exists('knight_run')) {
-    const frames = [];
-    for (let i = 0; i < 4; i++) frames.push({ key: 'knight', frame: i });
-    scene.anims.create({ key: 'knight_run', frameRate: 12, repeat: -1, frames });
+  if (player) {
+    scene.tweens.killTweensOf(player);
+    player.setAlpha(1).setTint(0xff5555);
+    if (player.anims) player.anims.pause();
   }
-
-  // Camadas do cenário, de trás para frente
-  ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
-  road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
-  forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
-  shadows = scene.add.graphics().setDepth(-2);
-  forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
-  bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
-
-  // Grupos físicos
-  villageDecor = scene.physics.add.group({ immovable: true });
-  coins = scene.physics.add.group();
-  xpOrbs = scene.physics.add.group();
-  enemies = scene.physics.add.group();
-  obstacles = scene.physics.add.group({ immovable: true });
-  items = scene.physics.add.group();
-  playerArrows = scene.physics.add.group();
-  enemyArrows = scene.physics.add.group();
-  slashes = scene.physics.add.group();
-
-  // Árvores nas bordas a partir de além dos portões da vila
-  for (let x = 620; x <= 980; x += 120) spawnTree(x);
-
-  // Jogador (limitado à área entre as florestas)
-  scene.physics.world.setBounds(0, 95, 800, 455);
-  player = scene.physics.add.sprite(160, 330, 'knight', 0);
-  player.body.setSize(16, 22).setOffset(8, 8);
-  player.setCollideWorldBounds(true);
-  player.setVisible(false); // Oculto enquanto estiver nos menus
-  shieldSprite = scene.add.image(0, 0, 'shield_worn').setVisible(false);
-  shieldAura = scene.add.image(0, 0, 'shield_aura').setVisible(false).setAlpha(0.85);
-
-  // Controles
-  cursors = scene.input.keyboard.createCursorKeys();
-  keys = scene.input.keyboard.addKeys('W,A,S,D');
-
-  pauseModal = null;
-  enemyHpBars = scene.add.graphics().setDepth(2400);
-  playerBuffBar = scene.add.graphics().setDepth(2500);
-
-  // Tecla ESC para pausar/despausar ou sair de submenus (bloqueada durante escolha de cartas de Level Up!)
-  scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene));
-
-  // Tecla F para ativar/desativar Tela Cheia (com trava durante digitação no Game Over)
-  scene.input.keyboard.on('keydown-F', () => {
-    if (gameState === 'GAMEOVER') return;
-    sound.playButtonClick();
-    toggleFullscreen(scene);
+  enemies.getChildren().forEach(s => {
+    scene.tweens.killTweensOf(s);
+    if (s.anims) s.anims.pause();
   });
+  items.getChildren().forEach(i => scene.tweens.killTweensOf(i));
+  coins.getChildren().forEach(c => scene.tweens.killTweensOf(c));
+  if (xpOrbs) xpOrbs.getChildren().forEach(o => scene.tweens.killTweensOf(o));
 
-  // Partículas de poeira nos passos do cavaleiro
-  dustFx = scene.add.particles(0, 0, 'spark', {
-    lifespan: 300,
-    speedX: { min: -70, max: -20 },
-    speedY: { min: -16, max: 6 },
-    scale: { start: 1.0, end: 0 },
-    alpha: { start: 0.42, end: 0 },
-    tint: [0xd6c8aa, 0xb89a6c, 0x9b7b4f],
-    emitting: false
-  }).setDepth(5);
-
-  // Partículas para impactos gerais e mortes de monstros
-  hitFx = scene.add.particles(0, 0, 'spark', {
-    lifespan: 340, speed: { min: 70, max: 190 }, scale: { start: 1.4, end: 0 },
-    tint: [0xffffff, 0xffca28, 0xff7043], emitting: false
-  }).setDepth(1500);
-
-  // Faíscas metálicas pontuais para acertos em armaduras, espadas e bloqueios
-  sparksFx = scene.add.particles(0, 0, 'spark_shard', {
-    lifespan: 220, speed: { min: 120, max: 280 }, scale: { start: 1.2, end: 0 },
-    tint: [0xffffff, 0xfff59d, 0x80deea], emitting: false
-  }).setDepth(1510);
-
-  // Estilhaços físicos de madeira (árvores) e lascas de pedra (rochas) com gravidade
-  debrisFx = scene.add.particles(0, 0, 'spark_shard', {
-    lifespan: 420, speed: { min: 50, max: 150 }, gravityY: 260, scale: { start: 1.5, end: 0.2 },
-    tint: [0x8d5c38, 0x5c3a1b, 0x78909c, 0x455a64], emitting: false
-  }).setDepth(1490);
-
-  // Partículas sagradas cintilantes para Escudo Sagrado e bênçãos divinas
-  holyFx = scene.add.particles(0, 0, 'spark_star', {
-    lifespan: 480, speed: { min: 45, max: 160 }, scale: { start: 1.6, end: 0 },
-    tint: [0xffffff, 0x7fe7ff, 0xffe082, 0x80deea], emitting: false
-  }).setDepth(1620);
-
-  // Brasas e fagulhas sutis para o Cajado de Fogo e impactos (leves e legíveis)
-  emberFx = scene.add.particles(0, 0, 'spark', {
-    lifespan: 220, speed: { min: 40, max: 120 }, scale: { start: 0.95, end: 0 },
-    tint: [0xffeb3b, 0xffca28, 0xff7043], emitting: false
-  }).setDepth(1560);
-
-  createHUD(scene);
-
-  // Colisões do jogador (separação suave nos obstáculos + coleta de Relíquias, Moedas de Prata e Orbes de XP)
-  scene.physics.add.overlap(player, obstacles, (p, o) => separatePlayerFromObstacle(p, o));
-  scene.physics.add.overlap(player, enemies, (p, e) => playerHit(scene, e));
-  scene.physics.add.overlap(player, enemyArrows, (p, a) => playerHit(scene, a));
-  scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
-  scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
-  scene.physics.add.overlap(player, xpOrbs, (p, orb) => collectXpOrb(scene, orb));
-
-  // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
-  scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
-    if (e.x >= 800 || !a.active || !e.active) return;
-    if (a.projId && e.lastProjId === a.projId) return;
-    if (a.projId) e.lastProjId = a.projId;
-
-    if (a.isFireball) {
-      const fx = a.x, fy = a.y, rad = a.blastRadius || 42, dmg = a.dmg || 1;
-      a.destroy();
-      explodeFireball(scene, fx, fy, rad, dmg);
-      return;
-    }
-
-    damageEnemy(scene, e, a.dmg || 1);
-    if (a.pierceCount && a.pierceCount > 1) {
-      a.pierceCount--;
-    } else if (!a.isBoomerang) {
-      a.destroy();
-    }
-  });
-  scene.physics.add.overlap(slashes, enemies, (s, e) => {
-    // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
-    if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
-      e.lastSlashId = s.slashId;
-      damageEnemy(scene, e, s.dmg || 1);
-    }
-  });
-  scene.physics.add.overlap(slashes, enemyArrows, (s, a) => {
-    sound.playShieldBlock();
-    sparksFx.explode(7, a.x, a.y);
-    a.destroy();
-  });
-  scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => {
-    if (!a.active || !b.active) return;
-    sound.playShieldBlock();
-    sparksFx.explode(6, b.x, b.y);
-    b.destroy();
-    if (!a.isBoomerang && !a.isFireball && (!a.pierceCount || a.pierceCount <= 1)) {
-      a.destroy();
-    }
-  });
-
-  // Obstáculos (árvores e rochas) servem de cobertura: bloqueiam flechas (machado bumerangue sobrevoa)
-  const hitObstacle = (arrow, obs) => {
-    if (!arrow.active || arrow.isBoomerang) return;
-    if (arrow.isFireball) {
-      const fx = arrow.x, fy = arrow.y, rad = arrow.blastRadius || 42, dmg = arrow.dmg || 1;
-      arrow.destroy();
-      explodeFireball(scene, fx, fy, rad, dmg);
-      return;
-    }
-    if (arrow.x > 0 && arrow.x < 800 && obs.x < 810) {
-      if (obs.obstacleType === 'rock') {
-        sound.playShieldBlock();
-        sparksFx.explode(6, arrow.x, arrow.y);
-        debrisFx.explode(6, arrow.x, arrow.y);
-      } else {
-        sound.playWoodHit();
-        debrisFx.explode(7, arrow.x, arrow.y);
-      }
-    }
-    arrow.destroy();
-  };
-  scene.physics.add.overlap(playerArrows, obstacles, hitObstacle);
-  scene.physics.add.overlap(enemyArrows, obstacles, hitObstacle);
-
-  if (data && data.autoStart) {
-    startGameplay(scene);
-  } else if (data && data.openShop) {
-    showShopMenu(scene, data.shopTab || 'mage');
-  } else {
-    showMainMenu(scene);
-  }
+  hitFx.explode(20, player.x, player.y);
+  scene.cameras.main.shake(300, 0.012);
+  scene.time.delayedCall(700, () => showInitials(scene));
 }
 
+
+// <<< END: src/combat/combatManager.js
+
+// >>> START: src/combat/lootManager.js
 // =============================================================================
-// CENA: UPDATE — roda a cada frame
+// GERENCIADOR DE DROPS, XP, MOEDAS E ATRAÇÃO MAGNÉTICA
 // =============================================================================
-function update(time, delta) {
-  const dt = Math.min(delta / 1000, 0.05); // clamp dt para evitar saltos bruscos de frame
-  if (gameState === 'PLAYING') updateGameplay(this, time, dt);
-  else if (gameState === 'MENU') updateMenuBackground(dt);
-  sortAndShade();
-}
+function spawnXpOrb(scene, x, y, xpValue = 2) {
+  if (!scene || !xpOrbs) return;
+  const targetY = Phaser.Math.Clamp(y + Phaser.Math.Between(-12, 12), 130, 520);
+  const orb = xpOrbs.create(x, targetY, 'xp_orb');
+  orb.play('xp_orb');
+  orb.setScale(xpValue >= 4 ? 1.25 : 1.0);
+  orb.body.setSize(28, 28).setOffset(-7, -7);
+  orb.groundY = targetY + 7;
+  orb.xpValue = xpValue;
+  orb.magnetized = false;
+  orb.isDropping = true;
 
-// Fundo rolando suavemente no menu inicial (efeito vivo de viagem)
-function updateMenuBackground(dt) {
-  const scrollSpeed = 35;
-  ground.tilePositionX += scrollSpeed * dt;
-  road.tilePositionX += scrollSpeed * dt;
-  forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
-  forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
-  obstacles.setVelocityX(-scrollSpeed);
-}
-
-function updateGameplay(scene, time, dt) {
-  // 1. Mundo rolando: chão, estrada e obstáculos andam JUNTOS (nada desliza)
-  const worldSpeed = enemySpeed * 0.6;
-  ground.tilePositionX += worldSpeed * dt;
-  road.tilePositionX += worldSpeed * dt;
-  forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
-  forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
-  obstacles.setVelocityX(-worldSpeed);
-  villageDecor.setVelocityX(-worldSpeed);
-  items.setVelocityX(-worldSpeed);
-
-  // Física de Coleta e Magnetismo de Moedas de Prata e Orbes de XP (fluida e responsiva)
-  const magnetRadius = getMagnetRadius();
-  const pullCollectibles = (group, onCollect) => {
-    group.getChildren().slice().forEach(c => {
-      if (!c || !c.active) return;
-      const dist = Phaser.Math.Distance.Between(player.x, player.y, c.x, c.y);
-      if (dist <= 28) {
-        onCollect(scene, c);
-        return;
-      }
-      if (c.magnetized || dist <= magnetRadius) {
-        if (!c.magnetized) {
-          c.magnetized = true;
-          scene.tweens.killTweensOf(c);
-        }
-        const pullSpeed = Math.max(420, enemySpeed + 240 + Math.max(0, magnetRadius - dist) * 1.6);
-        scene.physics.moveToObject(c, player, pullSpeed);
-        c.groundY = c.y + 8;
-      } else if (!c.isDropping) {
-        c.setVelocity(-worldSpeed, 0);
-        c.groundY = c.y + 8;
-      } else {
-        c.setVelocityX(-worldSpeed);
-      }
-    });
-  };
-  pullCollectibles(coins, collectCoin);
-  pullCollectibles(xpOrbs, collectXpOrb);
-
-  // 2. Cavaleiro: 8 direções com pixels 100% nítidos (sem rotação sub-pixel setAngle que esfarela a Pixel Art!)
-  const moveSpd = getPlayerMoveSpeed();
-  let dirX = 0, dirY = 0;
-  if (cursors.left.isDown || keys.A.isDown) dirX -= 1;
-  if (cursors.right.isDown || keys.D.isDown) dirX += 1;
-  if (cursors.up.isDown || keys.W.isDown) dirY -= 1;
-  if (cursors.down.isDown || keys.S.isDown) dirY += 1;
-  player.setVelocity(dirX, dirY).body.velocity.normalize().scale(moveSpd);
-  player.setFlipX(false);
-  player.setAngle(0); // ângulo zero mantém linhas e cores perfeitamente nítidas!
-  const isMoving = dirX !== 0 || dirY !== 0;
-  player.anims.timeScale = dirX > 0 ? 1.35 : (dirX < 0 ? 0.9 : (isMoving ? 1.15 : 1.0));
-
-  // Poeira sutil nos passos do cavaleiro
-  if (Math.random() < 0.25) {
-    dustFx.emitParticleAt(Math.round(player.x - 6), Math.round(player.y + 14), 1);
-  }
-
-  // 3. Inimigos: movimento suave com pixels inteiros (sem rotação sub-pixel que esfarela os contornos)
-  enemies.getChildren().forEach(e => {
-    if (!e.isBoss) {
-      e.setAngle(0);
-      if (e.enemyType === 'gargoyle' && e.baseY !== undefined) {
-        e.y = Math.round(Phaser.Math.Clamp(e.baseY + Math.sin(time * 0.0055 + e.phase) * 46, 125, 520));
-        if (e.body) e.body.updateFromGameObject();
-      }
-    }
-  });
-
-  // Rotação fluida dos Machados Bumerangue e rastros de projéteis
-  playerArrows.getChildren().forEach(p => {
-    if ((p.isBoomerang || p.texture.key === 'axe_proj') && p.active) {
-      p.spinAccum = (p.spinAccum || 0) + 820 * dt;
-      p.setAngle(Math.round(p.spinAccum / 30) * 30);
-      if (p.isBoomerang && !p.returning && p.body.velocity.x < 0) {
-        p.returning = true;
-        p.projId = ++slashCounter;
-      }
-    }
-    // Rastro sutil e fluido da Bola de Fogo (baixa densidade para máxima legibilidade)
-    if (p.isFireball && p.active && Math.random() < 0.16) {
-      emberFx.emitParticleAt(p.x - 6, p.y + Phaser.Math.Between(-1, 1), 1);
-    }
-  });
-
-  // Flechas élficas: rastro limpo e direto sem estrelas ofuscantes
-  enemyArrows.getChildren().forEach(a => {
-    if (a.texture.key === 'arrow_elf' && a.active && Math.random() < 0.08) {
-      dustFx.emitParticleAt(a.x + 6, a.y, 1);
-    }
-  });
-
-  if (activeBoss && activeBoss.active) {
-    if (!activeBoss.isLunging) {
-      activeBoss.setAngle(0);
-      if (activeBoss.entering) {
-        if (activeBoss.x <= 685) {
-          activeBoss.x = 685;
-          activeBoss.setVelocityX(0);
-          activeBoss.entering = false;
-          activeBoss.setVelocityY(68);
-        }
-      } else {
-        activeBoss.x = 685;
-        activeBoss.setVelocityX(0);
-        if (activeBoss.y <= 170) activeBoss.setVelocityY(72);
-        else if (activeBoss.y >= 480) activeBoss.setVelocityY(-72);
-      }
-    }
-  }
-
-  // 4. Sistema Modular de Armas: cadência e tempo processados pela estratégia ativa
-  WeaponSystem.update(scene, time, dt);
-  updateItemHUD();
-
-  // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
-  const cull = (group, isOut) => group.getChildren().slice().forEach(s => { if (isOut(s)) removeEntity(s); });
-  cull(villageDecor, s => s.x < -300);
-  cull(enemies, s => !s.isBoss && s.x < -60);
-  cull(obstacles, s => s.x < -60);
-  cull(items, s => s.x < -60);
-  cull(coins, s => s.x < -60);
-  cull(xpOrbs, s => s.x < -60);
-  cull(playerArrows, s => s.x < -40 || s.x > 830 || s.y < 0 || s.y > 620);
-  cull(enemyArrows, s => s.x < -40 || s.x > 840 || s.y < 0 || s.y > 620);
-}
-
-// Impede o jogador de atravessar obstáculos e resolve prensamento de forma suave (sem trancos ou cuspidas)
-function separatePlayerFromObstacle(p, obs) {
-  if (!p.active || !obs.active) return;
-  if (obs.lockedY !== undefined) obs.y = obs.lockedY;
-  obs.body.velocity.y = 0;
-
-  const pb = p.body, ob = obs.body;
-  const ox = Math.min(pb.right, ob.right) - Math.max(pb.left, ob.left);
-  const oy = Math.min(pb.bottom, ob.bottom) - Math.max(pb.top, ob.top);
-  if (ox <= 0 || oy <= 0) return;
-
-  // Direção do desvio: respeita a intenção do jogador (W/S) ou desvia pelo lado mais próximo do centro
-  let slideDir = (keys.W.isDown || cursors.up.isDown) ? -1 :
-                 (keys.S.isDown || cursors.down.isDown) ? 1 :
-                 (pb.center.y < ob.center.y ? -1 : 1);
-  if (p.y <= 112) slideDir = 1;
-  else if (p.y >= 533) slideDir = -1;
-
-  // 1. Jogador espremido contra a borda esquerda pelo obstáculo que avança
-  if (pb.left <= 18 && pb.center.x <= ob.center.x) {
-    const squeezeStep = Math.min(oy, 2.4);
-    p.y = Phaser.Math.Clamp(p.y + slideDir * squeezeStep, 106, 539);
-    p.x = Math.max(16, pb.width / 2);
-  } else if (ox < oy) {
-    // 2. Colisão horizontal padrão
-    if (pb.center.x < ob.center.x) {
-      p.x = Phaser.Math.Clamp(p.x - ox, 16, 792);
-      if (oy > 2) p.y = Phaser.Math.Clamp(p.y + slideDir * Math.min(oy, 1.4), 106, 539);
-    } else {
-      p.x = Phaser.Math.Clamp(p.x + ox, 16, 792);
-    }
-  } else {
-    // 3. Colisão vertical padrão
-    p.y = Phaser.Math.Clamp(p.y + (pb.center.y < ob.center.y ? -oy : oy), 106, 539);
-  }
-  pb.updateFromGameObject();
-}
-
-// Profundidade por altura (quem está mais embaixo fica na frente) + sombras + barras de HP
-function sortAndShade() {
-  shadows.clear();
-  enemyHpBars.clear();
-
-  const shadeEntity = (s) => {
-    if (!s || !s.active || !s.visible) return;
-    const feet = Math.round(s.groundY ?? s.y + s.displayHeight / 2);
-    s.setDepth(feet);
-
-    // Determina dimensões da sombra proporcionalmente ao tamanho e tipo da criatura
-    let pw = 22, ph = 7, cw = 15, ch = 4; // Penumbra e Core padrão (Cavaleiro)
-    let pAlpha = 0.20, cAlpha = 0.34;
-    let groundY = feet - 2;
-
-    if (s.isBoss) {
-      pw = 74; ph = 20; cw = 56; ch = 12;
-      pAlpha = 0.26; cAlpha = 0.44;
-      groundY = feet - 3;
-    } else if (s.enemyType === 'goblin') {
-      pw = 18; ph = 6; cw = 12; ch = 3;
-    } else if (s.enemyType === 'warrior') {
-      pw = 26; ph = 8; cw = 18; ch = 5;
-      cAlpha = 0.38;
-    } else if (s.enemyType === 'elf') {
-      pw = 18; ph = 6; cw = 12; ch = 4;
-    } else if (s.enemyType === 'dark_mage') {
-      // Mago sombrio flutua/levita suavemente no ar
-      pw = 22; ph = 6; cw = 14; ch = 3;
-      pAlpha = 0.16; cAlpha = 0.22;
-      groundY = feet + 4;
-    } else if (s.enemyType === 'gargoyle') {
-      // Gárgula projeta sombra no chão enquanto bate asas no ar
-      pw = 22; ph = 6; cw = 12; ch = 3;
-      pAlpha = 0.16; cAlpha = 0.20;
-      groundY = Math.round((s.baseY || s.y) + 16);
-    } else if (s.enemyType === 'mini_golem') {
-      pw = 20; ph = 7; cw = 14; ch = 4;
-      cAlpha = 0.36;
-    } else if (s.obstacleType === 'rock') {
-      pw = 32; ph = 10; cw = 24; ch = 6;
-      pAlpha = 0.24; cAlpha = 0.40;
-      groundY = feet - 3;
-    } else if (s.obstacleType === 'tree' || s.isTree) {
-      pw = 36; ph = 12; cw = 26; ch = 7;
-      pAlpha = 0.24; cAlpha = 0.40;
-      groundY = feet - 4;
-    } else if (s.displayWidth && s.displayWidth >= 60) {
-      pw = Math.round(s.displayWidth * 0.82);
-      ph = 14; cw = Math.round(s.displayWidth * 0.62); ch = 8;
-      pAlpha = 0.25; cAlpha = 0.38;
-      groundY = feet - 4;
-    } else if (s.isCoin || s.isXpOrb || s.isItem) {
-      pw = 12; ph = 4; cw = 8; ch = 2;
-      pAlpha = 0.18; cAlpha = 0.28;
-      groundY = feet - 1;
-    }
-
-    const sx = Math.round(s.x);
-    // 1. Penumbra suave externa (dissipa suavemente no solo)
-    shadows.fillStyle(0x161009, pAlpha).fillEllipse(sx, groundY, pw, ph);
-    // 2. Núcleo escuro de contato (assenta os pés firmemente na terra)
-    shadows.fillStyle(0x0a0604, cAlpha).fillEllipse(sx, groundY, cw, ch);
-  };
-
-  obstacles.getChildren().forEach(o => {
-    if (o.lockedY !== undefined) o.y = o.lockedY;
-    if (o.crackDecal && o.crackDecal.active) {
-      o.crackDecal.setPosition(Math.round(o.x), Math.round(o.y + 6));
-    }
-    shadeEntity(o);
-  });
-
-  if (villageDecor) {
-    villageDecor.getChildren().forEach(v => {
-      if (v.lockedY !== undefined) v.y = v.lockedY;
-      if (v.speechBubble && v.speechBubble.active) {
-        v.speechBubble.setPosition(Math.round(v.x), Math.round(v.y - 24)).setDepth(v.y + 30);
-      }
-      if (v.isGroundPlaza) {
-        v.setDepth(-8.5);
-      } else {
-        shadeEntity(v);
-      }
-    });
-  }
-
-  if (gameState === 'PLAYING' || gameState === 'PAUSED' || gameState === 'LEVEL_UP') {
-    shadeEntity(player);
-    items.getChildren().forEach(shadeEntity);
-    coins.getChildren().forEach(shadeEntity);
-    if (xpOrbs) xpOrbs.getChildren().forEach(shadeEntity);
-    enemies.getChildren().forEach(e => {
-      shadeEntity(e);
-      if (e.chargeRing && e.chargeRing.active) {
-        e.chargeRing.setPosition(Math.round(e.x - 12), Math.round(e.y)).setDepth(e.depth + 2);
-      }
-      // Desenha barra de vida/armadura para inimigos comuns com mais de 1 HP (Boss usa o HUD dedicado)
-      if (e.active && !e.isBoss && e.maxHp > 1) {
-        const bw = 22, bh = 4;
-        const bx = Math.round(e.x - bw / 2);
-        const by = Math.round(e.y - e.displayHeight / 2 - 8);
-        enemyHpBars.fillStyle(0x0e0b08, 0.9).fillRect(bx - 1, by - 1, bw + 2, bh + 2);
-        enemyHpBars.fillStyle(0x2a1d17, 0.9).fillRect(bx, by, bw, bh);
-        const pct = Phaser.Math.Clamp(e.hp / e.maxHp, 0, 1);
-        const hpColor = e.hp < e.maxHp ? 0xff5252 : 0xffca28;
-        enemyHpBars.fillStyle(hpColor, 1).fillRect(bx, by, Math.round(bw * pct), bh);
-      }
-    });
-  }
-
-  playerArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
-  enemyArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
-
-  // Escudo, aura rúnica e golpe de espada acompanham o cavaleiro (sempre voltados para a frente)
-  if (player && player.visible) {
-    shieldSprite.setPosition(Math.round(player.x + 12), Math.round(player.y + 4)).setDepth(player.depth + 1);
-    if (shieldAura && shieldAura.visible) {
-      shieldAura.setPosition(Math.round(player.x), Math.round(player.y)).setDepth(player.depth - 1);
-      shieldAura.rotation += 0.02;
-    }
-  }
-  slashes.getChildren().forEach(s => {
-    s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y)).setDepth(player.depth + 3);
-    if (s.blade && s.blade.active) {
-      s.blade.setPosition(Math.round(player.x + 8), Math.round(player.y + 4)).setDepth(player.depth + 2);
+  scene.tweens.add({
+    targets: orb,
+    y: { from: targetY - 12, to: targetY },
+    duration: 190,
+    ease: 'Quad.easeOut',
+    onComplete: () => {
+      if (orb && orb.active) orb.isDropping = false;
     }
   });
 }
 
+function collectXpOrb(scene, orb) {
+  if (!orb || !orb.active) return;
+  const ox = orb.x, oy = orb.y;
+  const baseXp = orb.xpValue || 2;
+  const gained = Math.max(1, Math.round(baseXp * getWisdomMultiplier()));
+  sound.playXpOrb();
+  hitFx.explode(4, ox, oy);
+  removeEntity(orb);
+  gainXp(scene, gained);
+}
+
+function gainXp(scene, amount) {
+  runXp += amount;
+  while (runXp >= xpToNextLevel) {
+    runXp -= xpToNextLevel; // mantém todo o XP excedente!
+    runLevel++;
+    xpToNextLevel = getXpRequiredForLevel(runLevel);
+    pendingLevelUps++;
+  }
+  updateXpHUD();
+
+  if (pendingLevelUps > 0 && gameState === 'PLAYING') {
+    openLevelUpDraft(scene);
+  }
+}
+
+// Moeda de Prata: salta do monstro derrotado com física limpa e sem conflito de tween!
+function spawnCoinDrop(scene, x, y, silverValue = 1) {
+  if (!scene || !coins) return;
+  const targetY = Phaser.Math.Clamp(y + Phaser.Math.Between(-10, 14), 130, 520);
+  const coin = coins.create(x, targetY, 'silver_coin');
+  coin.play('silver_coin');
+  coin.body.setSize(28, 28).setOffset(-6, -6);
+  coin.groundY = targetY + 8;
+  coin.silverValue = silverValue;
+  coin.magnetized = false;
+  coin.isDropping = true;
+
+  scene.tweens.add({
+    targets: coin,
+    y: { from: targetY - 14, to: targetY },
+    scale: { from: 1.22, to: 1 },
+    duration: 210,
+    ease: 'Quad.easeOut',
+    onComplete: () => {
+      if (coin && coin.active) coin.isDropping = false;
+    }
+  });
+}
+
+function collectCoin(scene, coin) {
+  if (!coin || !coin.active) return;
+  const cx = coin.x, cy = coin.y;
+  const val = coin.silverValue || 1;
+  runSilver += val;
+  if (hudSilverText && hudSilverText.active) {
+    hudSilverText.setText(`${runSilver}`);
+  }
+  sound.playCoin();
+  hitFx.explode(6, cx, cy);
+  floatText(scene, cx, cy - 16, `+${val} PRATA`, '#e0f7fa');
+  removeEntity(coin);
+}
+
+
+// <<< END: src/combat/lootManager.js
+
+// >>> START: src/world/director.js
+// =============================================================================
+// DIRETOR DO MUNDO: ONDAS DE SPAWN, VILA INICIAL E ELEMENTOS AMBIENTAIS
 // =============================================================================
 // SPAWNS & BOSS FIGHT (60 SEGUNDOS)
 // =============================================================================
@@ -4116,6 +4484,46 @@ function spawnDirectorWave(scene) {
   }
 }
 
+
+function spawnTree(x = 880) {
+  for (let i = 0; i < 6; i++) {
+    const y = Phaser.Math.Between(150, 510);
+    const onRoad = y > 265 && y < 395;
+    const crowded = obstacles.getChildren().some(o => Math.abs(o.x - x) < 110 && Math.abs(o.y - y) < 90);
+    if (onRoad || crowded) continue;
+    const tree = obstacles.create(x, y, 'tree');
+    tree.setImmovable(true);
+    tree.body.pushable = false;
+    tree.lockedY = y;
+    tree.obstacleType = 'tree';
+    tree.body.setSize(12, 14).setOffset(18, 46);
+    return;
+  }
+}
+
+function spawnItem(scene) {
+  const pool = getUnlockedWeaponPool();
+  const type = Phaser.Utils.Array.GetRandom(pool);
+  let y = Phaser.Math.Between(140, 510);
+  for (let i = 0; i < 6; i++) {
+    const candidate = Phaser.Math.Between(140, 510);
+    const nearObstacle = obstacles.getChildren().some(o => Math.abs(o.x - 860) < 90 && Math.abs(o.y - candidate) < 42);
+    if (!nearObstacle) { y = candidate; break; }
+  }
+  const item = items.create(860, y, 'item_' + type);
+  item.lootType = type;
+  item.groundY = y + 18;
+  scene.tweens.add({ targets: item, y: y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  scene.tweens.add({ targets: item, scale: 1.12, duration: 400, yoyo: true, repeat: -1 });
+}
+
+
+// <<< END: src/world/director.js
+
+// >>> START: src/world/enemies.js
+// =============================================================================
+// INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
+// =============================================================================
 function spawnEnemy(scene, forcedType, customY) {
   const roll = Math.random();
   let type = forcedType;
@@ -4182,6 +4590,75 @@ function spawnEnemy(scene, forcedType, customY) {
 
 // =============================================================================
 // PRIMEIRA BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (AOS 120 SEGUNDOS)
+// =============================================================================
+
+function elfShoot(scene, elf) {
+  if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
+  if (elf.x > 790 || elf.x < player.x + 25) return;
+
+  elf.setTint(0xa7ffeb);
+  if (elf.chargeRing && elf.chargeRing.active) elf.chargeRing.destroy();
+  const chargeRing = scene.add.circle(elf.x - 10, elf.y, 8, 0x26a69a, 0.22)
+    .setStrokeStyle(1.5, 0x69f0ae, 0.75).setDepth(elf.depth + 2);
+  elf.chargeRing = chargeRing;
+
+  scene.tweens.add({
+    targets: chargeRing,
+    scale: { from: 1.2, to: 0.3 },
+    alpha: { from: 0.8, to: 0 },
+    duration: 320,
+    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
+  });
+
+  scene.time.delayedCall(320, () => {
+    if (!elf.active || !player || !player.active || !player.body || gameState !== 'PLAYING') return;
+    elf.clearTint();
+    sound.playElfShot();
+    const arrow = enemyArrows.create(elf.x - 14, elf.y, 'arrow_elf');
+    arrow.body.setSize(8, 8);
+    arrow.rotation = scene.physics.moveToObject(arrow, player, 360);
+  });
+}
+
+function mageShoot(scene, mage) {
+  if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
+  if (mage.x > 790 || mage.x < player.x + 20) return;
+
+  mage.setTint(0x7fe7ff);
+  if (mage.chargeRing && mage.chargeRing.active) mage.chargeRing.destroy();
+  const chargeRing = scene.add.circle(mage.x - 10, mage.y - 4, 15, 0x7fe7ff, 0.32)
+    .setStrokeStyle(2, 0xc36bff).setDepth(mage.depth + 2);
+  mage.chargeRing = chargeRing;
+
+  scene.tweens.add({
+    targets: chargeRing,
+    scale: { from: 1.4, to: 0.25 },
+    alpha: { from: 0.95, to: 0 },
+    duration: 380,
+    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
+  });
+
+  scene.time.delayedCall(380, () => {
+    if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
+    mage.clearTint();
+    sound.playElfShot();
+    const baseAngle = Phaser.Math.Angle.Between(mage.x - 12, mage.y, player.x, player.y);
+    [-0.30, 0, 0.30].forEach(spread => {
+      const orb = enemyArrows.create(mage.x - 12, mage.y, 'orb_enemy');
+      orb.body.setSize(10, 10);
+      const ang = baseAngle + spread;
+      const spd = 255;
+      orb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+    });
+  });
+}
+
+
+// <<< END: src/world/enemies.js
+
+// >>> START: src/world/boss.js
+// =============================================================================
+// BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (ATAQUES, TELEGRAFIAS E CONTROLE)
 // =============================================================================
 function registerBossTelegraph(boss, obj) {
   if (!boss || !obj) return obj;
@@ -4526,1037 +5003,12 @@ function defeatBoss(scene, boss) {
   spawnItem(scene);
 }
 
-function elfShoot(scene, elf) {
-  if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
-  if (elf.x > 790 || elf.x < player.x + 25) return;
 
-  elf.setTint(0xa7ffeb);
-  if (elf.chargeRing && elf.chargeRing.active) elf.chargeRing.destroy();
-  const chargeRing = scene.add.circle(elf.x - 10, elf.y, 8, 0x26a69a, 0.22)
-    .setStrokeStyle(1.5, 0x69f0ae, 0.75).setDepth(elf.depth + 2);
-  elf.chargeRing = chargeRing;
+// <<< END: src/world/boss.js
 
-  scene.tweens.add({
-    targets: chargeRing,
-    scale: { from: 1.2, to: 0.3 },
-    alpha: { from: 0.8, to: 0 },
-    duration: 320,
-    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
-  });
-
-  scene.time.delayedCall(320, () => {
-    if (!elf.active || !player || !player.active || !player.body || gameState !== 'PLAYING') return;
-    elf.clearTint();
-    sound.playElfShot();
-    const arrow = enemyArrows.create(elf.x - 14, elf.y, 'arrow_elf');
-    arrow.body.setSize(8, 8);
-    arrow.rotation = scene.physics.moveToObject(arrow, player, 360);
-  });
-}
-
-function mageShoot(scene, mage) {
-  if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
-  if (mage.x > 790 || mage.x < player.x + 20) return;
-
-  mage.setTint(0x7fe7ff);
-  if (mage.chargeRing && mage.chargeRing.active) mage.chargeRing.destroy();
-  const chargeRing = scene.add.circle(mage.x - 10, mage.y - 4, 15, 0x7fe7ff, 0.32)
-    .setStrokeStyle(2, 0xc36bff).setDepth(mage.depth + 2);
-  mage.chargeRing = chargeRing;
-
-  scene.tweens.add({
-    targets: chargeRing,
-    scale: { from: 1.4, to: 0.25 },
-    alpha: { from: 0.95, to: 0 },
-    duration: 380,
-    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
-  });
-
-  scene.time.delayedCall(380, () => {
-    if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
-    mage.clearTint();
-    sound.playElfShot();
-    const baseAngle = Phaser.Math.Angle.Between(mage.x - 12, mage.y, player.x, player.y);
-    [-0.30, 0, 0.30].forEach(spread => {
-      const orb = enemyArrows.create(mage.x - 12, mage.y, 'orb_enemy');
-      orb.body.setSize(10, 10);
-      const ang = baseAngle + spread;
-      const spd = 255;
-      orb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-    });
-  });
-}
-
-function spawnTree(x = 880) {
-  for (let i = 0; i < 6; i++) {
-    const y = Phaser.Math.Between(150, 510);
-    const onRoad = y > 265 && y < 395;
-    const crowded = obstacles.getChildren().some(o => Math.abs(o.x - x) < 110 && Math.abs(o.y - y) < 90);
-    if (onRoad || crowded) continue;
-    const tree = obstacles.create(x, y, 'tree');
-    tree.setImmovable(true);
-    tree.body.pushable = false;
-    tree.lockedY = y;
-    tree.obstacleType = 'tree';
-    tree.body.setSize(12, 14).setOffset(18, 46);
-    return;
-  }
-}
-
-function spawnItem(scene) {
-  const pool = getUnlockedWeaponPool();
-  const type = Phaser.Utils.Array.GetRandom(pool);
-  let y = Phaser.Math.Between(140, 510);
-  for (let i = 0; i < 6; i++) {
-    const candidate = Phaser.Math.Between(140, 510);
-    const nearObstacle = obstacles.getChildren().some(o => Math.abs(o.x - 860) < 90 && Math.abs(o.y - candidate) < 42);
-    if (!nearObstacle) { y = candidate; break; }
-  }
-  const item = items.create(860, y, 'item_' + type);
-  item.lootType = type;
-  item.groundY = y + 18;
-  scene.tweens.add({ targets: item, y: y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-  scene.tweens.add({ targets: item, scale: 1.12, duration: 400, yoyo: true, repeat: -1 });
-}
-
+// >>> START: src/ui/hud.js
 // =============================================================================
-// COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
-// =============================================================================
-function removeEntity(obj) {
-  if (!obj || !obj.active) return;
-  obj.scene.tweens.killTweensOf(obj);
-  if (obj.shootTimer) obj.shootTimer.remove();
-  if (obj.attackTimer) obj.attackTimer.remove();
-  if (obj.activeTelegraphs) clearBossTelegraphs(obj);
-  if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
-  if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
-  if (obj.speechBubble && obj.speechBubble.active) obj.speechBubble.destroy();
-  obj.destroy();
-}
-
-function damageEnemy(scene, enemy, dmg = 1) {
-  if (!enemy || !enemy.active) return;
-  enemy.hp = (enemy.hp ?? 1) - dmg;
-
-  // Faíscas metálicas pontuais para alvos blindados (guerreiros e boss) ou hit normal
-  if (enemy.isBoss || enemy.enemyType === 'warrior') {
-    sparksFx.explode(8, enemy.x - 12, enemy.y);
-  } else if (enemy.enemyType === 'mini_golem') {
-    debrisFx.explode(6, enemy.x, enemy.y);
-  } else {
-    hitFx.explode(7, enemy.x, enemy.y);
-  }
-
-  // Flash branco estrito de impacto (65ms) sem ofuscar a visão
-  enemy.setTint(0xffffff);
-  scene.time.delayedCall(65, () => {
-    if (!enemy || !enemy.active) return;
-    if (enemy.hp > 0) {
-      enemy.setTint(0xffca28);
-      scene.time.delayedCall(65, () => {
-        if (enemy && enemy.active) enemy.clearTint();
-      });
-    } else {
-      enemy.clearTint();
-    }
-  });
-
-  if (enemy.isBoss) {
-    updateBossHUD();
-    if (enemy.hp <= 0) {
-      defeatBoss(scene, enemy);
-    } else {
-      sound.playShieldBlock();
-    }
-    return;
-  }
-
-  if (enemy.hp <= 0) {
-    killEnemy(enemy);
-  } else {
-    sound.playShieldBlock();
-    enemy.x = Math.min(785, enemy.x + 22);
-  }
-}
-
-// =============================================================================
-// OUVINTES DE EVENTOS DESACOPLADOS (Observer / Listeners)
-// Isola efeitos de áudio, partículas visuais, conquistas e drops da lógica central
-// =============================================================================
-function setupDecoupledEventListeners(scene) {
-  events.clear();
-
-  // 1. ÁUDIO REATIVO
-  events.on(GameEvents.ENEMY_KILLED, () => sound.playEnemyHit());
-  events.on(GameEvents.SHIELD_REFLECT, () => sound.playShieldBlock());
-  events.on(GameEvents.SHIELD_SHOCKWAVE, () => sound.playShieldBlock());
-  events.on(GameEvents.COIN_COLLECTED, () => sound.playCoin());
-  events.on(GameEvents.XP_GAINED, () => sound.playXpOrb());
-  events.on(GameEvents.LEVEL_UP, () => sound.playLevelUp());
-  events.on(GameEvents.ITEM_COLLECTED, () => sound.playItemCollect());
-  events.on(GameEvents.PLAYER_HIT, () => sound.playPlayerHurt());
-  events.on(GameEvents.PLAYER_DIED, () => sound.playGameOver());
-
-  // 2. EFEITOS VISUAIS (VFX)
-  events.on(GameEvents.ENEMY_KILLED, ({ x, y, enemyType }) => {
-    hitFx.explode(10, x, y);
-    if (enemyType === 'warrior') {
-      sparksFx.explode(8, x, y);
-      debrisFx.explode(5, x, y);
-    } else if (enemyType === 'mini_golem') {
-      debrisFx.explode(8, x, y);
-      sparksFx.explode(4, x, y);
-    } else if (enemyType === 'dark_mage') {
-      holyFx.explode(8, x, y);
-    }
-  });
-
-  // 3. CONQUISTAS DESACOPLADAS
-  events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType }) => {
-    if (enemyType === 'goblin') recordAchievementProgress(scene, 'goblins', 1);
-    else if (enemyType === 'warrior') recordAchievementProgress(scene, 'warriors', 1);
-    else if (enemyType === 'dark_mage') recordAchievementProgress(scene, 'mages', 1);
-  });
-  events.on(GameEvents.SHIELD_REFLECT, ({ scene }) => {
-    recordAchievementProgress(scene, 'reflected', 1);
-  });
-
-  // 4. SISTEMA DE LOOT & RECOMPENSAS
-  events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
-    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, gargoyle: 0.45, goblin: 0.38, mini_golem: 0.32 };
-    const chance = dropRates[enemyType] ?? 0.40;
-
-    spawnXpOrb(scene, x - 6, y, xpValue);
-
-    if (Math.random() < chance) {
-      const count = (enemyType === 'dark_mage' || enemyType === 'warrior') && Math.random() < 0.42 ? 2 : 1;
-      for (let i = 0; i < count; i++) {
-        spawnCoinDrop(scene, x + 8 + i * 10, y);
-      }
-    }
-  });
-}
-
-function killEnemy(enemy) {
-  if (!enemy || !enemy.active) return;
-  const scene = enemy.scene;
-  const ex = enemy.x, ey = enemy.y;
-  const eType = enemy.enemyType;
-  const xpValue = ENEMIES[eType]?.xp ?? 2;
-
-  removeEntity(enemy);
-
-  // Emite evento para que áudio, partículas, conquistas e drops respondam de forma modular
-  events.emit(GameEvents.ENEMY_KILLED, {
-    scene,
-    enemy,
-    enemyType: eType,
-    x: ex,
-    y: ey,
-    xpValue
-  });
-}
-
-// Orbe de XP: gema esmeralda/ciano que salta no mapa e é atraída pelo herói
-function spawnXpOrb(scene, x, y, xpValue = 2) {
-  if (!scene || !xpOrbs) return;
-  const targetY = Phaser.Math.Clamp(y + Phaser.Math.Between(-12, 12), 130, 520);
-  const orb = xpOrbs.create(x, targetY, 'xp_orb');
-  orb.play('xp_orb');
-  orb.setScale(xpValue >= 4 ? 1.25 : 1.0);
-  orb.body.setSize(28, 28).setOffset(-7, -7);
-  orb.groundY = targetY + 7;
-  orb.xpValue = xpValue;
-  orb.magnetized = false;
-  orb.isDropping = true;
-
-  scene.tweens.add({
-    targets: orb,
-    y: { from: targetY - 12, to: targetY },
-    duration: 190,
-    ease: 'Quad.easeOut',
-    onComplete: () => {
-      if (orb && orb.active) orb.isDropping = false;
-    }
-  });
-}
-
-function collectXpOrb(scene, orb) {
-  if (!orb || !orb.active) return;
-  const ox = orb.x, oy = orb.y;
-  const baseXp = orb.xpValue || 2;
-  const gained = Math.max(1, Math.round(baseXp * getWisdomMultiplier()));
-  sound.playXpOrb();
-  hitFx.explode(4, ox, oy);
-  removeEntity(orb);
-  gainXp(scene, gained);
-}
-
-function gainXp(scene, amount) {
-  runXp += amount;
-  while (runXp >= xpToNextLevel) {
-    runXp -= xpToNextLevel; // mantém todo o XP excedente!
-    runLevel++;
-    xpToNextLevel = getXpRequiredForLevel(runLevel);
-    pendingLevelUps++;
-  }
-  updateXpHUD();
-
-  if (pendingLevelUps > 0 && gameState === 'PLAYING') {
-    openLevelUpDraft(scene);
-  }
-}
-
-// Moeda de Prata: salta do monstro derrotado com física limpa e sem conflito de tween!
-function spawnCoinDrop(scene, x, y, silverValue = 1) {
-  if (!scene || !coins) return;
-  const targetY = Phaser.Math.Clamp(y + Phaser.Math.Between(-10, 14), 130, 520);
-  const coin = coins.create(x, targetY, 'silver_coin');
-  coin.play('silver_coin');
-  coin.body.setSize(28, 28).setOffset(-6, -6);
-  coin.groundY = targetY + 8;
-  coin.silverValue = silverValue;
-  coin.magnetized = false;
-  coin.isDropping = true;
-
-  scene.tweens.add({
-    targets: coin,
-    y: { from: targetY - 14, to: targetY },
-    scale: { from: 1.22, to: 1 },
-    duration: 210,
-    ease: 'Quad.easeOut',
-    onComplete: () => {
-      if (coin && coin.active) coin.isDropping = false;
-    }
-  });
-}
-
-function collectCoin(scene, coin) {
-  if (!coin || !coin.active) return;
-  const cx = coin.x, cy = coin.y;
-  const val = coin.silverValue || 1;
-  runSilver += val;
-  if (hudSilverText && hudSilverText.active) {
-    hudSilverText.setText(`${runSilver}`);
-  }
-  sound.playCoin();
-  hitFx.explode(6, cx, cy);
-  floatText(scene, cx, cy - 16, `+${val} PRATA`, '#e0f7fa');
-  removeEntity(coin);
-}
-
-// =============================================================================
-// SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
-// Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
-// permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
-// =============================================================================
-const WeaponStrategies = {
-  bow: {
-    id: 'bow',
-    name: BUFF_NAMES.bow,
-    baseDuration: BUFF_TIME.bow,
-    attackRates: [520, 420, 350, 280, 220],
-    getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
-    },
-    getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 520;
-    },
-    attack({ player, arrows, nextProjId }) {
-      sound.playBow();
-      const lvl = getWeaponLevel('bow');
-      const spreads = {
-        1: [0],
-        2: [0],
-        3: [-0.09, 0.09],
-        4: [-0.18, 0, 0.18],
-        5: [-0.28, -0.14, 0, 0.14, 0.28]
-      }[lvl] || [0];
-
-      const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
-      const dmg = lvl >= 4 ? 2 : 1;
-      const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
-      const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
-
-      spreads.forEach(ang => {
-        const arrow = arrows.create(player.x + 20, player.y + 2, arrowKey);
-        arrow.body.setSize(18, 6);
-        arrow.dmg = dmg;
-        arrow.pierceCount = pierce;
-        arrow.projId = nextProjId();
-        arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        arrow.rotation = ang;
-      });
-    }
-  },
-  sword: {
-    id: 'sword',
-    name: BUFF_NAMES.sword,
-    baseDuration: BUFF_TIME.sword,
-    attackRates: [480, 400, 330, 265, 210],
-    getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
-    },
-    getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 480;
-    },
-    attack({ scene, player, arrows, slashes, fx, nextProjId }) {
-      slashes.getChildren().slice().forEach(old => old.destroy());
-      sound.playSword();
-      const lvl = getWeaponLevel('sword');
-      const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
-      const damages = [1, 1, 2, 3, 4];
-      const scale = scales[lvl - 1] || 0.72;
-      const offsetX = Math.round(24 + (lvl - 1) * 7);
-
-      const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
-      slash.setScale(scale);
-      slash.offsetX = offsetX;
-      slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
-      slash.slashId = nextProjId();
-      slash.dmg = damages[lvl - 1] || 1;
-      slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
-        .setOrigin(0.5, 0.78)
-        .setScale(0.82 + (lvl - 1) * 0.18);
-
-      fx.sparks.explode(5, player.x + offsetX, player.y);
-
-      slash.on('destroy', () => {
-        if (slash.blade && slash.blade.active) slash.blade.destroy();
-      });
-
-      scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
-      scene.tweens.add({
-        targets: slash, alpha: { from: 1, to: 0 }, duration: 190,
-        onComplete: () => slash.destroy()
-      });
-
-      // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
-      if (lvl >= 5) {
-        const waveProj = arrows.create(player.x + 34, player.y, 'arrow_player');
-        waveProj.setTint(0x7fe7ff);
-        waveProj.setScale(1.45);
-        waveProj.body.setSize(22, 14);
-        waveProj.dmg = 3;
-        waveProj.pierceCount = 4;
-        waveProj.projId = nextProjId();
-        waveProj.setVelocityX(720);
-        fx.holy.explode(8, player.x + 34, player.y);
-      }
-    }
-  },
-  shield: {
-    id: 'shield',
-    name: BUFF_NAMES.shield,
-    baseDuration: BUFF_TIME.shield,
-    attackRates: [],
-    getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 1.65 + wisdomDur + bonusDur;
-    },
-    getAttackRate() { return 0; },
-    attack() { /* O escudo é defensivo/reativo a impactos */ },
-    onEquip({ shieldSprite, shieldAura, player, fx }) {
-      shieldSprite.setVisible(true);
-      if (shieldAura) {
-        shieldAura.setVisible(true);
-        if (player) {
-          shieldAura.setPosition(Math.round(player.x), Math.round(player.y));
-          fx.holy.explode(10, player.x, player.y);
-        }
-      }
-    },
-    onUnequip({ shieldSprite, shieldAura }) {
-      shieldSprite.setVisible(false);
-      if (shieldAura) shieldAura.setVisible(false);
-    }
-  },
-  axe: {
-    id: 'axe',
-    name: BUFF_NAMES.axe,
-    baseDuration: BUFF_TIME.axe,
-    attackRates: [600, 500, 420, 340, 270],
-    getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
-    },
-    getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 600;
-    },
-    attack({ player, arrows, nextProjId }) {
-      sound.playSword();
-      const lvl = getWeaponLevel('axe');
-      const angles = {
-        1: [0],
-        2: [0],
-        3: [-0.16, 0.16],
-        4: [-0.24, 0, 0.24],
-        5: [-0.32, -0.11, 0.11, 0.32]
-      }[lvl] || [0];
-
-      const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
-      const damages = [1, 1, 2, 2, 3];
-
-      angles.forEach(ang => {
-        const axe = arrows.create(player.x + 18, player.y, 'axe_proj');
-        axe.setScale(scales[lvl - 1] || 0.82);
-        axe.body.setSize(20, 20);
-        axe.isBoomerang = lvl >= 2;
-        axe.pierceCount = lvl === 1 ? 2 : 99;
-        axe.returning = false;
-        axe.dmg = damages[lvl - 1] || 1;
-        axe.projId = nextProjId();
-
-        const spd = 460 + (lvl - 1) * 40;
-        axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        axe.body.setAccelerationX(-680);
-      });
-    }
-  },
-  firestaff: {
-    id: 'firestaff',
-    name: BUFF_NAMES.firestaff,
-    baseDuration: BUFF_TIME.firestaff,
-    attackRates: [650, 540, 450, 360, 285],
-    getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
-    },
-    getAttackRate(lvl) {
-      return this.attackRates[lvl - 1] || 650;
-    },
-    attack({ player, arrows, nextProjId }) {
-      sound.playBow();
-      const lvl = getWeaponLevel('firestaff');
-      const angles = {
-        1: [0],
-        2: [0],
-        3: [-0.13, 0.13],
-        4: [-0.15, 0.15],
-        5: [-0.24, 0, 0.24]
-      }[lvl] || [0];
-
-      const radii = [42, 58, 74, 92, 115];
-      const damages = [1, 1, 2, 3, 4];
-      const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
-
-      angles.forEach(ang => {
-        const fb = arrows.create(player.x + 22, player.y, 'fireball_proj');
-        fb.setScale(scales[lvl - 1] || 0.85);
-        fb.body.setSize(18, 12);
-        fb.isFireball = true;
-        fb.blastRadius = radii[lvl - 1] || 42;
-        fb.dmg = damages[lvl - 1] || 1;
-        fb.projId = nextProjId();
-
-        const spd = 440 + (lvl - 1) * 35;
-        fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        fb.rotation = ang;
-      });
-    }
-  }
-};
-
-const WeaponSystem = {
-  strategies: WeaponStrategies,
-  get(type) {
-    return this.strategies[type];
-  },
-  getDuration(type) {
-    const s = this.get(type);
-    if (!s) return BUFF_TIME[type] || 6.0;
-    return s.getDuration(getWeaponLevel(type), runBonusDuration, getWisdomBonusDuration());
-  },
-  getAttackRate(type) {
-    const s = this.get(type);
-    if (!s) return ATTACK_RATE[type] || 0;
-    return s.getAttackRate(getWeaponLevel(type));
-  },
-  equip(scene, type, announce = true) {
-    const s = this.get(type);
-    const sameType = buff.type === type;
-    const dur = this.getDuration(type);
-    const lvl = getWeaponLevel(type);
-
-    buff = {
-      type,
-      timeLeft: dur,
-      maxTime: dur,
-      nextAttack: sameType ? buff.nextAttack : 0
-    };
-
-    if (s && s.onEquip) {
-      s.onEquip({ shieldSprite, shieldAura, player, fx: { holy: holyFx } });
-    } else {
-      shieldSprite.setVisible(false);
-      if (shieldAura) shieldAura.setVisible(false);
-    }
-
-    if (announce && player) {
-      floatText(scene, player.x, player.y - 24, `${BUFF_NAMES[type]} NV.${lvl}!`, '#ffca28');
-    }
-    events.emit(GameEvents.BUFF_EQUIPPED, { type, level: lvl, duration: dur });
-    updateItemHUD();
-  },
-  end() {
-    const prevType = buff.type;
-    const s = this.get(prevType);
-    if (s && s.onUnequip) {
-      s.onUnequip({ shieldSprite, shieldAura });
-    } else {
-      shieldSprite.setVisible(false);
-      if (shieldAura) shieldAura.setVisible(false);
-    }
-    buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
-    if (playerBuffBar) playerBuffBar.clear();
-    events.emit(GameEvents.BUFF_ENDED, { type: prevType });
-  },
-  update(scene, time, dt) {
-    if (!buff.type) return;
-    buff.timeLeft -= dt;
-    if (buff.timeLeft <= 0) {
-      this.end();
-      return;
-    }
-    const s = this.get(buff.type);
-    if (!s) return;
-    const rate = s.getAttackRate(getWeaponLevel(buff.type));
-    if (rate && time > buff.nextAttack) {
-      s.attack({
-        scene,
-        player,
-        arrows: playerArrows,
-        slashes,
-        fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
-        getLevel: getWeaponLevel,
-        nextProjId: () => ++slashCounter
-      });
-      buff.nextAttack = time + rate;
-    }
-  }
-};
-
-function getWeaponDuration(type) {
-  return WeaponSystem.getDuration(type);
-}
-function _original_unused_getWeaponDuration(type) {
-  const base = BUFF_TIME[type] || 6.0;
-  const wisdomAdd = getWisdomBonusDuration();
-  const lvl = getWeaponLevel(type);
-  if (type === 'shield') {
-    return base + (lvl - 1) * 1.65 + wisdomAdd + runBonusDuration;
-  }
-  return base + (lvl - 1) * 0.75 + wisdomAdd + runBonusDuration;
-}
-
-// Cadência rebalanceada: Nv.1 é lento/básico, acelerando drasticamente até o Nv.5!
-function getWeaponAttackRate(type) {
-  const lvl = getWeaponLevel(type);
-  if (type === 'bow') return [520, 420, 350, 280, 220][lvl - 1] || 520;
-  if (type === 'sword') return [480, 400, 330, 265, 210][lvl - 1] || 480;
-  if (type === 'axe') return [600, 500, 420, 340, 270][lvl - 1] || 600;
-  if (type === 'firestaff') return [650, 540, 450, 360, 285][lvl - 1] || 650;
-  return ATTACK_RATE[type] || 0;
-}
-
-function equipWeaponBuff(scene, type, announce = true) {
-  WeaponSystem.equip(scene, type, announce);
-}
-function _legacy_equipWeaponBuff(scene, type, announce = true) {
-  const sameType = buff.type === type;
-  const dur = getWeaponDuration(type);
-  const lvl = getWeaponLevel(type);
-  buff = {
-    type,
-    timeLeft: dur,
-    maxTime: dur,
-    nextAttack: sameType ? buff.nextAttack : 0
-  };
-  shieldSprite.setVisible(buff.type === 'shield');
-  if (shieldAura) {
-    shieldAura.setVisible(buff.type === 'shield');
-    if (buff.type === 'shield' && player) {
-      shieldAura.setPosition(Math.round(player.x), Math.round(player.y));
-      holyFx.explode(10, player.x, player.y);
-    }
-  }
-  if (announce && player) {
-    floatText(scene, player.x, player.y - 24, `${BUFF_NAMES[type]} NV.${lvl}!`, '#ffca28');
-  }
-  updateItemHUD();
-}
-
-function collectItem(scene, item) {
-  sound.playItemCollect();
-  equipWeaponBuff(scene, item.lootType, true);
-  removeEntity(item);
-}
-
-function endBuff() {
-  WeaponSystem.end();
-}
-function _legacy_endBuff() {
-  buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
-  shieldSprite.setVisible(false);
-  if (shieldAura) shieldAura.setVisible(false);
-  if (playerBuffBar) playerBuffBar.clear();
-}
-
-// ARMA 1: Arco Real (Nv.1 fraco com 1 flecha lenta -> Nv.5 Tempestade Imperial com 5 flechas perfurantes!)
-function shootArrow() {
-  sound.playBow();
-  const lvl = getWeaponLevel('bow');
-  const spreads = {
-    1: [0],
-    2: [0],
-    3: [-0.09, 0.09],
-    4: [-0.18, 0, 0.18],
-    5: [-0.28, -0.14, 0, 0.14, 0.28]
-  }[lvl] || [0];
-
-  const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
-  const dmg = lvl >= 4 ? 2 : 1;
-  const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
-  const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
-
-  spreads.forEach(ang => {
-    const arrow = playerArrows.create(player.x + 20, player.y + 2, arrowKey);
-    arrow.body.setSize(18, 6);
-    arrow.dmg = dmg;
-    arrow.pierceCount = pierce;
-    arrow.projId = ++slashCounter;
-    arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-    arrow.rotation = ang;
-  });
-}
-
-// ARMA 2: Espada Vorpal (Nv.1 corte curto e 1 dano -> Nv.5 Colosso Vorpal 4 dano + Onda Perfurante!)
-function swingSword(scene) {
-  slashes.getChildren().slice().forEach(old => old.destroy());
-  sound.playSword();
-  const lvl = getWeaponLevel('sword');
-  const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
-  const damages = [1, 1, 2, 3, 4];
-  const scale = scales[lvl - 1] || 0.72;
-  const offsetX = Math.round(24 + (lvl - 1) * 7);
-
-  const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
-  slash.setScale(scale);
-  slash.offsetX = offsetX;
-  slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
-  slash.slashId = ++slashCounter;
-  slash.dmg = damages[lvl - 1] || 1;
-  slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
-    .setOrigin(0.5, 0.78)
-    .setScale(0.82 + (lvl - 1) * 0.18);
-
-  sparksFx.explode(5, player.x + offsetX, player.y);
-
-  slash.on('destroy', () => {
-    if (slash.blade && slash.blade.active) slash.blade.destroy();
-  });
-
-  scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
-  scene.tweens.add({
-    targets: slash, alpha: { from: 1, to: 0 }, duration: 190,
-    onComplete: () => slash.destroy()
-  });
-
-  // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
-  if (lvl >= 5) {
-    const waveProj = playerArrows.create(player.x + 34, player.y, 'arrow_player');
-    waveProj.setTint(0x7fe7ff);
-    waveProj.setScale(1.45);
-    waveProj.body.setSize(22, 14);
-    waveProj.dmg = 3;
-    waveProj.pierceCount = 4;
-    waveProj.projId = ++slashCounter;
-    waveProj.setVelocityX(720);
-    holyFx.explode(8, player.x + 34, player.y);
-  }
-}
-
-// ARMA 4 (Desbloqueável no Ferreiro): Machado Bumerangue (Nv.1 1 machado lento -> Nv.5 4 machados gigantes!)
-function throwAxe(scene) {
-  sound.playSword();
-  const lvl = getWeaponLevel('axe');
-  const angles = {
-    1: [0],
-    2: [0],
-    3: [-0.16, 0.16],
-    4: [-0.24, 0, 0.24],
-    5: [-0.32, -0.11, 0.11, 0.32]
-  }[lvl] || [0];
-
-  const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
-  const damages = [1, 1, 2, 2, 3];
-
-  angles.forEach(ang => {
-    const axe = playerArrows.create(player.x + 18, player.y, 'axe_proj');
-    axe.setScale(scales[lvl - 1] || 0.82);
-    axe.body.setSize(20, 20);
-    axe.isBoomerang = lvl >= 2; // Nv.1 perfura até 2; Nv.2+ perfura ilimitado na ida e volta!
-    axe.pierceCount = lvl === 1 ? 2 : 99;
-    axe.returning = false;
-    axe.dmg = damages[lvl - 1] || 1;
-    axe.projId = ++slashCounter;
-
-    const spd = 460 + (lvl - 1) * 40;
-    axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-    axe.body.setAccelerationX(-680);
-  });
-}
-
-// ARMA 5 (Desbloqueável no Ferreiro): Cajado de Fogo (Nv.1 explosão curta 1 dano -> Nv.5 Cataclismo Solar!)
-function shootFireball(scene) {
-  sound.playBow();
-  const lvl = getWeaponLevel('firestaff');
-  const angles = {
-    1: [0],
-    2: [0],
-    3: [-0.13, 0.13],
-    4: [-0.15, 0.15],
-    5: [-0.24, 0, 0.24]
-  }[lvl] || [0];
-
-  const radii = [42, 58, 74, 92, 115];
-  const damages = [1, 1, 2, 3, 4];
-  const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
-
-  angles.forEach(ang => {
-    const fb = playerArrows.create(player.x + 22, player.y, 'fireball_proj');
-    fb.setScale(scales[lvl - 1] || 0.85);
-    fb.body.setSize(18, 12);
-    fb.isFireball = true;
-    fb.blastRadius = radii[lvl - 1] || 42;
-    fb.dmg = damages[lvl - 1] || 1;
-    fb.projId = ++slashCounter;
-
-    const spd = 440 + (lvl - 1) * 35;
-    fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-    fb.rotation = ang;
-  });
-}
-
-function explodeFireball(scene, x, y, radius, dmg) {
-  sound.playEarthSmash();
-  emberFx.explode(8, x, y);
-  hitFx.explode(5, x, y);
-
-  const blastOuter = scene.add.circle(x, y, 10, 0xff7043, 0.40)
-    .setStrokeStyle(2, 0xffeb3b, 0.85).setDepth(1550);
-  const blastInner = scene.add.circle(x, y, 6, 0xffffff, 0.65)
-    .setStrokeStyle(1.5, 0xffca28, 0.9).setDepth(1551);
-
-  scene.tweens.add({
-    targets: blastOuter,
-    radius,
-    alpha: 0,
-    duration: 220,
-    ease: 'Cubic.easeOut',
-    onComplete: () => blastOuter.destroy()
-  });
-  scene.tweens.add({
-    targets: blastInner,
-    radius: Math.round(radius * 0.60),
-    alpha: 0,
-    duration: 160,
-    ease: 'Cubic.easeOut',
-    onComplete: () => blastInner.destroy()
-  });
-
-  enemies.getChildren().slice().forEach(e => {
-    if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
-      damageEnemy(scene, e, dmg);
-    }
-  });
-  enemyArrows.getChildren().slice().forEach(a => {
-    if (a.active && Phaser.Math.Distance.Between(x, y, a.x, a.y) <= radius * 0.9) {
-      a.destroy();
-    }
-  });
-}
-
-function playerHit(scene, hazard) {
-  if (gameState !== 'PLAYING' || !hazard.active) return;
-
-  if (buff.type === 'shield') {
-    const lvl = getWeaponLevel('shield');
-
-    // 1. ESCUDO SAGRADO REFLETE PROJÉTEIS MANTENDO A COR/ASPECTO NORMAL + CONTABILIZA CONQUISTA!
-    if (enemyArrows.contains(hazard)) {
-      const hx = hazard.x, hy = hazard.y;
-      hazard.destroy();
-
-      sound.playShieldBlock();
-      sparksFx.explode(10, hx, hy);
-      holyFx.explode(8, hx, hy);
-      floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
-      recordAchievementProgress(scene, 'reflected', 1);
-
-      const spreads = {
-        1: [0],
-        2: [0],
-        3: [-0.12, 0.12],
-        4: [-0.20, 0, 0.20],
-        5: [-0.28, -0.14, 0, 0.14, 0.28]
-      }[lvl] || [0];
-
-      spreads.forEach(ang => {
-        const reflArrow = playerArrows.create(player.x + 20, player.y, 'arrow_player');
-        reflArrow.body.setSize(18, 8);
-        reflArrow.dmg = lvl >= 4 ? 2 : 1;
-        reflArrow.pierceCount = lvl >= 4 ? 2 : 1;
-        reflArrow.projId = ++slashCounter;
-        const spd = lvl === 1 ? 620 : 760;
-        reflArrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
-        reflArrow.rotation = ang;
-      });
-      return;
-    }
-
-    // 2. Impacto corpo a corpo ou golpe do Boss quebra o escudo em uma Onda de Choque Sagrada!
-    endBuff();
-    sound.playShieldBlock();
-    scene.cameras.main.flash(160, 120, 220, 255);
-    scene.cameras.main.shake(180, 0.008);
-    floatText(scene, player.x, player.y - 32, 'ONDA DE CHOQUE!', '#7fe7ff');
-
-    const shockRadius = 95 + (lvl - 1) * 30;
-    const bossDmg = [2, 3, 5, 7, 10][lvl - 1] || 2;
-
-    holyFx.explode(28, player.x, player.y);
-    sparksFx.explode(16, player.x, player.y);
-
-    const wave = scene.add.circle(player.x, player.y, 16, 0x7fe7ff, 0.40)
-      .setStrokeStyle(3, 0xffffff).setDepth(1600);
-    const innerWave = scene.add.circle(player.x, player.y, 10, 0xffe082, 0.60)
-      .setStrokeStyle(2, 0xffffff).setDepth(1601);
-
-    scene.tweens.add({
-      targets: [wave, innerWave],
-      radius: shockRadius,
-      alpha: 0,
-      duration: 320,
-      ease: 'Cubic.easeOut',
-      onComplete: () => {
-        if (wave.active) wave.destroy();
-        if (innerWave.active) innerWave.destroy();
-      }
-    });
-
-    enemies.getChildren().slice().forEach(e => {
-      if (e.active && Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y) <= shockRadius + 10) {
-        if (e.isBoss) {
-          damageEnemy(scene, e, bossDmg);
-        } else {
-          killEnemy(e);
-        }
-      }
-    });
-    enemyArrows.getChildren().slice().forEach(a => {
-      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= shockRadius) {
-        a.destroy();
-      }
-    });
-    return;
-  }
-
-  if (playerInvulnerable) {
-    if (enemyArrows.contains(hazard)) hazard.destroy();
-    return;
-  }
-
-  playerHp = Math.max(0, playerHp - 1);
-  updateHeartsHUD();
-
-  if (playerHp > 0) {
-    playerInvulnerable = true;
-    if (enemyArrows.contains(hazard)) {
-      hazard.destroy();
-    } else if (hazard && hazard.active && !hazard.isBoss && !hazard.isBossAttack) {
-      killEnemy(hazard);
-    }
-
-    sound.playPlayerHurt();
-    sparksFx.explode(8, player.x, player.y);
-    hitFx.explode(14, player.x, player.y);
-    player.setTint(0xffffff);
-    scene.time.delayedCall(75, () => {
-      if (player && player.active) player.clearTint();
-    });
-    scene.cameras.main.flash(140, 255, 80, 80);
-    scene.cameras.main.shake(180, 0.009);
-    floatText(scene, player.x, player.y - 30, `-1 CORAÇÃO! (${playerHp}/${playerMaxHp})`, '#ff5252');
-
-    enemyArrows.getChildren().slice().forEach(a => {
-      if (a.active && Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) <= 95) {
-        a.destroy();
-      }
-    });
-
-    scene.tweens.add({
-      targets: player,
-      alpha: { from: 0.25, to: 1 },
-      duration: 110,
-      yoyo: true,
-      repeat: 5,
-      onComplete: () => {
-        if (player && player.active) player.setAlpha(1);
-        playerInvulnerable = false;
-      }
-    });
-    return;
-  }
-
-  gameOver(scene);
-}
-
-function gameOver(scene) {
-  if (gameState === 'GAMEOVER') return;
-  gameState = 'GAMEOVER';
-  playerInvulnerable = false;
-  pendingLevelUps = 0;
-
-  consolidateSilverToGold();
-
-  if (shieldSprite) shieldSprite.setVisible(false);
-  if (shieldAura) shieldAura.setVisible(false);
-  if (playerBuffBar) playerBuffBar.clear();
-  if (enemyHpBars) enemyHpBars.clear();
-  if (activeBoss) clearBossTelegraphs(activeBoss);
-  if (pauseModal) {
-    pauseModal.destroy();
-    pauseModal = null;
-  }
-  if (draftModal) {
-    draftModal.destroy();
-    draftModal = null;
-  }
-  sound.stopBGM();
-  sound.playGameOver();
-  if (hudContainer) hudContainer.setVisible(false);
-
-  scene.physics.pause();
-  scene.time.removeAllEvents();
-  scene.time.paused = false;
-  scene.time.timeScale = 1;
-
-  if (player) {
-    scene.tweens.killTweensOf(player);
-    player.setAlpha(1).setTint(0xff5555);
-    if (player.anims) player.anims.pause();
-  }
-  enemies.getChildren().forEach(s => {
-    scene.tweens.killTweensOf(s);
-    if (s.anims) s.anims.pause();
-  });
-  items.getChildren().forEach(i => scene.tweens.killTweensOf(i));
-  coins.getChildren().forEach(c => scene.tweens.killTweensOf(c));
-  if (xpOrbs) xpOrbs.getChildren().forEach(o => scene.tweens.killTweensOf(o));
-
-  hitFx.explode(20, player.x, player.y);
-  scene.cameras.main.shake(300, 0.012);
-  scene.time.delayedCall(700, () => showInitials(scene));
-}
-
+// INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS
 // =============================================================================
 // INTERFACE (HUD COM BARRA DE XP, DRAFT DE LEVEL UP, FERREIRO, MAGO & CONQUISTAS)
 // =============================================================================
@@ -5730,7 +5182,30 @@ function createHUD(scene) {
     toggleFullscreen(scene);
   });
 
-  hudContainer.add([soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
+  // 6. BOTÃO DE PAUSA RÁPIDO [ESC] — (x: 634..682) — Essencial para Mobile & Atalho de PC
+  const pauseBtnBg = scene.add.graphics();
+  const drawPauseBtn = (hover = false) => {
+    pauseBtnBg.clear();
+    pauseBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(634, 10, 48, 48, 6);
+    pauseBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(634, 10, 48, 48, 6);
+    pauseBtnBg.fillStyle(hover ? 0xffe082 : 0xc5a059, 1);
+    pauseBtnBg.fillRect(651, 22, 4, 24);
+    pauseBtnBg.fillRect(661, 22, 4, 24);
+  };
+  drawPauseBtn(false);
+
+  const pauseHitArea = scene.add.rectangle(658, 34, 48, 48, 0x000000, 0)
+    .setInteractive({ useHandCursor: true });
+  pauseHitArea.on('pointerover', () => drawPauseBtn(true));
+  pauseHitArea.on('pointerout', () => drawPauseBtn(false));
+  pauseHitArea.on('pointerdown', () => {
+    sound.playButtonClick();
+    if (typeof handleEscPress === 'function') {
+      handleEscPress(scene);
+    }
+  });
+
+  hudContainer.add([pauseBtnBg, pauseHitArea, soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
 
   // 7. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre (x: 10..790, y: 61..77)
   const xpFrame = scene.add.graphics();
@@ -5852,7 +5327,13 @@ function updateItemHUD() {
   }
 }
 
-// -----------------------------------------------------------------------------
+
+// <<< END: src/ui/hud.js
+
+// >>> START: src/ui/modals.js
+// =============================================================================
+// COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
+// =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
 // -----------------------------------------------------------------------------
 function rollLevelUpCards() {
@@ -6217,6 +5698,354 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
   return scene.add.container(0, 0, children).setDepth(3000).setScrollFactor(0);
 }
 
+
+// SISTEMA DE PAUSA (ESC)
+// -----------------------------------------------------------------------------
+function handleEscPress(scene) {
+  if (gameState === 'PLAYING') {
+    pauseGame(scene);
+  } else if (gameState === 'PAUSED') {
+    resumeGame(scene);
+  } else if (gameState === 'MENU' && menuContainer && !menuContainer.isMainMenu) {
+    exitSubMenu(scene);
+  }
+}
+
+function pauseGame(scene) {
+  if (gameState !== 'PLAYING') return;
+  gameState = 'PAUSED';
+  scene.physics.pause();
+  scene.time.paused = true;
+  scene.tweens.pauseAll();
+  [player, ...enemies.getChildren()].forEach(s => {
+    if (s && s.anims) s.anims.pause();
+  });
+  if (player && player.body) {
+    player.setVelocity(0, 0);
+  }
+  sound.pauseBGM();
+  sound.playButtonClick();
+  showPauseModal(scene);
+}
+
+function resumeGame(scene) {
+  if (gameState !== 'PAUSED') return;
+  if (pauseModal) {
+    pauseModal.destroy();
+    pauseModal = null;
+  }
+  gameState = 'PLAYING';
+  scene.physics.resume();
+  scene.time.paused = false;
+  scene.tweens.resumeAll();
+  [player, ...enemies.getChildren()].forEach(s => {
+    if (s && s.anims) s.anims.resume();
+  });
+  sound.resumeBGM();
+  sound.playButtonClick();
+}
+
+function showPauseModal(scene) {
+  if (pauseModal) pauseModal.destroy();
+
+  const height = 470;
+  const top = (GAME_HEIGHT - height) / 2;
+  pauseModal = createModal(scene, 'JOGO PAUSADO', height, '★ JORNADA EM ESPERA ★', 480);
+
+  // Status de sobrevivência, prata e relíquia
+  const statsBox = scene.add.graphics();
+  statsBox.fillStyle(0x221a13, 0.92).fillRoundedRect(190, top + 84, 420, 62, 6);
+  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(190, top + 84, 420, 62, 6);
+
+  const timeTxt = scene.add.text(208, top + 98, `TEMPO: ${survivalTime}s  |  PRATA: ${runSilver}  |  OURO: ${getGold()}`, textStyle('#ffca28', 12));
+  fitTextToBox(timeTxt, 384, 22, 10);
+  const relicName = buff.type ? `${BUFF_NAMES[buff.type]} NV.${getWeaponLevel(buff.type)} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
+  const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
+  const relicTxt = scene.add.text(208, top + 122, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
+  fitTextToBox(relicTxt, 384, 22, 10);
+
+  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 290, 38);
+
+  const audioBtn = scene.add.rectangle(400, top + 220, 290, 38, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const audioTxt = scene.add.text(400, top + 220, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
+    .setOrigin(0.5);
+
+  const updateAudioUI = () => {
+    if (!audioBtn.active) return;
+    audioBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
+    audioTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
+    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+  };
+
+  audioBtn.on('pointerdown', () => {
+    sound.toggleMute();
+    sound.playButtonClick();
+    updateAudioUI();
+  });
+
+  const fsBtn = scene.add.rectangle(400, top + 266, 290, 38, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
+    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+  const fsTxt = scene.add.text(400, top + 266, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
+    .setOrigin(0.5);
+
+  const updateFsUI = () => {
+    if (!fsBtn.active) return;
+    const active = isGameFullscreen(scene);
+    fsBtn.setFillStyle(active ? 0x247a46 : 0x6e3d1b);
+    fsTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
+  };
+
+  fsBtn.on('pointerdown', () => {
+    sound.playButtonClick();
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, updateFsUI);
+  });
+
+  pauseModal.updateAudio = updateAudioUI;
+  pauseModal.updateFullscreen = updateFsUI;
+
+  const restartBtn = createButton(scene, 400, top + 312, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 38);
+  const menuBtn = createButton(scene, 400, top + 358, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 38);
+  const footerHint = scene.add.text(400, top + 412, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
+
+  pauseModal.add([
+    statsBox, timeTxt, relicTxt,
+    ...continueBtn,
+    audioBtn, audioTxt,
+    fsBtn, fsTxt,
+    ...restartBtn,
+    ...menuBtn,
+    footerHint
+  ]);
+}
+
+
+// GAME OVER: CONVERSÃO PRATA -> OURO, BOUNDING BOX COM WORD WRAP & AUTO-SIZE
+// -----------------------------------------------------------------------------
+function showInitials(scene) {
+  let name = '', done = false;
+  const modalW = 540;
+  const modalH = 510;
+  const cx = GAME_WIDTH / 2;
+  const top = (GAME_HEIGHT - modalH) / 2;
+  const boxW = modalW - 56;
+  const boxLeft = cx - boxW / 2;
+
+  const summary = lastRunSummary || {
+    silverCollected: runSilver,
+    goldFromSilver: runSilver,
+    timeBonusGold: Math.floor(survivalTime / 15),
+    bossBonusGold: bossDefeated ? 15 : 0,
+    totalGoldEarned: runGold,
+    newTotalGold: getGold()
+  };
+
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', modalH, '★ CONSOLIDAÇÃO DE FIM DE JORNADA ★', modalW);
+
+  // Bounding Box interna com limites estritos para o resumo e conversão Prata -> Ouro
+  const summaryBox = scene.add.graphics();
+  summaryBox.fillStyle(0x1f1711, 0.96).fillRoundedRect(boxLeft, top + 80, boxW, 132, 8);
+  summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(boxLeft, top + 80, boxW, 132, 8);
+  summaryBox.lineStyle(1, 0xc5a059, 0.35).lineBetween(boxLeft + 20, top + 114, boxLeft + boxW - 20, top + 114);
+
+  const braveryTxt = scene.add.text(cx, top + 97, `Tempo de bravura em combate: ${survivalTime}s`, {
+    ...textStyle('#f5e6c8', 14),
+    align: 'center',
+    wordWrap: { width: boxW - 28, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+  fitTextToBox(braveryTxt, boxW - 28, 26, 11);
+
+  // Linha visual de Conversão: Moedas de Prata ➔ Moedas de Ouro
+  const silverSprite = scene.add.sprite(cx - 165, top + 138, 'silver_coin').play('silver_coin').setScale(1.3);
+  const goldSprite = scene.add.sprite(cx + 28, top + 138, 'gold_coin').play('gold_coin').setScale(1.3);
+
+  const conversionLine = scene.add.text(
+    cx - 148,
+    top + 138,
+    `${summary.silverCollected} Pratas   ➔`,
+    textStyle('#e0f7fa', 14)
+  ).setOrigin(0, 0.5);
+
+  const goldEarnedLine = scene.add.text(
+    cx + 45,
+    top + 138,
+    `+${summary.totalGoldEarned} OURO REAL`,
+    textStyle('#ffd740', 14)
+  ).setOrigin(0, 0.5);
+  fitTextToBox(goldEarnedLine, 165, 24, 10);
+
+  const bonusParts = [`Prata convertida: +${summary.goldFromSilver}G`];
+  if (summary.timeBonusGold > 0) bonusParts.push(`Glória (${survivalTime}s): +${summary.timeBonusGold}G`);
+  if (summary.bossBonusGold > 0) bonusParts.push(`Golem: +${summary.bossBonusGold}G`);
+  bonusParts.push(`Cofre Total: ${summary.newTotalGold}G`);
+
+  const breakdownTxt = scene.add.text(cx, top + 182, bonusParts.join('  •  '), {
+    ...textStyle('#c5a059', 11, 'normal'),
+    align: 'center',
+    wordWrap: { width: boxW - 24, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+  fitTextToBox(breakdownTxt, boxW - 24, 38, 9);
+
+  // Seção de Registro de Iniciais ancorada abaixo da Bounding Box
+  const promptTxt = scene.add.text(cx, top + 234, 'Digite suas 3 iniciais de honra para a Tábula:', {
+    ...textStyle('#e8dcbe', 13),
+    align: 'center',
+    wordWrap: { width: boxW - 20, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+  fitTextToBox(promptTxt, boxW - 20, 24, 10);
+
+  const inputBg = scene.add.graphics();
+  inputBg.fillStyle(0x0e0b08, 0.95).fillRoundedRect(cx - 140, top + 256, 280, 54, 6);
+  inputBg.lineStyle(2, 0xc5a059).strokeRoundedRect(cx - 140, top + 256, 280, 54, 6);
+  inputBg.lineStyle(1, 0x4a3b2c).strokeRoundedRect(cx - 137, top + 259, 274, 48, 4);
+
+  const placeholder = scene.add.text(cx, top + 283, 'EX: ART', {
+    ...textStyle('#736148', 23),
+    fontStyle: 'bold',
+    fontFamily: 'Courier New, monospace'
+  }).setOrigin(0.5);
+
+  const display = scene.add.text(cx, top + 283, '', {
+    ...textStyle('#ffca28', 28),
+    fontStyle: 'bold',
+    fontFamily: 'Courier New, monospace'
+  }).setOrigin(0.5);
+
+  const cursor = scene.add.text(cx + 65, top + 283, '|', { ...textStyle('#ffca28', 25) }).setOrigin(0.5);
+  const cursorTween = scene.tweens.add({
+    targets: cursor,
+    alpha: { from: 1, to: 0 },
+    duration: 500,
+    yoyo: true,
+    repeat: -1
+  });
+
+  const inputHint = scene.add.text(cx, top + 328, 'Digite 3 letras no teclado e confirme abaixo', {
+    ...textStyle('#a8987b', 11),
+    align: 'center',
+    wordWrap: { width: boxW - 20, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+
+  const updateDisplay = () => {
+    if (name.length === 0) {
+      placeholder.setVisible(true);
+      display.setText('');
+      cursor.setVisible(true).setX(cx + 65);
+    } else {
+      placeholder.setVisible(false);
+      display.setText(name.padEnd(3, '_').split('').join(' '));
+      cursor.setVisible(name.length < 3).setX(cx + (name.length - 1) * 22 + 16);
+    }
+  };
+  updateDisplay();
+
+  const onKey = (e) => {
+    if (e.key === 'Backspace') {
+      name = name.slice(0, -1);
+      sound.playButtonClick();
+    } else if (e.key === 'Enter') {
+      return submit(false);
+    } else if (/^[a-zA-Z]$/.test(e.key) && name.length < 3) {
+      name += e.key.toUpperCase();
+      sound.playButtonClick();
+    }
+    updateDisplay();
+  };
+
+  const submit = (goDirectlyToShop = false) => {
+    if (done) return;
+    done = true;
+    sound.playButtonClick();
+    cursorTween.stop();
+    scene.input.keyboard.off('keydown', onKey);
+    modal.destroy();
+    const finalName = name.padEnd(3, 'A');
+    const scores = saveHighScore(finalName, survivalTime);
+    if (goDirectlyToShop) {
+      restartScene(scene, false, true, 'mage');
+    } else {
+      showLeaderboard(scene, scores, finalName);
+    }
+  };
+
+  modal.add([
+    summaryBox, braveryTxt, silverSprite, conversionLine, goldSprite, goldEarnedLine, breakdownTxt,
+    promptTxt, inputBg, placeholder, display, cursor, inputHint,
+    ...createButton(scene, cx - 118, top + 392, 'CONFIRMAR HONRA', () => submit(false), 216, 44),
+    ...createButton(scene, cx + 118, top + 392, 'SANTUÁRIO DO MAGO', () => submit(true), 216, 44)
+  ]);
+  scene.input.keyboard.on('keydown', onKey);
+}
+
+function showLeaderboard(scene, topScores, currentName) {
+  const modalW = 580;
+  const modalH = 500;
+  const cx = GAME_WIDTH / 2;
+  const top = (GAME_HEIGHT - modalH) / 2;
+
+  const summary = lastRunSummary || { silverCollected: runSilver, totalGoldEarned: runGold };
+  const subtitle = `Prata Convertida: ${summary.silverCollected} ➔ +${summary.totalGoldEarned} Ouro  |  Cofre Total: ${getGold()} Ouro`;
+
+  const modal = createModal(scene, 'CAMPEÕES DO REINO', modalH, subtitle, modalW);
+  let marked = false;
+
+  topScores.forEach((entry, i) => {
+    const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
+    if (isMine) marked = true;
+    const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
+    const rowY = top + 118 + i * 44;
+
+    const rowBg = scene.add.graphics();
+    rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
+    rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
+
+    const rowTxt = scene.add.text(cx, rowY, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`, {
+      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 16),
+      fontStyle: isMine ? 'bold' : 'normal'
+    }).setOrigin(0.5);
+    fitTextToBox(rowTxt, 430, 28, 12);
+
+    modal.add([rowBg, rowTxt]);
+  });
+
+  let restarting = false;
+  const finishAndRestart = (autoStart, openShop = false, shopTab = 'mage') => {
+    if (restarting) return;
+    restarting = true;
+    scene.input.keyboard.off('keydown-SPACE', onQuickRestart);
+    scene.input.keyboard.off('keydown-ENTER', onQuickRestart);
+    modal.destroy();
+    restartScene(scene, autoStart, openShop, shopTab);
+  };
+
+  const onQuickRestart = () => {
+    sound.playButtonClick();
+    finishAndRestart(true, false);
+  };
+
+  const newRunBtn = createButton(scene, cx - 138, top + 368, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 36);
+  const forgeBtn = createButton(scene, cx + 138, top + 368, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 36);
+  const mageBtn = createButton(scene, cx - 138, top + 412, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 36);
+  const menuBtn = createButton(scene, cx + 138, top + 412, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 36);
+  const hintTxt = scene.add.text(cx, top + 452, '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
+
+  modal.add([...newRunBtn, ...forgeBtn, ...mageBtn, ...menuBtn, hintTxt]);
+
+  scene.time.delayedCall(200, () => {
+    if (!restarting) {
+      scene.input.keyboard.once('keydown-SPACE', onQuickRestart);
+      scene.input.keyboard.once('keydown-ENTER', onQuickRestart);
+    }
+  });
+}
+
+// <<< END: src/ui/modals.js
+
+// >>> START: src/ui/menus.js
+// =============================================================================
+// TELAS E MENUS DO JOGO: MENU PRINCIPAL, FORJA, MAGO, CONQUISTAS E OPÇÕES
+// =============================================================================
 function restartScene(scene, autoStart = false, openShop = false, shopTab = 'mage') {
   if (pauseModal) {
     pauseModal.destroy();
@@ -7090,12 +6919,12 @@ function showSettingsMenu(scene) {
 
   const guideTitle = scene.add.text(400, 256, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 13)).setOrigin(0.5);
   const guideLines = [
+    '• Mobile (Touch): Joystick Virtual analógico à esquerda e Botão de Ação à direita.',
     '• Inimigos derrotados dropam Moedas de Prata durante a partida.',
     '• No fim da partida, suas Moedas de Prata são convertidas em Ouro!',
     '• Use Ouro na Loja para evoluir Armas (Aba 1) e Status (Aba 2).',
     '• O Escudo Sagrado reflete projéteis mantendo o disparo normal.',
-    '• Evolua Magnetismo, Vida Máxima (Corações) e Velocidade na Loja!',
-    '• Pressione ESC para pausar/voltar ou F para Tela Cheia.'
+    '• Atalho de Pausa: Botão [||] no topo direito ou tecla ESC.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
     scene.add.text(176, 280 + i * 26, txt, { ...textStyle('#d6c8aa', 11, 'normal'), lineSpacing: 4 })
@@ -7108,344 +6937,1207 @@ function showSettingsMenu(scene) {
   ]);
 }
 
-// -----------------------------------------------------------------------------
-// SISTEMA DE PAUSA (ESC)
-// -----------------------------------------------------------------------------
-function handleEscPress(scene) {
-  if (gameState === 'PLAYING') {
-    pauseGame(scene);
-  } else if (gameState === 'PAUSED') {
-    resumeGame(scene);
-  } else if (gameState === 'MENU' && menuContainer && !menuContainer.isMainMenu) {
-    exitSubMenu(scene);
+
+// <<< END: src/ui/menus.js
+
+// >>> START: src/ui/virtualJoystick.js
+// =============================================================================
+// SISTEMA DE CONTROLE POR JOYSTICK VIRTUAL & TOUCH MOBILE (MULTI-TOUCH)
+// =============================================================================
+
+class VirtualJoystick {
+  constructor(scene) {
+    this.scene = scene;
+    this.touchId = null;
+    this.actionTouchId = null;
+
+    // Posições base ergonômicas (espaço de tela do jogo 800x600)
+    this.defaultBaseX = 120;
+    this.defaultBaseY = 475;
+    this.baseX = this.defaultBaseX;
+    this.baseY = this.defaultBaseY;
+    this.knobX = this.defaultBaseX;
+    this.knobY = this.defaultBaseY;
+
+    this.maxRadius = 54;
+    this.deadzone = 6;
+
+    // Vetor de direção normalizado (-1 a 1)
+    this.vector = { x: 0, y: 0 };
+    this.force = 0;
+    this.active = false;
+    this.isFloating = true; // Permite posicionamento dinâmico onde o dedão toca
+
+    // Detecção inicial de dispositivo móvel ou touch
+    this.isMobile = this.detectMobile();
+    this.forceVisible = false;
+    this.visible = false;
+
+    // Containers e gráficos do Phaser
+    this.container = null;
+    this.baseGraphics = null;
+    this.lineGraphics = null;
+    this.knobGraphics = null;
+    this.actionContainer = null;
+    this.actionGraphics = null;
+    this.actionIcon = null;
+    this.actionText = null;
+
+    this.init();
+  }
+
+  detectMobile() {
+    if (typeof window === 'undefined') return false;
+    const hasTouch = (
+      'ontouchstart' in window ||
+      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+      (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0)
+    );
+    const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    return hasTouch && (isCoarse || isMobileUA || window.innerWidth <= 1024);
+  }
+
+  init() {
+    if (!this.scene) return;
+
+    // Container principal acima do jogo e abaixo de janelas modais
+    this.container = this.scene.add.container(0, 0).setDepth(2400).setScrollFactor(0);
+
+    // 1. Gráficos do Joystick (Linha de energia, Base Rúnica e Pino Central)
+    this.lineGraphics = this.scene.add.graphics();
+    this.baseGraphics = this.scene.add.graphics();
+    this.knobGraphics = this.scene.add.graphics();
+
+    this.container.add([this.lineGraphics, this.baseGraphics, this.knobGraphics]);
+
+    this.drawBase(false);
+    this.drawKnob(false);
+
+    // 2. Botão de Ação / Golpe no Lado Direito (x: 695, y: 475)
+    this.createActionButton();
+
+    // 3. Ouvintes de Toque e Multi-Touch isolado
+    this.setupTouchListeners();
+
+    // 4. Detecção dinâmica de primeiro toque para telas touch no Desktop/Emulador
+    if (!this.isMobile && typeof window !== 'undefined') {
+      const onFirstTouch = () => {
+        this.isMobile = true;
+        this.updateVisibility();
+        window.removeEventListener('touchstart', onFirstTouch);
+      };
+      window.addEventListener('touchstart', onFirstTouch, { passive: true });
+    }
+
+    this.updateVisibility();
+  }
+
+  drawBase(isActive = false) {
+    const g = this.baseGraphics;
+    g.clear();
+    const bx = this.baseX;
+    const by = this.baseY;
+    const r = this.maxRadius;
+
+    // Sombra externa suave
+    g.fillStyle(0x000000, 0.35);
+    g.fillCircle(bx, by + 3, r + 4);
+
+    // Placa de fundo de obsidiana translúcida
+    g.fillStyle(0x120d09, isActive ? 0.60 : 0.38);
+    g.fillCircle(bx, by, r);
+
+    // Anel externo de ferro forjado
+    g.lineStyle(3, 0x2b221a, isActive ? 0.85 : 0.65);
+    g.strokeCircle(bx, by, r);
+
+    // Aro chanfrado nobre em ouro envelhecido
+    g.lineStyle(2, isActive ? 0xffca28 : 0xc5a059, isActive ? 0.90 : 0.65);
+    g.strokeCircle(bx, by, r - 2);
+
+    // Aro interno rúnico sutil
+    g.lineStyle(1, 0x8a6e30, isActive ? 0.45 : 0.25);
+    g.strokeCircle(bx, by, r * 0.55);
+
+    // 4 Marcadores Cardeais de Orientação (Norte, Sul, Leste, Oeste em estilo medieval)
+    const arrowSize = 6;
+    const dist = r - 7;
+    const arrowCol = isActive ? 0xffe082 : 0xc5a059;
+    const arrowAlpha = isActive ? 0.85 : 0.50;
+    g.fillStyle(arrowCol, arrowAlpha);
+
+    // Norte
+    g.fillTriangle(bx, by - dist, bx - arrowSize, by - dist + arrowSize, bx + arrowSize, by - dist + arrowSize);
+    // Sul
+    g.fillTriangle(bx, by + dist, bx - arrowSize, by + dist - arrowSize, bx + arrowSize, by + dist - arrowSize);
+    // Oeste
+    g.fillTriangle(bx - dist, by, bx - dist + arrowSize, by - arrowSize, bx - dist + arrowSize, by + arrowSize);
+    // Leste
+    g.fillTriangle(bx + dist, by, bx + dist - arrowSize, by - arrowSize, bx + arrowSize - arrowSize, by + arrowSize);
+
+    // Eixo cruzado discreto
+    g.lineStyle(1, 0xc5a059, isActive ? 0.30 : 0.15);
+    g.lineBetween(bx - 12, by, bx + 12, by);
+    g.lineBetween(bx, by - 12, bx, by + 12);
+  }
+
+  drawKnob(isActive = false) {
+    const g = this.knobGraphics;
+    g.clear();
+    const kx = this.knobX;
+    const ky = this.knobY;
+    const kr = 24;
+
+    // Sombra do pino central
+    g.fillStyle(0x000000, 0.45);
+    g.fillCircle(kx, ky + 2, kr + 2);
+
+    // Corpo metálico chanfrado (broquel de aço e carvalho)
+    g.fillStyle(isActive ? 0x3d3023 : 0x271e16, 0.95);
+    g.fillCircle(kx, ky, kr);
+
+    // Borda nobre em ouro chanfrado com sub-tons
+    g.lineStyle(2.5, isActive ? 0xffca28 : 0xc5a059, 1);
+    g.strokeCircle(kx, ky, kr);
+
+    g.lineStyle(1, isActive ? 0xfff59d : 0x8a6e30, 0.8);
+    g.strokeCircle(kx, ky, kr - 2);
+
+    // Gema Central (Cabochão de Rubi Real)
+    const gemR = 9;
+    const gemColor = isActive ? 0xff3d00 : 0xd32f2f;
+    g.fillStyle(gemColor, 1);
+    g.fillCircle(kx, ky, gemR);
+
+    // Brilho especular do cristal
+    g.fillStyle(0xffffff, isActive ? 0.95 : 0.70);
+    g.fillCircle(kx - 3, ky - 3, 2.5);
+
+    // Cruz rúnica central de ouro
+    g.lineStyle(1.5, isActive ? 0xffea00 : 0xffca28, 0.9);
+    g.lineBetween(kx - 5, ky, kx + 5, ky);
+    g.lineBetween(kx, ky - 5, kx, ky + 5);
+  }
+
+  drawConnectorLine() {
+    const g = this.lineGraphics;
+    g.clear();
+    if (!this.active || this.force <= 0.05) return;
+
+    // Arco de energia dourada conectando a base ao pino
+    g.lineStyle(2, 0xffca28, Math.min(0.7, this.force * 0.8));
+    g.lineBetween(this.baseX, this.baseY, this.knobX, this.knobY);
+
+    g.lineStyle(4, 0xff9800, Math.min(0.4, this.force * 0.45));
+    g.lineBetween(this.baseX, this.baseY, this.knobX, this.knobY);
+  }
+
+  createActionButton() {
+    this.actionContainer = this.scene.add.container(695, 475).setDepth(2400).setScrollFactor(0);
+    this.actionGraphics = this.scene.add.graphics();
+
+    const drawBtn = (isPressed = false) => {
+      const g = this.actionGraphics;
+      g.clear();
+      const r = 36;
+
+      // Sombra
+      g.fillStyle(0x000000, 0.40);
+      g.fillCircle(0, 3, r + 2);
+
+      // Fundo escuro com sutil translucidez
+      g.fillStyle(isPressed ? 0x4a1818 : 0x1d140e, isPressed ? 0.95 : 0.82);
+      g.fillCircle(0, 0, r);
+
+      // Moldura nobre de ouro
+      g.lineStyle(2.5, isPressed ? 0xffeb3b : 0xc5a059, 1);
+      g.strokeCircle(0, 0, r);
+
+      g.lineStyle(1, isPressed ? 0xffffff : 0x8a6e30, 0.6);
+      g.strokeCircle(0, 0, r - 3);
+
+      // Ícone central: Espadas Cruzadas / Brasão de Ataque
+      const iconCol = isPressed ? 0xffeb3b : 0xffca28;
+      g.lineStyle(2.5, iconCol, 1);
+      g.lineBetween(-12, -12, 12, 12);
+      g.lineBetween(12, -12, -12, 12);
+
+      // Empunhaduras das espadas
+      g.lineStyle(1.5, 0xffffff, 0.9);
+      g.lineBetween(-15, -9, -9, -15);
+      g.lineBetween(9, -15, 15, -9);
+
+      // Ponto de brilho solar central
+      g.fillStyle(isPressed ? 0xffffff : 0xff7043, 1);
+      g.fillCircle(0, 0, 4);
+    };
+
+    drawBtn(false);
+
+    this.actionText = this.scene.add.text(0, 44, 'AÇÃO', {
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#c5a059',
+      fontFamily: 'Courier New, monospace'
+    }).setOrigin(0.5);
+
+    this.actionContainer.add([this.actionGraphics, this.actionText]);
+  }
+
+  setupTouchListeners() {
+    const scene = this.scene;
+
+    // Multi-Touch: Pointer Down
+    scene.input.on('pointerdown', (pointer) => {
+      // Bloqueia se o jogo estiver em pausa ou tela de menu/modal
+      if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
+      if (typeof activeModal !== 'undefined' && activeModal) return;
+      if (typeof isPaused !== 'undefined' && isPaused) return;
+
+      const px = pointer.x;
+      const py = pointer.y;
+
+      // 1. ZONA DO BOTÃO DE AÇÃO (Lado direito inferior: x > 610, y > 380)
+      const actionDist = Phaser.Math.Distance.Between(px, py, 695, 475);
+      if (actionDist <= 55 && this.actionTouchId === null) {
+        this.actionTouchId = pointer.id;
+        this.handleActionDown();
+        return;
+      }
+
+      // 2. ZONA DO JOYSTICK (Metade esquerda da tela: x < 400, y > 140)
+      if (px < 400 && py > 140 && this.touchId === null) {
+        this.touchId = pointer.id;
+        this.active = true;
+
+        if (this.isFloating) {
+          // Posiciona a base exatamente onde o polegar encostou (com margem de segurança)
+          this.baseX = Phaser.Math.Clamp(px, 75, 360);
+          this.baseY = Phaser.Math.Clamp(py, 180, 540);
+        } else {
+          this.baseX = this.defaultBaseX;
+          this.baseY = this.defaultBaseY;
+        }
+
+        this.knobX = px;
+        this.knobY = py;
+
+        this.processPointerMove(px, py);
+        this.drawBase(true);
+        this.drawKnob(true);
+        this.drawConnectorLine();
+
+        // Animação de pulso ao tocar
+        scene.tweens.killTweensOf(this.knobGraphics);
+        this.knobGraphics.setScale(1.12);
+      }
+    });
+
+    // Multi-Touch: Pointer Move
+    scene.input.on('pointermove', (pointer) => {
+      if (this.touchId !== null && pointer.id === this.touchId) {
+        this.processPointerMove(pointer.x, pointer.y);
+        this.drawKnob(true);
+        this.drawConnectorLine();
+      }
+    });
+
+    // Multi-Touch: Pointer Up
+    const onPointerUp = (pointer) => {
+      // Finaliza botão de ação se for o toque dele
+      if (this.actionTouchId !== null && pointer.id === this.actionTouchId) {
+        this.actionTouchId = null;
+        this.handleActionUp();
+      }
+
+      // Finaliza joystick se for o toque dele
+      if (this.touchId !== null && pointer.id === this.touchId) {
+        this.touchId = null;
+        this.active = false;
+        this.vector.x = 0;
+        this.vector.y = 0;
+        this.force = 0;
+
+        // Retorna o pino suavemente ao centro da base
+        scene.tweens.killTweensOf(this.knobGraphics);
+        scene.tweens.add({
+          targets: this,
+          knobX: this.baseX,
+          knobY: this.baseY,
+          duration: 130,
+          ease: 'Sine.easeOut',
+          onUpdate: () => {
+            this.drawKnob(false);
+            this.drawConnectorLine();
+          },
+          onComplete: () => {
+            this.knobGraphics.setScale(1.0);
+            this.drawBase(false);
+            this.drawKnob(false);
+            this.drawConnectorLine();
+
+            // Se for base flutuante, retorna suavemente à posição padrão de repouso
+            if (this.isFloating && (this.baseX !== this.defaultBaseX || this.baseY !== this.defaultBaseY)) {
+              scene.tweens.add({
+                targets: this,
+                baseX: this.defaultBaseX,
+                baseY: this.defaultBaseY,
+                knobX: this.defaultBaseX,
+                knobY: this.defaultBaseY,
+                duration: 250,
+                delay: 400,
+                ease: 'Sine.easeInOut',
+                onUpdate: () => {
+                  if (!this.active) {
+                    this.drawBase(false);
+                    this.drawKnob(false);
+                  }
+                }
+              });
+            }
+          }
+        });
+      }
+    };
+
+    scene.input.on('pointerup', onPointerUp);
+    scene.input.on('pointerupoutside', onPointerUp);
+  }
+
+  processPointerMove(px, py) {
+    const dx = px - this.baseX;
+    const dy = py - this.baseY;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist < this.deadzone) {
+      this.vector.x = 0;
+      this.vector.y = 0;
+      this.force = 0;
+      this.knobX = px;
+      this.knobY = py;
+      return;
+    }
+
+    const clampedDist = Math.min(dist, this.maxRadius);
+    const angle = Math.atan2(dy, dx);
+
+    this.knobX = this.baseX + Math.cos(angle) * clampedDist;
+    this.knobY = this.baseY + Math.sin(angle) * clampedDist;
+
+    const normalizedPower = (clampedDist - this.deadzone) / (this.maxRadius - this.deadzone);
+    this.force = Phaser.Math.Clamp(normalizedPower, 0, 1);
+    this.vector.x = Math.cos(angle) * this.force;
+    this.vector.y = Math.sin(angle) * this.force;
+  }
+
+  handleActionDown() {
+    if (this.actionContainer) {
+      this.actionContainer.setScale(0.92);
+      if (this.actionGraphics) {
+        this.actionGraphics.clear();
+        this.actionGraphics.fillStyle(0x5c1d1d, 1).fillCircle(0, 0, 36);
+        this.actionGraphics.lineStyle(2.5, 0xffeb3b, 1).strokeCircle(0, 0, 36);
+        this.actionGraphics.lineStyle(2.5, 0xffffff, 1);
+        this.actionGraphics.lineBetween(-12, -12, 12, 12);
+        this.actionGraphics.lineBetween(12, -12, -12, 12);
+        this.actionGraphics.fillStyle(0xffea00, 1).fillCircle(0, 0, 5);
+      }
+    }
+    // Dispara a mecânica de ataque manual do jogador
+    if (typeof triggerPlayerAction === 'function') {
+      triggerPlayerAction(this.scene);
+    }
+  }
+
+  handleActionUp() {
+    if (this.actionContainer) {
+      this.scene.tweens.add({
+        targets: this.actionContainer,
+        scale: 1.0,
+        duration: 90,
+        ease: 'Back.easeOut'
+      });
+      if (this.actionGraphics) {
+        this.drawActionButtonDefault();
+      }
+    }
+  }
+
+  drawActionButtonDefault() {
+    const g = this.actionGraphics;
+    if (!g) return;
+    g.clear();
+    const r = 36;
+    g.fillStyle(0x000000, 0.40).fillCircle(0, 3, r + 2);
+    g.fillStyle(0x1d140e, 0.82).fillCircle(0, 0, r);
+    g.lineStyle(2.5, 0xc5a059, 1).strokeCircle(0, 0, r);
+    g.lineStyle(1, 0x8a6e30, 0.6).strokeCircle(0, 0, r - 3);
+    g.lineStyle(2.5, 0xffca28, 1);
+    g.lineBetween(-12, -12, 12, 12);
+    g.lineBetween(12, -12, -12, 12);
+    g.lineStyle(1.5, 0xffffff, 0.9);
+    g.lineBetween(-15, -9, -9, -15);
+    g.lineBetween(9, -15, 15, -9);
+    g.fillStyle(0xff7043, 1).fillCircle(0, 0, 4);
+  }
+
+  updateVisibility() {
+    const inGame = typeof gameState !== 'undefined' && gameState === 'PLAYING';
+    const isPausedNow = typeof isPaused !== 'undefined' && isPaused;
+    const hasModal = typeof activeModal !== 'undefined' && activeModal;
+    const shouldShow = (this.isMobile || this.forceVisible) && inGame && !isPausedNow && !hasModal;
+
+    this.setVisible(shouldShow);
+  }
+
+  setVisible(show) {
+    if (this.visible === show) return;
+    this.visible = show;
+    if (this.container) this.container.setVisible(show);
+    if (this.actionContainer) this.actionContainer.setVisible(show);
+  }
+
+  update(dt) {
+    this.updateVisibility();
+  }
+
+  getVector() {
+    return this.active ? this.vector : { x: 0, y: 0 };
+  }
+
+  destroy() {
+    if (this.container) {
+      this.container.destroy();
+      this.container = null;
+    }
+    if (this.actionContainer) {
+      this.actionContainer.destroy();
+      this.actionContainer = null;
+    }
   }
 }
 
-function pauseGame(scene) {
-  if (gameState !== 'PLAYING') return;
-  gameState = 'PAUSED';
-  scene.physics.pause();
-  scene.time.paused = true;
-  scene.tweens.pauseAll();
-  [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.pause();
+// Suporte para módulo ou escopo global
+if (typeof window !== 'undefined') {
+  window.VirtualJoystick = VirtualJoystick;
+}
+
+// <<< END: src/ui/virtualJoystick.js
+
+// >>> START: src/main.js
+// =============================================================================
+// CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
+// =============================================================================
+
+// CENA: PRELOAD — cria todas as texturas com filtro NEAREST (zero serrilhado/esfarelado)
+// =============================================================================
+function preload() {
+  if (this.textures.exists('knight')) return;
+  makeSheet(this, 'knight', 32, 32, 4, drawKnight);
+  makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
+  makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
+  makeSheet(this, 'elf', 32, 32, 2, drawElf);
+  makeSheet(this, 'gargoyle', 32, 32, 2, drawGargoyle);
+  makeSheet(this, 'dark_mage', 32, 32, 2, drawDarkMage);
+  makeSheet(this, 'mini_golem', 28, 28, 2, drawMiniGolem);
+  makeSheet(this, 'boss_golem', 88, 88, 2, drawBossGolem);
+  makeSheet(this, 'village_blacksmith', 112, 84, 1, drawVillageBlacksmith);
+  makeSheet(this, 'village_stable', 120, 84, 1, drawVillageStable);
+  makeSheet(this, 'village_house', 72, 64, 1, drawVillageHouse);
+  makeSheet(this, 'village_wall_v', 32, 96, 1, drawVillageWallV);
+  makeSheet(this, 'village_gate_tower', 48, 96, 1, drawGateTower);
+  makeSheet(this, 'village_npc', 24, 28, 2, drawVillageNpc);
+  makeSheet(this, 'gold_coin', 16, 16, 2, drawGoldCoin);
+  makeSheet(this, 'silver_coin', 16, 16, 2, drawSilverCoin);
+  makeSheet(this, 'xp_orb', 14, 14, 2, drawXpOrb);
+  makeSheet(this, 'blacksmith_master', 44, 44, 2, drawBlacksmithMaster);
+  makeSheet(this, 'mage_master', 44, 44, 2, drawMageMaster);
+  makeSheet(this, 'tree', 48, 64, 1, drawTree);
+  makeSheet(this, 'rock', 32, 26, 2, drawRock);
+  makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
+  makeSheet(this, 'sword_blade', 12, 40, 1, drawBlade);
+  makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blueBase, C.steelLight, C.manaLight));
+  makeSheet(this, 'arrow_gold', 26, 10, 1, arrowDrawer(C.goldDark, C.goldHighlight, C.goldLight));
+  makeSheet(this, 'arrow_elf', 26, 10, 1, arrowDrawer(0x00c853, 0x69f0ae, 0x00e676));
+  makeSheet(this, 'orb_enemy', 16, 16, 1, drawMageOrb);
+  makeSheet(this, 'axe_proj', 24, 24, 1, drawAxeProj);
+  makeSheet(this, 'fireball_proj', 24, 16, 1, drawFireballProj);
+  makeSheet(this, 'hud_hourglass', 22, 26, 1, drawHourglass);
+  makeSheet(this, 'hud_crown', 24, 22, 1, drawCrown);
+  makeSheet(this, 'hud_horn', 30, 20, 2, drawHorn);
+  makeSheet(this, 'hud_fullscreen', 20, 20, 2, drawFullscreenIcon);
+  makeSheet(this, 'hud_heart', 14, 14, 2, drawHeartHUD);
+  makeSheet(this, 'knight_banner', 48, 56, 1, drawKnightBanner);
+  makeItem(this, 'item_bow', 0xffe082, drawBowIcon);
+  makeItem(this, 'item_shield', 0x80deea, drawShieldIcon);
+  makeItem(this, 'item_sword', 0xffffff, drawSwordIcon);
+  makeItem(this, 'item_axe', 0x7fe7ff, drawAxeIcon);
+  makeItem(this, 'item_firestaff', 0xff7043, drawFireStaffIcon);
+  makeItem(this, 'stat_magnet', 0x7fe7ff, drawMagnetIcon);
+  makeItem(this, 'stat_health', 0xff5252, drawHealthIcon);
+  makeItem(this, 'stat_speed', 0xffeb3b, drawSpeedIcon);
+  makeItem(this, 'stat_wisdom', 0xc36bff, drawWisdomIcon);
+  makeWorldTextures(this);
+
+  // Garante filtro NEAREST puro em todas as texturas geradas (sem aspecto borrado ou esfarelado)
+  Object.values(this.textures.list).forEach(tex => {
+    if (tex && tex.setFilter) tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
   });
-  if (player && player.body) {
-    player.setVelocity(0, 0);
-  }
-  sound.pauseBGM();
-  sound.playButtonClick();
-  showPauseModal(scene);
 }
 
-function resumeGame(scene) {
-  if (gameState !== 'PAUSED') return;
-  if (pauseModal) {
-    pauseModal.destroy();
-    pauseModal = null;
-  }
-  gameState = 'PLAYING';
-  scene.physics.resume();
+// =============================================================================
+// CENA: CREATE — monta camadas, grupos, jogador, colisões e HUD
+
+// =============================================================================
+function create(data) {
+  const scene = this;
+  sound.stopBGM();
+
+  // Garante que tempo, tweens e física nunca venham congelados após Game Over ou Level Up
   scene.time.paused = false;
+  scene.time.timeScale = 1;
   scene.tweens.resumeAll();
-  [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.resume();
-  });
-  sound.resumeBGM();
-  sound.playButtonClick();
-}
+  scene.physics.resume();
 
-function showPauseModal(scene) {
-  if (pauseModal) pauseModal.destroy();
+  // Centraliza e trava câmera em pixels inteiros para nitidez máxima em Tela Cheia e Janela
+  scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  scene.cameras.main.centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+  scene.cameras.main.setRoundPixels(true);
 
-  const height = 470;
-  const top = (GAME_HEIGHT - height) / 2;
-  pauseModal = createModal(scene, 'JOGO PAUSADO', height, '★ JORNADA EM ESPERA ★', 480);
+  gameState = 'MENU';
+  survivalTime = 0;
+  runSilver = 0;
+  runGold = 0;
+  runXp = 0;
+  runLevel = 1;
+  xpToNextLevel = getXpRequiredForLevel(1);
+  pendingLevelUps = 0;
+  runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
+  runBonusDuration = 0;
+  playerMaxHp = getPlayerMaxHp();
+  playerHp = playerMaxHp;
+  playerInvulnerable = false;
+  enemySpeed = 195;
+  spawnDelay = 1300;
+  buff = { type: null, timeLeft: 0, nextAttack: 0 };
+  activeBoss = null;
+  bossSpawned = false;
+  bossDefeated = false;
+  draftModal = null;
 
-  // Status de sobrevivência, prata e relíquia
-  const statsBox = scene.add.graphics();
-  statsBox.fillStyle(0x221a13, 0.92).fillRoundedRect(190, top + 84, 420, 62, 6);
-  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(190, top + 84, 420, 62, 6);
-
-  const timeTxt = scene.add.text(208, top + 98, `TEMPO: ${survivalTime}s  |  PRATA: ${runSilver}  |  OURO: ${getGold()}`, textStyle('#ffca28', 12));
-  fitTextToBox(timeTxt, 384, 22, 10);
-  const relicName = buff.type ? `${BUFF_NAMES[buff.type]} NV.${getWeaponLevel(buff.type)} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
-  const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
-  const relicTxt = scene.add.text(208, top + 122, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
-  fitTextToBox(relicTxt, 384, 22, 10);
-
-  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 290, 38);
-
-  const audioBtn = scene.add.rectangle(400, top + 220, 290, 38, sound.isMuted() ? 0x8e1b1b : 0x247a46)
-    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioTxt = scene.add.text(400, top + 220, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
-    .setOrigin(0.5);
-
-  const updateAudioUI = () => {
-    if (!audioBtn.active) return;
-    audioBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
-    audioTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
-    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
-  };
-
-  audioBtn.on('pointerdown', () => {
-    sound.toggleMute();
-    sound.playButtonClick();
-    updateAudioUI();
+  // Limpa todos os listeners de teclado e escala ao encerrar/reiniciar a cena
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    events.clear();
+    scene.input.keyboard.removeAllListeners();
+    scene.scale.off('enterfullscreen', onScaleChange);
+    scene.scale.off('leavefullscreen', onScaleChange);
+    scene.scale.off('resize', onScaleChange);
   });
 
-  const fsBtn = scene.add.rectangle(400, top + 266, 290, 38, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
-    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const fsTxt = scene.add.text(400, top + 266, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
-    .setOrigin(0.5);
+  // Registra Listeners de Eventos Desacoplados (Observer Pattern)
+  setupDecoupledEventListeners(scene);
 
-  const updateFsUI = () => {
-    if (!fsBtn.active) return;
-    const active = isGameFullscreen(scene);
-    fsBtn.setFillStyle(active ? 0x247a46 : 0x6e3d1b);
-    fsTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
+  const onScaleChange = () => {
+    scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    scene.cameras.main.centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+    scene.cameras.main.setRoundPixels(true);
+    updateFullscreenIcons(scene);
   };
+  scene.scale.on('enterfullscreen', onScaleChange);
+  scene.scale.on('leavefullscreen', onScaleChange);
+  scene.scale.on('resize', onScaleChange);
 
-  fsBtn.on('pointerdown', () => {
+  // Animações com cadência fluida — criadas uma única vez
+  const animSpecs = {
+    knight: { fps: 12, frames: 4 },
+    goblin: { fps: 12, frames: 2 },
+    warrior: { fps: 8, frames: 2 },
+    elf: { fps: 9, frames: 2 },
+    gargoyle: { fps: 10, frames: 2 },
+    dark_mage: { fps: 8, frames: 2 },
+    mini_golem: { fps: 10, frames: 2 },
+    boss_golem: { fps: 6, frames: 2 },
+    village_npc: { fps: 4, frames: 2 },
+    gold_coin: { fps: 8, frames: 2 },
+    silver_coin: { fps: 8, frames: 2 },
+    xp_orb: { fps: 8, frames: 2 },
+    blacksmith_master: { fps: 3, frames: 2 },
+    mage_master: { fps: 3, frames: 2 }
+  };
+  Object.entries(animSpecs).forEach(([key, spec]) => {
+    if (!scene.anims.exists(key)) {
+      const frames = [];
+      for (let i = 0; i < spec.frames; i++) frames.push({ key, frame: i });
+      scene.anims.create({ key, frameRate: spec.fps, repeat: -1, frames });
+    }
+  });
+  if (!scene.anims.exists('knight_run')) {
+    const frames = [];
+    for (let i = 0; i < 4; i++) frames.push({ key: 'knight', frame: i });
+    scene.anims.create({ key: 'knight_run', frameRate: 12, repeat: -1, frames });
+  }
+
+  // Camadas do cenário, de trás para frente
+  ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
+  road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
+  forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
+  shadows = scene.add.graphics().setDepth(-2);
+  forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
+  bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
+
+  // Grupos físicos
+  villageDecor = scene.physics.add.group({ immovable: true });
+  coins = scene.physics.add.group();
+  xpOrbs = scene.physics.add.group();
+  enemies = scene.physics.add.group();
+  obstacles = scene.physics.add.group({ immovable: true });
+  items = scene.physics.add.group();
+  playerArrows = scene.physics.add.group();
+  enemyArrows = scene.physics.add.group();
+  slashes = scene.physics.add.group();
+
+  // Árvores nas bordas a partir de além dos portões da vila
+  for (let x = 620; x <= 980; x += 120) spawnTree(x);
+
+  // Jogador (limitado à área entre as florestas)
+  scene.physics.world.setBounds(0, 95, 800, 455);
+  player = scene.physics.add.sprite(160, 330, 'knight', 0);
+  player.body.setSize(16, 22).setOffset(8, 8);
+  player.setCollideWorldBounds(true);
+  player.setVisible(false); // Oculto enquanto estiver nos menus
+  shieldSprite = scene.add.image(0, 0, 'shield_worn').setVisible(false);
+  shieldAura = scene.add.image(0, 0, 'shield_aura').setVisible(false).setAlpha(0.85);
+
+  // Controles Desktop & Suporte Multi-Touch Mobile
+  cursors = scene.input.keyboard.createCursorKeys();
+  keys = scene.input.keyboard.addKeys('W,A,S,D');
+
+  // Suporte a multi-touch para até 4 toques simultâneos (joystick + ataque + botões)
+  scene.input.addPointer(3);
+
+  // Inicialização do Joystick Virtual Modular
+  if (virtualJoystick) {
+    virtualJoystick.destroy();
+    virtualJoystick = null;
+  }
+  if (typeof VirtualJoystick === 'function') {
+    virtualJoystick = new VirtualJoystick(scene);
+  }
+
+  // Tecla ESPAÇO para Golpe/Ação manual imediata no Desktop
+  scene.input.keyboard.on('keydown-SPACE', () => {
+    if (gameState === 'PLAYING' && !isPaused && !activeModal) {
+      if (typeof triggerPlayerAction === 'function') {
+        triggerPlayerAction(scene);
+      }
+    }
+  });
+
+  pauseModal = null;
+  enemyHpBars = scene.add.graphics().setDepth(2400);
+  playerBuffBar = scene.add.graphics().setDepth(2500);
+
+  // Tecla ESC para pausar/despausar ou sair de submenus (bloqueada durante escolha de cartas de Level Up!)
+  scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene));
+
+  // Tecla F para ativar/desativar Tela Cheia (com trava durante digitação no Game Over)
+  scene.input.keyboard.on('keydown-F', () => {
+    if (gameState === 'GAMEOVER') return;
     sound.playButtonClick();
     toggleFullscreen(scene);
-    scene.time.delayedCall(80, updateFsUI);
   });
 
-  pauseModal.updateAudio = updateAudioUI;
-  pauseModal.updateFullscreen = updateFsUI;
+  // Partículas de poeira nos passos do cavaleiro
+  dustFx = scene.add.particles(0, 0, 'spark', {
+    lifespan: 300,
+    speedX: { min: -70, max: -20 },
+    speedY: { min: -16, max: 6 },
+    scale: { start: 1.0, end: 0 },
+    alpha: { start: 0.42, end: 0 },
+    tint: [0xd6c8aa, 0xb89a6c, 0x9b7b4f],
+    emitting: false
+  }).setDepth(5);
 
-  const restartBtn = createButton(scene, 400, top + 312, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 38);
-  const menuBtn = createButton(scene, 400, top + 358, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 38);
-  const footerHint = scene.add.text(400, top + 412, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
+  // Partículas para impactos gerais e mortes de monstros
+  hitFx = scene.add.particles(0, 0, 'spark', {
+    lifespan: 340, speed: { min: 70, max: 190 }, scale: { start: 1.4, end: 0 },
+    tint: [0xffffff, 0xffca28, 0xff7043], emitting: false
+  }).setDepth(1500);
 
-  pauseModal.add([
-    statsBox, timeTxt, relicTxt,
-    ...continueBtn,
-    audioBtn, audioTxt,
-    fsBtn, fsTxt,
-    ...restartBtn,
-    ...menuBtn,
-    footerHint
-  ]);
+  // Faíscas metálicas pontuais para acertos em armaduras, espadas e bloqueios
+  sparksFx = scene.add.particles(0, 0, 'spark_shard', {
+    lifespan: 220, speed: { min: 120, max: 280 }, scale: { start: 1.2, end: 0 },
+    tint: [0xffffff, 0xfff59d, 0x80deea], emitting: false
+  }).setDepth(1510);
+
+  // Estilhaços físicos de madeira (árvores) e lascas de pedra (rochas) com gravidade
+  debrisFx = scene.add.particles(0, 0, 'spark_shard', {
+    lifespan: 420, speed: { min: 50, max: 150 }, gravityY: 260, scale: { start: 1.5, end: 0.2 },
+    tint: [0x8d5c38, 0x5c3a1b, 0x78909c, 0x455a64], emitting: false
+  }).setDepth(1490);
+
+  // Partículas sagradas cintilantes para Escudo Sagrado e bênçãos divinas
+  holyFx = scene.add.particles(0, 0, 'spark_star', {
+    lifespan: 480, speed: { min: 45, max: 160 }, scale: { start: 1.6, end: 0 },
+    tint: [0xffffff, 0x7fe7ff, 0xffe082, 0x80deea], emitting: false
+  }).setDepth(1620);
+
+  // Brasas e fagulhas sutis para o Cajado de Fogo e impactos (leves e legíveis)
+  emberFx = scene.add.particles(0, 0, 'spark', {
+    lifespan: 220, speed: { min: 40, max: 120 }, scale: { start: 0.95, end: 0 },
+    tint: [0xffeb3b, 0xffca28, 0xff7043], emitting: false
+  }).setDepth(1560);
+
+  createHUD(scene);
+
+  // Colisões do jogador (separação suave nos obstáculos + coleta de Relíquias, Moedas de Prata e Orbes de XP)
+  scene.physics.add.overlap(player, obstacles, (p, o) => separatePlayerFromObstacle(p, o));
+  scene.physics.add.overlap(player, enemies, (p, e) => playerHit(scene, e));
+  scene.physics.add.overlap(player, enemyArrows, (p, a) => playerHit(scene, a));
+  scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
+  scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
+  scene.physics.add.overlap(player, xpOrbs, (p, orb) => collectXpOrb(scene, orb));
+
+  // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
+  scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
+    if (e.x >= 800 || !a.active || !e.active) return;
+    if (a.projId && e.lastProjId === a.projId) return;
+    if (a.projId) e.lastProjId = a.projId;
+
+    if (a.isFireball) {
+      const fx = a.x, fy = a.y, rad = a.blastRadius || 42, dmg = a.dmg || 1;
+      a.destroy();
+      explodeFireball(scene, fx, fy, rad, dmg);
+      return;
+    }
+
+    damageEnemy(scene, e, a.dmg || 1);
+    if (a.pierceCount && a.pierceCount > 1) {
+      a.pierceCount--;
+    } else if (!a.isBoomerang) {
+      a.destroy();
+    }
+  });
+  scene.physics.add.overlap(slashes, enemies, (s, e) => {
+    // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
+    if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
+      e.lastSlashId = s.slashId;
+      damageEnemy(scene, e, s.dmg || 1);
+    }
+  });
+  scene.physics.add.overlap(slashes, enemyArrows, (s, a) => {
+    sound.playShieldBlock();
+    sparksFx.explode(7, a.x, a.y);
+    a.destroy();
+  });
+  scene.physics.add.overlap(playerArrows, enemyArrows, (a, b) => {
+    if (!a.active || !b.active) return;
+    sound.playShieldBlock();
+    sparksFx.explode(6, b.x, b.y);
+    b.destroy();
+    if (!a.isBoomerang && !a.isFireball && (!a.pierceCount || a.pierceCount <= 1)) {
+      a.destroy();
+    }
+  });
+
+  // Obstáculos (árvores e rochas) servem de cobertura: bloqueiam flechas (machado bumerangue sobrevoa)
+  const hitObstacle = (arrow, obs) => {
+    if (!arrow.active || arrow.isBoomerang) return;
+    if (arrow.isFireball) {
+      const fx = arrow.x, fy = arrow.y, rad = arrow.blastRadius || 42, dmg = arrow.dmg || 1;
+      arrow.destroy();
+      explodeFireball(scene, fx, fy, rad, dmg);
+      return;
+    }
+    if (arrow.x > 0 && arrow.x < 800 && obs.x < 810) {
+      if (obs.obstacleType === 'rock') {
+        sound.playShieldBlock();
+        sparksFx.explode(6, arrow.x, arrow.y);
+        debrisFx.explode(6, arrow.x, arrow.y);
+      } else {
+        sound.playWoodHit();
+        debrisFx.explode(7, arrow.x, arrow.y);
+      }
+    }
+    arrow.destroy();
+  };
+  scene.physics.add.overlap(playerArrows, obstacles, hitObstacle);
+  scene.physics.add.overlap(enemyArrows, obstacles, hitObstacle);
+
+  if (data && data.autoStart) {
+    startGameplay(scene);
+  } else if (data && data.openShop) {
+    showShopMenu(scene, data.shopTab || 'mage');
+  } else {
+    showMainMenu(scene);
+  }
 }
 
-// -----------------------------------------------------------------------------
-// GAME OVER: CONVERSÃO PRATA -> OURO, BOUNDING BOX COM WORD WRAP & AUTO-SIZE
-// -----------------------------------------------------------------------------
-function showInitials(scene) {
-  let name = '', done = false;
-  const modalW = 540;
-  const modalH = 510;
-  const cx = GAME_WIDTH / 2;
-  const top = (GAME_HEIGHT - modalH) / 2;
-  const boxW = modalW - 56;
-  const boxLeft = cx - boxW / 2;
+// =============================================================================
+// CENA: UPDATE — roda a cada frame
 
-  const summary = lastRunSummary || {
-    silverCollected: runSilver,
-    goldFromSilver: runSilver,
-    timeBonusGold: Math.floor(survivalTime / 15),
-    bossBonusGold: bossDefeated ? 15 : 0,
-    totalGoldEarned: runGold,
-    newTotalGold: getGold()
+// =============================================================================
+function update(time, delta) {
+  const dt = Math.min(delta / 1000, 0.05); // clamp dt para evitar saltos bruscos de frame
+  if (virtualJoystick) virtualJoystick.update(dt);
+  if (gameState === 'PLAYING') updateGameplay(this, time, dt);
+  else if (gameState === 'MENU') updateMenuBackground(dt);
+  sortAndShade();
+}
+
+// Fundo rolando suavemente no menu inicial (efeito vivo de viagem)
+function updateMenuBackground(dt) {
+  const scrollSpeed = 35;
+  ground.tilePositionX += scrollSpeed * dt;
+  road.tilePositionX += scrollSpeed * dt;
+  forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
+  forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
+  obstacles.setVelocityX(-scrollSpeed);
+}
+
+function updateGameplay(scene, time, dt) {
+  // 1. Mundo rolando: chão, estrada e obstáculos andam JUNTOS (nada desliza)
+  const worldSpeed = enemySpeed * 0.6;
+  ground.tilePositionX += worldSpeed * dt;
+  road.tilePositionX += worldSpeed * dt;
+  forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
+  forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
+  obstacles.setVelocityX(-worldSpeed);
+  villageDecor.setVelocityX(-worldSpeed);
+  items.setVelocityX(-worldSpeed);
+
+  // Física de Coleta e Magnetismo de Moedas de Prata e Orbes de XP (fluida e responsiva)
+  const magnetRadius = getMagnetRadius();
+  const pullCollectibles = (group, onCollect) => {
+    group.getChildren().slice().forEach(c => {
+      if (!c || !c.active) return;
+      const dist = Phaser.Math.Distance.Between(player.x, player.y, c.x, c.y);
+      if (dist <= 28) {
+        onCollect(scene, c);
+        return;
+      }
+      if (c.magnetized || dist <= magnetRadius) {
+        if (!c.magnetized) {
+          c.magnetized = true;
+          scene.tweens.killTweensOf(c);
+        }
+        const pullSpeed = Math.max(420, enemySpeed + 240 + Math.max(0, magnetRadius - dist) * 1.6);
+        scene.physics.moveToObject(c, player, pullSpeed);
+        c.groundY = c.y + 8;
+      } else if (!c.isDropping) {
+        c.setVelocity(-worldSpeed, 0);
+        c.groundY = c.y + 8;
+      } else {
+        c.setVelocityX(-worldSpeed);
+      }
+    });
   };
+  pullCollectibles(coins, collectCoin);
+  pullCollectibles(xpOrbs, collectXpOrb);
 
-  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', modalH, '★ CONSOLIDAÇÃO DE FIM DE JORNADA ★', modalW);
+  // 2. Cavaleiro: 8 direções e analógico 360° com pixels 100% nítidos (sem rotação sub-pixel setAngle que esfarela a Pixel Art!)
+  const moveSpd = getPlayerMoveSpeed();
+  let dirX = 0, dirY = 0;
+  if (cursors.left.isDown || keys.A.isDown) dirX -= 1;
+  if (cursors.right.isDown || keys.D.isDown) dirX += 1;
+  if (cursors.up.isDown || keys.W.isDown) dirY -= 1;
+  if (cursors.down.isDown || keys.S.isDown) dirY += 1;
 
-  // Bounding Box interna com limites estritos para o resumo e conversão Prata -> Ouro
-  const summaryBox = scene.add.graphics();
-  summaryBox.fillStyle(0x1f1711, 0.96).fillRoundedRect(boxLeft, top + 80, boxW, 132, 8);
-  summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(boxLeft, top + 80, boxW, 132, 8);
-  summaryBox.lineStyle(1, 0xc5a059, 0.35).lineBetween(boxLeft + 20, top + 114, boxLeft + boxW - 20, top + 114);
+  if (virtualJoystick && virtualJoystick.active) {
+    const joyVec = virtualJoystick.getVector();
+    dirX += joyVec.x;
+    dirY += joyVec.y;
+  }
 
-  const braveryTxt = scene.add.text(cx, top + 97, `Tempo de bravura em combate: ${survivalTime}s`, {
-    ...textStyle('#f5e6c8', 14),
-    align: 'center',
-    wordWrap: { width: boxW - 28, useAdvancedWrap: true }
-  }).setOrigin(0.5);
-  fitTextToBox(braveryTxt, boxW - 28, 26, 11);
+  const inputLen = Math.hypot(dirX, dirY);
+  if (inputLen > 0) {
+    const clampedScale = Math.min(inputLen, 1.0) * moveSpd;
+    player.setVelocity((dirX / inputLen) * clampedScale, (dirY / inputLen) * clampedScale);
+  } else {
+    player.setVelocity(0, 0);
+  }
+  player.setFlipX(false);
+  player.setAngle(0); // ângulo zero mantém linhas e cores perfeitamente nítidas!
+  const isMoving = dirX !== 0 || dirY !== 0;
+  player.anims.timeScale = dirX > 0 ? 1.35 : (dirX < 0 ? 0.9 : (isMoving ? 1.15 : 1.0));
 
-  // Linha visual de Conversão: Moedas de Prata ➔ Moedas de Ouro
-  const silverSprite = scene.add.sprite(cx - 165, top + 138, 'silver_coin').play('silver_coin').setScale(1.3);
-  const goldSprite = scene.add.sprite(cx + 28, top + 138, 'gold_coin').play('gold_coin').setScale(1.3);
+  // Poeira sutil nos passos do cavaleiro
+  if (Math.random() < 0.25) {
+    dustFx.emitParticleAt(Math.round(player.x - 6), Math.round(player.y + 14), 1);
+  }
 
-  const conversionLine = scene.add.text(
-    cx - 148,
-    top + 138,
-    `${summary.silverCollected} Pratas   ➔`,
-    textStyle('#e0f7fa', 14)
-  ).setOrigin(0, 0.5);
-
-  const goldEarnedLine = scene.add.text(
-    cx + 45,
-    top + 138,
-    `+${summary.totalGoldEarned} OURO REAL`,
-    textStyle('#ffd740', 14)
-  ).setOrigin(0, 0.5);
-  fitTextToBox(goldEarnedLine, 165, 24, 10);
-
-  const bonusParts = [`Prata convertida: +${summary.goldFromSilver}G`];
-  if (summary.timeBonusGold > 0) bonusParts.push(`Glória (${survivalTime}s): +${summary.timeBonusGold}G`);
-  if (summary.bossBonusGold > 0) bonusParts.push(`Golem: +${summary.bossBonusGold}G`);
-  bonusParts.push(`Cofre Total: ${summary.newTotalGold}G`);
-
-  const breakdownTxt = scene.add.text(cx, top + 182, bonusParts.join('  •  '), {
-    ...textStyle('#c5a059', 11, 'normal'),
-    align: 'center',
-    wordWrap: { width: boxW - 24, useAdvancedWrap: true }
-  }).setOrigin(0.5);
-  fitTextToBox(breakdownTxt, boxW - 24, 38, 9);
-
-  // Seção de Registro de Iniciais ancorada abaixo da Bounding Box
-  const promptTxt = scene.add.text(cx, top + 234, 'Digite suas 3 iniciais de honra para a Tábula:', {
-    ...textStyle('#e8dcbe', 13),
-    align: 'center',
-    wordWrap: { width: boxW - 20, useAdvancedWrap: true }
-  }).setOrigin(0.5);
-  fitTextToBox(promptTxt, boxW - 20, 24, 10);
-
-  const inputBg = scene.add.graphics();
-  inputBg.fillStyle(0x0e0b08, 0.95).fillRoundedRect(cx - 140, top + 256, 280, 54, 6);
-  inputBg.lineStyle(2, 0xc5a059).strokeRoundedRect(cx - 140, top + 256, 280, 54, 6);
-  inputBg.lineStyle(1, 0x4a3b2c).strokeRoundedRect(cx - 137, top + 259, 274, 48, 4);
-
-  const placeholder = scene.add.text(cx, top + 283, 'EX: ART', {
-    ...textStyle('#736148', 23),
-    fontStyle: 'bold',
-    fontFamily: 'Courier New, monospace'
-  }).setOrigin(0.5);
-
-  const display = scene.add.text(cx, top + 283, '', {
-    ...textStyle('#ffca28', 28),
-    fontStyle: 'bold',
-    fontFamily: 'Courier New, monospace'
-  }).setOrigin(0.5);
-
-  const cursor = scene.add.text(cx + 65, top + 283, '|', { ...textStyle('#ffca28', 25) }).setOrigin(0.5);
-  const cursorTween = scene.tweens.add({
-    targets: cursor,
-    alpha: { from: 1, to: 0 },
-    duration: 500,
-    yoyo: true,
-    repeat: -1
+  // 3. Inimigos: movimento suave com pixels inteiros (sem rotação sub-pixel que esfarela os contornos)
+  enemies.getChildren().forEach(e => {
+    if (!e.isBoss) {
+      e.setAngle(0);
+      if (e.enemyType === 'gargoyle' && e.baseY !== undefined) {
+        e.y = Math.round(Phaser.Math.Clamp(e.baseY + Math.sin(time * 0.0055 + e.phase) * 46, 125, 520));
+        if (e.body) e.body.updateFromGameObject();
+      }
+    }
   });
 
-  const inputHint = scene.add.text(cx, top + 328, 'Digite 3 letras no teclado e confirme abaixo', {
-    ...textStyle('#a8987b', 11),
-    align: 'center',
-    wordWrap: { width: boxW - 20, useAdvancedWrap: true }
-  }).setOrigin(0.5);
+  // Rotação fluida dos Machados Bumerangue e rastros de projéteis
+  playerArrows.getChildren().forEach(p => {
+    if ((p.isBoomerang || p.texture.key === 'axe_proj') && p.active) {
+      p.spinAccum = (p.spinAccum || 0) + 820 * dt;
+      p.setAngle(Math.round(p.spinAccum / 30) * 30);
+      if (p.isBoomerang && !p.returning && p.body.velocity.x < 0) {
+        p.returning = true;
+        p.projId = ++slashCounter;
+      }
+    }
+    // Rastro sutil e fluido da Bola de Fogo (baixa densidade para máxima legibilidade)
+    if (p.isFireball && p.active && Math.random() < 0.16) {
+      emberFx.emitParticleAt(p.x - 6, p.y + Phaser.Math.Between(-1, 1), 1);
+    }
+  });
 
-  const updateDisplay = () => {
-    if (name.length === 0) {
-      placeholder.setVisible(true);
-      display.setText('');
-      cursor.setVisible(true).setX(cx + 65);
+  // Flechas élficas: rastro limpo e direto sem estrelas ofuscantes
+  enemyArrows.getChildren().forEach(a => {
+    if (a.texture.key === 'arrow_elf' && a.active && Math.random() < 0.08) {
+      dustFx.emitParticleAt(a.x + 6, a.y, 1);
+    }
+  });
+
+  if (activeBoss && activeBoss.active) {
+    if (!activeBoss.isLunging) {
+      activeBoss.setAngle(0);
+      if (activeBoss.entering) {
+        if (activeBoss.x <= 685) {
+          activeBoss.x = 685;
+          activeBoss.setVelocityX(0);
+          activeBoss.entering = false;
+          activeBoss.setVelocityY(68);
+        }
+      } else {
+        activeBoss.x = 685;
+        activeBoss.setVelocityX(0);
+        if (activeBoss.y <= 170) activeBoss.setVelocityY(72);
+        else if (activeBoss.y >= 480) activeBoss.setVelocityY(-72);
+      }
+    }
+  }
+
+  // 4. Sistema Modular de Armas: cadência e tempo processados pela estratégia ativa
+  WeaponSystem.update(scene, time, dt);
+  updateItemHUD();
+
+  // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
+  const cull = (group, isOut) => group.getChildren().slice().forEach(s => { if (isOut(s)) removeEntity(s); });
+  cull(villageDecor, s => s.x < -300);
+  cull(enemies, s => !s.isBoss && s.x < -60);
+  cull(obstacles, s => s.x < -60);
+  cull(items, s => s.x < -60);
+  cull(coins, s => s.x < -60);
+  cull(xpOrbs, s => s.x < -60);
+  cull(playerArrows, s => s.x < -40 || s.x > 830 || s.y < 0 || s.y > 620);
+  cull(enemyArrows, s => s.x < -40 || s.x > 840 || s.y < 0 || s.y > 620);
+}
+
+// Impede o jogador de atravessar obstáculos e resolve prensamento de forma suave (sem trancos ou cuspidas)
+function separatePlayerFromObstacle(p, obs) {
+  if (!p.active || !obs.active) return;
+  if (obs.lockedY !== undefined) obs.y = obs.lockedY;
+  obs.body.velocity.y = 0;
+
+  const pb = p.body, ob = obs.body;
+  const ox = Math.min(pb.right, ob.right) - Math.max(pb.left, ob.left);
+  const oy = Math.min(pb.bottom, ob.bottom) - Math.max(pb.top, ob.top);
+  if (ox <= 0 || oy <= 0) return;
+
+  // Direção do desvio: respeita a intenção do jogador (W/S/Joystick) ou desvia pelo lado mais próximo do centro
+  const joyVec = (virtualJoystick && virtualJoystick.active) ? virtualJoystick.getVector() : { x: 0, y: 0 };
+  let slideDir = (keys.W.isDown || cursors.up.isDown || joyVec.y < -0.25) ? -1 :
+                 (keys.S.isDown || cursors.down.isDown || joyVec.y > 0.25) ? 1 :
+                 (pb.center.y < ob.center.y ? -1 : 1);
+  if (p.y <= 112) slideDir = 1;
+  else if (p.y >= 533) slideDir = -1;
+
+  // 1. Jogador espremido contra a borda esquerda pelo obstáculo que avança
+  if (pb.left <= 18 && pb.center.x <= ob.center.x) {
+    const squeezeStep = Math.min(oy, 2.4);
+    p.y = Phaser.Math.Clamp(p.y + slideDir * squeezeStep, 106, 539);
+    p.x = Math.max(16, pb.width / 2);
+  } else if (ox < oy) {
+    // 2. Colisão horizontal padrão
+    if (pb.center.x < ob.center.x) {
+      p.x = Phaser.Math.Clamp(p.x - ox, 16, 792);
+      if (oy > 2) p.y = Phaser.Math.Clamp(p.y + slideDir * Math.min(oy, 1.4), 106, 539);
     } else {
-      placeholder.setVisible(false);
-      display.setText(name.padEnd(3, '_').split('').join(' '));
-      cursor.setVisible(name.length < 3).setX(cx + (name.length - 1) * 22 + 16);
+      p.x = Phaser.Math.Clamp(p.x + ox, 16, 792);
     }
-  };
-  updateDisplay();
-
-  const onKey = (e) => {
-    if (e.key === 'Backspace') {
-      name = name.slice(0, -1);
-      sound.playButtonClick();
-    } else if (e.key === 'Enter') {
-      return submit(false);
-    } else if (/^[a-zA-Z]$/.test(e.key) && name.length < 3) {
-      name += e.key.toUpperCase();
-      sound.playButtonClick();
-    }
-    updateDisplay();
-  };
-
-  const submit = (goDirectlyToShop = false) => {
-    if (done) return;
-    done = true;
-    sound.playButtonClick();
-    cursorTween.stop();
-    scene.input.keyboard.off('keydown', onKey);
-    modal.destroy();
-    const finalName = name.padEnd(3, 'A');
-    const scores = saveHighScore(finalName, survivalTime);
-    if (goDirectlyToShop) {
-      restartScene(scene, false, true, 'mage');
-    } else {
-      showLeaderboard(scene, scores, finalName);
-    }
-  };
-
-  modal.add([
-    summaryBox, braveryTxt, silverSprite, conversionLine, goldSprite, goldEarnedLine, breakdownTxt,
-    promptTxt, inputBg, placeholder, display, cursor, inputHint,
-    ...createButton(scene, cx - 118, top + 392, 'CONFIRMAR HONRA', () => submit(false), 216, 44),
-    ...createButton(scene, cx + 118, top + 392, 'SANTUÁRIO DO MAGO', () => submit(true), 216, 44)
-  ]);
-  scene.input.keyboard.on('keydown', onKey);
+  } else {
+    // 3. Colisão vertical padrão
+    p.y = Phaser.Math.Clamp(p.y + (pb.center.y < ob.center.y ? -oy : oy), 106, 539);
+  }
+  pb.updateFromGameObject();
 }
 
-function showLeaderboard(scene, topScores, currentName) {
-  const modalW = 580;
-  const modalH = 500;
-  const cx = GAME_WIDTH / 2;
-  const top = (GAME_HEIGHT - modalH) / 2;
+// Profundidade por altura (quem está mais embaixo fica na frente) + sombras + barras de HP
+function sortAndShade() {
+  shadows.clear();
+  enemyHpBars.clear();
 
-  const summary = lastRunSummary || { silverCollected: runSilver, totalGoldEarned: runGold };
-  const subtitle = `Prata Convertida: ${summary.silverCollected} ➔ +${summary.totalGoldEarned} Ouro  |  Cofre Total: ${getGold()} Ouro`;
+  const shadeEntity = (s) => {
+    if (!s || !s.active || !s.visible) return;
+    const feet = Math.round(s.groundY ?? s.y + s.displayHeight / 2);
+    s.setDepth(feet);
 
-  const modal = createModal(scene, 'CAMPEÕES DO REINO', modalH, subtitle, modalW);
-  let marked = false;
+    // Determina dimensões da sombra proporcionalmente ao tamanho e tipo da criatura
+    let pw = 22, ph = 7, cw = 15, ch = 4; // Penumbra e Core padrão (Cavaleiro)
+    let pAlpha = 0.20, cAlpha = 0.34;
+    let groundY = feet - 2;
 
-  topScores.forEach((entry, i) => {
-    const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
-    if (isMine) marked = true;
-    const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
-    const rowY = top + 118 + i * 44;
+    if (s.isBoss) {
+      pw = 74; ph = 20; cw = 56; ch = 12;
+      pAlpha = 0.26; cAlpha = 0.44;
+      groundY = feet - 3;
+    } else if (s.enemyType === 'goblin') {
+      pw = 18; ph = 6; cw = 12; ch = 3;
+    } else if (s.enemyType === 'warrior') {
+      pw = 26; ph = 8; cw = 18; ch = 5;
+      cAlpha = 0.38;
+    } else if (s.enemyType === 'elf') {
+      pw = 18; ph = 6; cw = 12; ch = 4;
+    } else if (s.enemyType === 'dark_mage') {
+      // Mago sombrio flutua/levita suavemente no ar
+      pw = 22; ph = 6; cw = 14; ch = 3;
+      pAlpha = 0.16; cAlpha = 0.22;
+      groundY = feet + 4;
+    } else if (s.enemyType === 'gargoyle') {
+      // Gárgula projeta sombra no chão enquanto bate asas no ar
+      pw = 22; ph = 6; cw = 12; ch = 3;
+      pAlpha = 0.16; cAlpha = 0.20;
+      groundY = Math.round((s.baseY || s.y) + 16);
+    } else if (s.enemyType === 'mini_golem') {
+      pw = 20; ph = 7; cw = 14; ch = 4;
+      cAlpha = 0.36;
+    } else if (s.obstacleType === 'rock') {
+      pw = 32; ph = 10; cw = 24; ch = 6;
+      pAlpha = 0.24; cAlpha = 0.40;
+      groundY = feet - 3;
+    } else if (s.obstacleType === 'tree' || s.isTree) {
+      pw = 36; ph = 12; cw = 26; ch = 7;
+      pAlpha = 0.24; cAlpha = 0.40;
+      groundY = feet - 4;
+    } else if (s.displayWidth && s.displayWidth >= 60) {
+      pw = Math.round(s.displayWidth * 0.82);
+      ph = 14; cw = Math.round(s.displayWidth * 0.62); ch = 8;
+      pAlpha = 0.25; cAlpha = 0.38;
+      groundY = feet - 4;
+    } else if (s.isCoin || s.isXpOrb || s.isItem) {
+      pw = 12; ph = 4; cw = 8; ch = 2;
+      pAlpha = 0.18; cAlpha = 0.28;
+      groundY = feet - 1;
+    }
 
-    const rowBg = scene.add.graphics();
-    rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
-    rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
+    const sx = Math.round(s.x);
+    // 1. Penumbra suave externa (dissipa suavemente no solo)
+    shadows.fillStyle(0x161009, pAlpha).fillEllipse(sx, groundY, pw, ph);
+    // 2. Núcleo escuro de contato (assenta os pés firmemente na terra)
+    shadows.fillStyle(0x0a0604, cAlpha).fillEllipse(sx, groundY, cw, ch);
+  };
 
-    const rowTxt = scene.add.text(cx, rowY, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`, {
-      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 16),
-      fontStyle: isMine ? 'bold' : 'normal'
-    }).setOrigin(0.5);
-    fitTextToBox(rowTxt, 430, 28, 12);
-
-    modal.add([rowBg, rowTxt]);
+  obstacles.getChildren().forEach(o => {
+    if (o.lockedY !== undefined) o.y = o.lockedY;
+    if (o.crackDecal && o.crackDecal.active) {
+      o.crackDecal.setPosition(Math.round(o.x), Math.round(o.y + 6));
+    }
+    shadeEntity(o);
   });
 
-  let restarting = false;
-  const finishAndRestart = (autoStart, openShop = false, shopTab = 'mage') => {
-    if (restarting) return;
-    restarting = true;
-    scene.input.keyboard.off('keydown-SPACE', onQuickRestart);
-    scene.input.keyboard.off('keydown-ENTER', onQuickRestart);
-    modal.destroy();
-    restartScene(scene, autoStart, openShop, shopTab);
-  };
+  if (villageDecor) {
+    villageDecor.getChildren().forEach(v => {
+      if (v.lockedY !== undefined) v.y = v.lockedY;
+      if (v.speechBubble && v.speechBubble.active) {
+        v.speechBubble.setPosition(Math.round(v.x), Math.round(v.y - 24)).setDepth(v.y + 30);
+      }
+      if (v.isGroundPlaza) {
+        v.setDepth(-8.5);
+      } else {
+        shadeEntity(v);
+      }
+    });
+  }
 
-  const onQuickRestart = () => {
-    sound.playButtonClick();
-    finishAndRestart(true, false);
-  };
+  if (gameState === 'PLAYING' || gameState === 'PAUSED' || gameState === 'LEVEL_UP') {
+    shadeEntity(player);
+    items.getChildren().forEach(shadeEntity);
+    coins.getChildren().forEach(shadeEntity);
+    if (xpOrbs) xpOrbs.getChildren().forEach(shadeEntity);
+    enemies.getChildren().forEach(e => {
+      shadeEntity(e);
+      if (e.chargeRing && e.chargeRing.active) {
+        e.chargeRing.setPosition(Math.round(e.x - 12), Math.round(e.y)).setDepth(e.depth + 2);
+      }
+      // Desenha barra de vida/armadura para inimigos comuns com mais de 1 HP (Boss usa o HUD dedicado)
+      if (e.active && !e.isBoss && e.maxHp > 1) {
+        const bw = 22, bh = 4;
+        const bx = Math.round(e.x - bw / 2);
+        const by = Math.round(e.y - e.displayHeight / 2 - 8);
+        enemyHpBars.fillStyle(0x0e0b08, 0.9).fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+        enemyHpBars.fillStyle(0x2a1d17, 0.9).fillRect(bx, by, bw, bh);
+        const pct = Phaser.Math.Clamp(e.hp / e.maxHp, 0, 1);
+        const hpColor = e.hp < e.maxHp ? 0xff5252 : 0xffca28;
+        enemyHpBars.fillStyle(hpColor, 1).fillRect(bx, by, Math.round(bw * pct), bh);
+      }
+    });
+  }
 
-  const newRunBtn = createButton(scene, cx - 138, top + 368, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 36);
-  const forgeBtn = createButton(scene, cx + 138, top + 368, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 36);
-  const mageBtn = createButton(scene, cx - 138, top + 412, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 36);
-  const menuBtn = createButton(scene, cx + 138, top + 412, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 36);
-  const hintTxt = scene.add.text(cx, top + 452, '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
+  playerArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
+  enemyArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
 
-  modal.add([...newRunBtn, ...forgeBtn, ...mageBtn, ...menuBtn, hintTxt]);
-
-  scene.time.delayedCall(200, () => {
-    if (!restarting) {
-      scene.input.keyboard.once('keydown-SPACE', onQuickRestart);
-      scene.input.keyboard.once('keydown-ENTER', onQuickRestart);
+  // Escudo, aura rúnica e golpe de espada acompanham o cavaleiro (sempre voltados para a frente)
+  if (player && player.visible) {
+    shieldSprite.setPosition(Math.round(player.x + 12), Math.round(player.y + 4)).setDepth(player.depth + 1);
+    if (shieldAura && shieldAura.visible) {
+      shieldAura.setPosition(Math.round(player.x), Math.round(player.y)).setDepth(player.depth - 1);
+      shieldAura.rotation += 0.02;
+    }
+  }
+  slashes.getChildren().forEach(s => {
+    s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y)).setDepth(player.depth + 3);
+    if (s.blade && s.blade.active) {
+      s.blade.setPosition(Math.round(player.x + 8), Math.round(player.y + 4)).setDepth(player.depth + 2);
     }
   });
 }
+
+// =============================================================================
+
+// =============================================================================
+// CONFIGURAÇÃO E INSTANCIAÇÃO DO PHASER
+// =============================================================================
+const config = {
+  type: Phaser.AUTO,
+  parent: 'game-container',
+  width: GAME_WIDTH,
+  height: GAME_HEIGHT,
+  pixelArt: true,
+  roundPixels: true,
+  backgroundColor: '#5b8a3c',
+  render: {
+    pixelArt: true,
+    antialias: false,
+    antialiasGL: false,
+    roundPixels: true,
+    powerPreference: 'high-performance'
+  },
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    expandParent: false,
+    fullscreenTarget: 'game-container'
+  },
+  physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+  scene: { preload, create, update }
+};
+
+const game = new Phaser.Game(config);
+
+
+// <<< END: src/main.js
