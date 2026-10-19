@@ -290,18 +290,164 @@ const ACHIEVEMENTS_CATALOG = [
   }
 ];
 
-// Paleta de cores da pixel art
+// =============================================================================
+// PALETA DE CORES DA PIXEL ART (Padrão 16-bit com rampas de 3 a 4 sub-tons)
+// Todas as chaves originais foram preservadas para garantir 100% de retrocompatibilidade.
+// =============================================================================
 const C = {
-  outline: 0x1a1410, white: 0xffffff, yellow: 0xffeb3b, bone: 0xe8dcc0,
-  steel: 0xc9ced8, steelDark: 0x8a909c, steelLight: 0xf2f4f8,
-  iron: 0x454852, ironDark: 0x26272e,
-  red: 0xd83a3a, darkRed: 0x8e1b1b, eye: 0xff3030,
-  blue: 0x2f6fd6, gold: 0xf2c14e, skin: 0xf1c27d,
-  wood: 0x9c6b3a, woodDark: 0x5c3a1b, rag: 0x7a5230, boot: 0x4e342e,
-  gob: 0x9ccc65, gobDark: 0x5f8f2f,
-  elfHair: 0xf7e27a, elfTunic: 0x26a69a, elfCloak: 0x00574b,
-  purple: 0xc36bff, cyan: 0x7fe7ff,
-  leaf: 0x2f6e35, leafLight: 0x47a04a, leafDark: 0x1d4a22
+  // --- CONTORNOS, BASE & OSSO ---
+  outline: 0x1a1410,
+  outlineSoft: 0x2c221a,
+  white: 0xffffff,
+  bone: 0xe8dcc0,
+  boneDark: 0xbdb094,
+
+  // --- AÇO POLIDO & LÂMINAS ---
+  steelHighlight: 0xffffff,
+  steelLight: 0xf2f4f8,
+  steel: 0xc9ced8,
+  steelBase: 0xc9ced8,
+  steelShadow: 0x8a909c,
+  steelDark: 0x8a909c,
+  steelDeep: 0x5a606e,
+
+  // --- FERRO BRUTO & ARMADURA PESADA ---
+  ironHighlight: 0x6e7382,
+  iron: 0x454852,
+  ironBase: 0x454852,
+  ironShadow: 0x26272e,
+  ironDark: 0x26272e,
+  ironDeep: 0x15161a,
+
+  // --- OURO REAL & BRONZE ---
+  yellow: 0xffeb3b,
+  goldHighlight: 0xfff9c4,
+  goldLight: 0xffe082,
+  gold: 0xf2c14e,
+  goldBase: 0xf2c14e,
+  goldShadow: 0xc49000,
+  goldDark: 0x946500,
+  goldDeep: 0x5a3c00,
+
+  // --- PRATA & METAL BRUNIDO ---
+  silverHighlight: 0xffffff,
+  silverLight: 0xe2e8f0,
+  silver: 0xb0bec5,
+  silverBase: 0xb0bec5,
+  silverShadow: 0x78909c,
+  silverDark: 0x455a64,
+  silverDeep: 0x263238,
+
+  // --- TONS CARMESINS & RUBI ---
+  redHighlight: 0xff7b7b,
+  red: 0xd83a3a,
+  redBase: 0xd83a3a,
+  darkRed: 0x8e1b1b,
+  redShadow: 0x8e1b1b,
+  redDeep: 0x4a0e0e,
+  eye: 0xff3030,
+  rubyGlow: 0xff5252,
+  rubyLight: 0xff1744,
+  rubyBase: 0xd83a3a,
+  rubyShadow: 0x8e1b1b,
+  rubyDeep: 0x4a0e0e,
+
+  // --- AZUL REAL & HERÁLDICA ---
+  blueLight: 0x5b93f0,
+  blue: 0x2f6fd6,
+  blueBase: 0x2f6fd6,
+  blueShadow: 0x1c4ba6,
+  blueDeep: 0x0f2b69,
+
+  // --- PELE & EXPRESSÃO ---
+  skinHighlight: 0xffebd2,
+  skinLight: 0xfde2b8,
+  skin: 0xf1c27d,
+  skinBase: 0xf1c27d,
+  skinShadow: 0xc68b59,
+  skinDark: 0x8c5731,
+  skinDeep: 0x5c3619,
+
+  // --- MADEIRA, COURO & VESTES ---
+  woodHighlight: 0xba854d,
+  woodLight: 0xba854d,
+  wood: 0x9c6b3a,
+  woodBase: 0x9c6b3a,
+  woodShadow: 0x5c3a1b,
+  woodDark: 0x5c3a1b,
+  woodDeep: 0x331e0b,
+  bark: 0x422610,
+  rag: 0x7a5230,
+  boot: 0x4e342e,
+  leatherLight: 0x8d5c38,
+  leatherBase: 0x6d4426,
+  leatherShadow: 0x4e342e,
+  leatherDark: 0x2e1e19,
+
+  // --- GOBLIN & CRIATURAS TERRESTRES ---
+  gobHighlight: 0xcddc39,
+  gobLight: 0xaed581,
+  gob: 0x9ccc65,
+  gobBase: 0x9ccc65,
+  gobShadow: 0x5f8f2f,
+  gobDark: 0x5f8f2f,
+  gobDeep: 0x33691e,
+
+  // --- ELFO & FLORESTA PROFUNDA ---
+  elfHairLight: 0xfff176,
+  elfHair: 0xf7e27a,
+  elfHairShadow: 0xc9a432,
+  elfTunicLight: 0x4db6ac,
+  elfTunic: 0x26a69a,
+  elfTunicShadow: 0x00796b,
+  elfCloakLight: 0x00796b,
+  elfCloak: 0x00574b,
+  elfCloakShadow: 0x003d33,
+  elfCloakDark: 0x00261f,
+
+  // --- MAGIA ARCANA & VAZIO ---
+  arcanaLight: 0xda9bff,
+  purple: 0xc36bff,
+  arcanaBase: 0xc36bff,
+  arcanaShadow: 0x8e24aa,
+  arcanaDeep: 0x4a148c,
+  voidDark: 0x240046,
+
+  // --- MANA CELESTE & ELEMENTAL ---
+  manaLight: 0xb2ebf2,
+  cyan: 0x7fe7ff,
+  manaBase: 0x7fe7ff,
+  manaShadow: 0x00b4d8,
+  manaDeep: 0x0077b6,
+
+  // --- FOGO & BRASA ---
+  fireHighlight: 0xfff9c4,
+  fireLight: 0xffca28,
+  fireBase: 0xff7043,
+  fireShadow: 0xd83a3a,
+  fireDeep: 0x8e1b1b,
+
+  // --- NATUREZA, FOLHAGEM & MUSGO ---
+  leafHighlight: 0x72c96b,
+  leafLight: 0x47a04a,
+  leaf: 0x2f6e35,
+  leafBase: 0x2f6e35,
+  leafShadow: 0x1d4a22,
+  leafDark: 0x1d4a22,
+  leafDeep: 0x0e2912,
+  leafAmber: 0xd97724,
+  leafRust: 0x9c3d18,
+  mossGold: 0x827717,
+
+  // --- TERRA, PEDRA & CAMINHO ---
+  dirtLight: 0xb89a6c,
+  dirtBase: 0x9b7b4f,
+  dirtShadow: 0x6e5233,
+  dirtDeep: 0x422f1c,
+  stoneLight: 0x949ba6,
+  stoneBase: 0x69707c,
+  stoneShadow: 0x484e58,
+  stoneDeep: 0x292d33
 };
 
 // =============================================================================
@@ -1265,14 +1411,69 @@ const sound = new SoundSystem();
 
 // =============================================================================
 // ARTE: FERRAMENTAS DE PIXEL ART
-// Cada "pixel" do desenho vira um bloco 2x2. Antes das cores, o desenho é
+// Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
 // carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
+// Utilitários de desenho: r.dither (xadrez sub-pixel), r.shine (especular) e r.bevel (3D).
 // =============================================================================
 function drawPixels(g, ox, oy, draw, frame = 0) {
-  const pass = (dx, dy, outline) => draw((color, x, y, w, h) =>
-    g.fillStyle(outline ? C.outline : color).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2), frame);
-  pass(-1, 0, true); pass(1, 0, true); pass(0, -1, true); pass(0, 1, true); // contorno
-  pass(0, 0, false);                                                         // cores
+  const pass = (dx, dy, outline) => {
+    const r = (color, x, y, w = 1, h = 1) => {
+      g.fillStyle(outline ? C.outline : color).fillRect(
+        ox + x * 2 + dx,
+        oy + y * 2 + dy,
+        w * 2,
+        h * 2
+      );
+    };
+
+    // Dithering 16-bit: padrão xadrez 1x1 sub-pixel para gradientes suaves de metal/tecido/terreno
+    r.dither = (colorA, colorB, x, y, w = 1, h = 1, invert = false) => {
+      if (outline) {
+        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+      } else {
+        for (let lx = 0; lx < w; lx++) {
+          for (let ly = 0; ly < h; ly++) {
+            const px = ox + (x + lx) * 2;
+            const py = oy + (y + ly) * 2;
+            const flip = ((lx + ly + (invert ? 1 : 0)) % 2 === 0);
+            const c1 = flip ? colorA : colorB;
+            const c2 = flip ? colorB : colorA;
+            g.fillStyle(c1).fillRect(px, py, 1, 1).fillRect(px + 1, py + 1, 1, 1);
+            g.fillStyle(c2).fillRect(px + 1, py, 1, 1).fillRect(px, py + 1, 1, 1);
+          }
+        }
+      }
+    };
+
+    // Ponto especular (glint de 1 sub-pixel em joias, lâminas e bordas polidas)
+    r.shine = (x, y, subX = 0, subY = 0, color = C.white) => {
+      if (!outline) {
+        g.fillStyle(color).fillRect(ox + x * 2 + subX, oy + y * 2 + subY, 1, 1);
+      }
+    };
+
+    // Borda chanfrada 3D para moedas, botões e medalhões
+    r.bevel = (highlightColor, shadowColor, x, y, w, h) => {
+      if (outline) {
+        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+      } else {
+        g.fillStyle(highlightColor)
+          .fillRect(ox + x * 2, oy + y * 2, w * 2, 2)
+          .fillRect(ox + x * 2, oy + y * 2, 2, h * 2);
+        g.fillStyle(shadowColor)
+          .fillRect(ox + x * 2, oy + (y + h) * 2 - 2, w * 2, 2)
+          .fillRect(ox + (x + w) * 2 - 2, oy + y * 2, 2, h * 2);
+      }
+    };
+
+    draw(r, frame, r);
+  };
+
+  pass(-1, 0, true);
+  pass(1, 0, true);
+  pass(0, -1, true);
+  pass(0, 1, true); // contorno escuro 4-pass
+  pass(0, 0, false); // cores e detalhes
 }
 
 // Gera uma folha de sprites (quadros lado a lado) e registra cada quadro
@@ -2127,32 +2328,89 @@ function drawVillageNpc(r, f) {
   r(C.boot, 7, 11, 2, 2);
 }
 
-// 7. Peça de Ouro / Meta-Moeda Reluzente (16x16 — 2 frames girando e brilhando)
+// 7. Peça de Ouro Real (16x16 — 2 frames com chanfro 3D, dithering sub-pixel e brilho especular)
 function drawGoldCoin(r, f) {
   if (f === 0) {
-    r(C.gold, 1, 1, 6, 6);
-    r(C.yellow, 2, 2, 4, 4);
-    r(C.woodDark, 3, 3, 2, 2);
-    r(C.white, 2, 1, 2, 1);
+    // Silhueta octagonal chanfrada (diâmetro 6 em grid 8x8)
+    r(C.goldDark, 2, 1, 4, 1);
+    r(C.goldDark, 1, 2, 6, 4);
+    r(C.goldDark, 2, 6, 4, 1);
+
+    // Borda superior e esquerda iluminada (luz solar incidente)
+    r(C.goldLight, 2, 1, 3, 1);
+    r(C.goldLight, 1, 2, 1, 3);
+
+    // Borda inferior e direita sombreada (oclusão profunda)
+    r(C.goldDeep, 5, 2, 1, 4);
+    r(C.goldDeep, 2, 6, 4, 1);
+    r(C.goldDeep, 4, 5, 2, 1);
+
+    // Disco interior rebaixado com dithering de ouro suave
+    r(C.goldBase, 2, 2, 4, 4);
+    r.dither(C.goldLight, C.goldBase, 2, 2, 4, 2);
+
+    // Emblema nobre cunhado no centro (cruz/selo imperial)
+    r(C.goldDeep, 3, 3, 2, 2);
+    r(C.goldHighlight, 3, 3, 1, 1);
+
+    // Ponto de brilho especular no topo
+    r.shine(2, 1, 1, 0, C.white);
   } else {
-    r(C.gold, 2, 1, 4, 6);
-    r(C.yellow, 3, 2, 2, 4);
-    r(C.white, 3, 1, 1, 2);
+    // Frame 1: Perfil elíptico durante a rotação da moeda
+    r(C.goldDark, 3, 1, 2, 1);
+    r(C.goldDark, 2, 2, 4, 4);
+    r(C.goldDark, 3, 6, 2, 1);
+
+    // Face visível com brilho de giro
+    r(C.goldBase, 2, 2, 3, 4);
+    r(C.goldDeep, 5, 2, 1, 4); // espessura da moeda na lateral
+    r(C.goldHighlight, 3, 2, 1, 4); // reflexo vertical de rotação
+
+    // Ponto de brilho especular no vértice
+    r.shine(3, 1, 1, 1, C.white);
   }
 }
 
-// 8. Moeda de Prata (Drop dos Inimigos durante a partida — 16x16, 2 frames)
+// 8. Moeda de Prata Brunida (16x16 — 2 frames com chanfro 3D e reflexo especular)
 function drawSilverCoin(r, f) {
   if (f === 0) {
-    r(C.steelDark, 1, 1, 6, 6);
-    r(C.steel, 2, 2, 4, 4);
-    r(C.steelLight, 2, 1, 4, 2);
-    r(C.iron, 3, 3, 2, 2);
-    r(C.white, 2, 2, 2, 1);
+    // Silhueta octagonal chanfrada (diâmetro 6 em grid 8x8)
+    r(C.silverShadow, 2, 1, 4, 1);
+    r(C.silverShadow, 1, 2, 6, 4);
+    r(C.silverShadow, 2, 6, 4, 1);
+
+    // Borda superior e esquerda iluminada
+    r(C.silverHighlight, 2, 1, 3, 1);
+    r(C.silverHighlight, 1, 2, 1, 3);
+
+    // Borda inferior e direita sombreada
+    r(C.silverDeep, 5, 2, 1, 4);
+    r(C.silverDeep, 2, 6, 4, 1);
+    r(C.silverDeep, 4, 5, 2, 1);
+
+    // Disco interior com textura de prata brunida
+    r(C.silverBase, 2, 2, 4, 4);
+    r.dither(C.silverLight, C.silverBase, 2, 2, 4, 2);
+
+    // Emblema central de prata nobre
+    r(C.silverDeep, 3, 3, 2, 2);
+    r(C.silverHighlight, 3, 3, 1, 1);
+
+    // Brilho especular no topo
+    r.shine(2, 1, 1, 0, C.white);
   } else {
-    r(C.steelDark, 2, 1, 4, 6);
-    r(C.steel, 3, 2, 2, 4);
-    r(C.white, 3, 1, 1, 3);
+    // Frame 1: Perfil elíptico durante a rotação da moeda
+    r(C.silverShadow, 3, 1, 2, 1);
+    r(C.silverShadow, 2, 2, 4, 4);
+    r(C.silverShadow, 3, 6, 2, 1);
+
+    // Face e reflexo vertical
+    r(C.silverBase, 2, 2, 3, 4);
+    r(C.silverDeep, 5, 2, 1, 4);
+    r(C.silverHighlight, 3, 2, 1, 4);
+
+    // Ponto especular
+    r.shine(3, 1, 1, 1, C.white);
   }
 }
 

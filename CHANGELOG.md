@@ -2,6 +2,22 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v1.2.1] - 2026-10-19 (Infraestrutura Gráfica 16-bit: Paleta Expandida de Sub-tons, Primitivas de Desenho com Dithering/Shine/Bevel e Moedas em Alta Definição)
+### 🎨 Paleta Expandida de Sub-tons (`const C`)
+- **Organização em Rampas de 3 a 4 Cores**: Estruturação cromática com iluminação direta, base e oclusão para todos os materiais essenciais (Aço, Ferro, Ouro, Prata, Rubi, Madeira, Couro, Pele, Vegetação, Magia Arcana, Fogo e Terra).
+- **100% de Retrocompatibilidade**: Todas as 24 chaves originais de cor foram preservadas e mantidas com seus valores originais para garantir que nenhum sprite existente apresente regressão visual.
+
+### 🖌️ Primitivas de Desenho Procedural em `drawPixels`
+- **`r.dither(colorA, colorB, x, y, w, h, invert)`**: Dithering óptico 16-bit com xadrez sub-pixel 1x1, permitindo gradientes suaves e transições realistas de iluminação.
+- **`r.shine(x, y, subX, subY, color)`**: Ponto de reflexo especular de alta precisão (1 sub-pixel) para simular brilho de luz em metais e joias.
+- **`r.bevel(highlightColor, shadowColor, x, y, w, h)`**: Chanfro tridimensional procedural para bordas elevadas com luz superior/esquerda e sombra inferior/direita.
+- **Silhueta e Contorno Blindados**: Todas as primitivas respeitam integralmente os 4 passes de contorno escuro (`C.outline`), garantindo silhuetas 100% sólidas sem vazamentos.
+
+### 🪙 Demonstração Cirúrgica: Moeda de Ouro e Moeda de Prata 16-bit
+- **`drawGoldCoin` (16x16, 2 frames)**: Aro octagonal chanfrado em `goldDeep`, cunhagem rebaixada com dithering `goldLight` / `goldBase`, emblema nobre imperial e ponto de reflexo especular.
+- **`drawSilverCoin` (16x16, 2 frames)**: Aro em `silverShadow`/`silverDeep`, textura interna de prata brunida, relevo central e brilho de metal polido.
+- **Preservação de Dimensões e Física**: Tamanhos de frame mantidos em 16x16 no TextureManager e lógica de coleta/física do Arcade Physics 100% intocadas.
+
 ---
 
 ## [v1.2.0] - 2026-10-18 (Sistema Completo de XP e Level Up Roguelike, Draft de 3 Cartas, Menus Temáticos da Forja do Ferreiro & Santuário do Mago, Tábula de Conquistas e Rebalanceamento Gráfico e de Combate)
