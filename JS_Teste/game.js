@@ -451,16 +451,89 @@ const C = {
 };
 
 // =============================================================================
+// SISTEMA DE EVENTOS DESACOPLADO (Observer Pattern / EventBus)
+// Permite que combate, áudio, interface, conquistas e drops reajam a eventos do jogo
+// sem dependência cíclica ou chamadas diretas rígidas.
+// =============================================================================
+const GameEvents = {
+  // Jogador
+  PLAYER_HIT: 'player:hit',
+  PLAYER_HEALED: 'player:healed',
+  PLAYER_DIED: 'player:died',
+  // Combate & Projéteis
+  ENEMY_DAMAGED: 'enemy:damaged',
+  ENEMY_KILLED: 'enemy:killed',
+  SHIELD_REFLECT: 'shield:reflect',
+  SHIELD_SHOCKWAVE: 'shield:shockwave',
+  // Chefão
+  BOSS_SPAWNED: 'boss:spawned',
+  BOSS_DAMAGED: 'boss:damaged',
+  BOSS_DEFEATED: 'boss:defeated',
+  // Progressão, Drops & Inventário
+  XP_GAINED: 'xp:gained',
+  LEVEL_UP: 'player:levelup',
+  COIN_COLLECTED: 'coin:collected',
+  ITEM_COLLECTED: 'item:collected',
+  BUFF_EQUIPPED: 'buff:equipped',
+  BUFF_ENDED: 'buff:ended',
+  // Conquistas
+  ACHIEVEMENT_PROGRESS: 'achievement:progress'
+};
+
+class GameEventBus {
+  constructor() {
+    this.listeners = new Map();
+  }
+  on(event, fn) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    this.listeners.get(event).add(fn);
+    return () => this.off(event, fn);
+  }
+  once(event, fn) {
+    const wrapper = (payload) => {
+      this.off(event, wrapper);
+      fn(payload);
+    };
+    return this.on(event, wrapper);
+  }
+  off(event, fn) {
+    const set = this.listeners.get(event);
+    if (set) {
+      set.delete(fn);
+      if (set.size === 0) this.listeners.delete(event);
+    }
+  }
+  emit(event, payload) {
+    const set = this.listeners.get(event);
+    if (set) {
+      for (const fn of Array.from(set)) {
+        try {
+          fn(payload);
+        } catch (err) {
+          console.error('[EventBus] Erro ao disparar evento ' + event + ':', err);
+        }
+      }
+    }
+  }
+  clear() {
+    this.listeners.clear();
+  }
+}
+const events = new GameEventBus();
+
+// =============================================================================
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
-let enemies, obstacles, trees, items, playerArrows, enemyArrows, slashes, xpOrbs;
+let enemies, obstacles, items, playerArrows, enemyArrows, slashes, xpOrbs;
 let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
 let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
-let villageDecor, coins, menuContainer, pauseModal, draftModal, currentShopTab = 'mage';
+let villageDecor, coins, menuContainer, pauseModal, draftModal;
 let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
 let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
@@ -469,278 +542,304 @@ let runBonusDuration = 0;
 let enemySpeed, spawnDelay, buff, slashCounter = 0;
 
 // =============================================================================
-// RECORDES, OURO PERSISTENTE, CONQUISTAS & UPGRADES (salvos com localStorage)
+// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
+// Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
-function getHighScores() {
-  const defaults = [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
-  if (typeof localStorage === 'undefined') return defaults;
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return defaults;
-  try {
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : defaults;
-  } catch (err) {
-    console.warn('Dados de recordes corrompidos, restaurando padrão:', err);
-    return defaults;
-  }
-}
-
-function saveHighScore(name, score) {
-  const scores = getHighScores();
-  scores.push({ name, score });
-  scores.sort((a, b) => b.score - a.score);
-  const top = scores.slice(0, 5);
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(top));
-  }
-  return top;
-}
-
-const getBestScore = () => getHighScores()[0]?.score ?? 0;
-
-function getGold() {
-  if (typeof localStorage === 'undefined') return 0;
-  const val = parseInt(localStorage.getItem(STORAGE_GOLD_KEY) || '0', 10);
-  return Number.isFinite(val) && val >= 0 ? val : 0;
-}
-
-function setGold(total) {
-  const clean = Math.max(0, Math.floor(total));
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_GOLD_KEY, String(clean));
-  }
-  if (hudGoldText && hudGoldText.active) {
-    hudGoldText.setText(`${clean}`);
-  }
-  return clean;
-}
-
-function addGold(amount) {
-  return setGold(getGold() + amount);
-}
-
-// Consolida e converte as Moedas de Prata da partida em Ouro Persistente (Meta-currency)
-function consolidateSilverToGold() {
-  const silverCollected = Math.max(0, Math.floor(runSilver));
-  const goldFromSilver = silverCollected; // 1 Moeda de Prata consolidada = 1 Ouro Real
-  const timeBonusGold = Math.floor(survivalTime / 15);
-  const bossBonusGold = bossDefeated ? 20 : 0;
-  const totalGoldEarned = goldFromSilver + timeBonusGold + bossBonusGold;
-  const newTotalGold = addGold(totalGoldEarned);
-  runGold = totalGoldEarned;
-  lastRunSummary = {
-    silverCollected,
-    goldFromSilver,
-    timeBonusGold,
-    bossBonusGold,
-    totalGoldEarned,
-    newTotalGold,
-    reachedLevel: runLevel
-  };
-  return lastRunSummary;
-}
-
-// Desbloqueio de Armas na Forja do Ferreiro (Níveis de armas são isolados por partida!)
-function getUpgrades() {
-  const defaults = {
-    bow:       { unlocked: true },
-    sword:     { unlocked: true },
-    shield:    { unlocked: true },
-    axe:       { unlocked: false },
-    firestaff: { unlocked: false },
-    starterWeapon: null
-  };
-  if (typeof localStorage === 'undefined') return defaults;
-  const saved = localStorage.getItem(STORAGE_UPGRADES_KEY);
-  if (!saved) return defaults;
-  try {
-    const parsed = JSON.parse(saved);
-    if (!parsed || typeof parsed !== 'object') return defaults;
-    ['bow', 'sword', 'shield', 'axe', 'firestaff'].forEach(k => {
-      if (parsed[k] && typeof parsed[k] === 'object') {
-        defaults[k].unlocked = Boolean(parsed[k].unlocked ?? defaults[k].unlocked);
-      }
-    });
-    if (parsed.starterWeapon && defaults[parsed.starterWeapon]?.unlocked) {
-      defaults.starterWeapon = parsed.starterWeapon;
+const StorageManager = {
+  getHighScores() {
+    const defaults = [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : defaults;
+    } catch {
+      return defaults;
     }
-    return defaults;
-  } catch (e) {
-    return defaults;
-  }
-}
+  },
 
-function saveUpgrades(up) {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_UPGRADES_KEY, JSON.stringify(up));
-  }
-}
+  saveHighScore(name, score) {
+    const scores = this.getHighScores();
+    scores.push({ name: name.toUpperCase().slice(0, 3) || '???', score });
+    scores.sort((a, b) => b.score - a.score);
+    const topScores = scores.slice(0, 5);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(topScores));
+    } catch {}
+    return topScores;
+  },
 
-// Nível da arma é ISOLADO POR PARTIDA (sobe via XP e Cartas de Level Up de 1 até 5!)
-function getWeaponLevel(type) {
-  return Phaser.Math.Clamp(runWeaponLevels[type] || 1, 1, MAX_WEAPON_LEVEL);
-}
+  getBestScore() {
+    return this.getHighScores()[0]?.score ?? 0;
+  },
 
-function getUnlockedWeaponPool() {
-  const up = getUpgrades();
-  return Object.keys(WEAPON_CATALOG).filter(k => up[k]?.unlocked);
-}
+  getGold() {
+    try {
+      const raw = localStorage.getItem(STORAGE_GOLD_KEY);
+      return raw ? Math.max(0, parseInt(raw, 10) || 0) : 0;
+    } catch {
+      return 0;
+    }
+  },
 
-// Status Permanentes no Santuário do Mago Alquimista
-function getStatusUpgrades() {
-  const defaults = { magnet: 1, maxHp: 1, moveSpeed: 1, wisdom: 1 };
-  if (typeof localStorage === 'undefined') return defaults;
-  const saved = localStorage.getItem(STORAGE_STATUS_KEY);
-  if (!saved) return defaults;
-  try {
-    const parsed = JSON.parse(saved);
-    if (!parsed || typeof parsed !== 'object') return defaults;
-    Object.keys(defaults).forEach(k => {
-      if (STATUS_CATALOG[k]) {
-        defaults[k] = Phaser.Math.Clamp(parseInt(parsed[k] || 1, 10), 1, STATUS_CATALOG[k].maxLevel);
-      }
-    });
-    return defaults;
-  } catch (e) {
-    return defaults;
-  }
-}
+  setGold(total) {
+    const val = Math.max(0, Math.floor(total));
+    try {
+      localStorage.setItem(STORAGE_GOLD_KEY, String(val));
+    } catch {}
+    if (hudGoldText && hudGoldText.active) {
+      hudGoldText.setText(`${val}`);
+    }
+    return val;
+  },
 
-function saveStatusUpgrades(st) {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_STATUS_KEY, JSON.stringify(st));
-  }
-}
+  addGold(amount) {
+    const current = this.getGold();
+    return this.setGold(current + amount);
+  },
 
-function getStatusLevel(key) {
-  const st = getStatusUpgrades();
-  return st[key] ?? 1;
-}
+  consolidateSilverToGold() {
+    const earnedGold = Math.floor(runSilver / 3);
+    const savedSilver = runSilver;
+    runGold = earnedGold;
+    this.addGold(earnedGold);
+    lastRunSummary = {
+      survivalTime,
+      runSilver: savedSilver,
+      earnedGold,
+      totalGold: this.getGold()
+    };
+    runSilver = 0;
+    return lastRunSummary;
+  },
 
-function getMagnetRadius() {
-  const lvl = getStatusLevel('magnet');
-  return STATUS_CATALOG.magnet.values[lvl - 1] ?? 90;
-}
-
-function getPlayerMaxHp() {
-  const lvl = getStatusLevel('maxHp');
-  return STATUS_CATALOG.maxHp.values[lvl - 1] ?? 1;
-}
-
-function getPlayerMoveSpeed() {
-  const lvl = getStatusLevel('moveSpeed');
-  return STATUS_CATALOG.moveSpeed.values[lvl - 1] ?? PLAYER_SPEED;
-}
-
-function getWisdomMultiplier() {
-  const lvl = getStatusLevel('wisdom');
-  return STATUS_CATALOG.wisdom.values[lvl - 1] ?? 1.0;
-}
-
-function getWisdomBonusDuration() {
-  const lvl = getStatusLevel('wisdom');
-  return (lvl - 1) * 0.6;
-}
-
-// Curva de XP por nível na partida
-function getXpRequiredForLevel(lvl) {
-  return Math.round(6 + (lvl - 1) * 5 + Math.pow(lvl - 1, 1.35) * 2);
-}
-
-// Infraestrutura do Sistema de Conquistas (Achievements Acumulativos)
-function getAchievementsData() {
-  const defaults = {
-    stats: { goblins: 0, warriors: 0, mages: 0, reflected: 0 },
-    unlocked: {}
-  };
-  if (typeof localStorage === 'undefined') return defaults;
-  const saved = localStorage.getItem(STORAGE_ACHIEVEMENTS_KEY);
-  if (!saved) return defaults;
-  try {
-    const parsed = JSON.parse(saved);
-    if (!parsed || typeof parsed !== 'object') return defaults;
-    if (parsed.stats && typeof parsed.stats === 'object') {
-      ['goblins', 'warriors', 'mages', 'reflected'].forEach(k => {
-        const v = parseInt(parsed.stats[k] || 0, 10);
-        defaults.stats[k] = Number.isFinite(v) && v >= 0 ? v : 0;
+  getUpgrades() {
+    const defaults = {
+      bow: { unlocked: true, level: 1 },
+      sword: { unlocked: true, level: 1 },
+      shield: { unlocked: true, level: 1 },
+      axe: { unlocked: false, level: 1 },
+      firestaff: { unlocked: false, level: 1 },
+      starterWeapon: 'bow'
+    };
+    try {
+      const raw = localStorage.getItem(STORAGE_UPGRADES_KEY);
+      if (!raw) return defaults;
+      const parsed = JSON.parse(raw);
+      const res = { ...defaults };
+      Object.keys(defaults).forEach(k => {
+        if (k === 'starterWeapon') {
+          res[k] = parsed[k] && defaults[parsed[k]] ? parsed[k] : defaults[k];
+        } else {
+          res[k] = {
+            unlocked: Boolean(parsed[k]?.unlocked ?? defaults[k].unlocked),
+            level: 1
+          };
+        }
       });
+      return res;
+    } catch {
+      return defaults;
     }
-    if (parsed.unlocked && typeof parsed.unlocked === 'object') {
-      defaults.unlocked = { ...parsed.unlocked };
+  },
+
+  saveUpgrades(up) {
+    try {
+      localStorage.setItem(STORAGE_UPGRADES_KEY, JSON.stringify(up));
+    } catch {}
+    return up;
+  },
+
+  getWeaponLevel(type) {
+    return runWeaponLevels[type] || 1;
+  },
+
+  getUnlockedWeaponPool() {
+    const up = this.getUpgrades();
+    const pool = [];
+    ['bow', 'sword', 'shield', 'axe', 'firestaff'].forEach(k => {
+      if (up[k]?.unlocked) pool.push(k);
+    });
+    return pool.length > 0 ? pool : ['bow'];
+  },
+
+  getStatusUpgrades() {
+    const defaults = { maxHp: 1, moveSpeed: 1, magnet: 1, wisdom: 1 };
+    try {
+      const raw = localStorage.getItem(STORAGE_STATUS_KEY);
+      if (!raw) return defaults;
+      const parsed = JSON.parse(raw);
+      return {
+        maxHp: Phaser.Math.Clamp(parsed.maxHp ?? 1, 1, STATUS_CATALOG.maxHp.maxLevel),
+        moveSpeed: Phaser.Math.Clamp(parsed.moveSpeed ?? 1, 1, STATUS_CATALOG.moveSpeed.maxLevel),
+        magnet: Phaser.Math.Clamp(parsed.magnet ?? 1, 1, STATUS_CATALOG.magnet.maxLevel),
+        wisdom: Phaser.Math.Clamp(parsed.wisdom ?? 1, 1, STATUS_CATALOG.wisdom.maxLevel)
+      };
+    } catch {
+      return defaults;
     }
-    return defaults;
-  } catch (e) {
-    return defaults;
-  }
-}
+  },
 
-function saveAchievementsData(data) {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_ACHIEVEMENTS_KEY, JSON.stringify(data));
-  }
-}
+  saveStatusUpgrades(st) {
+    try {
+      localStorage.setItem(STORAGE_STATUS_KEY, JSON.stringify(st));
+    } catch {}
+    return st;
+  },
 
-function recordAchievementProgress(scene, statKey, amount = 1) {
-  const data = getAchievementsData();
-  if (data.stats[statKey] === undefined) return;
-  data.stats[statKey] += amount;
+  getStatusLevel(key) {
+    return this.getStatusUpgrades()[key] || 1;
+  },
 
-  const newlyUnlocked = [];
-  ACHIEVEMENTS_CATALOG.forEach(ach => {
-    if (ach.stat === statKey && !data.unlocked[ach.id] && data.stats[statKey] >= ach.target) {
-      data.unlocked[ach.id] = true;
-      newlyUnlocked.push(ach);
+  getMagnetRadius() {
+    const lvl = this.getStatusLevel('magnet');
+    return STATUS_CATALOG.magnet.values[lvl - 1] || 90;
+  },
+
+  getPlayerMaxHp() {
+    const lvl = this.getStatusLevel('maxHp');
+    return STATUS_CATALOG.maxHp.values[lvl - 1] || 1;
+  },
+
+  getPlayerMoveSpeed() {
+    const lvl = this.getStatusLevel('moveSpeed');
+    return STATUS_CATALOG.moveSpeed.values[lvl - 1] || PLAYER_SPEED;
+  },
+
+  getWisdomMultiplier() {
+    const lvl = this.getStatusLevel('wisdom');
+    return STATUS_CATALOG.wisdom.values[lvl - 1] || 1.0;
+  },
+
+  getWisdomBonusDuration() {
+    const lvl = this.getStatusLevel('wisdom');
+    return [0, 0.6, 1.2, 1.8, 2.5][lvl - 1] || 0;
+  },
+
+  getXpRequiredForLevel(lvl) {
+    const xpTable = [6, 12, 20, 32, 48, 68, 95, 130, 175, 230];
+    if (lvl - 1 < xpTable.length) return xpTable[lvl - 1];
+    return 230 + (lvl - xpTable.length) * 65;
+  },
+
+  getAchievementsData() {
+    const defaults = {
+      unlocked: {},
+      stats: { goblins: 0, warriors: 0, mages: 0, reflected: 0 }
+    };
+    try {
+      const raw = localStorage.getItem(STORAGE_ACHIEVEMENTS_KEY);
+      if (!raw) return defaults;
+      const parsed = JSON.parse(raw);
+      return {
+        unlocked: parsed.unlocked || {},
+        stats: {
+          goblins: parsed.stats?.goblins || 0,
+          warriors: parsed.stats?.warriors || 0,
+          mages: parsed.stats?.mages || 0,
+          reflected: parsed.stats?.reflected || 0
+        }
+      };
+    } catch {
+      return defaults;
     }
-  });
+  },
 
-  saveAchievementsData(data);
+  saveAchievementsData(data) {
+    try {
+      localStorage.setItem(STORAGE_ACHIEVEMENTS_KEY, JSON.stringify(data));
+    } catch {}
+    return data;
+  },
 
-  newlyUnlocked.forEach((ach, idx) => {
-    addGold(ach.rewardGold || 0);
-    if (scene) {
-      scene.time.delayedCall(idx * 1800, () => showAchievementToast(scene, ach));
+  recordAchievementProgress(scene, statKey, amount = 1) {
+    const data = this.getAchievementsData();
+    if (data.stats[statKey] === undefined) return;
+    data.stats[statKey] += amount;
+
+    const newlyUnlocked = [];
+    ACHIEVEMENTS_CATALOG.forEach(ach => {
+      if (ach.stat === statKey && !data.unlocked[ach.id] && data.stats[statKey] >= ach.target) {
+        data.unlocked[ach.id] = true;
+        newlyUnlocked.push(ach);
+      }
+    });
+
+    this.saveAchievementsData(data);
+
+    newlyUnlocked.forEach((ach, idx) => {
+      this.addGold(ach.rewardGold || 0);
+      if (scene) {
+        scene.time.delayedCall(idx * 1800, () => showAchievementToast(scene, ach));
+      }
+    });
+  },
+
+  isGameFullscreen(scene) {
+    return Boolean((scene && scene.scale && scene.scale.isFullscreen) || (typeof document !== 'undefined' && document.fullscreenElement));
+  },
+
+  updateFullscreenIcons(scene) {
+    const fs = this.isGameFullscreen(scene);
+    if (hudFullscreenIcon && hudFullscreenIcon.active) {
+      hudFullscreenIcon.setFrame(fs ? 1 : 0);
     }
-  });
-}
+  },
 
-function isGameFullscreen(scene) {
-  return Boolean((scene && scene.scale && scene.scale.isFullscreen) || (typeof document !== 'undefined' && document.fullscreenElement));
-}
-
-function updateFullscreenIcons(scene) {
-  const frame = isGameFullscreen(scene) ? 1 : 0;
-  if (hudFullscreenIcon && hudFullscreenIcon.active) hudFullscreenIcon.setFrame(frame);
-  if (menuContainer && menuContainer.updateMenuFullscreen) menuContainer.updateMenuFullscreen();
-  if (pauseModal && pauseModal.updateFullscreen) pauseModal.updateFullscreen();
-}
-
-function toggleFullscreen(scene) {
-  if (!scene || !scene.scale) return;
-  try {
-    if (scene.scale.isFullscreen) {
-      scene.scale.stopFullscreen();
-    } else {
-      scene.scale.startFullscreen();
-    }
-  } catch (err) {
-    const targetEl = (typeof document !== 'undefined' && document.getElementById('game-container')) || document.documentElement;
-    if (typeof document !== 'undefined') {
-      if (!document.fullscreenElement && targetEl && targetEl.requestFullscreen) {
-        targetEl.requestFullscreen().catch(() => {});
-      } else if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
+  toggleFullscreen(scene) {
+    if (!scene || !scene.scale) return;
+    try {
+      if (scene.scale.isFullscreen) {
+        scene.scale.stopFullscreen();
+      } else {
+        scene.scale.startFullscreen();
+      }
+    } catch (err) {
+      const targetEl = (typeof document !== 'undefined' && document.getElementById('game-container')) || document.documentElement;
+      if (typeof document !== 'undefined') {
+        if (!document.fullscreenElement && targetEl && targetEl.requestFullscreen) {
+          targetEl.requestFullscreen().catch(() => {});
+        } else if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
       }
     }
+    scene.time.delayedCall(60, () => {
+      if (scene.scale) scene.scale.refresh();
+      if (scene.cameras && scene.cameras.main) {
+        scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        scene.cameras.main.setRoundPixels(true);
+      }
+      this.updateFullscreenIcons(scene);
+    });
   }
-  scene.time.delayedCall(60, () => {
-    if (scene.scale) scene.scale.refresh();
-    if (scene.cameras && scene.cameras.main) {
-      scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
-      scene.cameras.main.setRoundPixels(true);
-    }
-    updateFullscreenIcons(scene);
-  });
-}
+};
+
+// Aliases para compatibilidade total com o restante do jogo
+function getHighScores() { return StorageManager.getHighScores(); }
+function saveHighScore(name, score) { return StorageManager.saveHighScore(name, score); }
+const getBestScore = () => StorageManager.getBestScore();
+function getGold() { return StorageManager.getGold(); }
+function setGold(total) { return StorageManager.setGold(total); }
+function addGold(amount) { return StorageManager.addGold(amount); }
+function consolidateSilverToGold() { return StorageManager.consolidateSilverToGold(); }
+function getUpgrades() { return StorageManager.getUpgrades(); }
+function saveUpgrades(up) { return StorageManager.saveUpgrades(up); }
+function getWeaponLevel(type) { return StorageManager.getWeaponLevel(type); }
+function getUnlockedWeaponPool() { return StorageManager.getUnlockedWeaponPool(); }
+function getStatusUpgrades() { return StorageManager.getStatusUpgrades(); }
+function saveStatusUpgrades(st) { return StorageManager.saveStatusUpgrades(st); }
+function getStatusLevel(key) { return StorageManager.getStatusLevel(key); }
+function getMagnetRadius() { return StorageManager.getMagnetRadius(); }
+function getPlayerMaxHp() { return StorageManager.getPlayerMaxHp(); }
+function getPlayerMoveSpeed() { return StorageManager.getPlayerMoveSpeed(); }
+function getWisdomMultiplier() { return StorageManager.getWisdomMultiplier(); }
+function getWisdomBonusDuration() { return StorageManager.getWisdomBonusDuration(); }
+function getXpRequiredForLevel(lvl) { return StorageManager.getXpRequiredForLevel(lvl); }
+function getAchievementsData() { return StorageManager.getAchievementsData(); }
+function saveAchievementsData(data) { return StorageManager.saveAchievementsData(data); }
+function recordAchievementProgress(scene, statKey, amount = 1) { return StorageManager.recordAchievementProgress(scene, statKey, amount); }
+function isGameFullscreen(scene) { return StorageManager.isGameFullscreen(scene); }
+function updateFullscreenIcons(scene) { return StorageManager.updateFullscreenIcons(scene); }
+function toggleFullscreen(scene) { return StorageManager.toggleFullscreen(scene); }
 
 // =============================================================================
 // SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
@@ -1323,11 +1422,6 @@ class SoundSystem {
       osc.start(t);
       osc.stop(t + dur);
     });
-  }
-
-  // Upgrade forjado na Loja (acorde triunfante)
-  playPowerup() {
-    this.playItemCollect();
   }
 
   // Coleta de Orbe de XP (cristal místico suave)
@@ -3224,11 +3318,15 @@ function create(data) {
 
   // Limpa todos os listeners de teclado e escala ao encerrar/reiniciar a cena
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    events.clear();
     scene.input.keyboard.removeAllListeners();
     scene.scale.off('enterfullscreen', onScaleChange);
     scene.scale.off('leavefullscreen', onScaleChange);
     scene.scale.off('resize', onScaleChange);
   });
+
+  // Registra Listeners de Eventos Desacoplados (Observer Pattern)
+  setupDecoupledEventListeners(scene);
 
   const onScaleChange = () => {
     scene.cameras.main.setViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -3283,7 +3381,7 @@ function create(data) {
   coins = scene.physics.add.group();
   xpOrbs = scene.physics.add.group();
   enemies = scene.physics.add.group();
-  obstacles = trees = scene.physics.add.group({ immovable: true });
+  obstacles = scene.physics.add.group({ immovable: true });
   items = scene.physics.add.group();
   playerArrows = scene.physics.add.group();
   enemyArrows = scene.physics.add.group();
@@ -3576,21 +3674,8 @@ function updateGameplay(scene, time, dt) {
     }
   }
 
-  // 4. Arma ativa: conta o tempo e ataca na cadência escalada pelo nível de Upgrade In-Game!
-  if (buff.type) {
-    buff.timeLeft -= dt;
-    if (buff.timeLeft <= 0) endBuff();
-    else {
-      const rate = getWeaponAttackRate(buff.type);
-      if (rate && time > buff.nextAttack) {
-        if (buff.type === 'bow') shootArrow(scene);
-        else if (buff.type === 'sword') swingSword(scene);
-        else if (buff.type === 'axe') throwAxe(scene);
-        else if (buff.type === 'firestaff') shootFireball(scene);
-        buff.nextAttack = time + rate;
-      }
-    }
-  }
+  // 4. Sistema Modular de Armas: cadência e tempo processados pela estratégia ativa
+  WeaponSystem.update(scene, time, dt);
   updateItemHUD();
 
   // 5. Limpeza do que saiu da tela (.slice() evita pular itens ao destruir; Boss nunca some!)
@@ -4530,43 +4615,82 @@ function damageEnemy(scene, enemy, dmg = 1) {
   }
 }
 
+// =============================================================================
+// OUVINTES DE EVENTOS DESACOPLADOS (Observer / Listeners)
+// Isola efeitos de áudio, partículas visuais, conquistas e drops da lógica central
+// =============================================================================
+function setupDecoupledEventListeners(scene) {
+  events.clear();
+
+  // 1. ÁUDIO REATIVO
+  events.on(GameEvents.ENEMY_KILLED, () => sound.playEnemyHit());
+  events.on(GameEvents.SHIELD_REFLECT, () => sound.playShieldBlock());
+  events.on(GameEvents.SHIELD_SHOCKWAVE, () => sound.playShieldBlock());
+  events.on(GameEvents.COIN_COLLECTED, () => sound.playCoin());
+  events.on(GameEvents.XP_GAINED, () => sound.playXpOrb());
+  events.on(GameEvents.LEVEL_UP, () => sound.playLevelUp());
+  events.on(GameEvents.ITEM_COLLECTED, () => sound.playItemCollect());
+  events.on(GameEvents.PLAYER_HIT, () => sound.playPlayerHurt());
+  events.on(GameEvents.PLAYER_DIED, () => sound.playGameOver());
+
+  // 2. EFEITOS VISUAIS (VFX)
+  events.on(GameEvents.ENEMY_KILLED, ({ x, y, enemyType }) => {
+    hitFx.explode(10, x, y);
+    if (enemyType === 'warrior') {
+      sparksFx.explode(8, x, y);
+      debrisFx.explode(5, x, y);
+    } else if (enemyType === 'mini_golem') {
+      debrisFx.explode(8, x, y);
+      sparksFx.explode(4, x, y);
+    } else if (enemyType === 'dark_mage') {
+      holyFx.explode(8, x, y);
+    }
+  });
+
+  // 3. CONQUISTAS DESACOPLADAS
+  events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType }) => {
+    if (enemyType === 'goblin') recordAchievementProgress(scene, 'goblins', 1);
+    else if (enemyType === 'warrior') recordAchievementProgress(scene, 'warriors', 1);
+    else if (enemyType === 'dark_mage') recordAchievementProgress(scene, 'mages', 1);
+  });
+  events.on(GameEvents.SHIELD_REFLECT, ({ scene }) => {
+    recordAchievementProgress(scene, 'reflected', 1);
+  });
+
+  // 4. SISTEMA DE LOOT & RECOMPENSAS
+  events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
+    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, gargoyle: 0.45, goblin: 0.38, mini_golem: 0.32 };
+    const chance = dropRates[enemyType] ?? 0.40;
+
+    spawnXpOrb(scene, x - 6, y, xpValue);
+
+    if (Math.random() < chance) {
+      const count = (enemyType === 'dark_mage' || enemyType === 'warrior') && Math.random() < 0.42 ? 2 : 1;
+      for (let i = 0; i < count; i++) {
+        spawnCoinDrop(scene, x + 8 + i * 10, y);
+      }
+    }
+  });
+}
+
 function killEnemy(enemy) {
   if (!enemy || !enemy.active) return;
   const scene = enemy.scene;
   const ex = enemy.x, ey = enemy.y;
   const eType = enemy.enemyType;
-  const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, gargoyle: 0.45, goblin: 0.38, mini_golem: 0.32 };
-  const chance = dropRates[eType] ?? 0.40;
   const xpValue = ENEMIES[eType]?.xp ?? 2;
 
-  sound.playEnemyHit();
-  hitFx.explode(10, ex, ey);
-  if (eType === 'warrior') {
-    sparksFx.explode(8, ex, ey);
-    debrisFx.explode(5, ex, ey);
-  } else if (eType === 'mini_golem') {
-    debrisFx.explode(8, ex, ey);
-    sparksFx.explode(4, ex, ey);
-  } else if (eType === 'dark_mage') {
-    holyFx.explode(8, ex, ey);
-  }
   removeEntity(enemy);
 
-  // 1. Contabiliza Conquistas Acumulativas (Goblins, Guerreiros, Magos)
-  if (eType === 'goblin') recordAchievementProgress(scene, 'goblins', 1);
-  else if (eType === 'warrior') recordAchievementProgress(scene, 'warriors', 1);
-  else if (eType === 'dark_mage') recordAchievementProgress(scene, 'mages', 1);
-
-  // 2. Todo inimigo derrotado deixa cair Orbe(s) de XP pelo mapa!
-  spawnXpOrb(scene, ex - 6, ey, xpValue);
-
-  // 3. Chance de dropar Moeda(s) de Prata
-  if (Math.random() < chance) {
-    const count = (eType === 'dark_mage' || eType === 'warrior') && Math.random() < 0.42 ? 2 : 1;
-    for (let i = 0; i < count; i++) {
-      spawnCoinDrop(scene, ex + 8 + i * 10, ey);
-    }
-  }
+  // Emite evento para que áudio, partículas, conquistas e drops respondam de forma modular
+  events.emit(GameEvents.ENEMY_KILLED, {
+    scene,
+    enemy,
+    enemyType: eType,
+    x: ex,
+    y: ey,
+    xpValue
+  });
 }
 
 // Orbe de XP: gema esmeralda/ciano que salta no mapa e é atraída pelo herói
@@ -4657,7 +4781,298 @@ function collectCoin(scene, coin) {
   removeEntity(coin);
 }
 
+// =============================================================================
+// SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
+// Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
+// permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
+// =============================================================================
+const WeaponStrategies = {
+  bow: {
+    id: 'bow',
+    name: BUFF_NAMES.bow,
+    baseDuration: BUFF_TIME.bow,
+    attackRates: [520, 420, 350, 280, 220],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 520;
+    },
+    attack({ player, arrows, nextProjId }) {
+      sound.playBow();
+      const lvl = getWeaponLevel('bow');
+      const spreads = {
+        1: [0],
+        2: [0],
+        3: [-0.09, 0.09],
+        4: [-0.18, 0, 0.18],
+        5: [-0.28, -0.14, 0, 0.14, 0.28]
+      }[lvl] || [0];
+
+      const spd = lvl === 1 ? 560 : (lvl === 2 ? 670 : 760);
+      const dmg = lvl >= 4 ? 2 : 1;
+      const pierce = lvl >= 5 ? 3 : (lvl >= 4 ? 2 : 1);
+      const arrowKey = lvl >= 4 ? 'arrow_gold' : 'arrow_player';
+
+      spreads.forEach(ang => {
+        const arrow = arrows.create(player.x + 20, player.y + 2, arrowKey);
+        arrow.body.setSize(18, 6);
+        arrow.dmg = dmg;
+        arrow.pierceCount = pierce;
+        arrow.projId = nextProjId();
+        arrow.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        arrow.rotation = ang;
+      });
+    }
+  },
+  sword: {
+    id: 'sword',
+    name: BUFF_NAMES.sword,
+    baseDuration: BUFF_TIME.sword,
+    attackRates: [480, 400, 330, 265, 210],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 480;
+    },
+    attack({ scene, player, arrows, slashes, fx, nextProjId }) {
+      slashes.getChildren().slice().forEach(old => old.destroy());
+      sound.playSword();
+      const lvl = getWeaponLevel('sword');
+      const scales = [0.72, 0.96, 1.20, 1.45, 1.72];
+      const damages = [1, 1, 2, 3, 4];
+      const scale = scales[lvl - 1] || 0.72;
+      const offsetX = Math.round(24 + (lvl - 1) * 7);
+
+      const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
+      slash.setScale(scale);
+      slash.offsetX = offsetX;
+      slash.body.setSize(Math.round(36 * scale), Math.round(58 * scale));
+      slash.slashId = nextProjId();
+      slash.dmg = damages[lvl - 1] || 1;
+      slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
+        .setOrigin(0.5, 0.78)
+        .setScale(0.82 + (lvl - 1) * 0.18);
+
+      fx.sparks.explode(5, player.x + offsetX, player.y);
+
+      slash.on('destroy', () => {
+        if (slash.blade && slash.blade.active) slash.blade.destroy();
+      });
+
+      scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
+      scene.tweens.add({
+        targets: slash, alpha: { from: 1, to: 0 }, duration: 190,
+        onComplete: () => slash.destroy()
+      });
+
+      // Nv 5 (Máximo): Dispara Onda de Vento Cortante Perfurante!
+      if (lvl >= 5) {
+        const waveProj = arrows.create(player.x + 34, player.y, 'arrow_player');
+        waveProj.setTint(0x7fe7ff);
+        waveProj.setScale(1.45);
+        waveProj.body.setSize(22, 14);
+        waveProj.dmg = 3;
+        waveProj.pierceCount = 4;
+        waveProj.projId = nextProjId();
+        waveProj.setVelocityX(720);
+        fx.holy.explode(8, player.x + 34, player.y);
+      }
+    }
+  },
+  shield: {
+    id: 'shield',
+    name: BUFF_NAMES.shield,
+    baseDuration: BUFF_TIME.shield,
+    attackRates: [],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 1.65 + wisdomDur + bonusDur;
+    },
+    getAttackRate() { return 0; },
+    attack() { /* O escudo é defensivo/reativo a impactos */ },
+    onEquip({ shieldSprite, shieldAura, player, fx }) {
+      shieldSprite.setVisible(true);
+      if (shieldAura) {
+        shieldAura.setVisible(true);
+        if (player) {
+          shieldAura.setPosition(Math.round(player.x), Math.round(player.y));
+          fx.holy.explode(10, player.x, player.y);
+        }
+      }
+    },
+    onUnequip({ shieldSprite, shieldAura }) {
+      shieldSprite.setVisible(false);
+      if (shieldAura) shieldAura.setVisible(false);
+    }
+  },
+  axe: {
+    id: 'axe',
+    name: BUFF_NAMES.axe,
+    baseDuration: BUFF_TIME.axe,
+    attackRates: [600, 500, 420, 340, 270],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 600;
+    },
+    attack({ player, arrows, nextProjId }) {
+      sound.playSword();
+      const lvl = getWeaponLevel('axe');
+      const angles = {
+        1: [0],
+        2: [0],
+        3: [-0.16, 0.16],
+        4: [-0.24, 0, 0.24],
+        5: [-0.32, -0.11, 0.11, 0.32]
+      }[lvl] || [0];
+
+      const scales = [0.82, 0.96, 1.05, 1.18, 1.32];
+      const damages = [1, 1, 2, 2, 3];
+
+      angles.forEach(ang => {
+        const axe = arrows.create(player.x + 18, player.y, 'axe_proj');
+        axe.setScale(scales[lvl - 1] || 0.82);
+        axe.body.setSize(20, 20);
+        axe.isBoomerang = lvl >= 2;
+        axe.pierceCount = lvl === 1 ? 2 : 99;
+        axe.returning = false;
+        axe.dmg = damages[lvl - 1] || 1;
+        axe.projId = nextProjId();
+
+        const spd = 460 + (lvl - 1) * 40;
+        axe.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        axe.body.setAccelerationX(-680);
+      });
+    }
+  },
+  firestaff: {
+    id: 'firestaff',
+    name: BUFF_NAMES.firestaff,
+    baseDuration: BUFF_TIME.firestaff,
+    attackRates: [650, 540, 450, 360, 285],
+    getDuration(lvl, bonusDur, wisdomDur) {
+      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+    },
+    getAttackRate(lvl) {
+      return this.attackRates[lvl - 1] || 650;
+    },
+    attack({ player, arrows, nextProjId }) {
+      sound.playBow();
+      const lvl = getWeaponLevel('firestaff');
+      const angles = {
+        1: [0],
+        2: [0],
+        3: [-0.13, 0.13],
+        4: [-0.15, 0.15],
+        5: [-0.24, 0, 0.24]
+      }[lvl] || [0];
+
+      const radii = [42, 58, 74, 92, 115];
+      const damages = [1, 1, 2, 3, 4];
+      const scales = [0.85, 1.0, 1.12, 1.25, 1.40];
+
+      angles.forEach(ang => {
+        const fb = arrows.create(player.x + 22, player.y, 'fireball_proj');
+        fb.setScale(scales[lvl - 1] || 0.85);
+        fb.body.setSize(18, 12);
+        fb.isFireball = true;
+        fb.blastRadius = radii[lvl - 1] || 42;
+        fb.dmg = damages[lvl - 1] || 1;
+        fb.projId = nextProjId();
+
+        const spd = 440 + (lvl - 1) * 35;
+        fb.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+        fb.rotation = ang;
+      });
+    }
+  }
+};
+
+const WeaponSystem = {
+  strategies: WeaponStrategies,
+  get(type) {
+    return this.strategies[type];
+  },
+  getDuration(type) {
+    const s = this.get(type);
+    if (!s) return BUFF_TIME[type] || 6.0;
+    return s.getDuration(getWeaponLevel(type), runBonusDuration, getWisdomBonusDuration());
+  },
+  getAttackRate(type) {
+    const s = this.get(type);
+    if (!s) return ATTACK_RATE[type] || 0;
+    return s.getAttackRate(getWeaponLevel(type));
+  },
+  equip(scene, type, announce = true) {
+    const s = this.get(type);
+    const sameType = buff.type === type;
+    const dur = this.getDuration(type);
+    const lvl = getWeaponLevel(type);
+
+    buff = {
+      type,
+      timeLeft: dur,
+      maxTime: dur,
+      nextAttack: sameType ? buff.nextAttack : 0
+    };
+
+    if (s && s.onEquip) {
+      s.onEquip({ shieldSprite, shieldAura, player, fx: { holy: holyFx } });
+    } else {
+      shieldSprite.setVisible(false);
+      if (shieldAura) shieldAura.setVisible(false);
+    }
+
+    if (announce && player) {
+      floatText(scene, player.x, player.y - 24, `${BUFF_NAMES[type]} NV.${lvl}!`, '#ffca28');
+    }
+    events.emit(GameEvents.BUFF_EQUIPPED, { type, level: lvl, duration: dur });
+    updateItemHUD();
+  },
+  end() {
+    const prevType = buff.type;
+    const s = this.get(prevType);
+    if (s && s.onUnequip) {
+      s.onUnequip({ shieldSprite, shieldAura });
+    } else {
+      shieldSprite.setVisible(false);
+      if (shieldAura) shieldAura.setVisible(false);
+    }
+    buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
+    if (playerBuffBar) playerBuffBar.clear();
+    events.emit(GameEvents.BUFF_ENDED, { type: prevType });
+  },
+  update(scene, time, dt) {
+    if (!buff.type) return;
+    buff.timeLeft -= dt;
+    if (buff.timeLeft <= 0) {
+      this.end();
+      return;
+    }
+    const s = this.get(buff.type);
+    if (!s) return;
+    const rate = s.getAttackRate(getWeaponLevel(buff.type));
+    if (rate && time > buff.nextAttack) {
+      s.attack({
+        scene,
+        player,
+        arrows: playerArrows,
+        slashes,
+        fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
+        getLevel: getWeaponLevel,
+        nextProjId: () => ++slashCounter
+      });
+      buff.nextAttack = time + rate;
+    }
+  }
+};
+
 function getWeaponDuration(type) {
+  return WeaponSystem.getDuration(type);
+}
+function _original_unused_getWeaponDuration(type) {
   const base = BUFF_TIME[type] || 6.0;
   const wisdomAdd = getWisdomBonusDuration();
   const lvl = getWeaponLevel(type);
@@ -4678,6 +5093,9 @@ function getWeaponAttackRate(type) {
 }
 
 function equipWeaponBuff(scene, type, announce = true) {
+  WeaponSystem.equip(scene, type, announce);
+}
+function _legacy_equipWeaponBuff(scene, type, announce = true) {
   const sameType = buff.type === type;
   const dur = getWeaponDuration(type);
   const lvl = getWeaponLevel(type);
@@ -4708,6 +5126,9 @@ function collectItem(scene, item) {
 }
 
 function endBuff() {
+  WeaponSystem.end();
+}
+function _legacy_endBuff() {
   buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
   shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);
