@@ -5,17 +5,38 @@
 }
 
 html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #0c0907;
+  overflow: hidden;
+}
+
+#game-container {
+  position: fixed;
+   inset: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: #0c0907;
+  overflow: hidden;
+  display: block;
+}
+
+#game-container:fullscreen,
+#game-container:-webkit-full-screen {
   width: 100vw;
   height: 100vh;
   background-color: #0c0907;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
 }
 
 canvas {
   display: block;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
 }

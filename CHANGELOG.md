@@ -4,6 +4,60 @@ Todas as alterações deste projeto estão documentadas aqui seguindo o padrão 
 
 ---
 
+## [v1.2.0] - 2026-10-18 (Sistema Completo de XP e Level Up Roguelike, Draft de 3 Cartas, Menus Temáticos da Forja do Ferreiro & Santuário do Mago, Tábula de Conquistas e Rebalanceamento Gráfico e de Combate)
+### 🔮 Sistema de Experiência (XP), Orbes Cintilantes e Barra Modular no HUD (`gainXp` + `xpOrbs` + `updateXpHUD`)
+- **Orbes de XP Dinâmicos (`drawXpOrb`, `16x16`, 2 frames)**: Inimigos derrotados dropam orbes arcanos com animação cintilante e pulso gravitacional magnético.
+  - *Goblins*: 1 XP.
+  - *Guerreiros de Ferro*: 2 XP.
+  - *Gárgulas Aladas*: 2 XP.
+  - *Magos Sombrios*: 3 XP.
+  - *Golem Ancestral (Boss)*: 25 XP.
+- **Barra de XP no HUD (`hudXpBar`)**: Integrada no topo da interface (`110, 64, 575x10`), com moldura nobre de carvalho e preenchimento verde esmeralda / ciano, nível atual (`NÍVEL X`) e contador numérico (`XP: Y / Z`).
+- **Retenção de Excedente de XP**: Ao subir de nível, qualquer XP excedente é mantido e transferido para o próximo patamar sem desperdício.
+
+### 🃏 Interface de Seleção de Upgrades (RNG Draft Screen de 3 Cartas) (`openLevelUpDraft` + `rollLevelUpCards`)
+- **Pausa Automática de Combate**: Ao preencher a barra de XP, o mundo do jogo pausa com segurança (`gameState = 'LEVEL_UP'`), a música diminui suavemente e a fanfarra triunfante de Level Up é executada (`playLevelUp`).
+- **Sorteio RNG de 3 Cartas Distintas**: Apresenta exatamente 3 cartas de upgrade nobres com bordas ornamentadas, ícones, categoria e descrição de combate.
+- **Controle Flexível**: Seleção imediata por clique com o mouse ou pelas teclas numéricas de atalho `[1]`, `[2]` e `[3]`.
+- **Fila de Níveis Pendentes & Invulnerabilidade Justa**: Suporta múltiplos Level Ups acumulados em fila e concede `750ms` de invulnerabilidade ao retornar ao jogo para evitar dano injusto imediato.
+
+### ⚔️ Rebalanceamento Roguelike das Armas em 5 Níveis (`MAX_WEAPON_LEVEL = 5`)
+- **Evolução Gradual e Poder Máximo**: Armas começam com cadência e dano comedidos no Nível 1 e tornam-se forças colossais no Nível 5:
+  - *Arco Élfico de Caça (`bow`)*: Nv.1 (1 flecha lenta, 1 dano) ➔ Nv.5 (5 flechas quádruplas em leque com perfuração e cadência ultra-rápida).
+  - *Espada Larga de Aço (`sword`)*: Nv.1 (corte curto frontal) ➔ Nv.5 (lâmina colossal +60%, dano 4 e 2 ondas de vento cortante).
+  - *Escudo Sagrado dos Reis (`shield`)*: Nv.1 (bloqueio frontal básico) ➔ Nv.5 (aura sagrada total, reflexo de até 4 flechas por golpe e onda de choque sísmica).
+  - *Machado de Batalha Pesado (`axe`)*: Nv.1 (1 machado bumerangue) ➔ Nv.5 (4 machados gigantes em órbita contínua perfurando todos os inimigos).
+  - *Cajado Flamejante Vulcânico (`firestaff`)*: Nv.1 (1 orbe solar pequeno) ➔ Nv.5 (Cataclismo Solar: 3 mega meteoros com 115px de raio e dano em área).
+
+### 🔨 A Forja do Ferreiro Real (`showBlacksmithMenu`)
+- **Ambiente Temático de Forja**: Cenário com fornalha incandescente, bigorna de aço e o Mestre Ferreiro animado (`blacksmith_master`) atrás do balcão.
+- **Desbloqueio com Ouro Persistente**: Armas avançadas (*Machado Pesado* por `25G` e *Cajado Vulcânico* por `45G`) podem ser comissionadas pelo jogador para entrarem permanentemente no drop da floresta e na seleção de cartas.
+- **Seleção de Arma Inicial**: O jogador pode escolher sua arma favorita desbloqueada para iniciar equipado logo nos portões de Vale Dourado.
+
+### 🧙 O Santuário do Mago Alquimista (`showMageShopMenu`)
+- **Ambiente Místico com o Arquimago**: Balcão arcano com frascos borbulhantes, ervas raras, runas brilhantes e o Arquimago animado (`mage_master`).
+- **Upgrades Exclusivos de Status Permanentes (`STATUS_CATALOG`)**:
+  - *Elixir do Coração de Rubi (`maxHp`)*: Vida máxima de 1 a 4 Corações.
+  - *Poção dos Ventos Alados (`moveSpeed`)*: Velocidade de corrida de 280 a 380 px/s.
+  - *Extrato de Ímã Astral (`magnet`)*: Raio magnético de atração de Orbes de XP e Moedas de Prata de 90px a 310px.
+  - *Infusão de Ervas Arcanas (`wisdom`)*: Bônus de ganho de XP (+15% a +65%) e duração prolongada de todas as relíquias (+0.6s a +2.5s).
+
+### 🏆 Tábula de Conquistas do Reino (`showAchievementsMenu` + `ACHIEVEMENTS_CATALOG`)
+- **8 Conquistas de Combate com Recompensas em Ouro**:
+  - *Caçador de Goblins I (15) & II (60)*
+  - *Quebrador de Ferro I (10) & II (40)*
+  - *Caçador do Oculto I (8) & II (30)*
+  - *Escudo Espelhado I (10) & II (35)*
+- **Notificações Visuais em Tempo Real (Toasts)**: Efeito sonoro triunfal (`playAchievement`), painel animado no topo da tela e concessão imediata de Ouro persistente.
+- **Tábula de Honra**: Tela dedicada com barras de progresso `X / Alvo`, percentual e selos dourados de honra.
+
+### 🎯 Correção Gráfica de Resolução, Alinhamento de Tela Cheia e Suavidade
+- **Eliminação do Aspecto "Torto" em Fullscreen**: Remoção do conflito entre o flexbox do `body` e o `autoCenter: Phaser.Scale.CENTER_BOTH`, ancorando o canvas em container dedicado com margem zero.
+- **Fim do Visual "Esfarelado"**: Remoção das rotações sub-pixel contínuas (`setAngle`) em sprites de baixa resolução, ativação estrita de `roundPixels: true`, `antialias: false` e filtro `NEAREST` em todas as texturas procedurais.
+- **Director Dinâmico Escalável**: Onda de monstros em levas crescentes (`spawnDirectorWave`) e extensão do clímax do Boss Golem Ancestral para os 120 segundos.
+
+---
+
 ## [v1.1.0] - 2026-10-18 (Modo Tela Cheia, Escalonamento Dinâmico 4:3, Economia Prata -> Ouro, Loja de Upgrades em 2 Abas com Status, Correção de Crash e Coleta Magnética)
 ### 🖥️ Tela Cheia (Fullscreen), Escalonamento Dinâmico e Proporção 4:3 (`config.scale` + `toggleFullscreen`)
 - **Ativação de Tela Cheia (`toggleFullscreen`)**: Implementado suporte nativo à Fullscreen API via `scene.scale.toggleFullscreen()` com fallback para `document.documentElement.requestFullscreen()`. Pode ser ativada pela tecla `[F]` (protegida durante a digitação de iniciais no *Game Over*) ou pelos botões clicáveis no HUD (`hud_fullscreen`), Menu Principal, Modal de Pausa e Configurações.
