@@ -5465,7 +5465,7 @@ function rollLevelUpCards() {
     }
   ];
 
-  // Se o jogador já maximizou várias armas, adiciona cartas de Mestria para as armas Nv.5
+  // Se o jogador já maximizou várias armas, adiciona cartas de Mestria para as armas Nv. 5
   unlockedKeys.forEach(key => {
     if (getWeaponLevel(key) >= MAX_WEAPON_LEVEL) {
       const cfg = WEAPON_CATALOG[key];
