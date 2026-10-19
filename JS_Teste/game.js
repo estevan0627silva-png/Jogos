@@ -566,7 +566,7 @@ let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHear
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
 let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
-let villageDecor, coins, menuContainer, pauseModal, draftModal;
+let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null, isPaused = false;
 let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
 let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
@@ -576,7 +576,7 @@ let chosenScroll = null;
 let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
 let hudScrollBadge = null, hudScrollText = null;
-let enemySpeed, spawnDelay, buff, slashCounter = 0;
+let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0;
 let virtualJoystick = null;
 
 // =============================================================================
@@ -3870,7 +3870,8 @@ function updateFirePools(scene, dt) {
   for (let i = activeFirePools.length - 1; i >= 0; i--) {
     const p = activeFirePools[i];
     p.elapsed += dt;
-    p.x -= worldSpeed * dt;
+    const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+    p.x -= curWorldSpeed * dt;
     p.tickTimer -= dt;
 
     p.graphics.clear();
@@ -3972,6 +3973,24 @@ function explodeFireball(scene, x, y, radius, dmg) {
       a.destroy();
     }
   });
+}
+
+
+function triggerPlayerAction(scene) {
+  if (!player || !player.active || gameState !== 'PLAYING') return;
+  if (!buff || !buff.type) return;
+  const s = WeaponSystem.get(buff.type);
+  if (s && s.attack) {
+    s.attack({
+      scene,
+      player,
+      arrows: playerArrows,
+      slashes,
+      fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
+      getLevel: getWeaponLevel,
+      nextProjId: () => ++slashCounter
+    });
+  }
 }
 
 
@@ -4519,6 +4538,9 @@ function startGameplay(scene) {
   chosenScroll = null;
   scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
   clearFirePools();
+  enemySpeed = 195;
+  worldSpeed = enemySpeed * 0.6;
+  spawnDelay = 1300;
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();
@@ -5016,10 +5038,12 @@ function ejectMiniGolemsFromBoss(scene, boss) {
 
               // Estado: DORMANT (Inconsciente fixo no solo real)
               golem.golemState = 'DORMANT';
+
               golem.setFrame(2);
-              golem.setVelocityX(-worldSpeed);
+              const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+              golem.setVelocityX(-curWorldSpeed);
               golem.setVelocityY(0);
-              golem.golemState = 'DORMANT';
+
               golem.setFrame(2);
 
 
@@ -5919,6 +5943,7 @@ function openLevelUpDraft(scene) {
 
     // Retoma a partida com janela curta de invencibilidade (750ms) para transição justa
     gameState = 'PLAYING';
+  isPaused = false;
     scene.physics.resume();
     scene.time.paused = false;
     scene.tweens.resumeAll();
@@ -6093,6 +6118,7 @@ function handleEscPress(scene) {
 function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
   gameState = 'PAUSED';
+  isPaused = true;
   scene.physics.pause();
   scene.time.paused = true;
   scene.tweens.pauseAll();
@@ -6114,6 +6140,7 @@ function resumeGame(scene) {
     pauseModal = null;
   }
   gameState = 'PLAYING';
+  isPaused = false;
   scene.physics.resume();
   scene.time.paused = false;
   scene.tweens.resumeAll();
@@ -6418,6 +6445,8 @@ function showLeaderboard(scene, topScores, currentName) {
     }
   });
 }
+
+
 
 
 // --- BUNDLE FILE: JS_Teste/src/ui/menus.js ---
@@ -7537,8 +7566,9 @@ class VirtualJoystick {
 
     scene.input.on('pointerdown', (pointer) => {
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
-      if (typeof activeModal !== 'undefined' && activeModal) return;
-      if (typeof isPaused !== 'undefined' && isPaused) return;
+      if (typeof pauseModal !== 'undefined' && pauseModal) return;
+      if (typeof draftModal !== 'undefined' && draftModal) return;
+
 
       const px = pointer.x;
       const py = pointer.y;
@@ -7632,8 +7662,8 @@ class VirtualJoystick {
   updateVisibility() {
     this.isMobile = this.detectMobile();
     const inGame = typeof gameState !== 'undefined' && gameState === 'PLAYING';
-    const isPausedNow = typeof isPaused !== 'undefined' && isPaused;
-    const hasModal = typeof activeModal !== 'undefined' && activeModal;
+    const isPausedNow = typeof gameState !== 'undefined' && (gameState === 'PAUSED' || gameState === 'LEVEL_UP');
+    const hasModal = (typeof pauseModal !== 'undefined' && !!pauseModal) || (typeof draftModal !== 'undefined' && !!draftModal);
     const shouldShow = this.isMobile && inGame && !isPausedNow && !hasModal;
 
     this.setVisible(shouldShow);
@@ -7764,6 +7794,7 @@ function create(data) {
   playerHp = playerMaxHp;
   playerInvulnerable = false;
   enemySpeed = 195;
+  worldSpeed = enemySpeed * 0.6;
   spawnDelay = 1300;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
   activeBoss = null;
@@ -7872,7 +7903,7 @@ function create(data) {
 
   // Tecla ESPAÇO para Golpe/Ação manual imediata no Desktop
   scene.input.keyboard.on('keydown-SPACE', () => {
-    if (gameState === 'PLAYING' && !isPaused && !activeModal) {
+    if (gameState === 'PLAYING' && !pauseModal && !draftModal) {
       if (typeof triggerPlayerAction === 'function') {
         triggerPlayerAction(scene);
       }
@@ -8064,7 +8095,7 @@ function updateMenuBackground(dt) {
 
 function updateGameplay(scene, time, dt) {
   // 1. Mundo rolando: chão, estrada e obstáculos andam JUNTOS (nada desliza)
-  const worldSpeed = enemySpeed * 0.6;
+  worldSpeed = enemySpeed * 0.6;
   ground.tilePositionX += worldSpeed * dt;
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
@@ -8152,7 +8183,7 @@ function updateGameplay(scene, time, dt) {
           e.setFrame(2);
         } else if (e.golemState === 'ACTIVE') {
           const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
-          scene.physics.moveToObject(e, player, slowSpeed);
+          if (player && player.active) scene.physics.moveToObject(e, player, slowSpeed);
         }
       }
     }

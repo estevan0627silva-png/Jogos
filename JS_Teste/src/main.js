@@ -94,6 +94,7 @@ function create(data) {
   playerHp = playerMaxHp;
   playerInvulnerable = false;
   enemySpeed = 195;
+  worldSpeed = enemySpeed * 0.6;
   spawnDelay = 1300;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
   activeBoss = null;
@@ -202,7 +203,7 @@ function create(data) {
 
   // Tecla ESPAÇO para Golpe/Ação manual imediata no Desktop
   scene.input.keyboard.on('keydown-SPACE', () => {
-    if (gameState === 'PLAYING' && !isPaused && !activeModal) {
+    if (gameState === 'PLAYING' && !pauseModal && !draftModal) {
       if (typeof triggerPlayerAction === 'function') {
         triggerPlayerAction(scene);
       }
@@ -394,7 +395,7 @@ function updateMenuBackground(dt) {
 
 function updateGameplay(scene, time, dt) {
   // 1. Mundo rolando: chão, estrada e obstáculos andam JUNTOS (nada desliza)
-  const worldSpeed = enemySpeed * 0.6;
+  worldSpeed = enemySpeed * 0.6;
   ground.tilePositionX += worldSpeed * dt;
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
@@ -482,7 +483,7 @@ function updateGameplay(scene, time, dt) {
           e.setFrame(2);
         } else if (e.golemState === 'ACTIVE') {
           const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
-          scene.physics.moveToObject(e, player, slowSpeed);
+          if (player && player.active) scene.physics.moveToObject(e, player, slowSpeed);
         }
       }
     }

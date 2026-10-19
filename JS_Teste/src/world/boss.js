@@ -169,10 +169,12 @@ function ejectMiniGolemsFromBoss(scene, boss) {
 
               // Estado: DORMANT (Inconsciente fixo no solo real)
               golem.golemState = 'DORMANT';
+
               golem.setFrame(2);
-              golem.setVelocityX(-worldSpeed);
+              const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+              golem.setVelocityX(-curWorldSpeed);
               golem.setVelocityY(0);
-              golem.golemState = 'DORMANT';
+
               golem.setFrame(2);
 
 

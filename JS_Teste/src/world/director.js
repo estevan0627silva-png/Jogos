@@ -82,6 +82,9 @@ function startGameplay(scene) {
   chosenScroll = null;
   scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
   clearFirePools();
+  enemySpeed = 195;
+  worldSpeed = enemySpeed * 0.6;
+  spawnDelay = 1300;
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();

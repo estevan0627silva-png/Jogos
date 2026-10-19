@@ -187,8 +187,9 @@ class VirtualJoystick {
 
     scene.input.on('pointerdown', (pointer) => {
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
-      if (typeof activeModal !== 'undefined' && activeModal) return;
-      if (typeof isPaused !== 'undefined' && isPaused) return;
+      if (typeof pauseModal !== 'undefined' && pauseModal) return;
+      if (typeof draftModal !== 'undefined' && draftModal) return;
+
 
       const px = pointer.x;
       const py = pointer.y;
@@ -282,8 +283,8 @@ class VirtualJoystick {
   updateVisibility() {
     this.isMobile = this.detectMobile();
     const inGame = typeof gameState !== 'undefined' && gameState === 'PLAYING';
-    const isPausedNow = typeof isPaused !== 'undefined' && isPaused;
-    const hasModal = typeof activeModal !== 'undefined' && activeModal;
+    const isPausedNow = typeof gameState !== 'undefined' && (gameState === 'PAUSED' || gameState === 'LEVEL_UP');
+    const hasModal = (typeof pauseModal !== 'undefined' && !!pauseModal) || (typeof draftModal !== 'undefined' && !!draftModal);
     const shouldShow = this.isMobile && inGame && !isPausedNow && !hasModal;
 
     this.setVisible(shouldShow);

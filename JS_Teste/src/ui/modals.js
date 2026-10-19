@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
@@ -250,6 +250,7 @@ function openLevelUpDraft(scene) {
 
     // Retoma a partida com janela curta de invencibilidade (750ms) para transição justa
     gameState = 'PLAYING';
+  isPaused = false;
     scene.physics.resume();
     scene.time.paused = false;
     scene.tweens.resumeAll();
@@ -424,6 +425,7 @@ function handleEscPress(scene) {
 function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
   gameState = 'PAUSED';
+  isPaused = true;
   scene.physics.pause();
   scene.time.paused = true;
   scene.tweens.pauseAll();
@@ -445,6 +447,7 @@ function resumeGame(scene) {
     pauseModal = null;
   }
   gameState = 'PLAYING';
+  isPaused = false;
   scene.physics.resume();
   scene.time.paused = false;
   scene.tweens.resumeAll();
@@ -749,3 +752,5 @@ function showLeaderboard(scene, topScores, currentName) {
     }
   });
 }
+
+

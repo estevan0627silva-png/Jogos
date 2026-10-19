@@ -439,7 +439,8 @@ function updateFirePools(scene, dt) {
   for (let i = activeFirePools.length - 1; i >= 0; i--) {
     const p = activeFirePools[i];
     p.elapsed += dt;
-    p.x -= worldSpeed * dt;
+    const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+    p.x -= curWorldSpeed * dt;
     p.tickTimer -= dt;
 
     p.graphics.clear();
@@ -541,4 +542,22 @@ function explodeFireball(scene, x, y, radius, dmg) {
       a.destroy();
     }
   });
+}
+
+
+function triggerPlayerAction(scene) {
+  if (!player || !player.active || gameState !== 'PLAYING') return;
+  if (!buff || !buff.type) return;
+  const s = WeaponSystem.get(buff.type);
+  if (s && s.attack) {
+    s.attack({
+      scene,
+      player,
+      arrows: playerArrows,
+      slashes,
+      fx: { sparks: sparksFx, holy: holyFx, ember: emberFx, hit: hitFx },
+      getLevel: getWeaponLevel,
+      nextProjId: () => ++slashCounter
+    });
+  }
 }

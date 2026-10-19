@@ -1,4 +1,4 @@
-﻿// ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
+// ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
@@ -7,7 +7,7 @@ let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHear
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
 let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
-let villageDecor, coins, menuContainer, pauseModal, draftModal;
+let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null, isPaused = false;
 let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
 let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
@@ -17,7 +17,7 @@ let chosenScroll = null;
 let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
 let hudScrollBadge = null, hudScrollText = null;
-let enemySpeed, spawnDelay, buff, slashCounter = 0;
+let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0;
 let virtualJoystick = null;
 
 // =============================================================================
