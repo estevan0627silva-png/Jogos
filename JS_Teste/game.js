@@ -7602,7 +7602,7 @@ class VirtualJoystick {
         scene.tweens.killTweensOf(this.knobGraphics);
         this.knobGraphics.setScale(1.10);
       }
-    });
+    };
 
     this.onPointerMoveHandler = (pointer) => {
       if (this.touchId !== null && pointer.id === this.touchId) {
@@ -7610,7 +7610,7 @@ class VirtualJoystick {
         this.drawKnob(true);
         this.drawConnectorLine();
       }
-    });
+    };
 
     this.onPointerUpHandler = (pointer) => {
       if (this.touchId !== null && pointer.id === this.touchId) {
