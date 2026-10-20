@@ -123,7 +123,7 @@ class VirtualJoystick {
     g.fillTriangle(bx, by - dist, bx - arrowSize, by - dist + arrowSize, bx + arrowSize, by - dist + arrowSize);
     g.fillTriangle(bx, by + dist, bx - arrowSize, by + dist - arrowSize, bx + arrowSize, by + dist - arrowSize);
     g.fillTriangle(bx - dist, by, bx - dist + arrowSize, by - arrowSize, bx - dist + arrowSize, by + arrowSize);
-    g.fillTriangle(bx + dist, by, bx + dist - arrowSize, by - arrowSize, bx + arrowSize - arrowSize, by + arrowSize);
+    g.fillTriangle(bx + dist, by, bx + dist - arrowSize, by - arrowSize, bx + dist - arrowSize, by + arrowSize);
 
     // Mira cruzada central
     g.lineStyle(1, 0xc5a059, isActive ? 0.30 : 0.16);
@@ -185,7 +185,7 @@ class VirtualJoystick {
   setupTouchListeners() {
     const scene = this.scene;
 
-    scene.input.on('pointerdown', (pointer) => {
+    this.onPointerDownHandler = (pointer) => {
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
       if (typeof pauseModal !== 'undefined' && pauseModal) return;
       if (typeof draftModal !== 'undefined' && draftModal) return;
@@ -212,7 +212,7 @@ class VirtualJoystick {
       }
     });
 
-    scene.input.on('pointermove', (pointer) => {
+    this.onPointerMoveHandler = (pointer) => {
       if (this.touchId !== null && pointer.id === this.touchId) {
         this.processPointerMove(pointer.x, pointer.y);
         this.drawKnob(true);
@@ -220,7 +220,7 @@ class VirtualJoystick {
       }
     });
 
-    const onPointerUp = (pointer) => {
+    this.onPointerUpHandler = (pointer) => {
       if (this.touchId !== null && pointer.id === this.touchId) {
         this.touchId = null;
         this.active = false;
@@ -250,8 +250,10 @@ class VirtualJoystick {
       }
     };
 
-    scene.input.on('pointerup', onPointerUp);
-    scene.input.on('pointerupoutside', onPointerUp);
+    scene.input.on('pointerdown', this.onPointerDownHandler);
+    scene.input.on('pointermove', this.onPointerMoveHandler);
+    scene.input.on('pointerup', this.onPointerUpHandler);
+    scene.input.on('pointerupoutside', this.onPointerUpHandler);
   }
 
   processPointerMove(px, py) {
@@ -305,6 +307,14 @@ class VirtualJoystick {
   }
 
   destroy() {
+    if (this.scene && this.scene.input) {
+      if (this.onPointerDownHandler) this.scene.input.off('pointerdown', this.onPointerDownHandler);
+      if (this.onPointerMoveHandler) this.scene.input.off('pointermove', this.onPointerMoveHandler);
+      if (this.onPointerUpHandler) {
+        this.scene.input.off('pointerup', this.onPointerUpHandler);
+        this.scene.input.off('pointerupoutside', this.onPointerUpHandler);
+      }
+    }
     if (this.container) {
       this.container.destroy();
       this.container = null;

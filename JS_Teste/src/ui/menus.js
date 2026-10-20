@@ -400,7 +400,7 @@ function showBlacksmithMenu(scene) {
       textStyle(isStarter ? '#ffd740' : (isUnlocked ? '#7fe7ff' : '#ff8a80'), 10)
     ).setOrigin(0, 0.5);
 
-    const descTxt = scene.add.text(124, rowY - 3, weaponStyles[key] || cfg.desc, {
+    const descTxt = scene.add.text(124, rowY - 3, weaponStyles[key] || cfg.forgeLore || '', {
       ...textStyle(isUnlocked ? '#e0d2b4' : '#9c8d73', 10, 'normal'),
       lineSpacing: 2,
       wordWrap: { width: 380, useAdvancedWrap: true }

@@ -59,9 +59,13 @@ const StorageManager = {
     this.addGold(earnedGold);
     lastRunSummary = {
       survivalTime,
+      silverCollected: savedSilver,
       runSilver: savedSilver,
       earnedGold,
-      totalGold: this.getGold()
+      goldFromSilver: earnedGold,
+      totalGoldEarned: earnedGold,
+      totalGold: this.getGold(),
+      newTotalGold: this.getGold()
     };
     runSilver = 0;
     return lastRunSummary;

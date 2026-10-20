@@ -250,7 +250,7 @@ function openLevelUpDraft(scene) {
 
     // Retoma a partida com janela curta de invencibilidade (750ms) para transição justa
     gameState = 'PLAYING';
-  isPaused = false;
+
     scene.physics.resume();
     scene.time.paused = false;
     scene.tweens.resumeAll();
@@ -428,7 +428,7 @@ function handleEscPress(scene) {
 function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
   gameState = 'PAUSED';
-  isPaused = true;
+
   scene.physics.pause();
   scene.time.paused = true;
   scene.tweens.pauseAll();
@@ -450,7 +450,7 @@ function resumeGame(scene) {
     pauseModal = null;
   }
   gameState = 'PLAYING';
-  isPaused = false;
+
   scene.physics.resume();
   scene.time.paused = false;
   scene.tweens.resumeAll();
@@ -550,9 +550,9 @@ function showInitials(scene) {
 
   const summary = lastRunSummary || {
     silverCollected: runSilver,
-    goldFromSilver: runSilver,
-    timeBonusGold: Math.floor(survivalTime / 15),
-    bossBonusGold: bossDefeated ? 15 : 0,
+    goldFromSilver: Math.floor(runSilver / 3),
+
+
     totalGoldEarned: runGold,
     newTotalGold: getGold()
   };
@@ -579,22 +579,22 @@ function showInitials(scene) {
   const conversionLine = scene.add.text(
     cx - 148,
     top + 138,
-    `${summary.silverCollected} Pratas   ➔`,
+    `${summary.silverCollected ?? summary.runSilver ?? 0} Pratas   ➔`,
     textStyle('#e0f7fa', 14)
   ).setOrigin(0, 0.5);
 
   const goldEarnedLine = scene.add.text(
     cx + 45,
     top + 138,
-    `+${summary.totalGoldEarned} OURO REAL`,
+    `+${summary.totalGoldEarned ?? summary.earnedGold ?? 0} OURO REAL`,
     textStyle('#ffd740', 14)
   ).setOrigin(0, 0.5);
   fitTextToBox(goldEarnedLine, 165, 24, 10);
 
-  const bonusParts = [`Prata convertida: +${summary.goldFromSilver}G`];
-  if (summary.timeBonusGold > 0) bonusParts.push(`Glória (${survivalTime}s): +${summary.timeBonusGold}G`);
-  if (summary.bossBonusGold > 0) bonusParts.push(`Golem: +${summary.bossBonusGold}G`);
-  bonusParts.push(`Cofre Total: ${summary.newTotalGold}G`);
+  const bonusParts = [`Prata convertida (3:1): +${summary.goldFromSilver ?? summary.earnedGold ?? 0}G`, `Cofre Total: ${summary.newTotalGold ?? summary.totalGold ?? getGold()}G`];
+
+
+
 
   const breakdownTxt = scene.add.text(cx, top + 182, bonusParts.join('  •  '), {
     ...textStyle('#c5a059', 11, 'normal'),
@@ -701,7 +701,7 @@ function showLeaderboard(scene, topScores, currentName) {
   const top = (GAME_HEIGHT - modalH) / 2;
 
   const summary = lastRunSummary || { silverCollected: runSilver, totalGoldEarned: runGold };
-  const subtitle = `Prata Convertida: ${summary.silverCollected} ➔ +${summary.totalGoldEarned} Ouro  |  Cofre Total: ${getGold()} Ouro`;
+  const subtitle = `Prata Convertida: ${summary.silverCollected ?? summary.runSilver ?? 0} ➔ +${summary.totalGoldEarned ?? summary.earnedGold ?? 0} Ouro  |  Cofre Total: ${getGold()} Ouro`;
 
   const modal = createModal(scene, 'CAMPEÕES DO REINO', modalH, subtitle, modalW);
   let marked = false;

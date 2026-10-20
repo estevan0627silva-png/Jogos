@@ -108,14 +108,14 @@ function setupDecoupledEventListeners(scene) {
 
   // 1. ÁUDIO REATIVO
   events.on(GameEvents.ENEMY_KILLED, () => sound.playEnemyHit());
-  events.on(GameEvents.SHIELD_REFLECT, () => sound.playShieldBlock());
-  events.on(GameEvents.SHIELD_SHOCKWAVE, () => sound.playShieldBlock());
-  events.on(GameEvents.COIN_COLLECTED, () => sound.playCoin());
-  events.on(GameEvents.XP_GAINED, () => sound.playXpOrb());
-  events.on(GameEvents.LEVEL_UP, () => sound.playLevelUp());
-  events.on(GameEvents.ITEM_COLLECTED, () => sound.playItemCollect());
-  events.on(GameEvents.PLAYER_HIT, () => sound.playPlayerHurt());
-  events.on(GameEvents.PLAYER_DIED, () => sound.playGameOver());
+
+
+
+
+
+
+
+
 
   // 2. EFEITOS VISUAIS (VFX)
   events.on(GameEvents.ENEMY_KILLED, ({ x, y, enemyType }) => {
@@ -137,9 +137,8 @@ function setupDecoupledEventListeners(scene) {
     else if (enemyType === 'warrior') recordAchievementProgress(scene, 'warriors', 1);
     else if (enemyType === 'dark_mage') recordAchievementProgress(scene, 'mages', 1);
   });
-  events.on(GameEvents.SHIELD_REFLECT, ({ scene }) => {
-    recordAchievementProgress(scene, 'reflected', 1);
-  });
+
+
 
   // 4. SISTEMA DE LOOT & RECOMPENSAS
   events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
@@ -195,7 +194,7 @@ function playerHit(scene, hazard) {
       holyFx.explode(8, hx, hy);
       floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
       recordAchievementProgress(scene, 'reflected', 1);
-
+      events.emit(GameEvents.SHIELD_REFLECT, { scene });
       const effectiveLvl = Math.max(1, lvl);
       let spreads = [-0.28, -0.14, 0, 0.14, 0.28];
       if (effectiveLvl === 1 || effectiveLvl === 2) spreads = [0];
@@ -279,6 +278,7 @@ function playerHit(scene, hazard) {
     }
 
     sound.playPlayerHurt();
+    events.emit(GameEvents.PLAYER_HIT, { scene, hp: playerHp });
     sparksFx.explode(8, player.x, player.y);
     hitFx.explode(14, player.x, player.y);
     player.setTint(0xffffff);
@@ -336,6 +336,7 @@ function gameOver(scene) {
   }
   sound.stopBGM();
   sound.playGameOver();
+  events.emit(GameEvents.PLAYER_DIED, { scene });
   if (hudContainer) hudContainer.setVisible(false);
 
   scene.physics.pause();

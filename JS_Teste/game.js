@@ -566,7 +566,7 @@ let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHear
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
 let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
-let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null, isPaused = false;
+let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null;
 let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
 let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
@@ -645,9 +645,13 @@ const StorageManager = {
     this.addGold(earnedGold);
     lastRunSummary = {
       survivalTime,
+      silverCollected: savedSilver,
       runSilver: savedSilver,
       earnedGold,
-      totalGold: this.getGold()
+      goldFromSilver: earnedGold,
+      totalGoldEarned: earnedGold,
+      totalGold: this.getGold(),
+      newTotalGold: this.getGold()
     };
     runSilver = 0;
     return lastRunSummary;
@@ -4106,14 +4110,14 @@ function setupDecoupledEventListeners(scene) {
 
   // 1. ÁUDIO REATIVO
   events.on(GameEvents.ENEMY_KILLED, () => sound.playEnemyHit());
-  events.on(GameEvents.SHIELD_REFLECT, () => sound.playShieldBlock());
-  events.on(GameEvents.SHIELD_SHOCKWAVE, () => sound.playShieldBlock());
-  events.on(GameEvents.COIN_COLLECTED, () => sound.playCoin());
-  events.on(GameEvents.XP_GAINED, () => sound.playXpOrb());
-  events.on(GameEvents.LEVEL_UP, () => sound.playLevelUp());
-  events.on(GameEvents.ITEM_COLLECTED, () => sound.playItemCollect());
-  events.on(GameEvents.PLAYER_HIT, () => sound.playPlayerHurt());
-  events.on(GameEvents.PLAYER_DIED, () => sound.playGameOver());
+
+
+
+
+
+
+
+
 
   // 2. EFEITOS VISUAIS (VFX)
   events.on(GameEvents.ENEMY_KILLED, ({ x, y, enemyType }) => {
@@ -4135,9 +4139,8 @@ function setupDecoupledEventListeners(scene) {
     else if (enemyType === 'warrior') recordAchievementProgress(scene, 'warriors', 1);
     else if (enemyType === 'dark_mage') recordAchievementProgress(scene, 'mages', 1);
   });
-  events.on(GameEvents.SHIELD_REFLECT, ({ scene }) => {
-    recordAchievementProgress(scene, 'reflected', 1);
-  });
+
+
 
   // 4. SISTEMA DE LOOT & RECOMPENSAS
   events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
@@ -4193,7 +4196,7 @@ function playerHit(scene, hazard) {
       holyFx.explode(8, hx, hy);
       floatText(scene, player.x, player.y - 28, 'FLECHA REFLETIDA!', '#7fe7ff');
       recordAchievementProgress(scene, 'reflected', 1);
-
+      events.emit(GameEvents.SHIELD_REFLECT, { scene });
       const effectiveLvl = Math.max(1, lvl);
       let spreads = [-0.28, -0.14, 0, 0.14, 0.28];
       if (effectiveLvl === 1 || effectiveLvl === 2) spreads = [0];
@@ -4277,6 +4280,7 @@ function playerHit(scene, hazard) {
     }
 
     sound.playPlayerHurt();
+    events.emit(GameEvents.PLAYER_HIT, { scene, hp: playerHp });
     sparksFx.explode(8, player.x, player.y);
     hitFx.explode(14, player.x, player.y);
     player.setTint(0xffffff);
@@ -4334,6 +4338,7 @@ function gameOver(scene) {
   }
   sound.stopBGM();
   sound.playGameOver();
+  events.emit(GameEvents.PLAYER_DIED, { scene });
   if (hudContainer) hudContainer.setVisible(false);
 
   scene.physics.pause();
@@ -4394,6 +4399,7 @@ function collectXpOrb(scene, orb) {
   const baseXp = orb.xpValue || 2;
   const gained = Math.max(1, Math.round(baseXp * getWisdomMultiplier()));
   sound.playXpOrb();
+  events.emit(GameEvents.XP_GAINED, { amount: gained, x: ox, y: oy });
   hitFx.explode(4, ox, oy);
   removeEntity(orb);
   gainXp(scene, gained);
@@ -4404,6 +4410,7 @@ function gainXp(scene, amount) {
   while (runXp >= xpToNextLevel) {
     runXp -= xpToNextLevel; // mantém todo o XP excedente!
     runLevel++;
+    events.emit(GameEvents.LEVEL_UP, { level: runLevel });
     xpToNextLevel = getXpRequiredForLevel(runLevel);
     pendingLevelUps++;
   }
@@ -4447,6 +4454,7 @@ function collectCoin(scene, coin) {
     hudSilverText.setText(`${runSilver}`);
   }
   sound.playCoin();
+  events.emit(GameEvents.COIN_COLLECTED, { amount: val, x: cx, y: cy });
   hitFx.explode(6, cx, cy);
   floatText(scene, cx, cy - 16, `+${val} PRATA`, '#e0f7fa');
   removeEntity(coin);
@@ -5945,7 +5953,7 @@ function openLevelUpDraft(scene) {
 
     // Retoma a partida com janela curta de invencibilidade (750ms) para transição justa
     gameState = 'PLAYING';
-  isPaused = false;
+
     scene.physics.resume();
     scene.time.paused = false;
     scene.tweens.resumeAll();
@@ -6123,7 +6131,7 @@ function handleEscPress(scene) {
 function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
   gameState = 'PAUSED';
-  isPaused = true;
+
   scene.physics.pause();
   scene.time.paused = true;
   scene.tweens.pauseAll();
@@ -6145,7 +6153,7 @@ function resumeGame(scene) {
     pauseModal = null;
   }
   gameState = 'PLAYING';
-  isPaused = false;
+
   scene.physics.resume();
   scene.time.paused = false;
   scene.tweens.resumeAll();
@@ -6245,9 +6253,9 @@ function showInitials(scene) {
 
   const summary = lastRunSummary || {
     silverCollected: runSilver,
-    goldFromSilver: runSilver,
-    timeBonusGold: Math.floor(survivalTime / 15),
-    bossBonusGold: bossDefeated ? 15 : 0,
+    goldFromSilver: Math.floor(runSilver / 3),
+
+
     totalGoldEarned: runGold,
     newTotalGold: getGold()
   };
@@ -6274,22 +6282,22 @@ function showInitials(scene) {
   const conversionLine = scene.add.text(
     cx - 148,
     top + 138,
-    `${summary.silverCollected} Pratas   ➔`,
+    `${summary.silverCollected ?? summary.runSilver ?? 0} Pratas   ➔`,
     textStyle('#e0f7fa', 14)
   ).setOrigin(0, 0.5);
 
   const goldEarnedLine = scene.add.text(
     cx + 45,
     top + 138,
-    `+${summary.totalGoldEarned} OURO REAL`,
+    `+${summary.totalGoldEarned ?? summary.earnedGold ?? 0} OURO REAL`,
     textStyle('#ffd740', 14)
   ).setOrigin(0, 0.5);
   fitTextToBox(goldEarnedLine, 165, 24, 10);
 
-  const bonusParts = [`Prata convertida: +${summary.goldFromSilver}G`];
-  if (summary.timeBonusGold > 0) bonusParts.push(`Glória (${survivalTime}s): +${summary.timeBonusGold}G`);
-  if (summary.bossBonusGold > 0) bonusParts.push(`Golem: +${summary.bossBonusGold}G`);
-  bonusParts.push(`Cofre Total: ${summary.newTotalGold}G`);
+  const bonusParts = [`Prata convertida (3:1): +${summary.goldFromSilver ?? summary.earnedGold ?? 0}G`, `Cofre Total: ${summary.newTotalGold ?? summary.totalGold ?? getGold()}G`];
+
+
+
 
   const breakdownTxt = scene.add.text(cx, top + 182, bonusParts.join('  •  '), {
     ...textStyle('#c5a059', 11, 'normal'),
@@ -6396,7 +6404,7 @@ function showLeaderboard(scene, topScores, currentName) {
   const top = (GAME_HEIGHT - modalH) / 2;
 
   const summary = lastRunSummary || { silverCollected: runSilver, totalGoldEarned: runGold };
-  const subtitle = `Prata Convertida: ${summary.silverCollected} ➔ +${summary.totalGoldEarned} Ouro  |  Cofre Total: ${getGold()} Ouro`;
+  const subtitle = `Prata Convertida: ${summary.silverCollected ?? summary.runSilver ?? 0} ➔ +${summary.totalGoldEarned ?? summary.earnedGold ?? 0} Ouro  |  Cofre Total: ${getGold()} Ouro`;
 
   const modal = createModal(scene, 'CAMPEÕES DO REINO', modalH, subtitle, modalW);
   let marked = false;
@@ -6857,7 +6865,7 @@ function showBlacksmithMenu(scene) {
       textStyle(isStarter ? '#ffd740' : (isUnlocked ? '#7fe7ff' : '#ff8a80'), 10)
     ).setOrigin(0, 0.5);
 
-    const descTxt = scene.add.text(124, rowY - 3, weaponStyles[key] || cfg.desc, {
+    const descTxt = scene.add.text(124, rowY - 3, weaponStyles[key] || cfg.forgeLore || '', {
       ...textStyle(isUnlocked ? '#e0d2b4' : '#9c8d73', 10, 'normal'),
       lineSpacing: 2,
       wordWrap: { width: 380, useAdvancedWrap: true }
@@ -7507,7 +7515,7 @@ class VirtualJoystick {
     g.fillTriangle(bx, by - dist, bx - arrowSize, by - dist + arrowSize, bx + arrowSize, by - dist + arrowSize);
     g.fillTriangle(bx, by + dist, bx - arrowSize, by + dist - arrowSize, bx + arrowSize, by + dist - arrowSize);
     g.fillTriangle(bx - dist, by, bx - dist + arrowSize, by - arrowSize, bx - dist + arrowSize, by + arrowSize);
-    g.fillTriangle(bx + dist, by, bx + dist - arrowSize, by - arrowSize, bx + arrowSize - arrowSize, by + arrowSize);
+    g.fillTriangle(bx + dist, by, bx + dist - arrowSize, by - arrowSize, bx + dist - arrowSize, by + arrowSize);
 
     // Mira cruzada central
     g.lineStyle(1, 0xc5a059, isActive ? 0.30 : 0.16);
@@ -7569,7 +7577,7 @@ class VirtualJoystick {
   setupTouchListeners() {
     const scene = this.scene;
 
-    scene.input.on('pointerdown', (pointer) => {
+    this.onPointerDownHandler = (pointer) => {
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
       if (typeof pauseModal !== 'undefined' && pauseModal) return;
       if (typeof draftModal !== 'undefined' && draftModal) return;
@@ -7596,7 +7604,7 @@ class VirtualJoystick {
       }
     });
 
-    scene.input.on('pointermove', (pointer) => {
+    this.onPointerMoveHandler = (pointer) => {
       if (this.touchId !== null && pointer.id === this.touchId) {
         this.processPointerMove(pointer.x, pointer.y);
         this.drawKnob(true);
@@ -7604,7 +7612,7 @@ class VirtualJoystick {
       }
     });
 
-    const onPointerUp = (pointer) => {
+    this.onPointerUpHandler = (pointer) => {
       if (this.touchId !== null && pointer.id === this.touchId) {
         this.touchId = null;
         this.active = false;
@@ -7634,8 +7642,10 @@ class VirtualJoystick {
       }
     };
 
-    scene.input.on('pointerup', onPointerUp);
-    scene.input.on('pointerupoutside', onPointerUp);
+    scene.input.on('pointerdown', this.onPointerDownHandler);
+    scene.input.on('pointermove', this.onPointerMoveHandler);
+    scene.input.on('pointerup', this.onPointerUpHandler);
+    scene.input.on('pointerupoutside', this.onPointerUpHandler);
   }
 
   processPointerMove(px, py) {
@@ -7689,6 +7699,14 @@ class VirtualJoystick {
   }
 
   destroy() {
+    if (this.scene && this.scene.input) {
+      if (this.onPointerDownHandler) this.scene.input.off('pointerdown', this.onPointerDownHandler);
+      if (this.onPointerMoveHandler) this.scene.input.off('pointermove', this.onPointerMoveHandler);
+      if (this.onPointerUpHandler) {
+        this.scene.input.off('pointerup', this.onPointerUpHandler);
+        this.scene.input.off('pointerupoutside', this.onPointerUpHandler);
+      }
+    }
     if (this.container) {
       this.container.destroy();
       this.container = null;

@@ -30,6 +30,7 @@ function collectXpOrb(scene, orb) {
   const baseXp = orb.xpValue || 2;
   const gained = Math.max(1, Math.round(baseXp * getWisdomMultiplier()));
   sound.playXpOrb();
+  events.emit(GameEvents.XP_GAINED, { amount: gained, x: ox, y: oy });
   hitFx.explode(4, ox, oy);
   removeEntity(orb);
   gainXp(scene, gained);
@@ -40,6 +41,7 @@ function gainXp(scene, amount) {
   while (runXp >= xpToNextLevel) {
     runXp -= xpToNextLevel; // mantém todo o XP excedente!
     runLevel++;
+    events.emit(GameEvents.LEVEL_UP, { level: runLevel });
     xpToNextLevel = getXpRequiredForLevel(runLevel);
     pendingLevelUps++;
   }
@@ -83,6 +85,7 @@ function collectCoin(scene, coin) {
     hudSilverText.setText(`${runSilver}`);
   }
   sound.playCoin();
+  events.emit(GameEvents.COIN_COLLECTED, { amount: val, x: cx, y: cy });
   hitFx.explode(6, cx, cy);
   floatText(scene, cx, cy - 16, `+${val} PRATA`, '#e0f7fa');
   removeEntity(coin);
