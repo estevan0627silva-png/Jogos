@@ -51,35 +51,29 @@ function getWeaponStats(type, lvl = 1) {
   };
 
   const effectiveLvl = Math.max(1, lvl);
+  const generalMult = 1 + (effectiveLvl - 1) * 0.22;
+  stats.damage = Math.max(1, Math.round(base.damage * generalMult));
 
-  // 1. Progressão Exponencial com Atributos Fortes e Guardrails de Engine
+  // 1. Progressão Contínua e Infinita com Atributos Fortes e Guardrails de Engine
   if (type === 'sword') {
-    // ATRIBUTO FORTE: Área / Tamanho (Escala +28% multiplicativo por nível até Nv. 5)
-    if (effectiveLvl <= 5) {
-      stats.area = Math.pow(1.28, effectiveLvl - 1);
-    } else {
-      stats.area = Math.min(3.60, Math.pow(1.28, 4) * (1 + 0.05 * (effectiveLvl - 5)));
-    }
+    // ATRIBUTO FORTE: Área / Tamanho (+26% por nível) e Dano (+22% geral)
+    stats.area = Math.min(4.2, 1.0 + (effectiveLvl - 1) * 0.26);
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'bow') {
-    // ATRIBUTO FORTE: Cadência (+25% disparos por segundo por nível -> delay reduz 20% por nível)
-    // Teto de segurança absoluto: 100ms (10 flechas/s a 60 FPS para estabilidade de engine)
-    stats.attackRate = Math.max(100, Math.round(500 * Math.pow(0.80, effectiveLvl - 1)));
+    // ATRIBUTO FORTE: Cadência (-14% delay por nível com piso seguro de 90ms a 60 FPS)
+    stats.attackRate = Math.max(90, Math.round(500 * Math.pow(0.86, effectiveLvl - 1)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   } else if (type === 'axe') {
-    // ATRIBUTO FORTE: Knockback (+50% de repulsão por nível até Nv. 5)
-    // Teto de segurança absoluto: 220px (evita arremesso para fora da tela de 800px)
-    if (effectiveLvl <= 5) {
-      stats.knockback = Math.round(30 * Math.pow(1.50, effectiveLvl - 1));
-    } else {
-      stats.knockback = Math.min(220, Math.round(30 * Math.pow(1.50, 4) + (effectiveLvl - 5) * 12));
-    }
+    // ATRIBUTO FORTE: Knockback (+35% de repulsão por nível até teto de 240px)
+    stats.knockback = Math.min(240, Math.round(30 * (1 + (effectiveLvl - 1) * 0.35)));
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'firestaff') {
-    // ATRIBUTO FORTE: Raio de Explosão e Poça (+27% no raio por nível -> área multiplica exponencialmente)
-    // Teto de segurança absoluto: raio de 160px
-    if (effectiveLvl <= 5) {
-      stats.area = Math.round(45 * Math.pow(1.27, effectiveLvl - 1));
-    } else {
-      stats.area = Math.min(160, Math.round(45 * Math.pow(1.27, 4) + (effectiveLvl - 5) * 6));
-    }
+    // ATRIBUTO FORTE: Raio de Explosão e Poça (+22% no raio por nível até teto de 180px)
+    stats.area = Math.min(180, Math.round(45 * (1 + (effectiveLvl - 1) * 0.22)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
+  } else if (type === 'shield') {
+    stats.area = 1.0 + (effectiveLvl - 1) * 0.15;
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   }
 
   // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
@@ -113,7 +107,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.bow,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
@@ -162,7 +156,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.sword,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
@@ -319,7 +313,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.axe,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
@@ -365,7 +359,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.firestaff,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {

@@ -13,33 +13,23 @@ function rollLevelUpCards() {
     if (cfg) {
       const nextLvl = currLvl + 1;
       const isHeld = buff && buff.type === key;
-      const lvlData = (cfg.levels && cfg.levels[nextLvl - 1]) ? cfg.levels[nextLvl - 1] : null;
-
-      let badge = 'EVOLUÇÃO ★';
-      let desc = 'Eleva o poder da relíquia além dos limites mortais, refinando seu atributo com vigor lendário.';
-
-      if (lvlData) {
-        badge = typeof lvlData === 'object' ? lvlData.badge : (nextLvl >= 5 ? 'GRAU MÁXIMO ★' : 'EVOLUÇÃO NOBRE');
-        desc = typeof lvlData === 'object' ? lvlData.desc : lvlData;
-      } else {
-        badge = 'TRANSCENDÊNCIA ★';
-        desc = 'Eleva o poder da relíquia além dos limites mortais, refinando seu atributo com vigor lendário.';
-      }
+      const mult = (1 + (nextLvl - 1) * 0.22).toFixed(2);
+      const pct = Math.round((nextLvl - 1) * 22);
 
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
         category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: badge,
-        badgeColor: nextLvl >= 5 ? '#ffd740' : '#7fe7ff',
-        borderColor: nextLvl >= 5 ? 0xffca28 : 0x7fe7ff,
+        badge: `Nv. ${currLvl} ➔ Nv. ${nextLvl}`,
+        badgeColor: '#ffd740',
+        borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `${desc}\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n✦ MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n✦ Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
           equipWeaponBuff(scene, key, false);
-          floatText(scene, player.x, player.y - 28, `${cfg.name} EVOLUÍDO!`, '#ffca28');
+          floatText(scene, player.x, player.y - 28, `${cfg.name} Nv. ${nextLvl}!`, '#ffca28');
         }
       });
     }

@@ -2,6 +2,31 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.2.0] — 2026-10-20
+### ⚔️ Título da Versão: **Curva Exponencial Suave & Sistema Rítmico de Hordas Especiais**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Calibração da curva inicial (0-20s suave com 1 monstro por vez, foco em farm de XP e zero arqueiros), aceleração exponencial progressiva, e sistema cíclico de Hordas Especiais a partir dos 45s (alternando entre Horda Densa de Goblins e Horda de Rastreadores com Guerreiros a cada 30 segundos com escalonamento dinâmico).
+
+### 🚀 O que mudou:
+- **🌱 Início Suave e Cadenciado (0 a 20s):**
+  - **1 Monstro por Onda:** O início agora gera estritamente 1 inimigo por pulso (`waveCount = 1`), eliminando a sobrecarga de spawns nos primeiros segundos.
+  - **Spawn Delay Calibrado:** `spawnDelay` inicial reajustado para 1150ms (em vez de 450ms).
+  - **Zero Arqueiros na Largada:** Apenas Goblins normais (90%) e Guerreiros blindados ocasionais (10%) aparecem nos primeiros 20 segundos. Nenhum Elfo ou Mago atira projéteis no início.
+  - **Cap Inicial de Tela:** Limitado a 10 inimigos simultâneos durante os primeiros 20 segundos.
+- **📈 Progressão Exponencial em 3 Fases:**
+  - **Fase 1 (0-20s):** Curva suave com foco no farm de gemas de XP e aquisição dos primeiros upgrades.
+  - **Fase 2 (20-45s):** Transição com aceleração gradual, introdução dos Goblins Rastreadores e raros Elfos (5%).
+  - **Fase 3 (45s+):** Escalação exponencial plena com ondas de 3 a 6 monstros e cap de até 55 monstros em tela.
+- **🚨 Sistema Rítmico de Hordas Especiais (45s+, a cada 30 segundos):**
+  - **Ativação Pontual:** O primeiro evento de horda inicia aos 45 segundos e repete a cada 30 segundos (45s, 75s, 105s, etc.), pausando durante o Boss Golem caso a batalha esteja ativa.
+  - **Ciclo Alternado:**
+    - **Ciclo Ímpar (45s, 105s...):** *Horda Densa de Goblins* (9 a 19+ Goblins disparados em rápida sucessão por toda a largura do caminho).
+    - **Ciclo Par (75s, 135s...):** *Horda de Rastreadores Zigue-zague & Guerreiros Blindados* (mistura balanceada de velocidade e escudo).
+  - **Avisos Táticos & Screenshake:** Anúncios visuais (`floatText`) no topo da tela com tremor de câmera e estrondo de terra na chegada de cada horda.
+
+---
+
 ## [v1.8.0] — 2026-10-19
 ### 🛡️ Título da Versão: **Eliminação de Quadrados Pretos, Barreira Arcana Calibrada (1s/2s), Golpe Melee Penetrante & Mini-Golems Invulneráveis Inconscientes**
 

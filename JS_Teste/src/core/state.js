@@ -18,6 +18,7 @@ let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
 let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0, entityIdCounter = 0;
+let nextHordeTime = 45, hordeCycleCount = 0;
 if (typeof window !== 'undefined') window.worldSpeed = 117;
 let virtualJoystick = null;
 

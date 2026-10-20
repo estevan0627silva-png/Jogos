@@ -8,7 +8,7 @@ const WEAPON_CATALOG = {
     icon: 'item_bow',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Arco nobre de teixo. Dispara flechas precisas com cadência exponencial acelerada.',
     levels: [
       { badge: 'DISPARO CERTEIRO', desc: 'Flechas velozes e perfurantes disparadas com ritmo cadenciado contra o avanço dos monstros.', toString() { return this.desc; } },
@@ -24,7 +24,7 @@ const WEAPON_CATALOG = {
     icon: 'item_sword',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área cortante colossal.',
     levels: [
       { badge: 'CORTE NOBRE', desc: 'Desfere golpes precisos de aço temperado com área de impacto equilibrada e repulsão frontal ativa.', toString() { return this.desc; } },
@@ -40,7 +40,7 @@ const WEAPON_CATALOG = {
     icon: 'item_shield',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
     levels: [
       { badge: 'ÉGIDE BÁSICA', desc: 'Envolve o herói em aura celestial por tempo equilibrado, refletindo flechas e detonando em choque se atingido.', toString() { return this.desc; } },
@@ -56,7 +56,7 @@ const WEAPON_CATALOG = {
     icon: 'item_axe',
     unlockedDefault: false,
     unlockCost: 25,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
     levels: [
       { badge: 'GOLPE RÚNICO', desc: 'Lança machado duplo em arco circular de retorno, desferindo golpes de impacto na ida e na volta.', toString() { return this.desc; } },
@@ -72,7 +72,7 @@ const WEAPON_CATALOG = {
     icon: 'item_firestaff',
     unlockedDefault: false,
     unlockCost: 45,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
     levels: [
       { badge: 'ORBE SOLAR', desc: 'Dispara esfera ígnea concentrada que explode no impacto e cria uma poça de chamas ardentes no chão.', toString() { return this.desc; } },

@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
 
@@ -285,6 +285,15 @@ function create(data) {
   scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
   scene.physics.add.overlap(player, xpOrbs, (p, orb) => collectXpOrb(scene, orb));
 
+  // Separação física entre Mini-Golems despertos (evita que se sobreponham na arena)
+  scene.physics.add.collider(enemies, enemies, null, (e1, e2) => {
+    return Boolean(
+      e1 && e2 && e1.active && e2.active &&
+      e1.enemyType === 'mini_golem' && e2.enemyType === 'mini_golem' &&
+      e1.golemState === 'ACTIVE' && e2.golemState === 'ACTIVE'
+    );
+  });
+
   // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
     if (e.x >= 800 || !a.active || !e.active) return;
@@ -509,33 +518,27 @@ function updateGameplay(scene, time, dt) {
       }
       if (e.enemyType === 'goblin_scout') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Movimentação em zigue-zague dinâmico relativo ao vetor do jogador:
-        // V_final = V_forward * speed + V_perpendicular * (sin(time * omega) * A)
-        let fwdX = -1, fwdY = 0;
-        let perpX = 0, perpY = 1;
-        if (player && player.active) {
-          const dx = player.x - e.x;
-          const dy = player.y - e.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 1) {
-            fwdX = dx / dist;
-            fwdY = dy / dist;
-            perpX = -fwdY;
-            perpY = fwdX;
-          }
-        }
+        // Goblin Rastreador: avanco continuo para a esquerda em alta velocidade com perseguicao senoidal no eixo Y
         const scoutSpeed = (enemySpeed || 195) * (ENEMIES.goblin_scout ? ENEMIES.goblin_scout.speed : 1.48);
-        const osc = Math.sin(time * 0.0065 + e.phase) * 80;
-        e.setVelocity(fwdX * scoutSpeed + perpX * osc, fwdY * scoutSpeed + perpY * osc);
-        e.y = Phaser.Math.Clamp(e.y, 125, 525);
-        if (e.body) e.body.updateFromGameObject();
+        let trackVy = 0;
+        if (player && player.active) {
+          const dy = player.y - e.y;
+          trackVy = Phaser.Math.Clamp(dy * 1.6, -110, 110);
+        }
+        const osc = Math.sin(time * 0.008 + e.phase) * 80;
+        e.setVelocityX(-scoutSpeed);
+        e.setVelocityY(trackVy + osc);
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(e.body.velocity.y));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(e.body.velocity.y));
       } else if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
+        // Goblin Comum: marcha continua para a esquerda com oscilacao senoidal em Y
+        const gobSpeed = (enemySpeed || 195) * (ENEMIES.goblin ? ENEMIES.goblin.speed : 1.12);
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
+        e.setVelocityX(-gobSpeed);
         e.setVelocityY(zigZagSpeed);
-        e.y = Phaser.Math.Clamp(e.y, 130, 520);
-        if (e.body) e.body.updateFromGameObject();
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(zigZagSpeed));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(zigZagSpeed));
       } else if (e.enemyType === 'mini_golem') {
         // Máquina de Estados Estrita do Mini-Golem: EJECTING, DORMANT, AWAKENING, ACTIVE
         if (e.golemState === 'EJECTING') {

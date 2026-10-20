@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.1.0';
-const VERSION_TITLE = 'Evolução Exponencial: Atributos Fortes & Redesign Nobre dos Cards';
-const VERSION_DESC = 'Mega atualização das mecânicas de evolução: progressão multiplicativa/exponencial com Atributo Forte exclusivo por arma (Espada: Área, Machado: Knockback, Arco: Cadência, Cajado: Área de Explosão, Escudo: Duração), tetos assintóticos de segurança contra bugs a 60 FPS, e redesign visual dos cards de Level Up eliminando poluição numérica técnica em favor de badges e descrições temáticas de alta fantasia.';
+const GAME_VERSION = 'v2.2.0';
+const VERSION_TITLE = 'Curva Exponencial Suave & Sistema Rítmico de Hordas Especiais';
+const VERSION_DESC = 'Calibração da curva inicial (0-20s suave com 1 monstro por vez, foco em farm de XP e zero arqueiros), aceleração exponencial progressiva, e sistema cíclico de Hordas Especiais a partir dos 45s (alternando entre Horda Densa de Goblins e Horda de Rastreadores com Guerreiros a cada 30 segundos com escalonamento dinâmico).';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -27,12 +27,12 @@ const ENEMIES = {                                    // vida, velocidade relativ
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
   mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
-  boss_golem: { hp: 50, speed: 0.35, w: 60, h: 72, xp: 50 }
+  boss_golem: { hp: 120, speed: 0.35, w: 60, h: 72, xp: 60 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
-const BOSS_MAX_HP = 50;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
+const BOSS_MAX_HP = 120;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
 const MAX_ENEMY_SPEED = 365;                         // teto máximo justo de velocidade
-const MIN_SPAWN_DELAY = 450;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
+const MIN_SPAWN_DELAY = 180;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
 const MAX_WEAPON_LEVEL = Infinity;                   // Progressão infinita de armas dentro da partida (via XP)
 const STORAGE_KEY = 'knight_quest_highscores';
 const STORAGE_GOLD_KEY = 'knight_quest_gold_v1';

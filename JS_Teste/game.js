@@ -1,10 +1,11 @@
-// >>> START: src/config/constants.js
+﻿
+// --- BUNDLE FILE: JS_Teste/src/config/constants.js ---
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.1.0';
-const VERSION_TITLE = 'Evolução Exponencial: Atributos Fortes & Redesign Nobre dos Cards';
-const VERSION_DESC = 'Mega atualização das mecânicas de evolução: progressão multiplicativa/exponencial com Atributo Forte exclusivo por arma (Espada: Área, Machado: Knockback, Arco: Cadência, Cajado: Área de Explosão, Escudo: Duração), tetos assintóticos de segurança contra bugs a 60 FPS, e redesign visual dos cards de Level Up eliminando poluição numérica técnica em favor de badges e descrições temáticas de alta fantasia.';
+const GAME_VERSION = 'v2.2.0';
+const VERSION_TITLE = 'Curva Exponencial Suave & Sistema Rítmico de Hordas Especiais';
+const VERSION_DESC = 'Calibração da curva inicial (0-20s suave com 1 monstro por vez, foco em farm de XP e zero arqueiros), aceleração exponencial progressiva, e sistema cíclico de Hordas Especiais a partir dos 45s (alternando entre Horda Densa de Goblins e Horda de Rastreadores com Guerreiros a cada 30 segundos com escalonamento dinâmico).';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -28,12 +29,12 @@ const ENEMIES = {                                    // vida, velocidade relativ
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
   mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
-  boss_golem: { hp: 50, speed: 0.35, w: 60, h: 72, xp: 50 }
+  boss_golem: { hp: 120, speed: 0.35, w: 60, h: 72, xp: 60 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
-const BOSS_MAX_HP = 50;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
+const BOSS_MAX_HP = 120;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
 const MAX_ENEMY_SPEED = 365;                         // teto máximo justo de velocidade
-const MIN_SPAWN_DELAY = 450;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
+const MIN_SPAWN_DELAY = 180;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
 const MAX_WEAPON_LEVEL = Infinity;                   // Progressão infinita de armas dentro da partida (via XP)
 const STORAGE_KEY = 'knight_quest_highscores';
 const STORAGE_GOLD_KEY = 'knight_quest_gold_v1';
@@ -44,9 +45,8 @@ const STORAGE_JOYSTICK_KEY = 'knight_quest_joystick_mode_v1';
 
 // Catálogo do Ferreiro (Apenas Desbloqueio no Menu; os Níveis 1 a 5 evoluem IN-GAME via XP Level Up!)
 
-// <<< END: src/config/constants.js
 
-// >>> START: src/config/palette.js
+// --- BUNDLE FILE: JS_Teste/src/config/palette.js ---
 // PALETA DE CORES DA PIXEL ART (Padrão 16-bit com rampas de 3 a 4 sub-tons)
 // Todas as chaves originais foram preservadas para garantir 100% de retrocompatibilidade.
 // =============================================================================
@@ -107,6 +107,7 @@ const C = {
   rubyBase: 0xd83a3a,
   rubyShadow: 0x8e1b1b,
   rubyDeep: 0x4a0e0e,
+  deepBlood: 0x4a0e0e,
 
   // --- AZUL REAL & HERÁLDICA ---
   blueLight: 0x5b93f0,
@@ -208,9 +209,8 @@ const C = {
 
 // =============================================================================
 
-// <<< END: src/config/palette.js
 
-// >>> START: src/config/catalogs.js
+// --- BUNDLE FILE: JS_Teste/src/config/catalogs.js ---
 // =============================================================================
 // CATÁLOGOS DE EQUIPAMENTOS, STATUS E CONQUISTAS
 // =============================================================================
@@ -221,7 +221,7 @@ const WEAPON_CATALOG = {
     icon: 'item_bow',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Arco nobre de teixo. Dispara flechas precisas com cadência exponencial acelerada.',
     levels: [
       { badge: 'DISPARO CERTEIRO', desc: 'Flechas velozes e perfurantes disparadas com ritmo cadenciado contra o avanço dos monstros.', toString() { return this.desc; } },
@@ -237,7 +237,7 @@ const WEAPON_CATALOG = {
     icon: 'item_sword',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área cortante colossal.',
     levels: [
       { badge: 'CORTE NOBRE', desc: 'Desfere golpes precisos de aço temperado com área de impacto equilibrada e repulsão frontal ativa.', toString() { return this.desc; } },
@@ -253,7 +253,7 @@ const WEAPON_CATALOG = {
     icon: 'item_shield',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
     levels: [
       { badge: 'ÉGIDE BÁSICA', desc: 'Envolve o herói em aura celestial por tempo equilibrado, refletindo flechas e detonando em choque se atingido.', toString() { return this.desc; } },
@@ -269,7 +269,7 @@ const WEAPON_CATALOG = {
     icon: 'item_axe',
     unlockedDefault: false,
     unlockCost: 25,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
     levels: [
       { badge: 'GOLPE RÚNICO', desc: 'Lança machado duplo em arco circular de retorno, desferindo golpes de impacto na ida e na volta.', toString() { return this.desc; } },
@@ -285,7 +285,7 @@ const WEAPON_CATALOG = {
     icon: 'item_firestaff',
     unlockedDefault: false,
     unlockCost: 45,
-    maxLevel: 5,
+    maxLevel: Infinity,
     forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
     levels: [
       { badge: 'ORBE SOLAR', desc: 'Dispara esfera ígnea concentrada que explode no impacto e cria uma poça de chamas ardentes no chão.', toString() { return this.desc; } },
@@ -486,9 +486,8 @@ const ACHIEVEMENTS_CATALOG = [
   }
 ];
 
-// <<< END: src/config/catalogs.js
 
-// >>> START: src/core/events.js
+// --- BUNDLE FILE: JS_Teste/src/core/events.js ---
 // SISTEMA DE EVENTOS DESACOPLADO (Observer Pattern / EventBus)
 // Permite que combate, áudio, interface, conquistas e drops reajam a eventos do jogo
 // sem dependência cíclica ou chamadas diretas rígidas.
@@ -563,9 +562,8 @@ const events = new GameEventBus();
 
 // =============================================================================
 
-// <<< END: src/core/events.js
 
-// >>> START: src/core/state.js
+// --- BUNDLE FILE: JS_Teste/src/core/state.js ---
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, swordBlade, cursors, keys;
@@ -586,14 +584,14 @@ let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
 let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0, entityIdCounter = 0;
+let nextHordeTime = 45, hordeCycleCount = 0;
 if (typeof window !== 'undefined') window.worldSpeed = 117;
 let virtualJoystick = null;
 
 // =============================================================================
 
-// <<< END: src/core/state.js
 
-// >>> START: src/core/storage.js
+// --- BUNDLE FILE: JS_Teste/src/core/storage.js ---
 // GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
@@ -947,9 +945,8 @@ if (typeof document !== 'undefined') {
 
 // =============================================================================
 
-// <<< END: src/core/storage.js
 
-// >>> START: src/core/audio.js
+// --- BUNDLE FILE: JS_Teste/src/core/audio.js ---
 // SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
 // =============================================================================
 const BGM_MELODY = [
@@ -1685,9 +1682,369 @@ const sound = new SoundSystem();
 
 // =============================================================================
 
-// <<< END: src/core/audio.js
 
-// >>> START: src/art/drawHelpers.js
+// --- BUNDLE FILE: JS_Teste/src/core/platformBridge.js ---
+// =============================================================================
+// PLATFORM BRIDGE — ADAPTER UNIVERSAL DE PUBLICAÇÃO WEB
+// Suporte unificado para:
+// - Itch.io / GameJolt / Offline Local (Zero dependências, 100% autônomo)
+// - CrazyGames (SDK v3: gameplayStart, gameplayStop, Midroll, Rewarded Ads)
+// - Poki (SDK v2: gameplayStart, gameplayStop, commercialBreak, rewardedBreak)
+// =============================================================================
+
+class PlatformBridgeController {
+  constructor() {
+    this.platform = 'STANDALONE'; // 'STANDALONE', 'CRAZYGAMES', 'POKI'
+    this.initialized = false;
+    this.initPromise = null;
+    this.lastMidrollTime = 0;
+    this.gameLaunchTime = Date.now();
+    this.minMidrollInterval = 150000; // Mínimo de 150s (2.5 min) entre midrolls (QA Compliant)
+    this.initialBufferTime = 90000;   // Sem anúncios nos primeiros 90s de jogo
+    this.rewardedUsedInRun = false;
+    this.isShowingAd = false;
+    this.loadingFinished = false;
+
+    this.detectPlatform();
+    this.init();
+  }
+
+  detectPlatform() {
+    if (typeof window === 'undefined') return;
+
+    const urlParams = new URLSearchParams(window.location.search || '');
+    const forced = urlParams.get('platform') || urlParams.get('sdk');
+    const hostname = window.location.hostname || '';
+
+    if (forced === 'poki' || hostname.includes('poki.com') || hostname.includes('poki-gdn.com')) {
+      this.platform = 'POKI';
+    } else if (
+      forced === 'crazygames' ||
+      hostname.includes('crazygames.com') ||
+      hostname.includes('1001juegos.com') ||
+      hostname.includes('gameflare.com')
+    ) {
+      this.platform = 'CRAZYGAMES';
+    } else {
+      this.platform = 'STANDALONE'; // Itch.io, Newgrounds, dev local
+    }
+
+    console.log(`[PlatformBridge] Plataforma detectada: ${this.platform}`);
+  }
+
+  // Inicializa o SDK específico de forma assíncrona e segura
+  async init() {
+    if (this.initialized) return true;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = new Promise((resolve) => {
+      try {
+        if (this.platform === 'POKI') {
+          this.initPoki(resolve);
+        } else if (this.platform === 'CRAZYGAMES') {
+          this.initCrazyGames(resolve);
+        } else {
+          // Modo Standalone / Itch.io: pronto imediatamente
+          this.initialized = true;
+          resolve(true);
+        }
+      } catch (err) {
+        console.warn('[PlatformBridge] Falha ao iniciar SDK da plataforma, usando fallback Standalone:', err);
+        this.platform = 'STANDALONE';
+        this.initialized = true;
+        resolve(true);
+      }
+    });
+
+    return this.initPromise;
+  }
+
+  initPoki(resolve) {
+    const onPokiReady = () => {
+      this.initialized = true;
+      if (this.loadingFinished && typeof window.PokiSDK !== 'undefined') {
+        try { window.PokiSDK.gameLoadingFinished(); } catch (e) {}
+      }
+      resolve(true);
+    };
+
+    if (typeof window.PokiSDK !== 'undefined') {
+      window.PokiSDK.init()
+        .then(() => {
+          console.log('[PlatformBridge] PokiSDK inicializado com sucesso.');
+          onPokiReady();
+        })
+        .catch(() => {
+          console.warn('[PlatformBridge] PokiSDK inicializado com adblocker ou restrição.');
+          onPokiReady();
+        });
+      return;
+    }
+
+    // Carregamento dinâmico do script Poki se estiver no domínio Poki
+    const script = document.createElement('script');
+    script.src = 'https://game-cdn.poki.com/scripts/v2/poki-sdk.js';
+    script.onload = () => {
+      if (typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.init()
+          .then(() => onPokiReady())
+          .catch(() => onPokiReady());
+      } else {
+        onPokiReady();
+      }
+    };
+    script.onerror = () => {
+      console.warn('[PlatformBridge] Não foi possível carregar PokiSDK, fallback ativado.');
+      this.platform = 'STANDALONE';
+      this.initialized = true;
+      resolve(true);
+    };
+    document.head.appendChild(script);
+  }
+
+  initCrazyGames(resolve) {
+    const onCrazyReady = () => {
+      this.initialized = true;
+      if (this.loadingFinished && window.CrazyGames?.SDK?.game?.loadingStop) {
+        try { window.CrazyGames.SDK.game.loadingStop(); } catch (e) {}
+      }
+      resolve(true);
+    };
+
+    if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+      window.CrazyGames.SDK.init()
+        .then(() => {
+          console.log('[PlatformBridge] CrazyGames SDK v3 inicializado.');
+          onCrazyReady();
+        })
+        .catch((err) => {
+          console.warn('[PlatformBridge] CrazyGames SDK falhou ao inicializar:', err);
+          onCrazyReady();
+        });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://sdk.crazygames.com/crazygames-sdk-v3.js';
+    script.onload = () => {
+      if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+        window.CrazyGames.SDK.init()
+          .then(() => onCrazyReady())
+          .catch(() => onCrazyReady());
+      } else {
+        onCrazyReady();
+      }
+    };
+    script.onerror = () => {
+      console.warn('[PlatformBridge] Não foi possível carregar CrazyGames SDK, fallback ativado.');
+      this.platform = 'STANDALONE';
+      this.initialized = true;
+      resolve(true);
+    };
+    document.head.appendChild(script);
+  }
+
+  // ---------------------------------------------------------------------------
+  // SINAIS DE CARREGAMENTO (Loading Life Cycle - Poki & CrazyGames QA)
+  // ---------------------------------------------------------------------------
+  loadingStart() {
+    try {
+      if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game?.loadingStart) {
+        window.CrazyGames.SDK.game.loadingStart();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] loadingStart erro:', e);
+    }
+  }
+
+  loadingStop() {
+    this.loadingFinished = true;
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.gameLoadingFinished();
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game?.loadingStop) {
+        window.CrazyGames.SDK.game.loadingStop();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] loadingStop erro:', e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // TELEMETRIA E CICLO DE JOGABILIDADE (Obrigatórios para Poki e CrazyGames)
+  // ---------------------------------------------------------------------------
+  gameplayStart() {
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.gameplayStart();
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game) {
+        window.CrazyGames.SDK.game.gameplayStart();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] gameplayStart erro:', e);
+    }
+  }
+
+  gameplayStop() {
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.gameplayStop();
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game) {
+        window.CrazyGames.SDK.game.gameplayStop();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] gameplayStop erro:', e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ANÚNCIOS MIDROLL (INTERSTITIAL ENTRE PARTIDAS)
+  // ---------------------------------------------------------------------------
+  canShowMidroll() {
+    if (this.platform === 'STANDALONE') return false;
+    const now = Date.now();
+    // Protege o jogador na primeira partida (90s de buffer) e impõe cooldown de 150s
+    if (now - this.gameLaunchTime < this.initialBufferTime) return false;
+    if (now - this.lastMidrollTime < this.minMidrollInterval) return false;
+    return true;
+  }
+
+  showMidroll(scene, onComplete) {
+    const finish = () => {
+      this.isShowingAd = false;
+      this.restoreAudioAndPhysics(scene);
+      if (typeof onComplete === 'function') onComplete();
+    };
+
+    if (!this.canShowMidroll()) {
+      if (typeof onComplete === 'function') onComplete();
+      return;
+    }
+
+    this.isShowingAd = true;
+    this.pauseAudioAndPhysics(scene);
+    this.lastMidrollTime = Date.now();
+
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.commercialBreak()
+          .then(() => finish())
+          .catch(() => finish());
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.ad) {
+        window.CrazyGames.SDK.ad.requestAd('midroll', {
+          adStarted: () => { /* Som e física já pausados */ },
+          adFinished: () => finish(),
+          adError: () => finish()
+        });
+      } else {
+        finish();
+      }
+    } catch (err) {
+      console.warn('[PlatformBridge] Erro ao exibir Midroll:', err);
+      finish();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ANÚNCIOS REWARDED (VÍDEOS COM RECOMPENSA VOLUNTÁRIA)
+  // ---------------------------------------------------------------------------
+  showRewarded(scene, { onReward, onDismiss, onError }) {
+    const handleReward = () => {
+      if (typeof onReward === 'function') onReward();
+    };
+
+    const finish = () => {
+      this.isShowingAd = false;
+      this.restoreAudioAndPhysics(scene);
+      if (typeof onDismiss === 'function') onDismiss();
+    };
+
+    this.isShowingAd = true;
+    this.pauseAudioAndPhysics(scene);
+
+    // Em modo Standalone/Itch.io (onde não há rede de anúncios), concede a recompensa imediatamente para permitir testes completos
+    if (this.platform === 'STANDALONE') {
+      console.log('[PlatformBridge] Standalone: recompensa concedida diretamente.');
+      handleReward();
+      finish();
+      return;
+    }
+
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.rewardedBreak()
+          .then((success) => {
+            if (success) handleReward();
+            finish();
+          })
+          .catch((err) => {
+            console.warn('[PlatformBridge] Poki rewarded erro:', err);
+            if (typeof onError === 'function') onError(err);
+            finish();
+          });
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.ad) {
+        window.CrazyGames.SDK.ad.requestAd('rewarded', {
+          adStarted: () => { /* Som e física já pausados */ },
+          adFinished: () => {
+            handleReward();
+            finish();
+          },
+          adError: (err) => {
+            console.warn('[PlatformBridge] CrazyGames rewarded erro:', err);
+            if (typeof onError === 'function') onError(err);
+            finish();
+          }
+        });
+      } else {
+        handleReward();
+        finish();
+      }
+    } catch (err) {
+      console.warn('[PlatformBridge] Erro ao invocar rewarded ad:', err);
+      if (typeof onError === 'function') onError(err);
+      finish();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PAUSA DE FÍSICA E SILENCIAMENTO DE ÁUDIO (Exigência de QA de todas as plataformas)
+  // ---------------------------------------------------------------------------
+  pauseAudioAndPhysics(scene) {
+    if (typeof sound !== 'undefined' && sound.muteForAd) {
+      sound.muteForAd();
+    }
+    if (scene && scene.physics) {
+      scene.physics.pause();
+    }
+    if (scene && scene.time) {
+      scene.time.paused = true;
+    }
+  }
+
+  restoreAudioAndPhysics(scene) {
+    if (typeof sound !== 'undefined' && sound.unmuteAfterAd) {
+      sound.unmuteAfterAd();
+    }
+    // Restaura a física e timers apenas se a partida ainda estiver em andamento
+    if (typeof gameState !== 'undefined' && gameState === 'PLAYING') {
+      if (scene && scene.physics) {
+        scene.physics.resume();
+      }
+      if (scene && scene.time) {
+        scene.time.paused = false;
+      }
+    }
+  }
+}
+
+// Instância singleton global do PlatformBridge
+const PlatformBridge = new PlatformBridgeController();
+if (typeof window !== 'undefined') {
+  window.PlatformBridge = PlatformBridge;
+}
+
+
+// --- BUNDLE FILE: JS_Teste/src/art/drawHelpers.js ---
 // ARTE: FERRAMENTAS DE PIXEL ART
 // Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
 // carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
@@ -1779,9 +2136,8 @@ function makeItem(scene, key, glow, drawIcon) {
 
 // =============================================================================
 
-// <<< END: src/art/drawHelpers.js
 
-// >>> START: src/art/characterArt.js
+// --- BUNDLE FILE: JS_Teste/src/art/characterArt.js ---
 // =============================================================================
 // ARTE PROCEDURAL: PERSONAGENS, INIMIGOS, CHEFES E NPCS
 // =============================================================================
@@ -2544,9 +2900,8 @@ function drawMageMaster(r, f) {
 }
 
 
-// <<< END: src/art/characterArt.js
 
-// >>> START: src/art/itemArt.js
+// --- BUNDLE FILE: JS_Teste/src/art/itemArt.js ---
 // =============================================================================
 // ARTE PROCEDURAL: ÍCONES DE ARMAS, PROJÉTEIS, COLETÁVEIS E HUD
 // =============================================================================
@@ -3056,9 +3411,8 @@ function makeSlashTexture(scene) {
   }
 }
 
-// <<< END: src/art/itemArt.js
 
-// >>> START: src/art/worldArt.js
+// --- BUNDLE FILE: JS_Teste/src/art/worldArt.js ---
 // =============================================================================
 // ARTE PROCEDURAL: CENÁRIO, TEXTURAS DO MUNDO E CONSTRUÇÕES DA VILA
 // =============================================================================
@@ -3685,9 +4039,8 @@ function drawGateTower(r) {
 }
 
 
-// <<< END: src/art/worldArt.js
 
-// >>> START: src/combat/weapons.js
+// --- BUNDLE FILE: JS_Teste/src/combat/weapons.js ---
 // =============================================================================
 
 // Schema Unificado de Status de Armas:
@@ -3741,35 +4094,29 @@ function getWeaponStats(type, lvl = 1) {
   };
 
   const effectiveLvl = Math.max(1, lvl);
+  const generalMult = 1 + (effectiveLvl - 1) * 0.22;
+  stats.damage = Math.max(1, Math.round(base.damage * generalMult));
 
-  // 1. Progressão Exponencial com Atributos Fortes e Guardrails de Engine
+  // 1. Progressão Contínua e Infinita com Atributos Fortes e Guardrails de Engine
   if (type === 'sword') {
-    // ATRIBUTO FORTE: Área / Tamanho (Escala +28% multiplicativo por nível até Nv. 5)
-    if (effectiveLvl <= 5) {
-      stats.area = Math.pow(1.28, effectiveLvl - 1);
-    } else {
-      stats.area = Math.min(3.60, Math.pow(1.28, 4) * (1 + 0.05 * (effectiveLvl - 5)));
-    }
+    // ATRIBUTO FORTE: Área / Tamanho (+26% por nível) e Dano (+22% geral)
+    stats.area = Math.min(4.2, 1.0 + (effectiveLvl - 1) * 0.26);
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'bow') {
-    // ATRIBUTO FORTE: Cadência (+25% disparos por segundo por nível -> delay reduz 20% por nível)
-    // Teto de segurança absoluto: 100ms (10 flechas/s a 60 FPS para estabilidade de engine)
-    stats.attackRate = Math.max(100, Math.round(500 * Math.pow(0.80, effectiveLvl - 1)));
+    // ATRIBUTO FORTE: Cadência (-14% delay por nível com piso seguro de 90ms a 60 FPS)
+    stats.attackRate = Math.max(90, Math.round(500 * Math.pow(0.86, effectiveLvl - 1)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   } else if (type === 'axe') {
-    // ATRIBUTO FORTE: Knockback (+50% de repulsão por nível até Nv. 5)
-    // Teto de segurança absoluto: 220px (evita arremesso para fora da tela de 800px)
-    if (effectiveLvl <= 5) {
-      stats.knockback = Math.round(30 * Math.pow(1.50, effectiveLvl - 1));
-    } else {
-      stats.knockback = Math.min(220, Math.round(30 * Math.pow(1.50, 4) + (effectiveLvl - 5) * 12));
-    }
+    // ATRIBUTO FORTE: Knockback (+35% de repulsão por nível até teto de 240px)
+    stats.knockback = Math.min(240, Math.round(30 * (1 + (effectiveLvl - 1) * 0.35)));
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'firestaff') {
-    // ATRIBUTO FORTE: Raio de Explosão e Poça (+27% no raio por nível -> área multiplica exponencialmente)
-    // Teto de segurança absoluto: raio de 160px
-    if (effectiveLvl <= 5) {
-      stats.area = Math.round(45 * Math.pow(1.27, effectiveLvl - 1));
-    } else {
-      stats.area = Math.min(160, Math.round(45 * Math.pow(1.27, 4) + (effectiveLvl - 5) * 6));
-    }
+    // ATRIBUTO FORTE: Raio de Explosão e Poça (+22% no raio por nível até teto de 180px)
+    stats.area = Math.min(180, Math.round(45 * (1 + (effectiveLvl - 1) * 0.22)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
+  } else if (type === 'shield') {
+    stats.area = 1.0 + (effectiveLvl - 1) * 0.15;
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   }
 
   // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
@@ -3803,7 +4150,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.bow,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
@@ -3852,7 +4199,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.sword,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
@@ -4009,7 +4356,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.axe,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
@@ -4055,7 +4402,7 @@ const WeaponStrategies = {
     baseDuration: BUFF_TIME.firestaff,
     getDuration(lvl, bonusDur, wisdomDur) {
       const l = Math.max(1, lvl);
-      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
       return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
@@ -4345,9 +4692,8 @@ function triggerPlayerAction(scene) {
 // =============================================================================
 // COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
 
-// <<< END: src/combat/weapons.js
 
-// >>> START: src/combat/combatManager.js
+// --- BUNDLE FILE: JS_Teste/src/combat/combatManager.js ---
 // =============================================================================
 // GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
 // =============================================================================
@@ -4548,10 +4894,12 @@ function setupDecoupledEventListeners(scene) {
 
   // 4. SISTEMA DE LOOT & RECOMPENSAS
   events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
-    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, goblin: 0.38, mini_golem: 0.32 };
-    const chance = dropRates[enemyType] ?? 0.40;
+    const dropRates = { dark_mage: 0.32, warrior: 0.25, elf: 0.18, goblin: 0.12, goblin_scout: 0.14, mini_golem: 0.08 };
+    const chance = dropRates[enemyType] ?? 0.12;
 
-    spawnXpOrb(scene, x - 6, y, xpValue);
+    if (Math.random() < 0.75) {
+      spawnXpOrb(scene, x - 6, y, xpValue);
+    }
 
     if (Math.random() < chance) {
       const count = (enemyType === 'dark_mage' || enemyType === 'warrior') && Math.random() < 0.42 ? 2 : 1;
@@ -4775,9 +5123,8 @@ function gameOver(scene) {
 }
 
 
-// <<< END: src/combat/combatManager.js
 
-// >>> START: src/combat/lootManager.js
+// --- BUNDLE FILE: JS_Teste/src/combat/lootManager.js ---
 // =============================================================================
 // GERENCIADOR DE DROPS, XP, MOEDAS E ATRAÇÃO MAGNÉTICA
 // =============================================================================
@@ -4872,9 +5219,8 @@ function collectCoin(scene, coin) {
 }
 
 
-// <<< END: src/combat/lootManager.js
 
-// >>> START: src/world/director.js
+// --- BUNDLE FILE: JS_Teste/src/world/director.js ---
 // =============================================================================
 // DIRETOR DO MUNDO: ONDAS DE SPAWN, VILA INICIAL E ELEMENTOS AMBIENTAIS
 // =============================================================================
@@ -4964,7 +5310,9 @@ function startGameplay(scene) {
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
   if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
-  spawnDelay = 900; // Início engajador e ativo (+40% de densidade inicial)
+  spawnDelay = 1150; // Início suave e cadenciado para acumular XP e upgrades
+  nextHordeTime = 45;
+  hordeCycleCount = 0;
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();
@@ -5018,7 +5366,12 @@ function startGameplay(scene) {
     if (survivalTime > getBestScore() && hudBestText) {
       hudBestText.setText(`${survivalTime}s`);
     }
-    if (survivalTime === 35 && !bossSpawned) {
+    if (survivalTime >= nextHordeTime && (!activeBoss || !activeBoss.active)) {
+      hordeCycleCount++;
+      nextHordeTime = survivalTime + 30;
+      triggerSpecialHorde(scene, hordeCycleCount);
+    }
+    if (survivalTime === 52 && !bossSpawned) {
       floatText(scene, 400, 132, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
     }
     if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
@@ -5027,9 +5380,18 @@ function startGameplay(scene) {
   });
 
   // Director Dinâmico: ajusta velocidade e intervalo progressivamente ao longo da Run
-  every(4500, () => {
-    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
-    spawnDelay = Math.max(380, spawnDelay - 45);
+  every(4000, () => {
+    if (survivalTime < 20) {
+      enemySpeed = Math.min(205, enemySpeed + 2);
+      spawnDelay = Math.max(950, spawnDelay - 30);
+    } else if (survivalTime < 45) {
+      enemySpeed = Math.min(265, enemySpeed + 8);
+      spawnDelay = Math.max(650, spawnDelay - 45);
+    } else {
+      enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
+      spawnDelay = Math.max(220, spawnDelay - 40);
+    }
+
     enemies.getChildren().forEach(e => {
       if (e.active && !e.isBoss && e.enemyType && ENEMIES[e.enemyType]) {
         e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
@@ -5070,7 +5432,7 @@ function spawnDirectorWave(scene) {
   }
 
   // Cap dinâmico de segurança de inimigos simultâneos na tela (preserva 60 FPS estáveis)
-  const maxEnemiesOnScreen = Math.min(28, 12 + Math.floor(survivalTime / 12));
+  const maxEnemiesOnScreen = survivalTime < 20 ? 10 : (survivalTime < 45 ? 22 : Math.min(55, 24 + Math.floor(survivalTime / 5)));
   const currentActiveEnemies = enemies.getChildren().filter(e => e.active && !e.isBoss).length;
   if (currentActiveEnemies >= maxEnemiesOnScreen) {
     return;
@@ -5079,20 +5441,16 @@ function spawnDirectorWave(scene) {
   let waveCount = 1;
   const r = Math.random();
   if (bossDefeated || survivalTime >= 100) {
-    // Pós-Boss / Fim de Jogo: hordas épicas em grupos de 3 a 5 monstros
-    waveCount = r < 0.40 ? 5 : (r < 0.80 ? 4 : 3);
+    waveCount = r < 0.45 ? 6 : (r < 0.80 ? 5 : 4);
   } else if (survivalTime >= 70) {
-    // Fases avançadas pós-60s
-    waveCount = r < 0.45 ? 4 : (r < 0.80 ? 3 : 5);
-  } else if (survivalTime >= 40) {
-    // Fase pré-boss com Rastreadores rápidos e bandos de 2 a 4
-    waveCount = r < 0.35 ? 3 : (r < 0.75 ? 2 : 4);
+    waveCount = r < 0.45 ? 5 : (r < 0.80 ? 4 : 3);
+  } else if (survivalTime >= 45) {
+    waveCount = r < 0.50 ? 3 : 2;
   } else if (survivalTime >= 20) {
-    // Intermediário (20s - 40s): bandos de 2 a 3
-    waveCount = r < 0.50 ? 2 : (r < 0.85 ? 3 : 1);
+    waveCount = r < 0.65 ? 2 : 1;
   } else {
-    // Início ativo (0 - 20s): bandos frequentes de 1 a 2 (+40% densidade)
-    waveCount = r < 0.45 ? 2 : 1;
+    // Comeco calmo e focado em farm de XP (0 - 20s): estritamente 1 monstro por vez!
+    waveCount = 1;
   }
 
   for (let i = 0; i < waveCount; i++) {
@@ -5140,9 +5498,53 @@ function spawnItem(scene) {
 }
 
 
-// <<< END: src/world/director.js
+// =============================================================================
+// EVENTOS RÃTMICOS DE HORDAS ESPECIAIS (45s+, A CADA 30 SEGUNDOS)
+// =============================================================================
+function triggerSpecialHorde(scene, cycle) {
+  if (gameState !== 'PLAYING') return;
 
-// >>> START: src/world/enemies.js
+  const isDenseGoblin = (cycle % 2 === 1);
+  sound.playEarthSmash();
+  scene.cameras.main.shake(260, 0.008);
+
+  if (isDenseGoblin) {
+    // Ciclo Ãmpar (1, 3, 5...): Horda Densa de Goblins simples
+    const count = 9 + Math.floor((cycle - 1) * 2.5);
+    floatText(scene, 400, 130, 'HORDA DENSA DE GOBLINS (' + count + ')!', '#ff5252');
+
+    for (let i = 0; i < count; i++) {
+      scene.time.delayedCall(i * 125, () => {
+        if (gameState === 'PLAYING') {
+          const spreadY = 135 + ((i * 47) % 375);
+          spawnEnemy(scene, 'goblin', spreadY);
+        }
+      });
+    }
+  } else {
+    // Ciclo Par (2, 4, 6...): Horda de Goblins Zigue-zague (Scouts) com Guerreiros Blindados
+    const scoutCount = 5 + Math.floor(cycle * 1.5);
+    const warriorCount = 3 + Math.floor(cycle * 1.0);
+    const total = scoutCount + warriorCount;
+    floatText(scene, 400, 130, 'HORDA: RASTREADORES E GUERREIROS (' + total + ')!', '#ffca28');
+
+    const hordeList = [];
+    for (let i = 0; i < scoutCount; i++) hordeList.push('goblin_scout');
+    for (let i = 0; i < warriorCount; i++) hordeList.push('warrior');
+    Phaser.Utils.Array.Shuffle(hordeList);
+
+    hordeList.forEach((eType, i) => {
+      scene.time.delayedCall(i * 135, () => {
+        if (gameState === 'PLAYING') {
+          const spreadY = 135 + ((i * 53) % 375);
+          spawnEnemy(scene, eType, spreadY);
+        }
+      });
+    });
+  }
+}
+
+// --- BUNDLE FILE: JS_Teste/src/world/enemies.js ---
 // =============================================================================
 // INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
 // =============================================================================
@@ -5155,16 +5557,16 @@ function spawnEnemy(scene, forcedType, customY) {
       type = 'mini_golem';
     } else if (bossDefeated) {
       // Pós-Boss: O Mago aparece com taxa rara (8%), Rastreador Ágil (20%), Goblins, Guerreiros e Elfos
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.28 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.78 ? 'warrior' : 'elf')));
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.36 ? 'goblin_scout' : (roll < 0.62 ? 'goblin' : (roll < 0.86 ? 'warrior' : 'elf')));
     } else if (survivalTime >= 40) {
       // Fase pré-boss avançada: Goblins Rastreadores ágeis (28%), Goblins comuns, guerreiros e elfos (SEM MAGO)
-      type = roll < 0.28 ? 'goblin_scout' : (roll < 0.56 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
+      type = roll < 0.35 ? 'goblin_scout' : (roll < 0.70 ? 'goblin' : (roll < 0.90 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 20) {
       // Fase pré-boss intermediária (20s - 40s): Introduz Rastreadores ágeis (16%)
-      type = roll < 0.16 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
+      type = roll < 0.55 ? 'goblin' : (roll < 0.80 ? 'goblin_scout' : (roll < 0.95 ? 'warrior' : 'elf'));
     } else {
       // Curva inicial: predominantemente goblins simples e guerreiros
-      type = roll < 0.76 ? 'goblin' : 'warrior';
+      type = roll < 0.90 ? 'goblin' : 'warrior';
     }
   }
   const cfg = ENEMIES[type] || ENEMIES.goblin;
@@ -5363,9 +5765,8 @@ function teleportMage(scene, mage) {
   }
 }
 
-// <<< END: src/world/enemies.js
 
-// >>> START: src/world/boss.js
+// --- BUNDLE FILE: JS_Teste/src/world/boss.js ---
 // =============================================================================
 // BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (ATAQUES, TELEGRAFIAS E CONTROLE)
 // =============================================================================
@@ -5455,18 +5856,18 @@ function ejectMiniGolemsFromBoss(scene, boss) {
   if (!boss || !boss.active || gameState !== 'PLAYING') return;
 
   const currentMiniGolems = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
-  if (currentMiniGolems >= 5) return;
+  if (currentMiniGolems >= 10) return;
 
   const hpRatio = (boss.hp ?? BOSS_MAX_HP) / (boss.maxHp || BOSS_MAX_HP);
-  let count = 1;
+  let count = 2;
   if (hpRatio <= 0.35) {
-    count = Phaser.Math.Between(2, 3);
+    count = Phaser.Math.Between(3, 5);
   } else if (hpRatio <= 0.70) {
-    count = Phaser.Math.Between(1, 2);
+    count = Phaser.Math.Between(2, 4);
   } else {
     count = 1;
   }
-  count = Math.min(count, 5 - currentMiniGolems);
+  count = Math.min(count, 10 - currentMiniGolems);
   if (count <= 0) return;
 
   sound.playEarthSmash();
@@ -5485,7 +5886,7 @@ function ejectMiniGolemsFromBoss(scene, boss) {
     scene.time.delayedCall(i * 180, () => {
       if (!boss || !boss.active || gameState !== 'PLAYING') return;
       const activeCount = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
-      if (activeCount >= 5) return;
+      if (activeCount >= 10) return;
 
       const originX = boss.x - 22;
       const originY = boss.y - 8;
@@ -5511,8 +5912,8 @@ function ejectMiniGolemsFromBoss(scene, boss) {
       }
       golem.setVelocity(0, 0);
 
-      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(75, 170), 160, 680);
-      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-85, 85), 140, 505);
+      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(65, 260), 135, 690);
+      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-130, 130), 135, 515);
 
       // Trajetória em arco parabólico simulando desprendimento do corpo do Boss
       scene.tweens.add({
@@ -5588,6 +5989,7 @@ function ejectMiniGolemsFromBoss(scene, boss) {
                     golem.golemState = 'ACTIVE';
                     golem.setFrame(0);
                     golem.play('mini_golem');
+                    if (golem.body) { golem.body.pushable = true; golem.body.setBounce(0.35); }
                     if (debrisFx) debrisFx.explode(8, golem.x, golem.y);
                     if (dustFx) dustFx.explode(6, golem.x, golem.y + 10);
                     sound.playFireStaff();
@@ -5877,9 +6279,8 @@ function defeatBoss(scene, boss) {
 }
 
 
-// <<< END: src/world/boss.js
 
-// >>> START: src/ui/hud.js
+// --- BUNDLE FILE: JS_Teste/src/ui/hud.js ---
 // =============================================================================
 // INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS
 // =============================================================================
@@ -6219,9 +6620,8 @@ function updateScrollHUD() {
   }
 }
 
-// <<< END: src/ui/hud.js
 
-// >>> START: src/ui/modals.js
+// --- BUNDLE FILE: JS_Teste/src/ui/modals.js ---
 // =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
@@ -6237,33 +6637,23 @@ function rollLevelUpCards() {
     if (cfg) {
       const nextLvl = currLvl + 1;
       const isHeld = buff && buff.type === key;
-      const lvlData = (cfg.levels && cfg.levels[nextLvl - 1]) ? cfg.levels[nextLvl - 1] : null;
-
-      let badge = 'EVOLUÇÃO ★';
-      let desc = 'Eleva o poder da relíquia além dos limites mortais, refinando seu atributo com vigor lendário.';
-
-      if (lvlData) {
-        badge = typeof lvlData === 'object' ? lvlData.badge : (nextLvl >= 5 ? 'GRAU MÁXIMO ★' : 'EVOLUÇÃO NOBRE');
-        desc = typeof lvlData === 'object' ? lvlData.desc : lvlData;
-      } else {
-        badge = 'TRANSCENDÊNCIA ★';
-        desc = 'Eleva o poder da relíquia além dos limites mortais, refinando seu atributo com vigor lendário.';
-      }
+      const mult = (1 + (nextLvl - 1) * 0.22).toFixed(2);
+      const pct = Math.round((nextLvl - 1) * 22);
 
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
         category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: badge,
-        badgeColor: nextLvl >= 5 ? '#ffd740' : '#7fe7ff',
-        borderColor: nextLvl >= 5 ? 0xffca28 : 0x7fe7ff,
+        badge: `Nv. ${currLvl} ➔ Nv. ${nextLvl}`,
+        badgeColor: '#ffd740',
+        borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `${desc}\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n✦ MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n✦ Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
           equipWeaponBuff(scene, key, false);
-          floatText(scene, player.x, player.y - 28, `${cfg.name} EVOLUÍDO!`, '#ffca28');
+          floatText(scene, player.x, player.y - 28, `${cfg.name} Nv. ${nextLvl}!`, '#ffca28');
         }
       });
     }
@@ -7075,9 +7465,8 @@ function showLeaderboard(scene, topScores, currentName) {
 
 
 
-// <<< END: src/ui/modals.js
 
-// >>> START: src/ui/menus.js
+// --- BUNDLE FILE: JS_Teste/src/ui/menus.js ---
 // =============================================================================
 // TELAS E MENUS DO JOGO: MENU PRINCIPAL, FORJA, MAGO, CONQUISTAS E OPÇÕES
 // =============================================================================
@@ -8006,9 +8395,8 @@ function showSettingsMenu(scene) {
 }
 
 
-// <<< END: src/ui/menus.js
 
-// >>> START: src/ui/virtualJoystick.js
+// --- BUNDLE FILE: JS_Teste/src/ui/virtualJoystick.js ---
 // =============================================================================
 // SISTEMA DE CONTROLE POR JOYSTICK VIRTUAL MOBILE (FIXO E ANCORADO NA UI)
 // =============================================================================
@@ -8338,9 +8726,8 @@ if (typeof window !== 'undefined') {
   window.VirtualJoystick = VirtualJoystick;
 }
 
-// <<< END: src/ui/virtualJoystick.js
 
-// >>> START: src/main.js
+// --- BUNDLE FILE: JS_Teste/src/main.js ---
 // =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
@@ -8628,6 +9015,15 @@ function create(data) {
   scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
   scene.physics.add.overlap(player, xpOrbs, (p, orb) => collectXpOrb(scene, orb));
 
+  // Separação física entre Mini-Golems despertos (evita que se sobreponham na arena)
+  scene.physics.add.collider(enemies, enemies, null, (e1, e2) => {
+    return Boolean(
+      e1 && e2 && e1.active && e2.active &&
+      e1.enemyType === 'mini_golem' && e2.enemyType === 'mini_golem' &&
+      e1.golemState === 'ACTIVE' && e2.golemState === 'ACTIVE'
+    );
+  });
+
   // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
     if (e.x >= 800 || !a.active || !e.active) return;
@@ -8852,33 +9248,27 @@ function updateGameplay(scene, time, dt) {
       }
       if (e.enemyType === 'goblin_scout') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Movimentação em zigue-zague dinâmico relativo ao vetor do jogador:
-        // V_final = V_forward * speed + V_perpendicular * (sin(time * omega) * A)
-        let fwdX = -1, fwdY = 0;
-        let perpX = 0, perpY = 1;
-        if (player && player.active) {
-          const dx = player.x - e.x;
-          const dy = player.y - e.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 1) {
-            fwdX = dx / dist;
-            fwdY = dy / dist;
-            perpX = -fwdY;
-            perpY = fwdX;
-          }
-        }
+        // Goblin Rastreador: avanco continuo para a esquerda em alta velocidade com perseguicao senoidal no eixo Y
         const scoutSpeed = (enemySpeed || 195) * (ENEMIES.goblin_scout ? ENEMIES.goblin_scout.speed : 1.48);
-        const osc = Math.sin(time * 0.0065 + e.phase) * 80;
-        e.setVelocity(fwdX * scoutSpeed + perpX * osc, fwdY * scoutSpeed + perpY * osc);
-        e.y = Phaser.Math.Clamp(e.y, 125, 525);
-        if (e.body) e.body.updateFromGameObject();
+        let trackVy = 0;
+        if (player && player.active) {
+          const dy = player.y - e.y;
+          trackVy = Phaser.Math.Clamp(dy * 1.6, -110, 110);
+        }
+        const osc = Math.sin(time * 0.008 + e.phase) * 80;
+        e.setVelocityX(-scoutSpeed);
+        e.setVelocityY(trackVy + osc);
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(e.body.velocity.y));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(e.body.velocity.y));
       } else if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
+        // Goblin Comum: marcha continua para a esquerda com oscilacao senoidal em Y
+        const gobSpeed = (enemySpeed || 195) * (ENEMIES.goblin ? ENEMIES.goblin.speed : 1.12);
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
+        e.setVelocityX(-gobSpeed);
         e.setVelocityY(zigZagSpeed);
-        e.y = Phaser.Math.Clamp(e.y, 130, 520);
-        if (e.body) e.body.updateFromGameObject();
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(zigZagSpeed));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(zigZagSpeed));
       } else if (e.enemyType === 'mini_golem') {
         // Máquina de Estados Estrita do Mini-Golem: EJECTING, DORMANT, AWAKENING, ACTIVE
         if (e.golemState === 'EJECTING') {
@@ -9254,4 +9644,3 @@ window.game = game;
 
 
 
-// <<< END: src/main.js

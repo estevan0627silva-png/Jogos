@@ -87,7 +87,9 @@ function startGameplay(scene) {
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
   if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
-  spawnDelay = 900; // Início engajador e ativo (+40% de densidade inicial)
+  spawnDelay = 1150; // Início suave e cadenciado para acumular XP e upgrades
+  nextHordeTime = 45;
+  hordeCycleCount = 0;
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();
@@ -141,7 +143,12 @@ function startGameplay(scene) {
     if (survivalTime > getBestScore() && hudBestText) {
       hudBestText.setText(`${survivalTime}s`);
     }
-    if (survivalTime === 35 && !bossSpawned) {
+    if (survivalTime >= nextHordeTime && (!activeBoss || !activeBoss.active)) {
+      hordeCycleCount++;
+      nextHordeTime = survivalTime + 30;
+      triggerSpecialHorde(scene, hordeCycleCount);
+    }
+    if (survivalTime === 52 && !bossSpawned) {
       floatText(scene, 400, 132, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
     }
     if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
@@ -150,9 +157,18 @@ function startGameplay(scene) {
   });
 
   // Director Dinâmico: ajusta velocidade e intervalo progressivamente ao longo da Run
-  every(4500, () => {
-    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
-    spawnDelay = Math.max(380, spawnDelay - 45);
+  every(4000, () => {
+    if (survivalTime < 20) {
+      enemySpeed = Math.min(205, enemySpeed + 2);
+      spawnDelay = Math.max(950, spawnDelay - 30);
+    } else if (survivalTime < 45) {
+      enemySpeed = Math.min(265, enemySpeed + 8);
+      spawnDelay = Math.max(650, spawnDelay - 45);
+    } else {
+      enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
+      spawnDelay = Math.max(220, spawnDelay - 40);
+    }
+
     enemies.getChildren().forEach(e => {
       if (e.active && !e.isBoss && e.enemyType && ENEMIES[e.enemyType]) {
         e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
@@ -193,7 +209,7 @@ function spawnDirectorWave(scene) {
   }
 
   // Cap dinâmico de segurança de inimigos simultâneos na tela (preserva 60 FPS estáveis)
-  const maxEnemiesOnScreen = Math.min(28, 12 + Math.floor(survivalTime / 12));
+  const maxEnemiesOnScreen = survivalTime < 20 ? 10 : (survivalTime < 45 ? 22 : Math.min(55, 24 + Math.floor(survivalTime / 5)));
   const currentActiveEnemies = enemies.getChildren().filter(e => e.active && !e.isBoss).length;
   if (currentActiveEnemies >= maxEnemiesOnScreen) {
     return;
@@ -202,20 +218,16 @@ function spawnDirectorWave(scene) {
   let waveCount = 1;
   const r = Math.random();
   if (bossDefeated || survivalTime >= 100) {
-    // Pós-Boss / Fim de Jogo: hordas épicas em grupos de 3 a 5 monstros
-    waveCount = r < 0.40 ? 5 : (r < 0.80 ? 4 : 3);
+    waveCount = r < 0.45 ? 6 : (r < 0.80 ? 5 : 4);
   } else if (survivalTime >= 70) {
-    // Fases avançadas pós-60s
-    waveCount = r < 0.45 ? 4 : (r < 0.80 ? 3 : 5);
-  } else if (survivalTime >= 40) {
-    // Fase pré-boss com Rastreadores rápidos e bandos de 2 a 4
-    waveCount = r < 0.35 ? 3 : (r < 0.75 ? 2 : 4);
+    waveCount = r < 0.45 ? 5 : (r < 0.80 ? 4 : 3);
+  } else if (survivalTime >= 45) {
+    waveCount = r < 0.50 ? 3 : 2;
   } else if (survivalTime >= 20) {
-    // Intermediário (20s - 40s): bandos de 2 a 3
-    waveCount = r < 0.50 ? 2 : (r < 0.85 ? 3 : 1);
+    waveCount = r < 0.65 ? 2 : 1;
   } else {
-    // Início ativo (0 - 20s): bandos frequentes de 1 a 2 (+40% densidade)
-    waveCount = r < 0.45 ? 2 : 1;
+    // Comeco calmo e focado em farm de XP (0 - 20s): estritamente 1 monstro por vez!
+    waveCount = 1;
   }
 
   for (let i = 0; i < waveCount; i++) {
@@ -262,3 +274,49 @@ function spawnItem(scene) {
   scene.tweens.add({ targets: item, scale: 1.12, duration: 400, yoyo: true, repeat: -1 });
 }
 
+
+// =============================================================================
+// EVENTOS RÃTMICOS DE HORDAS ESPECIAIS (45s+, A CADA 30 SEGUNDOS)
+// =============================================================================
+function triggerSpecialHorde(scene, cycle) {
+  if (gameState !== 'PLAYING') return;
+
+  const isDenseGoblin = (cycle % 2 === 1);
+  sound.playEarthSmash();
+  scene.cameras.main.shake(260, 0.008);
+
+  if (isDenseGoblin) {
+    // Ciclo Ãmpar (1, 3, 5...): Horda Densa de Goblins simples
+    const count = 9 + Math.floor((cycle - 1) * 2.5);
+    floatText(scene, 400, 130, 'HORDA DENSA DE GOBLINS (' + count + ')!', '#ff5252');
+
+    for (let i = 0; i < count; i++) {
+      scene.time.delayedCall(i * 125, () => {
+        if (gameState === 'PLAYING') {
+          const spreadY = 135 + ((i * 47) % 375);
+          spawnEnemy(scene, 'goblin', spreadY);
+        }
+      });
+    }
+  } else {
+    // Ciclo Par (2, 4, 6...): Horda de Goblins Zigue-zague (Scouts) com Guerreiros Blindados
+    const scoutCount = 5 + Math.floor(cycle * 1.5);
+    const warriorCount = 3 + Math.floor(cycle * 1.0);
+    const total = scoutCount + warriorCount;
+    floatText(scene, 400, 130, 'HORDA: RASTREADORES E GUERREIROS (' + total + ')!', '#ffca28');
+
+    const hordeList = [];
+    for (let i = 0; i < scoutCount; i++) hordeList.push('goblin_scout');
+    for (let i = 0; i < warriorCount; i++) hordeList.push('warrior');
+    Phaser.Utils.Array.Shuffle(hordeList);
+
+    hordeList.forEach((eType, i) => {
+      scene.time.delayedCall(i * 135, () => {
+        if (gameState === 'PLAYING') {
+          const spreadY = 135 + ((i * 53) % 375);
+          spawnEnemy(scene, eType, spreadY);
+        }
+      });
+    });
+  }
+}
