@@ -9,16 +9,16 @@ function spawnEnemy(scene, forcedType, customY) {
       // Regra 6: Durante a Boss Fight, gera exclusivamente Mini-Golems
       type = 'mini_golem';
     } else if (bossDefeated) {
-      // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.40 ? 'goblin' : (roll < 0.72 ? 'warrior' : 'elf'));
+      // Pós-Boss: Magos (8%), Mini-Golems ágeis em bandos (24%), Goblins (28%), Guerreiros (22%), Elfos (18%)
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.32 ? 'mini_golem' : (roll < 0.60 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf')));
     } else if (survivalTime >= 40) {
-      // Fase pré-boss avançada: Goblins, guerreiros e elfos (SEM MAGO)
-      type = roll < 0.45 ? 'goblin' : (roll < 0.75 ? 'warrior' : 'elf');
+      // Fase pré-boss avançada: Mini-Golems velozes (22%), Goblins (32%), Guerreiros (26%), Elfos (20%)
+      type = roll < 0.22 ? 'mini_golem' : (roll < 0.54 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 20) {
-      // Fase pré-boss intermediária
-      type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
+      // A partir dos 20 segundos de sobrevivência: 20% de Mini-Golems ágeis com zigue-zague!
+      type = roll < 0.20 ? 'mini_golem' : (roll < 0.58 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
     } else {
-      // Curva inicial suave: predominantemente goblins simples
+      // Curva inicial suave (< 20s): predominantemente goblins simples e guerreiros
       type = roll < 0.80 ? 'goblin' : 'warrior';
     }
   }
@@ -139,36 +139,56 @@ function mageShoot(scene, mage) {
   });
 }
 
-function teleportMage(scene, mage) {
-  if (!mage || !mage.active) return;
+// INTANGIBILIDADE ARCANA DO MAGO SOMBRIO (Forma de Partículas / Mist Form)
+// Substitui o teletransporte confuso: dissolve-se em névoa espectral, deixando projéteis atravessarem
+function becomeIntangibleMage(scene, mage) {
+  if (!mage || !mage.active || mage.isIntangible || mage.intangibleCooldown) return false;
+
+  mage.isIntangible = true;
+
+  // Explode partículas arcanas púrpuras
   if (holyFx) holyFx.explode(14, mage.x, mage.y);
   if (sparksFx) sparksFx.explode(8, mage.x, mage.y);
-  sound.playShieldBlock();
+  sound.playArcaneMist();
+  floatText(scene, mage.x, mage.y - 20, 'INTANGÍVEL!', '#b388ff');
 
-  let targetX = Phaser.Math.Between(380, 740);
-  let targetY = Phaser.Math.Between(140, 500);
-  for (let tries = 0; tries < 8; tries++) {
-    const candidateX = Phaser.Math.Between(380, 740);
-    const candidateY = Phaser.Math.Between(140, 500);
-    if (!player || !player.active || Phaser.Math.Distance.Between(candidateX, candidateY, player.x, player.y) >= 140) {
-      targetX = candidateX;
-      targetY = candidateY;
-      break;
-    }
-  }
-
-  mage.x = targetX;
-  mage.y = targetY;
-  mage.baseY = targetY;
-  if (mage.body) mage.body.updateFromGameObject();
-
-  if (holyFx) holyFx.explode(16, targetX, targetY);
-  mage.setTint(0xb388ff);
-  scene.time.delayedCall(140, () => {
-    if (mage && mage.active) mage.clearTint();
+  // Tween visual: reduz alpha para 0.22 (aspecto fantasmagórico translúcido) durante 700ms
+  scene.tweens.add({
+    targets: mage,
+    alpha: 0.22,
+    duration: 120,
+    ease: 'Linear'
   });
 
-  if (typeof floatText === 'function') {
-    floatText(scene, targetX, targetY - 24, 'ESQUIVA / TELEPORTE!', '#b388ff');
-  }
+  mage.intangibleTimer = scene.time.delayedCall(700, () => {
+    if (!mage || !mage.active) return;
+
+    // Nova explosão suave de partículas arcanas na rematerialização
+    if (holyFx) holyFx.explode(10, mage.x, mage.y);
+    if (sparksFx) sparksFx.explode(6, mage.x, mage.y);
+
+    scene.tweens.add({
+      targets: mage,
+      alpha: 1.0,
+      duration: 180,
+      ease: 'Linear'
+    });
+
+    mage.isIntangible = false;
+    mage.intangibleCooldown = true;
+
+    // Cooldown de 2.8 segundos antes de poder ficar intangível novamente (janela justa para o jogador acertá-lo!)
+    mage.cooldownTimer = scene.time.delayedCall(2800, () => {
+      if (mage && mage.active) {
+        mage.intangibleCooldown = false;
+      }
+    });
+  });
+
+  return true;
+}
+
+// Fallback mantido por compatibilidade
+function teleportMage(scene, mage) {
+  return becomeIntangibleMage(scene, mage);
 }

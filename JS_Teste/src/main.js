@@ -282,17 +282,18 @@ function create(data) {
     if (a.projId && e.lastProjId === a.projId) return;
     if (a.projId) e.lastProjId = a.projId;
 
-    // Regras 1 e 2: O Mago Sombrio ignora dano de projéteis e se teletransporta instantaneamente!
+    // Mago Sombrio: Intangibilidade Arcana (Mist Form) ao ser alvejado por projéteis
     if (e.enemyType === 'dark_mage') {
-      teleportMage(scene, e);
-      if (a.isFireball) {
-        const fx = a.x, fy = a.y, rad = a.blastRadius || 42, dmg = a.dmg || 1;
-        a.destroy();
-        explodeFireball(scene, fx, fy, rad, dmg);
-      } else if (!a.isBoomerang) {
-        a.destroy();
+      if (e.isIntangible) {
+        // Projétil atravessa o mago intangível sem causar dano
+        return;
       }
-      return;
+      if (!e.intangibleCooldown) {
+        becomeIntangibleMage(scene, e);
+        // Projétil atravessa o mago sem causar dano
+        return;
+      }
+      // Fora de cooldown (janela justa): sofre dano normalmente!
     }
 
     if (a.isFireball) {
@@ -313,6 +314,7 @@ function create(data) {
     }
   });
   scene.physics.add.overlap(slashes, enemies, (s, e) => {
+    if (e.enemyType === 'dark_mage' && e.isIntangible) return; // Mago intangível ignora ataques corpo a corpo
     // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
@@ -498,14 +500,17 @@ function updateGameplay(scene, time, dt) {
           e.setVelocityY(0);
           e.setFrame(2);
         } else if (e.golemState === 'ACTIVE') {
-          // Estado d: Apenas quando comprovadamente ACTIVE pode perseguir o jogador
+          // Estado d: Apenas quando comprovadamente ACTIVE inicia corrida ágil em zigue-zague
           if (e.body && !e.body.moves) {
             e.body.moves = true;
           }
-          const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
-          if (player && player.active) {
-            scene.physics.moveToObject(e, player, slowSpeed);
-          }
+          const cfg = ENEMIES.mini_golem || { speed: 1.18 };
+          e.phase = e.phase || Math.random() * 6.28;
+          const zig = Math.sin(time * 0.009 + e.phase) * 95;
+          e.setVelocityY(zig);
+          e.setVelocityX(-enemySpeed * cfg.speed);
+          e.y = Phaser.Math.Clamp(e.y, 130, 520);
+          if (e.body) e.body.updateFromGameObject();
         }
       }
     }
