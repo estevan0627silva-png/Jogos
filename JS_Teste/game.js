@@ -27,7 +27,7 @@ const ENEMIES = {                                    // vida, velocidade relativ
   warrior:    { hp: 2, speed: 0.86, w: 20, h: 26, xp: 5 },
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
-  mini_golem: { hp: 1, speed: 1.18, w: 18, h: 20, xp: 2 },   // ágil e veloz, perseguição em zigue-zague
+  mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
   boss_golem: { hp: 50, speed: 0.35, w: 60, h: 72, xp: 50 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
@@ -568,7 +568,7 @@ let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
 let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null;
 let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
-let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false, isHitstopping = false;
+let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false, isHitstopping = false, lastFullscreenExitTime = 0;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
@@ -902,6 +902,18 @@ function updateFullscreenIcons(scene) { return StorageManager.updateFullscreenIc
 function toggleFullscreen(scene) { return StorageManager.toggleFullscreen(scene); }
 function getJoystickMode() { return StorageManager.getJoystickMode(); }
 function setJoystickMode(mode) { return StorageManager.setJoystickMode(mode); }
+
+// Desacoplamento da tecla ESC com Tela Cheia nativa do navegador
+if (typeof document !== 'undefined') {
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      lastFullscreenExitTime = Date.now();
+    }
+    if (typeof updateFullscreenIcons === 'function') {
+      updateFullscreenIcons();
+    }
+  });
+}
 
 // =============================================================================
 
@@ -1270,44 +1282,6 @@ class SoundSystem {
     gain.connect(this.sfxGain);
     osc.start(now);
     osc.stop(now + 0.2);
-  }
-
-  // Sussurro arcano suave e etéreo (Intangibilidade / Mist Form do Mago Sombrio)
-  playArcaneMist() {
-    if (this.muted || !this.ensureContext()) return;
-    const now = this.ctx.currentTime;
-
-    // Camada tonal: onda senoidal mística descendente (440Hz -> 180Hz)
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.exponentialRampToValueAtTime(180, now + 0.35);
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.22, now + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    osc.connect(gain);
-    gain.connect(this.sfxGain);
-    osc.start(now);
-    osc.stop(now + 0.35);
-
-    // Camada de névoa: ruído suave filtrado em passa-banda (sussurro de vento místico)
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = this.getNoiseBuffer();
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1400, now);
-    filter.frequency.exponentialRampToValueAtTime(800, now + 0.35);
-    filter.Q.setValueAtTime(2.2, now);
-    const nGain = this.ctx.createGain();
-    nGain.gain.setValueAtTime(0.001, now);
-    nGain.gain.linearRampToValueAtTime(0.18, now + 0.05);
-    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    noise.connect(filter);
-    filter.connect(nGain);
-    nGain.connect(this.sfxGain);
-    noise.start(now);
-    noise.stop(now + 0.35);
   }
 
   // Disparo de flecha pelo jogador (corda do arco vibrando + silvo)
@@ -4045,9 +4019,9 @@ function explodeFireball(scene, x, y, radius, dmg) {
   enemies.getChildren().slice().forEach(e => {
     if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
       if (e.enemyType === 'dark_mage') {
-        if (e.isIntangible) return;
-        if (!e.intangibleCooldown) {
-          becomeIntangibleMage(scene, e);
+        if (e.isShieldActive) return;
+        if (!e.shieldCooldown) {
+          activateMageShield(scene, e);
           return;
         }
       }
@@ -4092,8 +4066,9 @@ function removeEntity(obj) {
   if (obj.shootTimer) obj.shootTimer.remove();
   if (obj.attackTimer) obj.attackTimer.remove();
   if (obj.dormantTimer) obj.dormantTimer.remove();
-  if (obj.intangibleTimer) obj.intangibleTimer.remove();
-  if (obj.cooldownTimer) obj.cooldownTimer.remove();
+  if (obj.shieldTimer) obj.shieldTimer.remove();
+  if (obj.shieldCooldownTimer) obj.shieldCooldownTimer.remove();
+  if (obj.shieldVisual && obj.shieldVisual.active) obj.shieldVisual.destroy();
   if (obj.activeTelegraphs) clearBossTelegraphs(obj);
   if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
   if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
@@ -4135,7 +4110,7 @@ function triggerHitstop(scene, durationMs = 45) {
 
 function damageEnemy(scene, enemy, dmg = 1) {
   if (!enemy || !enemy.active) return;
-  if (enemy.enemyType === 'dark_mage' && enemy.isIntangible) return;
+  if (enemy.enemyType === 'dark_mage' && enemy.isShieldActive) return;
   enemy.hp = (enemy.hp ?? 1) - dmg;
 
   // Faíscas metálicas pontuais para alvos blindados (guerreiros e boss) ou hit normal
@@ -4184,7 +4159,6 @@ function damageEnemy(scene, enemy, dmg = 1) {
 function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
   if (!enemy || !enemy.active || enemy.isBoss || enemy.hp <= 0) return;
   if (enemy.enemyType === 'mini_golem' && enemy.golemState !== 'ACTIVE') return;
-  if (enemy.enemyType === 'dark_mage' && enemy.isIntangible) return;
 
   const cfg = ENEMIES[enemy.enemyType] || { speed: 1 };
   const baseVx = -Math.max(60, (enemySpeed || 85) * (cfg.speed || 1));
@@ -4836,16 +4810,16 @@ function spawnEnemy(scene, forcedType, customY) {
       // Regra 6: Durante a Boss Fight, gera exclusivamente Mini-Golems
       type = 'mini_golem';
     } else if (bossDefeated) {
-      // Pós-Boss: Magos (8%), Mini-Golems ágeis em bandos (24%), Goblins (28%), Guerreiros (22%), Elfos (18%)
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.32 ? 'mini_golem' : (roll < 0.60 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf')));
+      // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.40 ? 'goblin' : (roll < 0.72 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 40) {
-      // Fase pré-boss avançada: Mini-Golems velozes (22%), Goblins (32%), Guerreiros (26%), Elfos (20%)
-      type = roll < 0.22 ? 'mini_golem' : (roll < 0.54 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
+      // Fase pré-boss avançada: Goblins, guerreiros e elfos (SEM MAGO)
+      type = roll < 0.45 ? 'goblin' : (roll < 0.75 ? 'warrior' : 'elf');
     } else if (survivalTime >= 20) {
-      // A partir dos 20 segundos de sobrevivência: 20% de Mini-Golems ágeis com zigue-zague!
-      type = roll < 0.20 ? 'mini_golem' : (roll < 0.58 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
+      // Fase pré-boss intermediária
+      type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
     } else {
-      // Curva inicial suave (< 20s): predominantemente goblins simples e guerreiros
+      // Curva inicial suave: predominantemente goblins simples
       type = roll < 0.80 ? 'goblin' : 'warrior';
     }
   }
@@ -4966,58 +4940,93 @@ function mageShoot(scene, mage) {
   });
 }
 
-// INTANGIBILIDADE ARCANA DO MAGO SOMBRIO (Forma de Partículas / Mist Form)
-// Substitui o teletransporte confuso: dissolve-se em névoa espectral, deixando projéteis atravessarem
-function becomeIntangibleMage(scene, mage) {
-  if (!mage || !mage.active || mage.isIntangible || mage.intangibleCooldown) return false;
+// ESCUDO REFLETOR ARCANO DO MAGO SOMBRIO (Arcane Reflect Shield)
+// Substitui o teletransporte: ergue uma barreira mágica que reflete projéteis de volta por um breve período
+function activateMageShield(scene, mage) {
+  if (!mage || !mage.active || mage.isShieldActive) return;
 
-  mage.isIntangible = true;
+  mage.isShieldActive = true;
 
-  // Explode partículas arcanas púrpuras
-  if (holyFx) holyFx.explode(14, mage.x, mage.y);
-  if (sparksFx) sparksFx.explode(8, mage.x, mage.y);
-  sound.playArcaneMist();
-  floatText(scene, mage.x, mage.y - 20, 'INTANGÍVEL!', '#b388ff');
+  if (mage.shieldVisual && mage.shieldVisual.active) {
+    mage.shieldVisual.destroy();
+  }
 
-  // Tween visual: reduz alpha para 0.22 (aspecto fantasmagórico translúcido) durante 700ms
+  // Barreira mágica púrpura pulsante ao redor do mago
+  const aura = scene.add.circle(mage.x, mage.y, 22)
+    .setStrokeStyle(2, 0xd084ff, 0.95)
+    .setFillStyle(0x7b1fa2, 0.32)
+    .setDepth(2350);
+  mage.shieldVisual = aura;
+
   scene.tweens.add({
-    targets: mage,
-    alpha: 0.22,
-    duration: 120,
-    ease: 'Linear'
+    targets: aura,
+    scale: { from: 0.88, to: 1.15 },
+    alpha: { from: 0.95, to: 0.65 },
+    yoyo: true,
+    repeat: -1,
+    duration: 200
   });
 
-  mage.intangibleTimer = scene.time.delayedCall(700, () => {
-    if (!mage || !mage.active) return;
+  sound.playShieldBlock();
+  floatText(scene, mage.x, mage.y - 24, 'ESCUDO REFLETOR!', '#d084ff');
+  if (holyFx) holyFx.explode(10, mage.x, mage.y);
 
-    // Nova explosão suave de partículas arcanas na rematerialização
-    if (holyFx) holyFx.explode(10, mage.x, mage.y);
+  // O escudo permanece ativo refletindo projéteis por 1.2 segundos
+  mage.shieldTimer = scene.time.delayedCall(1200, () => {
+    if (!mage || !mage.active) return;
+    if (mage.shieldVisual && mage.shieldVisual.active) {
+      scene.tweens.add({
+        targets: mage.shieldVisual,
+        alpha: 0,
+        duration: 150,
+        onComplete: () => {
+          if (mage && mage.shieldVisual) {
+            mage.shieldVisual.destroy();
+            mage.shieldVisual = null;
+          }
+        }
+      });
+    }
+    mage.isShieldActive = false;
+    mage.shieldCooldown = true;
     if (sparksFx) sparksFx.explode(6, mage.x, mage.y);
 
-    scene.tweens.add({
-      targets: mage,
-      alpha: 1.0,
-      duration: 180,
-      ease: 'Linear'
-    });
-
-    mage.isIntangible = false;
-    mage.intangibleCooldown = true;
-
-    // Cooldown de 2.8 segundos antes de poder ficar intangível novamente (janela justa para o jogador acertá-lo!)
-    mage.cooldownTimer = scene.time.delayedCall(2800, () => {
+    // Cooldown de 3.0 segundos antes de recarregar o escudo (janela de vulnerabilidade)
+    mage.shieldCooldownTimer = scene.time.delayedCall(3000, () => {
       if (mage && mage.active) {
-        mage.intangibleCooldown = false;
+        mage.shieldCooldown = false;
       }
     });
   });
-
-  return true;
 }
 
-// Fallback mantido por compatibilidade
+function reflectMageProjectile(scene, mage, proj) {
+  if (!proj || !proj.active) return;
+
+  sound.playShieldBlock();
+  if (sparksFx) sparksFx.explode(8, proj.x, proj.y);
+  floatText(scene, proj.x, proj.y - 14, 'REFLETIDO!', '#d084ff');
+
+  // Cria projétil inimigo refletido mirando no jogador
+  if (player && player.active && enemyArrows) {
+    const dx = player.x - proj.x;
+    const dy = player.y - proj.y;
+    const ang = Math.atan2(dy, dx);
+    const spd = 265;
+    const ref = enemyArrows.create(proj.x, proj.y, 'arrow_enemy');
+    ref.setTint(0xd084ff);
+    ref.rotation = ang;
+    ref.body.setSize(14, 8);
+    ref.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+  }
+
+  proj.destroy();
+}
+
 function teleportMage(scene, mage) {
-  return becomeIntangibleMage(scene, mage);
+  if (!mage.isShieldActive && !mage.shieldCooldown) {
+    activateMageShield(scene, mage);
+  }
 }
 
 
@@ -5248,8 +5257,11 @@ function ejectMiniGolemsFromBoss(scene, boss) {
                     floatText(scene, golem.x, golem.y - 18, 'DESPERTOU!', '#ff5252');
 
                     const curSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
-                    golem.phase = Math.random() * 6.28;
-                    golem.setVelocityX(-curSpeed);
+                    if (player && player.active) {
+                      scene.physics.moveToObject(golem, player, curSpeed);
+                    } else {
+                      golem.setVelocityX(-curSpeed);
+                    }
                   }
                 });
               });
@@ -6288,7 +6300,21 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
 
 // SISTEMA DE PAUSA (ESC)
 // -----------------------------------------------------------------------------
-function handleEscPress(scene) {
+function handleEscPress(scene, isPKey = false) {
+  // Desacoplamento da tecla ESC com o Fullscreen nativo:
+  // Se o jogo estiver em tela cheia OU se o ESC acabou de ser consumido para sair da tela cheia (< 280ms),
+  // ignora o comando de pausa para não abrir o menu de pausa involuntariamente!
+  if (!isPKey) {
+    const isFS = Boolean(
+      (typeof document !== 'undefined' && document.fullscreenElement) ||
+      (scene && scene.scale && scene.scale.isFullscreen)
+    );
+    const justExitedFS = (Date.now() - (lastFullscreenExitTime || 0)) < 280;
+    if (isFS || justExitedFS) {
+      return;
+    }
+  }
+
   if (gameState === 'PLAYING') {
     pauseGame(scene);
   } else if (gameState === 'PAUSED') {
@@ -6353,7 +6379,7 @@ function showPauseModal(scene) {
   const relicTxt = scene.add.text(208, top + 122, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
   fitTextToBox(relicTxt, 384, 22, 10);
 
-  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 290, 38);
+  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [ESC / P]', () => resumeGame(scene), 290, 38);
 
   const audioBtn = scene.add.rectangle(400, top + 220, 290, 38, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
@@ -6396,7 +6422,7 @@ function showPauseModal(scene) {
 
   const restartBtn = createButton(scene, 400, top + 312, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 38);
   const menuBtn = createButton(scene, 400, top + 358, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 38);
-  const footerHint = scene.add.text(400, top + 412, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
+  const footerHint = scene.add.text(400, top + 412, 'Pausar / Retornar: ESC / P', textStyle('#a8987b', 11)).setOrigin(0.5);
 
   pauseModal.add([
     statsBox, timeTxt, relicTxt,
@@ -8108,8 +8134,11 @@ function create(data) {
   enemyHpBars = scene.add.graphics().setDepth(2400);
   playerBuffBar = scene.add.graphics().setDepth(2500);
 
-  // Tecla ESC para pausar/despausar ou sair de submenus (bloqueada durante escolha de cartas de Level Up!)
-  scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene));
+  // Tecla ESC para pausar/despausar ou sair de submenus (desacoplada da saída nativa de tela cheia)
+  scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene, false));
+
+  // Tecla P: Atalho universal para pausar/despausar livremente em janela ou em tela cheia
+  scene.input.keyboard.on('keydown-P', () => handleEscPress(scene, true));
 
   // Tecla F para ativar/desativar Tela Cheia (com trava durante digitação no Game Over)
   scene.input.keyboard.on('keydown-F', () => {
@@ -8175,18 +8204,18 @@ function create(data) {
     if (a.projId && e.lastProjId === a.projId) return;
     if (a.projId) e.lastProjId = a.projId;
 
-    // Mago Sombrio: Intangibilidade Arcana (Mist Form) ao ser alvejado por projéteis
+    // Mago Sombrio: Escudo Refletor Arcano (reflete projéteis durante a ativação)
     if (e.enemyType === 'dark_mage') {
-      if (e.isIntangible) {
-        // Projétil atravessa o mago intangível sem causar dano
+      if (e.isShieldActive) {
+        reflectMageProjectile(scene, e, a);
         return;
       }
-      if (!e.intangibleCooldown) {
-        becomeIntangibleMage(scene, e);
-        // Projétil atravessa o mago sem causar dano
+      if (!e.shieldCooldown) {
+        activateMageShield(scene, e);
+        reflectMageProjectile(scene, e, a);
         return;
       }
-      // Fora de cooldown (janela justa): sofre dano normalmente!
+      // Fora de cooldown (janela justa de vulnerabilidade): sofre dano normalmente!
     }
 
     if (a.isFireball) {
@@ -8207,7 +8236,6 @@ function create(data) {
     }
   });
   scene.physics.add.overlap(slashes, enemies, (s, e) => {
-    if (e.enemyType === 'dark_mage' && e.isIntangible) return; // Mago intangível ignora ataques corpo a corpo
     // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
@@ -8393,17 +8421,14 @@ function updateGameplay(scene, time, dt) {
           e.setVelocityY(0);
           e.setFrame(2);
         } else if (e.golemState === 'ACTIVE') {
-          // Estado d: Apenas quando comprovadamente ACTIVE inicia corrida ágil em zigue-zague
+          // Estado d: Apenas quando comprovadamente ACTIVE pode perseguir o jogador
           if (e.body && !e.body.moves) {
             e.body.moves = true;
           }
-          const cfg = ENEMIES.mini_golem || { speed: 1.18 };
-          e.phase = e.phase || Math.random() * 6.28;
-          const zig = Math.sin(time * 0.009 + e.phase) * 95;
-          e.setVelocityY(zig);
-          e.setVelocityX(-enemySpeed * cfg.speed);
-          e.y = Phaser.Math.Clamp(e.y, 130, 520);
-          if (e.body) e.body.updateFromGameObject();
+          const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
+          if (player && player.active) {
+            scene.physics.moveToObject(e, player, slowSpeed);
+          }
         }
       }
     }
@@ -8599,16 +8624,62 @@ function sortAndShade() {
       if (e.chargeRing && e.chargeRing.active) {
         e.chargeRing.setPosition(Math.round(e.x - 12), Math.round(e.y)).setDepth(e.depth + 2);
       }
-      // Desenha barra de vida/armadura para inimigos comuns com mais de 1 HP (Boss usa o HUD dedicado)
-      if (e.active && !e.isBoss && e.maxHp > 1) {
-        const bw = 22, bh = 4;
-        const bx = Math.round(e.x - bw / 2);
-        const by = Math.round(e.y - e.displayHeight / 2 - 8);
-        enemyHpBars.fillStyle(0x0e0b08, 0.9).fillRect(bx - 1, by - 1, bw + 2, bh + 2);
-        enemyHpBars.fillStyle(0x2a1d17, 0.9).fillRect(bx, by, bw, bh);
+      if (e.shieldVisual && e.shieldVisual.active) {
+        e.shieldVisual.setPosition(Math.round(e.x), Math.round(e.y));
+      }
+      // Renderização Universal de Barra de Vida Overhead com Mini-Coração Rubi para TODOS os monstros da floresta
+      if (e.active && !e.isBoss) {
+        const bw = 20, bh = 4;
+        const bx = Math.round(e.x - bw / 2 + 2);
+        const by = Math.round(e.y - (e.displayHeight ? e.displayHeight / 2 : 14) - 8);
+
+        // 1. Moldura exterior escura de ferro forjado e canaleta de fundo
+        enemyHpBars.fillStyle(0x0e0b08, 0.95).fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+        enemyHpBars.fillStyle(0x2a1d17, 0.95).fillRect(bx, by, bw, bh);
+
+        // 2. Sangue Drenante e Flash de Dano Interpolado
         const pct = Phaser.Math.Clamp(e.hp / e.maxHp, 0, 1);
-        const hpColor = e.hp < e.maxHp ? 0xff5252 : 0xffca28;
-        enemyHpBars.fillStyle(hpColor, 1).fillRect(bx, by, Math.round(bw * pct), bh);
+        e.displayHpPct = e.displayHpPct ?? pct;
+        e.displayHpPct = Phaser.Math.Linear(e.displayHpPct, pct, 0.18);
+        if (Math.abs(e.displayHpPct - pct) < 0.005) e.displayHpPct = pct;
+
+        // Barra fantasma amarela de dano sofrido
+        if (e.displayHpPct > pct) {
+          const ghostW = Math.round(bw * e.displayHpPct);
+          enemyHpBars.fillStyle(0xffeb3b, 1).fillRect(bx, by, ghostW, bh);
+        }
+
+        // Barra de sangue carmesim principal
+        const bloodW = Math.round(bw * pct);
+        if (bloodW > 0) {
+          enemyHpBars.fillStyle(0xd83a3a, 1).fillRect(bx, by, bloodW, bh);
+          enemyHpBars.fillStyle(0xff7b7b, 0.6).fillRect(bx, by, bloodW, 1);
+        }
+
+        // 3. Mini-Coração Rubi (5x5 pixels) na extremidade esquerda da barra
+        const hx = bx - 6;
+        const hy = by - 1;
+        // Contorno escuro 5x5 do mini-coração
+        enemyHpBars.fillStyle(0x0e0b08, 1);
+        enemyHpBars.fillRect(hx, hy + 1, 5, 2);
+        enemyHpBars.fillRect(hx + 1, hy, 1, 1);
+        enemyHpBars.fillRect(hx + 3, hy, 1, 1);
+        enemyHpBars.fillRect(hx + 1, hy + 3, 3, 1);
+        enemyHpBars.fillRect(hx + 2, hy + 4, 1, 1);
+
+        // Preenchimento Rubi Carmesim
+        const heartColor = e.hp > 0 ? 0xd83a3a : 0x5a2323;
+        enemyHpBars.fillStyle(heartColor, 1);
+        enemyHpBars.fillRect(hx + 1, hy, 1, 1);
+        enemyHpBars.fillRect(hx + 3, hy, 1, 1);
+        enemyHpBars.fillRect(hx, hy + 1, 5, 2);
+        enemyHpBars.fillRect(hx + 1, hy + 3, 3, 1);
+        enemyHpBars.fillRect(hx + 2, hy + 4, 1, 1);
+
+        // Brilho especular sutil
+        if (e.hp > 0) {
+          enemyHpBars.fillStyle(0xffcdd2, 0.85).fillRect(hx + 1, hy + 1, 1, 1);
+        }
       }
     });
   }

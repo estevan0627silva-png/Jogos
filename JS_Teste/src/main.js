@@ -215,8 +215,11 @@ function create(data) {
   enemyHpBars = scene.add.graphics().setDepth(2400);
   playerBuffBar = scene.add.graphics().setDepth(2500);
 
-  // Tecla ESC para pausar/despausar ou sair de submenus (bloqueada durante escolha de cartas de Level Up!)
-  scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene));
+  // Tecla ESC para pausar/despausar ou sair de submenus (desacoplada da saída nativa de tela cheia)
+  scene.input.keyboard.on('keydown-ESC', () => handleEscPress(scene, false));
+
+  // Tecla P: Atalho universal para pausar/despausar livremente em janela ou em tela cheia
+  scene.input.keyboard.on('keydown-P', () => handleEscPress(scene, true));
 
   // Tecla F para ativar/desativar Tela Cheia (com trava durante digitação no Game Over)
   scene.input.keyboard.on('keydown-F', () => {
@@ -282,18 +285,18 @@ function create(data) {
     if (a.projId && e.lastProjId === a.projId) return;
     if (a.projId) e.lastProjId = a.projId;
 
-    // Mago Sombrio: Intangibilidade Arcana (Mist Form) ao ser alvejado por projéteis
+    // Mago Sombrio: Escudo Refletor Arcano (reflete projéteis durante a ativação)
     if (e.enemyType === 'dark_mage') {
-      if (e.isIntangible) {
-        // Projétil atravessa o mago intangível sem causar dano
+      if (e.isShieldActive) {
+        reflectMageProjectile(scene, e, a);
         return;
       }
-      if (!e.intangibleCooldown) {
-        becomeIntangibleMage(scene, e);
-        // Projétil atravessa o mago sem causar dano
+      if (!e.shieldCooldown) {
+        activateMageShield(scene, e);
+        reflectMageProjectile(scene, e, a);
         return;
       }
-      // Fora de cooldown (janela justa): sofre dano normalmente!
+      // Fora de cooldown (janela justa de vulnerabilidade): sofre dano normalmente!
     }
 
     if (a.isFireball) {
@@ -314,7 +317,6 @@ function create(data) {
     }
   });
   scene.physics.add.overlap(slashes, enemies, (s, e) => {
-    if (e.enemyType === 'dark_mage' && e.isIntangible) return; // Mago intangível ignora ataques corpo a corpo
     // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
     if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
@@ -500,17 +502,14 @@ function updateGameplay(scene, time, dt) {
           e.setVelocityY(0);
           e.setFrame(2);
         } else if (e.golemState === 'ACTIVE') {
-          // Estado d: Apenas quando comprovadamente ACTIVE inicia corrida ágil em zigue-zague
+          // Estado d: Apenas quando comprovadamente ACTIVE pode perseguir o jogador
           if (e.body && !e.body.moves) {
             e.body.moves = true;
           }
-          const cfg = ENEMIES.mini_golem || { speed: 1.18 };
-          e.phase = e.phase || Math.random() * 6.28;
-          const zig = Math.sin(time * 0.009 + e.phase) * 95;
-          e.setVelocityY(zig);
-          e.setVelocityX(-enemySpeed * cfg.speed);
-          e.y = Phaser.Math.Clamp(e.y, 130, 520);
-          if (e.body) e.body.updateFromGameObject();
+          const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
+          if (player && player.active) {
+            scene.physics.moveToObject(e, player, slowSpeed);
+          }
         }
       }
     }
@@ -706,16 +705,62 @@ function sortAndShade() {
       if (e.chargeRing && e.chargeRing.active) {
         e.chargeRing.setPosition(Math.round(e.x - 12), Math.round(e.y)).setDepth(e.depth + 2);
       }
-      // Desenha barra de vida/armadura para inimigos comuns com mais de 1 HP (Boss usa o HUD dedicado)
-      if (e.active && !e.isBoss && e.maxHp > 1) {
-        const bw = 22, bh = 4;
-        const bx = Math.round(e.x - bw / 2);
-        const by = Math.round(e.y - e.displayHeight / 2 - 8);
-        enemyHpBars.fillStyle(0x0e0b08, 0.9).fillRect(bx - 1, by - 1, bw + 2, bh + 2);
-        enemyHpBars.fillStyle(0x2a1d17, 0.9).fillRect(bx, by, bw, bh);
+      if (e.shieldVisual && e.shieldVisual.active) {
+        e.shieldVisual.setPosition(Math.round(e.x), Math.round(e.y));
+      }
+      // Renderização Universal de Barra de Vida Overhead com Mini-Coração Rubi para TODOS os monstros da floresta
+      if (e.active && !e.isBoss) {
+        const bw = 20, bh = 4;
+        const bx = Math.round(e.x - bw / 2 + 2);
+        const by = Math.round(e.y - (e.displayHeight ? e.displayHeight / 2 : 14) - 8);
+
+        // 1. Moldura exterior escura de ferro forjado e canaleta de fundo
+        enemyHpBars.fillStyle(0x0e0b08, 0.95).fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+        enemyHpBars.fillStyle(0x2a1d17, 0.95).fillRect(bx, by, bw, bh);
+
+        // 2. Sangue Drenante e Flash de Dano Interpolado
         const pct = Phaser.Math.Clamp(e.hp / e.maxHp, 0, 1);
-        const hpColor = e.hp < e.maxHp ? 0xff5252 : 0xffca28;
-        enemyHpBars.fillStyle(hpColor, 1).fillRect(bx, by, Math.round(bw * pct), bh);
+        e.displayHpPct = e.displayHpPct ?? pct;
+        e.displayHpPct = Phaser.Math.Linear(e.displayHpPct, pct, 0.18);
+        if (Math.abs(e.displayHpPct - pct) < 0.005) e.displayHpPct = pct;
+
+        // Barra fantasma amarela de dano sofrido
+        if (e.displayHpPct > pct) {
+          const ghostW = Math.round(bw * e.displayHpPct);
+          enemyHpBars.fillStyle(0xffeb3b, 1).fillRect(bx, by, ghostW, bh);
+        }
+
+        // Barra de sangue carmesim principal
+        const bloodW = Math.round(bw * pct);
+        if (bloodW > 0) {
+          enemyHpBars.fillStyle(0xd83a3a, 1).fillRect(bx, by, bloodW, bh);
+          enemyHpBars.fillStyle(0xff7b7b, 0.6).fillRect(bx, by, bloodW, 1);
+        }
+
+        // 3. Mini-Coração Rubi (5x5 pixels) na extremidade esquerda da barra
+        const hx = bx - 6;
+        const hy = by - 1;
+        // Contorno escuro 5x5 do mini-coração
+        enemyHpBars.fillStyle(0x0e0b08, 1);
+        enemyHpBars.fillRect(hx, hy + 1, 5, 2);
+        enemyHpBars.fillRect(hx + 1, hy, 1, 1);
+        enemyHpBars.fillRect(hx + 3, hy, 1, 1);
+        enemyHpBars.fillRect(hx + 1, hy + 3, 3, 1);
+        enemyHpBars.fillRect(hx + 2, hy + 4, 1, 1);
+
+        // Preenchimento Rubi Carmesim
+        const heartColor = e.hp > 0 ? 0xd83a3a : 0x5a2323;
+        enemyHpBars.fillStyle(heartColor, 1);
+        enemyHpBars.fillRect(hx + 1, hy, 1, 1);
+        enemyHpBars.fillRect(hx + 3, hy, 1, 1);
+        enemyHpBars.fillRect(hx, hy + 1, 5, 2);
+        enemyHpBars.fillRect(hx + 1, hy + 3, 3, 1);
+        enemyHpBars.fillRect(hx + 2, hy + 4, 1, 1);
+
+        // Brilho especular sutil
+        if (e.hp > 0) {
+          enemyHpBars.fillStyle(0xffcdd2, 0.85).fillRect(hx + 1, hy + 1, 1, 1);
+        }
       }
     });
   }

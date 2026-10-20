@@ -9,16 +9,16 @@ function spawnEnemy(scene, forcedType, customY) {
       // Regra 6: Durante a Boss Fight, gera exclusivamente Mini-Golems
       type = 'mini_golem';
     } else if (bossDefeated) {
-      // Pós-Boss: Magos (8%), Mini-Golems ágeis em bandos (24%), Goblins (28%), Guerreiros (22%), Elfos (18%)
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.32 ? 'mini_golem' : (roll < 0.60 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf')));
+      // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.40 ? 'goblin' : (roll < 0.72 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 40) {
-      // Fase pré-boss avançada: Mini-Golems velozes (22%), Goblins (32%), Guerreiros (26%), Elfos (20%)
-      type = roll < 0.22 ? 'mini_golem' : (roll < 0.54 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
+      // Fase pré-boss avançada: Goblins, guerreiros e elfos (SEM MAGO)
+      type = roll < 0.45 ? 'goblin' : (roll < 0.75 ? 'warrior' : 'elf');
     } else if (survivalTime >= 20) {
-      // A partir dos 20 segundos de sobrevivência: 20% de Mini-Golems ágeis com zigue-zague!
-      type = roll < 0.20 ? 'mini_golem' : (roll < 0.58 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
+      // Fase pré-boss intermediária
+      type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
     } else {
-      // Curva inicial suave (< 20s): predominantemente goblins simples e guerreiros
+      // Curva inicial suave: predominantemente goblins simples
       type = roll < 0.80 ? 'goblin' : 'warrior';
     }
   }
@@ -139,56 +139,91 @@ function mageShoot(scene, mage) {
   });
 }
 
-// INTANGIBILIDADE ARCANA DO MAGO SOMBRIO (Forma de Partículas / Mist Form)
-// Substitui o teletransporte confuso: dissolve-se em névoa espectral, deixando projéteis atravessarem
-function becomeIntangibleMage(scene, mage) {
-  if (!mage || !mage.active || mage.isIntangible || mage.intangibleCooldown) return false;
+// ESCUDO REFLETOR ARCANO DO MAGO SOMBRIO (Arcane Reflect Shield)
+// Substitui o teletransporte: ergue uma barreira mágica que reflete projéteis de volta por um breve período
+function activateMageShield(scene, mage) {
+  if (!mage || !mage.active || mage.isShieldActive) return;
 
-  mage.isIntangible = true;
+  mage.isShieldActive = true;
 
-  // Explode partículas arcanas púrpuras
-  if (holyFx) holyFx.explode(14, mage.x, mage.y);
-  if (sparksFx) sparksFx.explode(8, mage.x, mage.y);
-  sound.playArcaneMist();
-  floatText(scene, mage.x, mage.y - 20, 'INTANGÍVEL!', '#b388ff');
+  if (mage.shieldVisual && mage.shieldVisual.active) {
+    mage.shieldVisual.destroy();
+  }
 
-  // Tween visual: reduz alpha para 0.22 (aspecto fantasmagórico translúcido) durante 700ms
+  // Barreira mágica púrpura pulsante ao redor do mago
+  const aura = scene.add.circle(mage.x, mage.y, 22)
+    .setStrokeStyle(2, 0xd084ff, 0.95)
+    .setFillStyle(0x7b1fa2, 0.32)
+    .setDepth(2350);
+  mage.shieldVisual = aura;
+
   scene.tweens.add({
-    targets: mage,
-    alpha: 0.22,
-    duration: 120,
-    ease: 'Linear'
+    targets: aura,
+    scale: { from: 0.88, to: 1.15 },
+    alpha: { from: 0.95, to: 0.65 },
+    yoyo: true,
+    repeat: -1,
+    duration: 200
   });
 
-  mage.intangibleTimer = scene.time.delayedCall(700, () => {
-    if (!mage || !mage.active) return;
+  sound.playShieldBlock();
+  floatText(scene, mage.x, mage.y - 24, 'ESCUDO REFLETOR!', '#d084ff');
+  if (holyFx) holyFx.explode(10, mage.x, mage.y);
 
-    // Nova explosão suave de partículas arcanas na rematerialização
-    if (holyFx) holyFx.explode(10, mage.x, mage.y);
+  // O escudo permanece ativo refletindo projéteis por 1.2 segundos
+  mage.shieldTimer = scene.time.delayedCall(1200, () => {
+    if (!mage || !mage.active) return;
+    if (mage.shieldVisual && mage.shieldVisual.active) {
+      scene.tweens.add({
+        targets: mage.shieldVisual,
+        alpha: 0,
+        duration: 150,
+        onComplete: () => {
+          if (mage && mage.shieldVisual) {
+            mage.shieldVisual.destroy();
+            mage.shieldVisual = null;
+          }
+        }
+      });
+    }
+    mage.isShieldActive = false;
+    mage.shieldCooldown = true;
     if (sparksFx) sparksFx.explode(6, mage.x, mage.y);
 
-    scene.tweens.add({
-      targets: mage,
-      alpha: 1.0,
-      duration: 180,
-      ease: 'Linear'
-    });
-
-    mage.isIntangible = false;
-    mage.intangibleCooldown = true;
-
-    // Cooldown de 2.8 segundos antes de poder ficar intangível novamente (janela justa para o jogador acertá-lo!)
-    mage.cooldownTimer = scene.time.delayedCall(2800, () => {
+    // Cooldown de 3.0 segundos antes de recarregar o escudo (janela de vulnerabilidade)
+    mage.shieldCooldownTimer = scene.time.delayedCall(3000, () => {
       if (mage && mage.active) {
-        mage.intangibleCooldown = false;
+        mage.shieldCooldown = false;
       }
     });
   });
-
-  return true;
 }
 
-// Fallback mantido por compatibilidade
+function reflectMageProjectile(scene, mage, proj) {
+  if (!proj || !proj.active) return;
+
+  sound.playShieldBlock();
+  if (sparksFx) sparksFx.explode(8, proj.x, proj.y);
+  floatText(scene, proj.x, proj.y - 14, 'REFLETIDO!', '#d084ff');
+
+  // Cria projétil inimigo refletido mirando no jogador
+  if (player && player.active && enemyArrows) {
+    const dx = player.x - proj.x;
+    const dy = player.y - proj.y;
+    const ang = Math.atan2(dy, dx);
+    const spd = 265;
+    const ref = enemyArrows.create(proj.x, proj.y, 'arrow_enemy');
+    ref.setTint(0xd084ff);
+    ref.rotation = ang;
+    ref.body.setSize(14, 8);
+    ref.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
+  }
+
+  proj.destroy();
+}
+
 function teleportMage(scene, mage) {
-  return becomeIntangibleMage(scene, mage);
+  if (!mage.isShieldActive && !mage.shieldCooldown) {
+    activateMageShield(scene, mage);
+  }
 }

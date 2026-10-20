@@ -1,4 +1,4 @@
-// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
+﻿// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
 const StorageManager = {
@@ -316,5 +316,17 @@ function updateFullscreenIcons(scene) { return StorageManager.updateFullscreenIc
 function toggleFullscreen(scene) { return StorageManager.toggleFullscreen(scene); }
 function getJoystickMode() { return StorageManager.getJoystickMode(); }
 function setJoystickMode(mode) { return StorageManager.setJoystickMode(mode); }
+
+// Desacoplamento da tecla ESC com Tela Cheia nativa do navegador
+if (typeof document !== 'undefined') {
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      lastFullscreenExitTime = Date.now();
+    }
+    if (typeof updateFullscreenIcons === 'function') {
+      updateFullscreenIcons();
+    }
+  });
+}
 
 // =============================================================================

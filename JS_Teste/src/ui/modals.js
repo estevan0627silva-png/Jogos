@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
@@ -415,7 +415,21 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
 
 // SISTEMA DE PAUSA (ESC)
 // -----------------------------------------------------------------------------
-function handleEscPress(scene) {
+function handleEscPress(scene, isPKey = false) {
+  // Desacoplamento da tecla ESC com o Fullscreen nativo:
+  // Se o jogo estiver em tela cheia OU se o ESC acabou de ser consumido para sair da tela cheia (< 280ms),
+  // ignora o comando de pausa para não abrir o menu de pausa involuntariamente!
+  if (!isPKey) {
+    const isFS = Boolean(
+      (typeof document !== 'undefined' && document.fullscreenElement) ||
+      (scene && scene.scale && scene.scale.isFullscreen)
+    );
+    const justExitedFS = (Date.now() - (lastFullscreenExitTime || 0)) < 280;
+    if (isFS || justExitedFS) {
+      return;
+    }
+  }
+
   if (gameState === 'PLAYING') {
     pauseGame(scene);
   } else if (gameState === 'PAUSED') {
@@ -480,7 +494,7 @@ function showPauseModal(scene) {
   const relicTxt = scene.add.text(208, top + 122, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
   fitTextToBox(relicTxt, 384, 22, 10);
 
-  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [ESC]', () => resumeGame(scene), 290, 38);
+  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [ESC / P]', () => resumeGame(scene), 290, 38);
 
   const audioBtn = scene.add.rectangle(400, top + 220, 290, 38, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
@@ -523,7 +537,7 @@ function showPauseModal(scene) {
 
   const restartBtn = createButton(scene, 400, top + 312, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 38);
   const menuBtn = createButton(scene, 400, top + 358, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 38);
-  const footerHint = scene.add.text(400, top + 412, 'Pressione ESC para retornar à aventura', textStyle('#a8987b', 11)).setOrigin(0.5);
+  const footerHint = scene.add.text(400, top + 412, 'Pausar / Retornar: ESC / P', textStyle('#a8987b', 11)).setOrigin(0.5);
 
   pauseModal.add([
     statsBox, timeTxt, relicTxt,

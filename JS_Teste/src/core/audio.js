@@ -1,4 +1,4 @@
-﻿// SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
+// SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
 // =============================================================================
 const BGM_MELODY = [
   // Compasso 1 (Am) - Marcha heroica do cavaleiro
@@ -361,44 +361,6 @@ class SoundSystem {
     gain.connect(this.sfxGain);
     osc.start(now);
     osc.stop(now + 0.2);
-  }
-
-  // Sussurro arcano suave e etéreo (Intangibilidade / Mist Form do Mago Sombrio)
-  playArcaneMist() {
-    if (this.muted || !this.ensureContext()) return;
-    const now = this.ctx.currentTime;
-
-    // Camada tonal: onda senoidal mística descendente (440Hz -> 180Hz)
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.exponentialRampToValueAtTime(180, now + 0.35);
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.22, now + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    osc.connect(gain);
-    gain.connect(this.sfxGain);
-    osc.start(now);
-    osc.stop(now + 0.35);
-
-    // Camada de névoa: ruído suave filtrado em passa-banda (sussurro de vento místico)
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = this.getNoiseBuffer();
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1400, now);
-    filter.frequency.exponentialRampToValueAtTime(800, now + 0.35);
-    filter.Q.setValueAtTime(2.2, now);
-    const nGain = this.ctx.createGain();
-    nGain.gain.setValueAtTime(0.001, now);
-    nGain.gain.linearRampToValueAtTime(0.18, now + 0.05);
-    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    noise.connect(filter);
-    filter.connect(nGain);
-    nGain.connect(this.sfxGain);
-    noise.start(now);
-    noise.stop(now + 0.35);
   }
 
   // Disparo de flecha pelo jogador (corda do arco vibrando + silvo)

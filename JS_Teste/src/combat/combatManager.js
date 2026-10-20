@@ -9,8 +9,9 @@ function removeEntity(obj) {
   if (obj.shootTimer) obj.shootTimer.remove();
   if (obj.attackTimer) obj.attackTimer.remove();
   if (obj.dormantTimer) obj.dormantTimer.remove();
-  if (obj.intangibleTimer) obj.intangibleTimer.remove();
-  if (obj.cooldownTimer) obj.cooldownTimer.remove();
+  if (obj.shieldTimer) obj.shieldTimer.remove();
+  if (obj.shieldCooldownTimer) obj.shieldCooldownTimer.remove();
+  if (obj.shieldVisual && obj.shieldVisual.active) obj.shieldVisual.destroy();
   if (obj.activeTelegraphs) clearBossTelegraphs(obj);
   if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
   if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();
@@ -52,7 +53,7 @@ function triggerHitstop(scene, durationMs = 45) {
 
 function damageEnemy(scene, enemy, dmg = 1) {
   if (!enemy || !enemy.active) return;
-  if (enemy.enemyType === 'dark_mage' && enemy.isIntangible) return;
+  if (enemy.enemyType === 'dark_mage' && enemy.isShieldActive) return;
   enemy.hp = (enemy.hp ?? 1) - dmg;
 
   // Faíscas metálicas pontuais para alvos blindados (guerreiros e boss) ou hit normal
@@ -101,7 +102,6 @@ function damageEnemy(scene, enemy, dmg = 1) {
 function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
   if (!enemy || !enemy.active || enemy.isBoss || enemy.hp <= 0) return;
   if (enemy.enemyType === 'mini_golem' && enemy.golemState !== 'ACTIVE') return;
-  if (enemy.enemyType === 'dark_mage' && enemy.isIntangible) return;
 
   const cfg = ENEMIES[enemy.enemyType] || { speed: 1 };
   const baseVx = -Math.max(60, (enemySpeed || 85) * (cfg.speed || 1));

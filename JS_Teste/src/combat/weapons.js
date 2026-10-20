@@ -555,9 +555,9 @@ function explodeFireball(scene, x, y, radius, dmg) {
   enemies.getChildren().slice().forEach(e => {
     if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
       if (e.enemyType === 'dark_mage') {
-        if (e.isIntangible) return;
-        if (!e.intangibleCooldown) {
-          becomeIntangibleMage(scene, e);
+        if (e.isShieldActive) return;
+        if (!e.shieldCooldown) {
+          activateMageShield(scene, e);
           return;
         }
       }

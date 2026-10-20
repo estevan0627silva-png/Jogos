@@ -224,8 +224,11 @@ function ejectMiniGolemsFromBoss(scene, boss) {
                     floatText(scene, golem.x, golem.y - 18, 'DESPERTOU!', '#ff5252');
 
                     const curSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
-                    golem.phase = Math.random() * 6.28;
-                    golem.setVelocityX(-curSpeed);
+                    if (player && player.active) {
+                      scene.physics.moveToObject(golem, player, curSpeed);
+                    } else {
+                      golem.setVelocityX(-curSpeed);
+                    }
                   }
                 });
               });
