@@ -54,7 +54,14 @@ function triggerHitstop(scene, durationMs = 45) {
 
 function damageEnemy(scene, enemy, dmg = 1) {
   if (!enemy || !enemy.active) return;
-  if (enemy.enemyType === 'dark_mage' && enemy.isShieldActive) return;
+
+  // Mini Golem: Na forma inconsciente/inanimada (EJECTING, DORMANT, AWAKENING), é invulnerável a qualquer dano
+  if (enemy.enemyType === 'mini_golem' && enemy.golemState !== 'ACTIVE') {
+    sound.playShieldBlock();
+    if (debrisFx) debrisFx.explode(4, enemy.x, enemy.y);
+    return;
+  }
+
   enemy.hp = (enemy.hp ?? 1) - dmg;
 
   // Faíscas metálicas pontuais para alvos blindados (guerreiros e boss) ou hit normal

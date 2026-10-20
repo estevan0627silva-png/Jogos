@@ -72,8 +72,8 @@ function spawnEnemy(scene, forcedType, customY) {
       });
     });
 
-    // Habilidade Periódica: ergue a Barreira Arcana frontal após 1.2s de entrada em campo
-    enemy.shieldCooldownTimer = scene.time.delayedCall(1200, () => {
+    // Habilidade Periódica: ergue a Barreira Arcana frontal após 1.0s de entrada em campo
+    enemy.shieldCooldownTimer = scene.time.delayedCall(1000, () => {
       if (!enemy.active || gameState !== 'PLAYING') return;
       activateMageBarrier(scene, enemy);
     });
@@ -89,20 +89,9 @@ function elfShoot(scene, elf) {
   if (elf.x > 790 || elf.x < player.x + 25) return;
 
   elf.setTint(0xa7ffeb);
-  if (elf.chargeRing && elf.chargeRing.active) elf.chargeRing.destroy();
-  const chargeRing = scene.add.circle(elf.x - 10, elf.y, 8, 0x26a69a, 0.22)
-    .setStrokeStyle(1.5, 0x69f0ae, 0.75).setDepth(elf.depth + 2);
-  elf.chargeRing = chargeRing;
+  if (sparksFx) sparksFx.explode(4, elf.x - 10, elf.y);
 
-  scene.tweens.add({
-    targets: chargeRing,
-    scale: { from: 1.2, to: 0.3 },
-    alpha: { from: 0.8, to: 0 },
-    duration: 320,
-    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
-  });
-
-  scene.time.delayedCall(320, () => {
+  scene.time.delayedCall(280, () => {
     if (!elf.active || !player || !player.active || !player.body || gameState !== 'PLAYING') return;
     elf.clearTint();
     sound.playElfShot();
@@ -117,20 +106,9 @@ function mageShoot(scene, mage) {
   if (mage.x > 790 || mage.x < player.x + 20) return;
 
   mage.setTint(0x7fe7ff);
-  if (mage.chargeRing && mage.chargeRing.active) mage.chargeRing.destroy();
-  const chargeRing = scene.add.circle(mage.x - 10, mage.y - 4, 15, 0x7fe7ff, 0.32)
-    .setStrokeStyle(2, 0xc36bff).setDepth(mage.depth + 2);
-  mage.chargeRing = chargeRing;
+  if (holyFx) holyFx.explode(6, mage.x - 10, mage.y - 4);
 
-  scene.tweens.add({
-    targets: chargeRing,
-    scale: { from: 1.4, to: 0.25 },
-    alpha: { from: 0.95, to: 0 },
-    duration: 380,
-    onComplete: () => { if (chargeRing.active) chargeRing.destroy(); }
-  });
-
-  scene.time.delayedCall(380, () => {
+  scene.time.delayedCall(320, () => {
     if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
     mage.clearTint();
     sound.playElfShot();
@@ -147,6 +125,7 @@ function mageShoot(scene, mage) {
 
 // BARREIRA ARCANA CURVADA DO MAGO SOMBRIO (Arcane Curved Frontal Barrier)
 // Habilidade periódica: ergue uma barreira curvada frontal em pixel art que reflete projéteis de volta
+// Duração: 1.0s | Cooldown de recarga: 2.0s
 function activateMageBarrier(scene, mage) {
   if (!mage || !mage.active || mage.isShieldActive) return;
 
@@ -177,15 +156,15 @@ function activateMageBarrier(scene, mage) {
   floatText(scene, mage.x, mage.y - 24, 'BARREIRA ARCANA!', '#d084ff');
   if (holyFx) holyFx.explode(8, mage.x - 16, mage.y);
 
-  // A barreira permanece ativa por um curto período (2.0 segundos)
-  mage.shieldTimer = scene.time.delayedCall(2000, () => {
+  // A barreira permanece ativa por cerca de 1.0 segundo (duração calibrada)
+  mage.shieldTimer = scene.time.delayedCall(1000, () => {
     if (!mage || !mage.active) return;
     if (mage.barrierSprite && mage.barrierSprite.active) {
       scene.tweens.add({
         targets: mage.barrierSprite,
         alpha: 0,
         scaleX: 0.5,
-        duration: 160,
+        duration: 150,
         onComplete: () => {
           if (mage && mage.barrierSprite) {
             mage.barrierSprite.destroy();
@@ -198,8 +177,8 @@ function activateMageBarrier(scene, mage) {
     mage.shieldCooldown = true;
     if (sparksFx) sparksFx.explode(6, mage.x - 16, mage.y);
 
-    // Cooldown de 3.2 segundos até reativar a barreira periodicamente
-    mage.shieldCooldownTimer = scene.time.delayedCall(3200, () => {
+    // Cooldown exato de 2.0 segundos até reativar a barreira periodicamente
+    mage.shieldCooldownTimer = scene.time.delayedCall(2000, () => {
       if (mage && mage.active && gameState === 'PLAYING') {
         mage.shieldCooldown = false;
         activateMageBarrier(scene, mage);
@@ -216,16 +195,14 @@ function reflectMageProjectile(scene, mage, proj) {
   if (sparksFx) sparksFx.explode(8, proj.x, proj.y);
   floatText(scene, proj.x, proj.y - 14, 'REFLETIDO!', '#d084ff');
 
-  // Cria projétil inimigo refletido mirando no jogador
+  // Cria orbe arcana refletida mirando no jogador (sem caixa/quadrado preto!)
   if (player && player.active && enemyArrows) {
     const dx = player.x - proj.x;
     const dy = player.y - proj.y;
     const ang = Math.atan2(dy, dx);
     const spd = 265;
-    const ref = enemyArrows.create(proj.x, proj.y, 'arrow_enemy');
-    ref.setTint(0xd084ff);
-    ref.rotation = ang;
-    ref.body.setSize(14, 8);
+    const ref = enemyArrows.create(proj.x, proj.y, 'orb_enemy');
+    ref.body.setSize(12, 12);
     ref.setVelocity(Math.cos(ang) * spd, Math.sin(ang) * spd);
   }
 

@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
 // Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
 // permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
@@ -554,13 +554,7 @@ function explodeFireball(scene, x, y, radius, dmg) {
 
   enemies.getChildren().slice().forEach(e => {
     if (e.active && Phaser.Math.Distance.Between(x, y, e.x, e.y) <= radius) {
-      if (e.enemyType === 'dark_mage') {
-        if (e.isShieldActive) return;
-        if (!e.shieldCooldown) {
-          activateMageShield(scene, e);
-          return;
-        }
-      }
+      if (e.enemyType === 'dark_mage' && e.isShieldActive) return;
       damageEnemy(scene, e, dmg);
     }
   });

@@ -33,6 +33,7 @@ function preload() {
   makeSheet(this, 'arrow_player', 26, 10, 1, arrowDrawer(C.blueBase, C.steelLight, C.manaLight));
   makeSheet(this, 'arrow_gold', 26, 10, 1, arrowDrawer(C.goldDark, C.goldHighlight, C.goldLight));
   makeSheet(this, 'arrow_elf', 26, 10, 1, arrowDrawer(0x00c853, 0x69f0ae, 0x00e676));
+  makeSheet(this, 'arrow_enemy', 26, 10, 1, arrowDrawer(C.arcanaDeep, C.arcanaLight, C.manaLight));
   makeSheet(this, 'orb_enemy', 16, 16, 1, drawMageOrb);
   makeSheet(this, 'axe_proj', 24, 24, 1, drawAxeProj);
   makeSheet(this, 'fireball_proj', 24, 16, 1, drawFireballProj);
@@ -708,6 +709,9 @@ function sortAndShade() {
       }
       // Renderização Universal de Barra de Vida Overhead em Pixel Art para TODOS os monstros da floresta
       if (e.active && !e.isBoss) {
+        // Mini-Golems inconscientes/em repouso não exibem barra overhead até despertarem
+        if (e.enemyType === 'mini_golem' && e.golemState !== 'ACTIVE') return;
+
         const bw = 24, bh = 5;
         const bx = Math.round(e.x - bw / 2 + 3);
         const by = Math.round(e.y - (e.displayHeight ? e.displayHeight / 2 : 14) - 9);
