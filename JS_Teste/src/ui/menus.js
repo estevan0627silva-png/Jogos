@@ -282,7 +282,7 @@ function showMainMenu(scene) {
   // Faixa de Rodapé Completa
   const footerBg = scene.add.rectangle(400, 578, 800, 32, 0x0c0907, 0.92);
   const footerLine = scene.add.graphics().lineStyle(1, 0x8d5524, 0.8).lineBetween(0, 562, 800, 562);
-  const footerTxt = scene.add.text(370, 578, 'Mover: WASD/Setas  |  Pausar: ESC  |  Áudio: M  |  Tela Cheia: F', textStyle('#d6c8aa', 11)).setOrigin(0.5);
+  const footerTxt = scene.add.text(370, 578, 'Mover: WASD/Setas  |  Pausar: P  |  Áudio: M  |  Tela Cheia: F', textStyle('#d6c8aa', 11)).setOrigin(0.5);
   const versionTxt = scene.add.text(750, 578, GAME_VERSION, textStyle('#c5a059', 11)).setOrigin(0.5);
 
   menuContainer.add([
@@ -492,7 +492,7 @@ function showBlacksmithMenu(scene) {
     showMageShopMenu(scene);
   }, 200, 40);
 
-  const backMenuBtn = createButton(scene, 615, 536, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 195, 40);
+  const backMenuBtn = createButton(scene, 615, 536, 'VOLTAR', () => exitSubMenu(scene), 195, 40);
   menuContainer.add([...playNowBtn, ...mageShopBtn, ...backMenuBtn]);
 }
 
@@ -661,7 +661,7 @@ function showMageShopMenu(scene) {
     showBlacksmithMenu(scene);
   }, 200, 40);
 
-  const backMenuBtn = createButton(scene, 615, 536, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 195, 40);
+  const backMenuBtn = createButton(scene, 615, 536, 'VOLTAR', () => exitSubMenu(scene), 195, 40);
   menuContainer.add([...playNowBtn, ...blacksmithBtn, ...backMenuBtn]);
 }
 
@@ -776,7 +776,7 @@ function showAchievementsMenu(scene) {
   });
 
   // 3. BOTÃO DE VOLTAR NO RODAPÉ
-  const backMenuBtn = createButton(scene, 400, 536, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 40);
+  const backMenuBtn = createButton(scene, 400, 536, 'VOLTAR', () => exitSubMenu(scene), 260, 40);
   menuContainer.add(backMenuBtn);
 }
 
@@ -816,7 +816,7 @@ function showRecordsMenu(scene) {
     menuContainer.add([rowBg, rankTxt, nameTxt, scoreTxt]);
   });
 
-  menuContainer.add(createButton(scene, 400, 485, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 44));
+  menuContainer.add(createButton(scene, 400, 485, 'VOLTAR', () => exitSubMenu(scene), 260, 44));
 }
 
 // -----------------------------------------------------------------------------
@@ -909,7 +909,7 @@ function showSettingsMenu(scene) {
     '• No fim da partida, suas Moedas de Prata são convertidas em Ouro!',
     '• Use Ouro na Loja para evoluir Armas (Aba 1) e Status (Aba 2).',
     '• O Escudo Sagrado reflete projéteis mantendo o disparo normal.',
-    '• Atalho de Pausa: Botão [||] no topo direito ou tecla ESC.'
+    '• Atalho de Pausa: Botão [||] no topo direito ou tecla P.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
     scene.add.text(176, 280 + i * 26, txt, { ...textStyle('#d6c8aa', 11, 'normal'), lineSpacing: 4 })
@@ -918,7 +918,7 @@ function showSettingsMenu(scene) {
   menuContainer.add([
     audioBox, audioTitle, audioToggleBtn, audioToggleTxt, fsToggleBtn, fsToggleTxt, joyToggleBtn, joyToggleTxt,
     guideBox, guideTitle, ...guideTexts,
-    ...createButton(scene, 400, 498, 'VOLTAR / SAIR [ESC]', () => exitSubMenu(scene), 260, 44)
+    ...createButton(scene, 400, 498, 'VOLTAR', () => exitSubMenu(scene), 260, 44)
   ]);
 }
 

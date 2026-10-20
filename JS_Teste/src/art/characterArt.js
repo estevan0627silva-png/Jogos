@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // ARTE PROCEDURAL: PERSONAGENS, INIMIGOS, CHEFES E NPCS
 // =============================================================================
 // ARTE: DESENHOS (r = cor, x, y, largura, altura — em pixels do desenho)
@@ -259,6 +259,84 @@ function drawDarkMage(r, f) {
   r(C.arcanaLight, 11, 0 + staffY, 3, 2);
   r(C.manaLight, 12, 0 + staffY, 1, 2);
   r.shine(12, 0 + staffY, 0, 0, C.white);
+}
+
+// Barreira Arcana Frontal do Mago Sombrio (16x36 — Escudo curvado/arredondado em Pixel Art 16-bit)
+function drawMageBarrier(r, f) {
+  // Matriz lógica: 8x18 pixels (16x36 no canvas). Convexo voltado para a esquerda (frente aos ataques).
+  // Frame 0 e 1: Pulso e ondulação de energia mística
+  const pulseShift = f === 1 ? 1 : 0;
+
+  // 1. Camada de Fundo / Vórtice Interno Violeta Profundo (lado voltado para o mago à direita)
+  r(C.voidDark, 4, 1, 2, 2);
+  r(C.voidDark, 3, 3, 2, 2);
+  r(C.voidDark, 2, 5, 2, 2);
+  r(C.voidDark, 2, 7, 3, 4);
+  r(C.voidDark, 2, 11, 2, 2);
+  r(C.voidDark, 3, 13, 2, 2);
+  r(C.voidDark, 4, 15, 2, 2);
+
+  // 2. Corpo do Arco Arcano (Ametista e Púrpura Real)
+  r(C.arcanaDeep, 4, 1, 2, 2);
+  r(C.arcanaDeep, 3, 3, 2, 2);
+  r(C.arcanaDeep, 2, 5, 2, 3);
+  r(C.arcanaDeep, 1, 8, 3, 2);
+  r(C.arcanaDeep, 2, 10, 2, 3);
+  r(C.arcanaDeep, 3, 13, 2, 2);
+  r(C.arcanaDeep, 4, 15, 2, 2);
+
+  r(C.arcanaBase, 3, 2, 2, 2);
+  r(C.arcanaBase, 2, 4, 2, 3);
+  r(C.arcanaBase, 1, 7, 2, 4);
+  r(C.arcanaBase, 2, 11, 2, 3);
+  r(C.arcanaBase, 3, 14, 2, 2);
+
+  r(C.arcanaLight, 4, 0, 2, 2);
+  r(C.arcanaLight, 3, 2, 2, 2);
+  r(C.arcanaLight, 2, 4, 2, 3);
+  r(C.arcanaLight, 1, 7, 2, 4);
+  r(C.arcanaLight, 2, 11, 2, 3);
+  r(C.arcanaLight, 3, 14, 2, 2);
+  r(C.arcanaLight, 4, 16, 2, 2);
+
+  // 3. Borda Convexo-Luminosa de Impacto (face voltada para os projéteis à esquerda)
+  // Pontas afiladas do crescente
+  r(C.manaLight, 5, 0, 1, 1);
+  r(C.manaLight, 4, 1, 1, 1);
+  r(C.manaLight, 3, 2, 1, 2);
+  r(C.manaLight, 2, 4, 1, 2);
+  r(C.manaLight, 1, 6, 1, 2);
+  r(C.manaLight, 0, 8, 1, 2); // ápice da curva
+  r(C.manaLight, 1, 10, 1, 2);
+  r(C.manaLight, 2, 12, 1, 2);
+  r(C.manaLight, 3, 14, 1, 2);
+  r(C.manaLight, 4, 16, 1, 1);
+  r(C.manaLight, 5, 17, 1, 1);
+
+  // Filamento de Luz Pura Branca (Reflexo e Cristalinidade na borda externa)
+  r(C.white, 3, 2, 1, 1);
+  r(C.white, 2, 4, 1, 1);
+  r(C.white, 1, 7, 1, 1);
+  r(C.white, 0, 8, 1, 2);
+  r(C.white, 1, 10, 1, 1);
+  r(C.white, 2, 13, 1, 1);
+  r(C.white, 3, 15, 1, 1);
+
+  // 4. Glifo Rúnico / Núcleo Central de Polarização (em x: 1..3, y: 8..9)
+  if (pulseShift === 0) {
+    r(C.manaLight, 1, 8, 2, 2);
+    r(C.white, 2, 8, 1, 2);
+    r.shine(2, 8, 0, 0, C.white);
+    r.shine(5, 0, 0, 0, C.manaLight);
+    r.shine(5, 17, 0, 0, C.manaLight);
+  } else {
+    r(C.arcanaLight, 1, 7, 3, 4);
+    r(C.manaLight, 1, 8, 2, 2);
+    r(C.white, 1, 8, 1, 2);
+    r.shine(1, 8, 0, 0, C.white);
+    r.shine(3, 3, 0, 0, C.white);
+    r.shine(3, 14, 0, 0, C.white);
+  }
 }
 
 

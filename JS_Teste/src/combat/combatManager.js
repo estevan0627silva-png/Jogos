@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
 // =============================================================================
 // COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
@@ -12,6 +12,7 @@ function removeEntity(obj) {
   if (obj.shieldTimer) obj.shieldTimer.remove();
   if (obj.shieldCooldownTimer) obj.shieldCooldownTimer.remove();
   if (obj.shieldVisual && obj.shieldVisual.active) obj.shieldVisual.destroy();
+  if (obj.barrierSprite && obj.barrierSprite.active) obj.barrierSprite.destroy();
   if (obj.activeTelegraphs) clearBossTelegraphs(obj);
   if (obj.chargeRing && obj.chargeRing.active) obj.chargeRing.destroy();
   if (obj.crackDecal && obj.crackDecal.active) obj.crackDecal.destroy();

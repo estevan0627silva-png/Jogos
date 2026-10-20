@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
 // =============================================================================
 function spawnEnemy(scene, forcedType, customY) {
@@ -71,6 +71,12 @@ function spawnEnemy(scene, forcedType, customY) {
         callback: () => mageShoot(scene, enemy)
       });
     });
+
+    // Habilidade Periódica: ergue a Barreira Arcana frontal após 1.2s de entrada em campo
+    enemy.shieldCooldownTimer = scene.time.delayedCall(1200, () => {
+      if (!enemy.active || gameState !== 'PLAYING') return;
+      activateMageBarrier(scene, enemy);
+    });
   }
 }
 
@@ -139,65 +145,69 @@ function mageShoot(scene, mage) {
   });
 }
 
-// ESCUDO REFLETOR ARCANO DO MAGO SOMBRIO (Arcane Reflect Shield)
-// Substitui o teletransporte: ergue uma barreira mágica que reflete projéteis de volta por um breve período
-function activateMageShield(scene, mage) {
+// BARREIRA ARCANA CURVADA DO MAGO SOMBRIO (Arcane Curved Frontal Barrier)
+// Habilidade periódica: ergue uma barreira curvada frontal em pixel art que reflete projéteis de volta
+function activateMageBarrier(scene, mage) {
   if (!mage || !mage.active || mage.isShieldActive) return;
 
   mage.isShieldActive = true;
 
-  if (mage.shieldVisual && mage.shieldVisual.active) {
-    mage.shieldVisual.destroy();
+  if (mage.barrierSprite && mage.barrierSprite.active) {
+    mage.barrierSprite.destroy();
   }
 
-  // Barreira mágica púrpura pulsante ao redor do mago
-  const aura = scene.add.circle(mage.x, mage.y, 22)
-    .setStrokeStyle(2, 0xd084ff, 0.95)
-    .setFillStyle(0x7b1fa2, 0.32)
-    .setDepth(2350);
-  mage.shieldVisual = aura;
+  // Cria a barreira em pixel art em frente ao mago (x: mage.x - 16, y: mage.y)
+  const barrier = scene.add.sprite(mage.x - 16, mage.y, 'mage_barrier', 0)
+    .setDepth(mage.depth + 5);
+  barrier.play('mage_barrier');
+  mage.barrierSprite = barrier;
 
+  // Pulso místico sutil de energia
   scene.tweens.add({
-    targets: aura,
-    scale: { from: 0.88, to: 1.15 },
-    alpha: { from: 0.95, to: 0.65 },
+    targets: barrier,
+    scaleX: { from: 0.94, to: 1.08 },
+    scaleY: { from: 0.96, to: 1.04 },
+    alpha: { from: 0.88, to: 1.0 },
     yoyo: true,
     repeat: -1,
-    duration: 200
+    duration: 250
   });
 
   sound.playShieldBlock();
-  floatText(scene, mage.x, mage.y - 24, 'ESCUDO REFLETOR!', '#d084ff');
-  if (holyFx) holyFx.explode(10, mage.x, mage.y);
+  floatText(scene, mage.x, mage.y - 24, 'BARREIRA ARCANA!', '#d084ff');
+  if (holyFx) holyFx.explode(8, mage.x - 16, mage.y);
 
-  // O escudo permanece ativo refletindo projéteis por 1.2 segundos
-  mage.shieldTimer = scene.time.delayedCall(1200, () => {
+  // A barreira permanece ativa por um curto período (2.0 segundos)
+  mage.shieldTimer = scene.time.delayedCall(2000, () => {
     if (!mage || !mage.active) return;
-    if (mage.shieldVisual && mage.shieldVisual.active) {
+    if (mage.barrierSprite && mage.barrierSprite.active) {
       scene.tweens.add({
-        targets: mage.shieldVisual,
+        targets: mage.barrierSprite,
         alpha: 0,
-        duration: 150,
+        scaleX: 0.5,
+        duration: 160,
         onComplete: () => {
-          if (mage && mage.shieldVisual) {
-            mage.shieldVisual.destroy();
-            mage.shieldVisual = null;
+          if (mage && mage.barrierSprite) {
+            mage.barrierSprite.destroy();
+            mage.barrierSprite = null;
           }
         }
       });
     }
     mage.isShieldActive = false;
     mage.shieldCooldown = true;
-    if (sparksFx) sparksFx.explode(6, mage.x, mage.y);
+    if (sparksFx) sparksFx.explode(6, mage.x - 16, mage.y);
 
-    // Cooldown de 3.0 segundos antes de recarregar o escudo (janela de vulnerabilidade)
-    mage.shieldCooldownTimer = scene.time.delayedCall(3000, () => {
-      if (mage && mage.active) {
+    // Cooldown de 3.2 segundos até reativar a barreira periodicamente
+    mage.shieldCooldownTimer = scene.time.delayedCall(3200, () => {
+      if (mage && mage.active && gameState === 'PLAYING') {
         mage.shieldCooldown = false;
+        activateMageBarrier(scene, mage);
       }
     });
   });
 }
+const activateMageShield = activateMageBarrier;
 
 function reflectMageProjectile(scene, mage, proj) {
   if (!proj || !proj.active) return;

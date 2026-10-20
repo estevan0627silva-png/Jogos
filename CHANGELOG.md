@@ -2,6 +2,30 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v1.8.0] — 2026-10-19
+### 🛡️ Título da Versão: **Arcane Curved Barrier, Overhead HP Bar Art & Input Cleansing**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Barreira Arcana Frontal curvada em Pixel Art para o Mago Sombrio com ativação periódica e reflexão de projéteis, refinamento estético da barra de vida overhead dos monstros (frame chanfrado, mini-coração rubi 7x6 e sangue carmesim), purificação de controles (exclusividade das teclas P para Pausa e F para Tela Cheia, remoção completa de conflitos com ESC).
+
+### 🚀 O que mudou:
+- **🔮 Barreira Arcana Curvada do Mago Sombrio (`mage_barrier`):**
+  - **Pixel Art 16-bit Genuína:** Substituição do bloco quadrado genérico por uma textura procedural artesanal (`makeSheet('mage_barrier', 16, 36, 2, drawMageBarrier)`), em formato de crescente curvado convexo voltado para a frente do mago (lado esquerdo), com borda luminosa ciano/branca, corpo de ametista e núcleo rúnico pulsante com shimmer animado de 2 quadros.
+  - **Habilidade Periódica Autônoma:** O Mago ativa a barreira ciclicamente em campo: permanece erguida por um curto período (2.0s) e entra em tempo de recarga (3.2s) antes de ser reativada periodicamente.
+  - **Reflexão Frontal de Projéteis:** Enquanto a barreira estiver ativa, qualquer projétil recebido é repelido com faíscas metálicas, efeito sonoro de bloqueio e redirecionado contra o herói. Durante a janela de recarga da barreira, o mago sofre dano normal.
+  - **Sincronia e Limpeza de Entidades:** O sprite da barreira acompanha o movimento do Mago com precisão milimétrica e é limpo automaticamente ao ser derrotado ou encerrar a cena.
+- **🩸 Refinamento da Barra de Vida Overhead dos Monstros da Floresta:**
+  - **Moldura Chanfrada de Ferro Forjado:** Placa chanfrada 16-bit com cantos facetados (`bw = 24, bh = 5`) e cavidade interna de pedra obsidiana (`0x1a120c`).
+  - **Mini-Coração Rubi 7x6:** Esculpido à mão com contorno chanfrado escuro (`0x140e0a`), faceta de sombra carmesim profunda (`0x8e1b1b`), preenchimento rubi nobre (`0xd83a3a`) e ponto especular de brilho puro (`0xffffff`).
+  - **Sangue Drenante com Brilho Superior:** Barra de sangue carmesim viva (`0xd32f2f`) com filamento superior reflexivo de 1px (`0xff7961`) e ghost bar interpolada em ouro âmbar (`0xffca28`).
+  - **Preservação Rígida do Herói:** A vida e o HUD do cavaleiro no canto superior esquerdo continuam 100% inalterados em corações discretos.
+- **⌨️ Purificação e Desacoplamento Rígido de Controles (P & F Exclusivos):**
+  - **Pausa Estrita:** Somente a tecla **`P`** e o botão interativo de pausa do HUD pausam e despausam a partida, eliminando qualquer interferência ou conflito nativo de navegadores.
+  - **Tela Cheia Estrita:** Somente a tecla **`F`** e o botão de maximizar do HUD/menu alternam o modo Tela Cheia.
+  - **Remoção Total de Conflitos do `ESC`:** O listener `keydown-ESC` foi inteiramente removido do loop de gameplay, evitando o fechamento involuntário de tela cheia disparar o menu de pausa. Todos os textos de rodapé, tutoriais e botões foram atualizados para `[P]` e `[F]`.
+
+---
+
 ## [v1.6.0] — 2026-10-19
 ### 🗿 Título da Versão: **Combat Overhaul, Stone Golem & Refined Touch Controls**
 
