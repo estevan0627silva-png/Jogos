@@ -104,6 +104,7 @@ function create(data) {
   bossSpawned = false;
   bossDefeated = false;
   draftModal = null;
+  entityIdCounter = 0;
 
   // Limpa todos os listeners de teclado e escala ao encerrar/reiniciar a cena
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -282,8 +283,31 @@ function create(data) {
   // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
     if (e.x >= 800 || !a.active || !e.active) return;
-    if (a.projId && e.lastProjId === a.projId) return;
-    if (a.projId) e.lastProjId = a.projId;
+
+    // Identificador único da entidade para rastreamento seguro de hits por projétil
+    if (!e.entityId) e.entityId = ++entityIdCounter;
+
+    // Regra do Machado/Martelo Bumerangue: no máximo 2 instâncias de dano (1 na ida e 1 na volta)
+    if (a.isBoomerang) {
+      if (!a.hitEnemiesOut) a.hitEnemiesOut = new Set();
+      if (!a.hitEnemiesBack) a.hitEnemiesBack = new Set();
+
+      const isReturning = Boolean(a.returning || (a.body && a.body.velocity.x < 0));
+      if (!isReturning) {
+        // Fase de IDA: apenas 1 hit neste inimigo
+        if (a.hitEnemiesOut.has(e.entityId)) return;
+        a.hitEnemiesOut.add(e.entityId);
+      } else {
+        // Fase de VOLTA: apenas 1 hit neste inimigo
+        if (a.hitEnemiesBack.has(e.entityId)) return;
+        a.hitEnemiesBack.add(e.entityId);
+      }
+    } else {
+      // Projéteis perfurantes comuns (flechas com multi-shot/pierce): no máximo 1 hit por inimigo
+      if (!a.hitEnemies) a.hitEnemies = new Set();
+      if (a.hitEnemies.has(e.entityId)) return;
+      a.hitEnemies.add(e.entityId);
+    }
 
     // Mago Sombrio: Barreira Arcana Frontal (reflete projéteis durante a ativação periódica)
     if (e.enemyType === 'dark_mage') {
@@ -519,9 +543,8 @@ function updateGameplay(scene, time, dt) {
     if ((p.isBoomerang || p.texture.key === 'axe_proj') && p.active) {
       p.spinAccum = (p.spinAccum || 0) + 820 * dt;
       p.setAngle(Math.round(p.spinAccum / 30) * 30);
-      if (p.isBoomerang && !p.returning && p.body.velocity.x < 0) {
+      if (p.isBoomerang && !p.returning && p.body && p.body.velocity.x < 0) {
         p.returning = true;
-        p.projId = ++slashCounter;
       }
     }
     // Rastro sutil e fluido da Bola de Fogo (baixa densidade para máxima legibilidade)

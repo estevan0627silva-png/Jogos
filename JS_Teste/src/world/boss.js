@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (ATAQUES, TELEGRAFIAS E CONTROLE)
 // =============================================================================
 function registerBossTelegraph(boss, obj) {
@@ -42,6 +42,7 @@ function startBossFight(scene) {
   boss.body.pushable = false;
   boss.isBoss = true;
   boss.enemyType = 'boss_golem';
+  boss.entityId = ++entityIdCounter;
   boss.maxHp = BOSS_MAX_HP;
   boss.hp = BOSS_MAX_HP;
   boss.entering = true;
@@ -128,6 +129,7 @@ function ejectMiniGolemsFromBoss(scene, boss) {
       const cfg = ENEMIES.mini_golem || { w: 18, h: 20, speed: 0.94, hp: 1 };
       golem.body.setSize(cfg.w, cfg.h);
       golem.enemyType = 'mini_golem';
+      golem.entityId = ++entityIdCounter;
       golem.maxHp = cfg.hp;
       golem.hp = golem.maxHp;
       golem.setFlipX(true);

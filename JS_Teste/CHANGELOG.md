@@ -22,7 +22,10 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
 - **🗿 Mini-Golems Totalmente Invulneráveis enquanto Inconscientes:**
   - Mini-Golems nos estados `EJECTING`, `DORMANT` e `AWAKENING` não recebem dano e não podem morrer sob nenhuma circunstância.
   - O dano só é permitido quando o Mini-Golem comprovadamente acorda e passa para o estado `ACTIVE` (com olhos vermelhos e perseguição ativa). A barra de vida overhead só é exibida quando despertam.
-  - **Tela Cheia Estrita:** Somente a tecla **`F`** e o botão de maximizar do HUD/menu alternam o modo Tela Cheia.
+- **🪓 Correção do Bug de Multi-Hit do Machado/Martelo Bumerangue:**
+  - **Causa Raiz:** O tracking de acerto anterior (`e.lastProjId`) era armazenado na entidade inimiga (`e`). Quando múltiplos machados ou projéteis colidiam com o Boss de grande porte (88x88), cada machado alternava o `lastProjId` no mesmo frame ou frames consecutivos, gerando um "liquidificador de dano" de 60 acertos por segundo que derretia o Boss instantaneamente.
+  - **Correção com Trava de Duplo Hit (Ida e Volta):** Cada projétil bumerangue agora possui seus próprios conjuntos isolados de rastreamento (`hitEnemiesOut` e `hitEnemiesBack`). O projétil aplica rigorosamente no máximo **1 hit na ida** e no máximo **1 hit na volta** por inimigo (totalizando no máximo 2 instâncias de dano por arremesso), preservando o desafio e a vida do Boss e de qualquer inimigo.
+- **Tela Cheia Estrita:** Somente a tecla **`F`** e o botão de maximizar do HUD/menu alternam o modo Tela Cheia.
   - **Remoção Total de Conflitos do `ESC`:** O listener `keydown-ESC` foi inteiramente removido do loop de gameplay, evitando o fechamento involuntário de tela cheia disparar o menu de pausa. Todos os textos de rodapé, tutoriais e botões foram atualizados para `[P]` e `[F]`.
 
 ---

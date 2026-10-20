@@ -41,6 +41,7 @@ function spawnEnemy(scene, forcedType, customY) {
   enemy.phase = Math.random() * 10;
   enemy.baseY = y;
   enemy.enemyType = type;
+  enemy.entityId = ++entityIdCounter;
   // Blindagem de Spawns Naturais: Mini-Golems gerados fora da ejeção do chefe nascem imediatamente no estado 'ACTIVE'
   if (type === 'mini_golem') {
     enemy.golemState = 'ACTIVE';
