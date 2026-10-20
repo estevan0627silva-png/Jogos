@@ -4139,7 +4139,7 @@ function damageEnemy(scene, enemy, dmg = 1) {
 // e pausa temporariamente a velocidade para evitar conflitos de física ou marcha a ré involuntária
 function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
   if (!enemy || !enemy.active || enemy.isBoss || enemy.hp <= 0) return;
-  if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+  if (enemy.enemyType === 'mini_golem' && enemy.golemState !== 'ACTIVE') return;
 
   const cfg = ENEMIES[enemy.enemyType] || { speed: 1 };
   const baseVx = -Math.max(60, (enemySpeed || 85) * (cfg.speed || 1));
@@ -4164,7 +4164,7 @@ function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
     },
     onComplete: () => {
       if (!enemy || !enemy.active || enemy.hp <= 0) return;
-      if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+      if (enemy.enemyType === 'mini_golem' && enemy.golemState !== 'ACTIVE') return;
       if (enemy.body) {
         enemy.body.updateFromGameObject();
         enemy.setVelocityX(baseVx);
@@ -4253,7 +4253,7 @@ function killEnemy(enemy) {
 
 function playerHit(scene, hazard) {
   if (gameState !== 'PLAYING' || !hazard.active) return;
-  if (hazard.golemState === 'EJECTING' || hazard.golemState === 'DORMANT') return;
+  if (hazard.enemyType === 'mini_golem' && hazard.golemState !== 'ACTIVE') return;
 
   if (buff.type === 'shield') {
     const lvl = getWeaponLevel('shield');
@@ -4823,6 +4823,11 @@ function spawnEnemy(scene, forcedType, customY) {
   enemy.phase = Math.random() * 10;
   enemy.baseY = y;
   enemy.enemyType = type;
+  // Blindagem de Spawns Naturais: Mini-Golems gerados fora da ejeção do chefe nascem imediatamente no estado 'ACTIVE'
+  if (type === 'mini_golem') {
+    enemy.golemState = 'ACTIVE';
+    enemy.play('mini_golem');
+  }
   // Escalonamento suave de vida de guerreiros e magos em partidas longas (> 90s)
   const hpBonus = (survivalTime >= 95 && (type === 'warrior' || type === 'dark_mage')) ? 1 : 0;
   enemy.maxHp = cfg.hp + hpBonus;
@@ -5087,7 +5092,12 @@ function ejectMiniGolemsFromBoss(scene, boss) {
       golem.setFlipX(true);
       golem.setFrame(2); // Frame 2: Rocha inerte, olhos apagados
 
+      // ESTADO 'EJECTING' (Saindo do corpo do Boss em arco):
+      // Física desligada para evitar conflito de velocidade; deslocamento 100% via tweens
       golem.golemState = 'EJECTING';
+      if (golem.body) {
+        golem.body.moves = false;
+      }
       golem.setVelocity(0, 0);
 
       const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(75, 170), 160, 680);
@@ -5121,40 +5131,63 @@ function ejectMiniGolemsFromBoss(scene, boss) {
               if (debrisFx) debrisFx.explode(7, golem.x, golem.y + 10);
               sound.playShieldBlock();
 
-              // Estado: DORMANT (Inconsciente fixo no solo real)
+              // ESTADO 'DORMANT' (Caído no chão como pedra inerte):
+              // Reativa física para ancorar estritamente ao solo da floresta (-worldSpeed); NENHUMA perseguição
               golem.golemState = 'DORMANT';
-
               golem.setFrame(2);
-              const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
-              golem.setVelocityX(-curWorldSpeed);
-              golem.setVelocityY(0);
-
-              golem.setFrame(2);
-
+              if (golem.body) {
+                golem.body.moves = true;
+                const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+                golem.setVelocityX(-curWorldSpeed);
+                golem.setVelocityY(0);
+                golem.body.updateFromGameObject();
+              }
 
               // Transição de despertar após breve momento (1.1s a 1.3s calibrado)
               const dormantTime = Phaser.Math.Between(1100, 1300);
               golem.dormantTimer = scene.time.delayedCall(dormantTime, () => {
                 if (!golem || !golem.active || gameState !== 'PLAYING') return;
 
-                // Animação de tremor pré-despertar
+                // ESTADO 'AWAKENING' (Tremor pré-despertar):
+                // Mantém velocidade X sincronizada ao solo e Y zerada. Proibido iniciar perseguição ou mover corpo em direção ao herói.
+                golem.golemState = 'AWAKENING';
+                golem.setFrame(2);
+                if (golem.body) {
+                  golem.body.moves = true;
+                  const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+                  golem.setVelocityX(-curWorldSpeed);
+                  golem.setVelocityY(0);
+                }
+
+                // Animação de tremor pré-despertar (vibração rápida de 3px).
+                // Shakes displayOriginX para criar vibração visual sem deslocar a hitbox física em direção ao herói
+                const baseOriginX = golem.width * golem.originX;
                 scene.tweens.add({
                   targets: golem,
-                  x: golem.x + 3,
+                  displayOriginX: baseOriginX + 3,
                   duration: 40,
                   yoyo: true,
                   repeat: 5,
                   onComplete: () => {
                     if (!golem || !golem.active || gameState !== 'PLAYING') return;
+                    golem.setDisplayOrigin(baseOriginX, golem.height * golem.originY);
 
-                    // Despertar dos olhos vermelhos brilhantes e início da perseguição
+                    // ESTADO 'ACTIVE' (Desperto e Perseguindo):
+                    // Somente agora inicia perseguição ao jogador com olhos vermelhos acesos
                     golem.golemState = 'ACTIVE';
+                    golem.setFrame(0);
                     golem.play('mini_golem');
-                    if (holyFx) holyFx.explode(6, golem.x, golem.y);
+                    if (debrisFx) debrisFx.explode(8, golem.x, golem.y);
+                    if (dustFx) dustFx.explode(6, golem.x, golem.y + 10);
                     sound.playFireStaff();
                     floatText(scene, golem.x, golem.y - 18, 'DESPERTOU!', '#ff5252');
 
-                    golem.setVelocityX(-enemySpeed * cfg.speed);
+                    const curSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
+                    if (player && player.active) {
+                      scene.physics.moveToObject(golem, player, curSpeed);
+                    } else {
+                      golem.setVelocityX(-curSpeed);
+                    }
                   }
                 });
               });
@@ -8279,14 +8312,31 @@ function updateGameplay(scene, time, dt) {
         e.y = Phaser.Math.Clamp(e.y, 130, 520);
         if (e.body) e.body.updateFromGameObject();
       } else if (e.enemyType === 'mini_golem') {
-        // Regras 4, 9 e 10: Mini-Golems inconscientes ficam ancorados ao solo (-worldSpeed); ativos perseguem lentamente
-        if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {
+        // Máquina de Estados Estrita do Mini-Golem: EJECTING, DORMANT, AWAKENING, ACTIVE
+        if (e.golemState === 'EJECTING') {
+          // Estado a: Ejetando em arco parabólico. Física desativada, velocidade zerada
+          if (e.body && e.body.moves) {
+            e.body.moves = false;
+          }
+          e.setVelocity(0, 0);
+          e.setFrame(2);
+        } else if (e.golemState === 'DORMANT' || e.golemState === 'AWAKENING') {
+          // Estados b e c: Caído inerte ou em tremor pré-despertar. Sincronizado ao solo (-worldSpeed), Y zerado, NENHUMA perseguição
+          if (e.body && !e.body.moves) {
+            e.body.moves = true;
+          }
           e.setVelocityX(-worldSpeed);
           e.setVelocityY(0);
           e.setFrame(2);
         } else if (e.golemState === 'ACTIVE') {
+          // Estado d: Apenas quando comprovadamente ACTIVE pode perseguir o jogador
+          if (e.body && !e.body.moves) {
+            e.body.moves = true;
+          }
           const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
-          if (player && player.active) scene.physics.moveToObject(e, player, slowSpeed);
+          if (player && player.active) {
+            scene.physics.moveToObject(e, player, slowSpeed);
+          }
         }
       }
     }

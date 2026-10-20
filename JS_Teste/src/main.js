@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
 
@@ -481,14 +481,31 @@ function updateGameplay(scene, time, dt) {
         e.y = Phaser.Math.Clamp(e.y, 130, 520);
         if (e.body) e.body.updateFromGameObject();
       } else if (e.enemyType === 'mini_golem') {
-        // Regras 4, 9 e 10: Mini-Golems inconscientes ficam ancorados ao solo (-worldSpeed); ativos perseguem lentamente
-        if (e.golemState === 'DORMANT' || e.golemState === 'EJECTING') {
+        // Máquina de Estados Estrita do Mini-Golem: EJECTING, DORMANT, AWAKENING, ACTIVE
+        if (e.golemState === 'EJECTING') {
+          // Estado a: Ejetando em arco parabólico. Física desativada, velocidade zerada
+          if (e.body && e.body.moves) {
+            e.body.moves = false;
+          }
+          e.setVelocity(0, 0);
+          e.setFrame(2);
+        } else if (e.golemState === 'DORMANT' || e.golemState === 'AWAKENING') {
+          // Estados b e c: Caído inerte ou em tremor pré-despertar. Sincronizado ao solo (-worldSpeed), Y zerado, NENHUMA perseguição
+          if (e.body && !e.body.moves) {
+            e.body.moves = true;
+          }
           e.setVelocityX(-worldSpeed);
           e.setVelocityY(0);
           e.setFrame(2);
         } else if (e.golemState === 'ACTIVE') {
+          // Estado d: Apenas quando comprovadamente ACTIVE pode perseguir o jogador
+          if (e.body && !e.body.moves) {
+            e.body.moves = true;
+          }
           const slowSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
-          if (player && player.active) scene.physics.moveToObject(e, player, slowSpeed);
+          if (player && player.active) {
+            scene.physics.moveToObject(e, player, slowSpeed);
+          }
         }
       }
     }

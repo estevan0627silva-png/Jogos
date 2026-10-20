@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (ATAQUES, TELEGRAFIAS E CONTROLE)
 // =============================================================================
 function registerBossTelegraph(boss, obj) {
@@ -133,7 +133,12 @@ function ejectMiniGolemsFromBoss(scene, boss) {
       golem.setFlipX(true);
       golem.setFrame(2); // Frame 2: Rocha inerte, olhos apagados
 
+      // ESTADO 'EJECTING' (Saindo do corpo do Boss em arco):
+      // Física desligada para evitar conflito de velocidade; deslocamento 100% via tweens
       golem.golemState = 'EJECTING';
+      if (golem.body) {
+        golem.body.moves = false;
+      }
       golem.setVelocity(0, 0);
 
       const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(75, 170), 160, 680);
@@ -167,40 +172,63 @@ function ejectMiniGolemsFromBoss(scene, boss) {
               if (debrisFx) debrisFx.explode(7, golem.x, golem.y + 10);
               sound.playShieldBlock();
 
-              // Estado: DORMANT (Inconsciente fixo no solo real)
+              // ESTADO 'DORMANT' (Caído no chão como pedra inerte):
+              // Reativa física para ancorar estritamente ao solo da floresta (-worldSpeed); NENHUMA perseguição
               golem.golemState = 'DORMANT';
-
               golem.setFrame(2);
-              const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
-              golem.setVelocityX(-curWorldSpeed);
-              golem.setVelocityY(0);
-
-              golem.setFrame(2);
-
+              if (golem.body) {
+                golem.body.moves = true;
+                const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+                golem.setVelocityX(-curWorldSpeed);
+                golem.setVelocityY(0);
+                golem.body.updateFromGameObject();
+              }
 
               // Transição de despertar após breve momento (1.1s a 1.3s calibrado)
               const dormantTime = Phaser.Math.Between(1100, 1300);
               golem.dormantTimer = scene.time.delayedCall(dormantTime, () => {
                 if (!golem || !golem.active || gameState !== 'PLAYING') return;
 
-                // Animação de tremor pré-despertar
+                // ESTADO 'AWAKENING' (Tremor pré-despertar):
+                // Mantém velocidade X sincronizada ao solo e Y zerada. Proibido iniciar perseguição ou mover corpo em direção ao herói.
+                golem.golemState = 'AWAKENING';
+                golem.setFrame(2);
+                if (golem.body) {
+                  golem.body.moves = true;
+                  const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
+                  golem.setVelocityX(-curWorldSpeed);
+                  golem.setVelocityY(0);
+                }
+
+                // Animação de tremor pré-despertar (vibração rápida de 3px).
+                // Shakes displayOriginX para criar vibração visual sem deslocar a hitbox física em direção ao herói
+                const baseOriginX = golem.width * golem.originX;
                 scene.tweens.add({
                   targets: golem,
-                  x: golem.x + 3,
+                  displayOriginX: baseOriginX + 3,
                   duration: 40,
                   yoyo: true,
                   repeat: 5,
                   onComplete: () => {
                     if (!golem || !golem.active || gameState !== 'PLAYING') return;
+                    golem.setDisplayOrigin(baseOriginX, golem.height * golem.originY);
 
-                    // Despertar dos olhos vermelhos brilhantes e início da perseguição
+                    // ESTADO 'ACTIVE' (Desperto e Perseguindo):
+                    // Somente agora inicia perseguição ao jogador com olhos vermelhos acesos
                     golem.golemState = 'ACTIVE';
+                    golem.setFrame(0);
                     golem.play('mini_golem');
-                    if (holyFx) holyFx.explode(6, golem.x, golem.y);
+                    if (debrisFx) debrisFx.explode(8, golem.x, golem.y);
+                    if (dustFx) dustFx.explode(6, golem.x, golem.y + 10);
                     sound.playFireStaff();
                     floatText(scene, golem.x, golem.y - 18, 'DESPERTOU!', '#ff5252');
 
-                    golem.setVelocityX(-enemySpeed * cfg.speed);
+                    const curSpeed = (ENEMIES.mini_golem && ENEMIES.mini_golem.speed) ? (enemySpeed * ENEMIES.mini_golem.speed) : 60;
+                    if (player && player.active) {
+                      scene.physics.moveToObject(golem, player, curSpeed);
+                    } else {
+                      golem.setVelocityX(-curSpeed);
+                    }
                   }
                 });
               });

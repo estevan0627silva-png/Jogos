@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
 // =============================================================================
 // COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
@@ -97,7 +97,7 @@ function damageEnemy(scene, enemy, dmg = 1) {
 // e pausa temporariamente a velocidade para evitar conflitos de física ou marcha a ré involuntária
 function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
   if (!enemy || !enemy.active || enemy.isBoss || enemy.hp <= 0) return;
-  if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+  if (enemy.enemyType === 'mini_golem' && enemy.golemState !== 'ACTIVE') return;
 
   const cfg = ENEMIES[enemy.enemyType] || { speed: 1 };
   const baseVx = -Math.max(60, (enemySpeed || 85) * (cfg.speed || 1));
@@ -122,7 +122,7 @@ function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
     },
     onComplete: () => {
       if (!enemy || !enemy.active || enemy.hp <= 0) return;
-      if (enemy.golemState === 'DORMANT' || enemy.golemState === 'EJECTING') return;
+      if (enemy.enemyType === 'mini_golem' && enemy.golemState !== 'ACTIVE') return;
       if (enemy.body) {
         enemy.body.updateFromGameObject();
         enemy.setVelocityX(baseVx);
@@ -211,7 +211,7 @@ function killEnemy(enemy) {
 
 function playerHit(scene, hazard) {
   if (gameState !== 'PLAYING' || !hazard.active) return;
-  if (hazard.golemState === 'EJECTING' || hazard.golemState === 'DORMANT') return;
+  if (hazard.enemyType === 'mini_golem' && hazard.golemState !== 'ACTIVE') return;
 
   if (buff.type === 'shield') {
     const lvl = getWeaponLevel('shield');

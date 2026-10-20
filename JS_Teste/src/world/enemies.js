@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
 // =============================================================================
 function spawnEnemy(scene, forcedType, customY) {
@@ -41,6 +41,11 @@ function spawnEnemy(scene, forcedType, customY) {
   enemy.phase = Math.random() * 10;
   enemy.baseY = y;
   enemy.enemyType = type;
+  // Blindagem de Spawns Naturais: Mini-Golems gerados fora da ejeção do chefe nascem imediatamente no estado 'ACTIVE'
+  if (type === 'mini_golem') {
+    enemy.golemState = 'ACTIVE';
+    enemy.play('mini_golem');
+  }
   // Escalonamento suave de vida de guerreiros e magos em partidas longas (> 90s)
   const hpBonus = (survivalTime >= 95 && (type === 'warrior' || type === 'dark_mage')) ? 1 : 0;
   enemy.maxHp = cfg.hp + hpBonus;
