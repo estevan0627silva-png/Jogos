@@ -294,7 +294,7 @@ const WEAPON_CATALOG = {
 const SCROLL_CATALOG = {
   multishot: {
     id: 'multishot',
-    name: 'PERGAMINHO DE DISPARO MÚLTIPLO',
+    name: 'DISPARO MÚLTIPLO',
     shortName: 'MULTI-SHOT',
     icon: 'scroll_multishot',
     maxLevel: 5,
@@ -308,7 +308,7 @@ const SCROLL_CATALOG = {
   },
   growth: {
     id: 'growth',
-    name: 'PERGAMINHO DE CRESCIMENTO',
+    name: 'CRESCIMENTO',
     shortName: 'CRESCIMENTO',
     icon: 'scroll_growth',
     maxLevel: 5,
@@ -322,7 +322,7 @@ const SCROLL_CATALOG = {
   },
   attackspeed: {
     id: 'attackspeed',
-    name: 'PERGAMINHO DE VELOCIDADE DE ATAQUE',
+    name: 'VEL. DE ATAQUE',
     shortName: 'VEL. ATAQUE',
     icon: 'scroll_speed',
     maxLevel: 5,
@@ -577,6 +577,7 @@ let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
 let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0;
+if (typeof window !== 'undefined') window.worldSpeed = 117;
 let virtualJoystick = null;
 
 // =============================================================================
@@ -4540,6 +4541,7 @@ function startGameplay(scene) {
   clearFirePools();
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
+  if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
   spawnDelay = 1300;
   runBonusDuration = 0;
   lastRunSummary = null;
@@ -5466,13 +5468,13 @@ function createHUD(scene) {
   hudScrollText = scene.add.text(495, 43, '', textStyle('#b388ff', 9)).setOrigin(0.5, 0.5).setVisible(false);
   hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, hudScrollBadge, hudScrollText]);
 
-  // 4. PAINEL DE RECORDE DO REINO — Direita (x: 520..682)
+  // 4. PAINEL DE RECORDE DO REINO (x: 520..628)
   const bestBg = scene.add.graphics();
-  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(520, 10, 162, 48, 6);
-  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(520, 10, 162, 48, 6);
-  const crown = scene.add.image(540, 34, 'hud_crown');
-  const bestLabel = scene.add.text(562, 16, 'RECORDE', textStyle('#a89260', 10));
-  hudBestText = scene.add.text(562, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
+  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(520, 10, 108, 48, 6);
+  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(520, 10, 108, 48, 6);
+  const crown = scene.add.image(536, 34, 'hud_crown');
+  const bestLabel = scene.add.text(552, 16, 'RECORDE', textStyle('#a89260', 10));
+  hudBestText = scene.add.text(552, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
 
   // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 688..736)
@@ -5742,7 +5744,7 @@ function rollLevelUpCards() {
     const lvlDesc = sCfg.levels[nextLvl - 1] || `+Poder arcano NV. ${nextLvl}`;
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
-      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO EXCLUSIVO',
+      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO ARCANO',
       title: sCfg.name,
       badge: currLvl === 0 ? 'NOVO! NV. 1' : `NV. ${currLvl} ➔ NV. ${nextLvl}`,
       badgeColor: '#b388ff',
@@ -5989,11 +5991,12 @@ function openLevelUpDraft(scene) {
     const catTxt = scene.add.text(cx, top + 24, card.category, textStyle('#c5a059', 10)).setOrigin(0.5);
     const iconImg = scene.add.image(cx, top + 80, card.icon).setScale(1.65);
     const nameTxt = scene.add.text(cx, top + 136, card.title, {
-      ...textStyle('#ffca28', 15),
+      ...textStyle('#ffca28', 14),
       fontFamily: 'Georgia, serif',
-      align: 'center'
+      align: 'center',
+      wordWrap: { width: cardW - 24, useAdvancedWrap: true }
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 22, 24, 11);
+    fitTextToBox(nameTxt, cardW - 24, 26, 9);
 
     const badgeBg = scene.add.rectangle(cx, top + 166, cardW - 36, 24, 0x100c09).setStrokeStyle(1, card.borderColor);
     const badgeTxt = scene.add.text(cx, top + 166, card.badge, textStyle(card.badgeColor, 11)).setOrigin(0.5);
@@ -6002,6 +6005,7 @@ function openLevelUpDraft(scene) {
     const descTxt = scene.add.text(cx, top + 246, card.desc, {
       ...textStyle('#e8dcbe', 11, 'normal'),
       align: 'center',
+
       lineSpacing: 4,
       wordWrap: { width: cardW - 28, useAdvancedWrap: true }
     }).setOrigin(0.5);
@@ -6092,6 +6096,7 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     const sub = scene.add.text(cx, top + 54, subtitleText, {
       ...textStyle('#c5a059', 11),
       align: 'center',
+
       wordWrap: { width: width - 60, useAdvancedWrap: true }
     }).setOrigin(0.5);
     fitTextToBox(sub, width - 60, 26, 9);
@@ -7795,6 +7800,7 @@ function create(data) {
   playerInvulnerable = false;
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
+  if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
   spawnDelay = 1300;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
   activeBoss = null;
@@ -8096,6 +8102,7 @@ function updateMenuBackground(dt) {
 function updateGameplay(scene, time, dt) {
   // 1. Mundo rolando: chão, estrada e obstáculos andam JUNTOS (nada desliza)
   worldSpeed = enemySpeed * 0.6;
+  if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
   ground.tilePositionX += worldSpeed * dt;
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento

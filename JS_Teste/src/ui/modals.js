@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
@@ -49,7 +49,7 @@ function rollLevelUpCards() {
     const lvlDesc = sCfg.levels[nextLvl - 1] || `+Poder arcano NV. ${nextLvl}`;
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
-      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO EXCLUSIVO',
+      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO ARCANO',
       title: sCfg.name,
       badge: currLvl === 0 ? 'NOVO! NV. 1' : `NV. ${currLvl} ➔ NV. ${nextLvl}`,
       badgeColor: '#b388ff',
@@ -296,11 +296,12 @@ function openLevelUpDraft(scene) {
     const catTxt = scene.add.text(cx, top + 24, card.category, textStyle('#c5a059', 10)).setOrigin(0.5);
     const iconImg = scene.add.image(cx, top + 80, card.icon).setScale(1.65);
     const nameTxt = scene.add.text(cx, top + 136, card.title, {
-      ...textStyle('#ffca28', 15),
+      ...textStyle('#ffca28', 14),
       fontFamily: 'Georgia, serif',
-      align: 'center'
+      align: 'center',
+      wordWrap: { width: cardW - 24, useAdvancedWrap: true }
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 22, 24, 11);
+    fitTextToBox(nameTxt, cardW - 24, 26, 9);
 
     const badgeBg = scene.add.rectangle(cx, top + 166, cardW - 36, 24, 0x100c09).setStrokeStyle(1, card.borderColor);
     const badgeTxt = scene.add.text(cx, top + 166, card.badge, textStyle(card.badgeColor, 11)).setOrigin(0.5);
@@ -309,6 +310,7 @@ function openLevelUpDraft(scene) {
     const descTxt = scene.add.text(cx, top + 246, card.desc, {
       ...textStyle('#e8dcbe', 11, 'normal'),
       align: 'center',
+
       lineSpacing: 4,
       wordWrap: { width: cardW - 28, useAdvancedWrap: true }
     }).setOrigin(0.5);
@@ -399,6 +401,7 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     const sub = scene.add.text(cx, top + 54, subtitleText, {
       ...textStyle('#c5a059', 11),
       align: 'center',
+
       wordWrap: { width: width - 60, useAdvancedWrap: true }
     }).setOrigin(0.5);
     fitTextToBox(sub, width - 60, 26, 9);

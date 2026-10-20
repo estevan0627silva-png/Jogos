@@ -84,6 +84,7 @@ function startGameplay(scene) {
   clearFirePools();
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
+  if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
   spawnDelay = 1300;
   runBonusDuration = 0;
   lastRunSummary = null;

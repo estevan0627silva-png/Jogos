@@ -83,7 +83,7 @@ const WEAPON_CATALOG = {
 const SCROLL_CATALOG = {
   multishot: {
     id: 'multishot',
-    name: 'PERGAMINHO DE DISPARO MÚLTIPLO',
+    name: 'DISPARO MÚLTIPLO',
     shortName: 'MULTI-SHOT',
     icon: 'scroll_multishot',
     maxLevel: 5,
@@ -97,7 +97,7 @@ const SCROLL_CATALOG = {
   },
   growth: {
     id: 'growth',
-    name: 'PERGAMINHO DE CRESCIMENTO',
+    name: 'CRESCIMENTO',
     shortName: 'CRESCIMENTO',
     icon: 'scroll_growth',
     maxLevel: 5,
@@ -111,7 +111,7 @@ const SCROLL_CATALOG = {
   },
   attackspeed: {
     id: 'attackspeed',
-    name: 'PERGAMINHO DE VELOCIDADE DE ATAQUE',
+    name: 'VEL. DE ATAQUE',
     shortName: 'VEL. ATAQUE',
     icon: 'scroll_speed',
     maxLevel: 5,

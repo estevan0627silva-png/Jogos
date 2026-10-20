@@ -114,13 +114,13 @@ function createHUD(scene) {
   hudScrollText = scene.add.text(495, 43, '', textStyle('#b388ff', 9)).setOrigin(0.5, 0.5).setVisible(false);
   hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, hudScrollBadge, hudScrollText]);
 
-  // 4. PAINEL DE RECORDE DO REINO — Direita (x: 520..682)
+  // 4. PAINEL DE RECORDE DO REINO (x: 520..628)
   const bestBg = scene.add.graphics();
-  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(520, 10, 162, 48, 6);
-  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(520, 10, 162, 48, 6);
-  const crown = scene.add.image(540, 34, 'hud_crown');
-  const bestLabel = scene.add.text(562, 16, 'RECORDE', textStyle('#a89260', 10));
-  hudBestText = scene.add.text(562, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
+  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(520, 10, 108, 48, 6);
+  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(520, 10, 108, 48, 6);
+  const crown = scene.add.image(536, 34, 'hud_crown');
+  const bestLabel = scene.add.text(552, 16, 'RECORDE', textStyle('#a89260', 10));
+  hudBestText = scene.add.text(552, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
 
   // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 688..736)

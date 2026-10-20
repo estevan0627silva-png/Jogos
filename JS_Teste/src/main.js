@@ -95,6 +95,7 @@ function create(data) {
   playerInvulnerable = false;
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
+  if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
   spawnDelay = 1300;
   buff = { type: null, timeLeft: 0, nextAttack: 0 };
   activeBoss = null;
@@ -396,6 +397,7 @@ function updateMenuBackground(dt) {
 function updateGameplay(scene, time, dt) {
   // 1. Mundo rolando: chão, estrada e obstáculos andam JUNTOS (nada desliza)
   worldSpeed = enemySpeed * 0.6;
+  if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
   ground.tilePositionX += worldSpeed * dt;
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
