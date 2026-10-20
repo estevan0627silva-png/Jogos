@@ -25,11 +25,11 @@ const WEAPON_CATALOG = {
     maxLevel: 5,
     forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área crescente.',
     levels: [
-      'Nv.1 (Base): Corte inicial equilibrado (área 1.0x, 1 dano, 480ms, knockback ativo).',
-      'Nv.2: Fio Expandido — Área 1.35x (+35% de raio de corte).',
-      'Nv.3: Lâmina Ampla — Área 1.70x (+70% de cobertura de corte).',
-      'Nv.4: Fúria Circular — Área 2.10x (+110% de alcance amplo).',
-      'Nv.5 (MÁX): Colosso Vorpal — Área 2.60x (+160% de varredura colossal)!'
+      'Nv.1 (Base): Corte inicial equilibrado (área 1.00x, 1 dano, 480ms, knockback ativo).',
+      'Nv.2: Fio Expandido — Área 1.24x (+24% de raio e alcance do corte).',
+      'Nv.3: Lâmina Ampla — Área 1.48x (+48% de cobertura de corte frontal).',
+      'Nv.4: Fúria Vorpal — Área 1.72x (+72% de área cortante).',
+      'Nv.5 (MÁX): Colosso Vorpal — Área 1.96x (+96% de varredura colossal)!'
     ]
   },
   shield: {

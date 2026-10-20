@@ -57,6 +57,7 @@ function preload() {
   makeItem(this, 'scroll_growth', 0x81c784, drawScrollGrowthIcon);
   makeItem(this, 'scroll_speed', 0xffb74d, drawScrollSpeedIcon);
   makeWorldTextures(this);
+  makeSlashTexture(this);
 
   // Garante filtro NEAREST puro em todas as texturas geradas (sem aspecto borrado ou esfarelado)
   Object.values(this.textures.list).forEach(tex => {
@@ -190,6 +191,7 @@ function create(data) {
   player.setVisible(false); // Oculto enquanto estiver nos menus
   shieldSprite = scene.add.image(0, 0, 'shield_worn').setVisible(false);
   shieldAura = scene.add.image(0, 0, 'shield_aura').setVisible(false).setAlpha(0.85);
+  swordBlade = scene.add.image(0, 0, 'sword_blade').setOrigin(0.5, 0.82).setVisible(false).setDepth(10);
 
   // Controles Desktop & Suporte Multi-Touch Mobile
   cursors = scene.input.keyboard.createCursorKeys();
@@ -816,19 +818,32 @@ function sortAndShade() {
   playerArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
   enemyArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
 
-  // Escudo, aura rúnica e golpe de espada acompanham o cavaleiro (sempre voltados para a frente)
+  // Escudo, aura rúnica e lâmina da espada acompanham o cavaleiro (sempre voltados para a frente)
   if (player && player.visible) {
     shieldSprite.setPosition(Math.round(player.x + 12), Math.round(player.y + 4)).setDepth(player.depth + 1);
     if (shieldAura && shieldAura.visible) {
       shieldAura.setPosition(Math.round(player.x), Math.round(player.y)).setDepth(player.depth - 1);
       shieldAura.rotation += 0.02;
     }
+    if (swordBlade) {
+      if (buff && buff.type === 'sword') {
+        swordBlade.setVisible(true);
+        swordBlade.setPosition(Math.round(player.x + 10), Math.round(player.y + 2)).setDepth(player.depth + 2);
+        const swordLvl = (typeof getWeaponLevel === 'function') ? getWeaponLevel('sword') : 1;
+        const bladeScale = Phaser.Math.Clamp(1.0 + (swordLvl - 1) * 0.05, 1.0, 1.25);
+        swordBlade.setScale(bladeScale);
+        if (swordBlade.scene && !swordBlade.scene.tweens.isTweening(swordBlade)) {
+          swordBlade.setAngle(25);
+        }
+      } else {
+        swordBlade.setVisible(false);
+      }
+    }
+  } else if (swordBlade) {
+    swordBlade.setVisible(false);
   }
   slashes.getChildren().forEach(s => {
     s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y + (s.offsetY || 0))).setDepth(player.depth + 3);
-    if (s.blade && s.blade.active) {
-      s.blade.setPosition(Math.round(player.x + (s.bladeOffsetX || 8)), Math.round(player.y + (s.bladeOffsetY || 4))).setDepth(player.depth + 2);
-    }
   });
 }
 

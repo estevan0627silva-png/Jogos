@@ -371,6 +371,7 @@ function gameOver(scene) {
 
   if (shieldSprite) shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);
+  if (swordBlade) swordBlade.setVisible(false);
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (activeBoss) clearBossTelegraphs(activeBoss);

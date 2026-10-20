@@ -4,6 +4,40 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
 
 ---
 
+## [v1.9.0] — 2026-10-20
+### ⚔️ Título da Versão: **Reformulação do Combate da Espada Vorpal: Lâmina Única Persistente, Crescente Curvada Procedural em 5 Camadas, Disparo Múltiplo Escalonado e Progressão de +24% por Nível**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Eliminação completa do artefato de duplicação visual de lâminas ao coletar o pergaminho Multi-Shot, ancoragem de exatamente uma lâmina física no cavaleiro com escala contida, substituição do arco em bloco primitivo por uma curva crescente aerodinâmica em 5 camadas com fio de navalha, distribuição espacial escalonada de múltiplos cortes no cone frontal de 180° e progressão de área e hitbox de +24% por nível.
+
+### 🚀 O que mudou:
+- **🗡️ Ancoragem de Lâmina Única Persistente (`swordBlade`):**
+  - **Eliminação de Duplicatas Visuais:** O cavaleiro agora empunha rigorosamente **uma única lâmina persistente** (`swordBlade`). Nunca mais são instanciadas réplicas da espada ao equipar o Pergaminho de Disparo Múltiplo (`scroll_multishot`) ou subir de nível.
+  - **Curva de Escala Contida:** A escala física da lâmina empunhada segue a fórmula `Clamp(1.0 + (Lvl - 1) * 0.05, 1.0, 1.25)`, mantendo proporções nobres e elegantes sem poluir a visão do jogador.
+  - **Postura Natural & Animação de Golpe:** A espada repousa com ângulo de descanso natural de **25°** e, ao atacar, executa um golpe fluído de -65° a 125° em 150ms (`Cubic.easeOut`), retornando ao repouso. O sprite de corte (`slash`) nunca mais carrega sprites filhos obsoletos.
+- **🌊 Curva Procedural de Corte e Estética de Vento Cortante (`slash_arc`):**
+  - **Textura Crescente em 5 Camadas (64x88):** Substituição do arco circular rústico por uma lâmina de vento cônica em curvas Bezier com pontas afiadas:
+    1. Halo etéreo externo profundo (`rgba(0, 119, 182, 0.28)`)
+    2. Halo de aço ciano luminoso (`rgba(77, 208, 225, 0.65)`)
+    3. Lâmina cristalina de energia (`rgba(128, 222, 234, 0.90)`)
+    4. Núcleo incandescente de energia branca pura (`rgba(255, 255, 255, 1.0)`)
+    5. Gume de navalha de alto contraste na borda externa de impacto (`#ffffff`, 1.8px)
+  - **Filtro Pixel Art Puro:** Renderização procedural com `NEAREST` filter e ciclo de vida dinâmico de 160ms com estiramento frontal (`scaleX * 1.15`), desvanecimento `Quad.easeOut` e descarte limpo de memória.
+- **📐 Escalonamento Espacial Estrito para Cortes Múltiplos (180° Frontal):**
+  - Múltiplos cortes agora se espalham em diferentes alturas Y e ângulos angulares calculados:
+    - 1 Corte: `0°`, `offX: 32`, `offY: 0`
+    - 2 Cortes: `[-16°, +16°]`, `offX: 32`, `offY: [-16, +16]`
+    - 3 Cortes: `[0°, -26°, +26°]`, `offX: [34, 30, 30]`, `offY: [0, -26, +26]`
+    - 4 Cortes: `[-34°, -12°, +12°, +34°]`, com offsets escalonados
+    - 5+ Cortes: Distribuição simétrica suave no cone frontal.
+  - **Trava de Segurança:** Estritamente contido em `[-90°, +90°]` e `offX >= 12`, proibindo qualquer nascimento de corte nas costas do herói.
+- **📈 Progressão Agressiva de Área e Hitbox (+24% por Nível):**
+  - Fórmula matemática: $\text{Scale}(Lvl) = \text{Base} \times (1.0 + (Lvl - 1) \times 0.24)$.
+  - Sincronização rigorosa entre o sprite visual e a hitbox do Arcade Physics (`52 * scale`, `76 * scale`).
+  - Catálogo de Armas (`catalogs.js`) atualizado para refletir com exatidão os incrementos: Nv.1 (1.00x), Nv.2 (1.24x), Nv.3 (1.48x), Nv.4 (1.72x) e Nv.5 (1.96x).
+
+---
+
 ## [v1.8.0] — 2026-10-19
 ### 🛡️ Título da Versão: **Eliminação de Quadrados Pretos, Barreira Arcana Calibrada (1s/2s), Golpe Melee Penetrante & Mini-Golems Invulneráveis Inconscientes**
 

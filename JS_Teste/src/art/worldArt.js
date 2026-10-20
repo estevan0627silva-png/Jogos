@@ -237,15 +237,7 @@ function makeWorldTextures(scene) {
   });
   g.generateTexture('forest_bottom', 128, 80);
 
-  // 5. Rastro do golpe de espada (meia-lua cortante com gradiente luminoso semicircular)
-  g.clear();
-  g.lineStyle(14, C.manaDeep, 0.25).beginPath().arc(6, 36, 30, -1.22, 1.22).strokePath();
-  g.lineStyle(8, C.cyan, 0.65).beginPath().arc(6, 36, 31, -1.10, 1.10).strokePath();
-  g.lineStyle(4, C.manaLight, 0.92).beginPath().arc(6, 36, 32, -0.98, 0.98).strokePath();
-  g.lineStyle(2, C.white, 1.0).beginPath().arc(6, 36, 32, -0.85, 0.85).strokePath();
-  g.generateTexture('slash_arc', 52, 72);
-
-  // 6. Chão craquelado / rachado pelo impacto das rochas do Boss
+  // 5. Chão craquelado / rachado pelo impacto das rochas do Boss
   g.clear();
   g.fillStyle(0x3a2818, 0.78).fillEllipse(28, 20, 52, 26);
   g.fillStyle(0x22160d, 0.92).fillEllipse(28, 20, 40, 18);

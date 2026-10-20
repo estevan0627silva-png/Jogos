@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // ARTE PROCEDURAL: ÍCONES DE ARMAS, PROJÉTEIS, COLETÁVEIS E HUD
 // =============================================================================
 function drawShieldIcon(r) {
@@ -444,4 +444,65 @@ function drawScrollSpeedIcon(r) {
   r(C.yellow, 4, 4, 3, 1);
   r(C.white, 3, 5, 3, 2);
   r(C.goldLight, 4, 7, 2, 2);
+}
+
+// Procedural Slash Arc Texture (Crescente Tapered Aerodinâmico em 5 Camadas)
+function makeSlashTexture(scene) {
+  if (scene.textures.exists('slash_arc')) {
+    scene.textures.remove('slash_arc');
+  }
+
+  const canvasTex = scene.textures.createCanvas('slash_arc', 64, 88);
+  const ctx = canvasTex.context;
+
+  ctx.clearRect(0, 0, 64, 88);
+
+  const drawCrescent = (startX, startY, tipY, outerCpX, innerCpX, fillStyle, strokeStyle = null, lineWidth = 1) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    const midY = (startY + tipY) / 2;
+    ctx.quadraticCurveTo(outerCpX, midY, startX, tipY);
+    ctx.quadraticCurveTo(innerCpX, midY, startX, startY);
+    ctx.closePath();
+
+    if (fillStyle) {
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+    }
+    if (strokeStyle) {
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  // Camada 1: Halo etéreo externo profundo (azul arcano translúcido)
+  drawCrescent(10, 2, 86, 75, 20, 'rgba(0, 119, 182, 0.28)');
+
+  // Camada 2: Halo de aço ciano vibrante (brilho mágico cortante)
+  drawCrescent(12, 3, 85, 73, 22, 'rgba(77, 208, 225, 0.65)');
+
+  // Camada 3: Lâmina cristalina de energia (ciano claro)
+  drawCrescent(14, 4, 84, 70, 25, 'rgba(128, 222, 234, 0.90)');
+
+  // Camada 4: Núcleo puro branco incandescente (potência do golpe)
+  drawCrescent(18, 10, 78, 65, 30, 'rgba(255, 255, 255, 1.0)');
+
+  // Camada 5: Gume cortante de navalha na borda externa (fio afiado)
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(14, 4);
+  ctx.quadraticCurveTo(70, 44, 14, 84);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.restore();
+
+  canvasTex.refresh();
+  if (canvasTex.setFilter) {
+    canvasTex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+  }
 }

@@ -56,8 +56,8 @@ function getWeaponStats(type, lvl = 1) {
 
   // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
   if (type === 'sword') {
-    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível
-    stats.area = 1.0 + (lvl - 1) * 0.40;
+    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível (+24% por nível)
+    stats.area = 1.0 + (lvl - 1) * 0.24;
   } else if (type === 'bow') {
     // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
     stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
@@ -151,80 +151,113 @@ const WeaponStrategies = {
     getAttackRate(lvl) {
       return getWeaponStats('sword', lvl).attackRate;
     },
+    onEquip({ swordBlade }) {
+      if (swordBlade) {
+        swordBlade.setVisible(true);
+        swordBlade.setAngle(25);
+      }
+    },
+    onUnequip({ swordBlade }) {
+      if (swordBlade) {
+        swordBlade.setVisible(false);
+      }
+    },
     attack({ scene, player, arrows, slashes, fx, nextProjId }) {
       slashes.getChildren().slice().forEach(old => old.destroy());
       sound.playSword();
       const lvl = getWeaponLevel('sword');
       const stats = getWeaponStats('sword', lvl);
 
+      // 1. Swing da lâmina única e persistente empunhada pelo cavaleiro (elimina duplicatas visuais)
+      if (swordBlade && swordBlade.active) {
+        scene.tweens.killTweensOf(swordBlade);
+        swordBlade.setAngle(-65);
+        scene.tweens.add({
+          targets: swordBlade,
+          angle: 125,
+          duration: 150,
+          ease: 'Cubic.easeOut',
+          onComplete: () => {
+            if (swordBlade && swordBlade.active && buff && buff.type === 'sword') {
+              swordBlade.setAngle(25);
+            }
+          }
+        });
+      }
+
       // SOMENTE Tamanho/Área escala com nível da espada (+ bônus de Crescimento)
       const scale = 0.80 * stats.area;
       const dmg = stats.damage;
       const knockback = stats.knockback;
-      const offsetDist = Math.round(26 + (stats.area - 1.0) * 16);
+      const swingId = nextProjId();
 
-      // Multiplicação de Slashes pelo Pergaminho Multi-Shot (180° Frontal)
+      // Multiplicação de Slashes pelo Pergaminho Multi-Shot (180° Frontal Escalável)
       const numSlashes = Math.max(1, stats.projectiles || 1);
-      let degAngles = [0];
+      let slashConfigs = [];
 
-      if (numSlashes === 2) {
-        degAngles = [-35, 35];
+      if (numSlashes === 1) {
+        slashConfigs = [{ deg: 0, offX: 32, offY: 0 }];
+      } else if (numSlashes === 2) {
+        slashConfigs = [
+          { deg: -16, offX: 32, offY: -16 },
+          { deg: 16, offX: 32, offY: 16 }
+        ];
       } else if (numSlashes === 3) {
-        degAngles = [-50, 0, 50];
+        slashConfigs = [
+          { deg: 0, offX: 34, offY: 0 },
+          { deg: -26, offX: 30, offY: -26 },
+          { deg: 26, offX: 30, offY: 26 }
+        ];
       } else if (numSlashes === 4) {
-        degAngles = [-65, -22, 22, 65];
-      } else if (numSlashes >= 5) {
-        degAngles = [];
-        const step = 160 / (numSlashes - 1);
+        slashConfigs = [
+          { deg: -34, offX: 28, offY: -32 },
+          { deg: -12, offX: 34, offY: -12 },
+          { deg: 12, offX: 34, offY: 12 },
+          { deg: 34, offX: 28, offY: 32 }
+        ];
+      } else {
+        const maxAngle = 72;
+        const step = (maxAngle * 2) / (numSlashes - 1);
         for (let i = 0; i < numSlashes; i++) {
-          degAngles.push(-80 + i * step);
+          const deg = -maxAngle + i * step;
+          const progress = (i / (numSlashes - 1)) * 2 - 1;
+          const offY = Math.round(progress * 36);
+          const offX = Math.round(34 - Math.abs(progress) * 8);
+          slashConfigs.push({ deg, offX, offY });
         }
       }
 
       // Trava rígida de 180° frontal: estritamente [-90°, +90°], proibido qualquer golpe nas costas
-      degAngles = degAngles.map(d => Phaser.Math.Clamp(d, -90, 90));
+      slashConfigs.forEach(cfg => {
+        cfg.deg = Phaser.Math.Clamp(cfg.deg, -90, 90);
+        cfg.offX = Math.max(12, cfg.offX);
+      });
 
-      degAngles.forEach(deg => {
-        const ang = Phaser.Math.DegToRad(deg);
-        const posX = player.x + Math.cos(ang) * offsetDist;
-        const posY = player.y + Math.sin(ang) * offsetDist;
+      slashConfigs.forEach(cfg => {
+        const ang = Phaser.Math.DegToRad(cfg.deg);
+        const posX = player.x + cfg.offX;
+        const posY = player.y + cfg.offY;
 
         const slash = slashes.create(posX, posY, 'slash_arc');
         slash.setScale(scale);
         slash.rotation = ang;
-        slash.offsetX = Math.cos(ang) * offsetDist;
-        slash.offsetY = Math.sin(ang) * offsetDist;
-        slash.body.setSize(Math.round(42 * scale), Math.round(64 * scale));
-        slash.slashId = nextProjId();
+        slash.offsetX = cfg.offX;
+        slash.offsetY = cfg.offY;
+        slash.body.setSize(Math.round(52 * scale), Math.round(76 * scale));
+        slash.body.setOffset(Math.round(6 * scale), Math.round(6 * scale));
+        slash.slashId = swingId;
         slash.dmg = dmg;
         slash.knockback = knockback;
 
-        const bladeOffX = Math.round(Math.cos(ang) * 10);
-        const bladeOffY = Math.round(Math.sin(ang) * 10);
-        slash.bladeOffsetX = bladeOffX;
-        slash.bladeOffsetY = bladeOffY;
-        slash.blade = scene.add.image(player.x + bladeOffX, player.y + bladeOffY, 'sword_blade')
-          .setOrigin(0.5, 0.78)
-          .setScale(0.85 * stats.area)
-          .setRotation(ang);
-
-        slash.on('destroy', () => {
-          if (slash.blade && slash.blade.active) slash.blade.destroy();
-        });
-
-        scene.tweens.add({
-          targets: slash.blade,
-          angle: { from: deg - 65, to: deg + 125 },
-          duration: 150,
-          ease: 'Cubic.easeOut'
-        });
-
         scene.tweens.add({
           targets: slash,
-          alpha: { from: 1, to: 0 },
-          duration: 190,
-          ease: 'Linear',
-          onComplete: () => slash.destroy()
+          scaleX: scale * 1.15,
+          alpha: { from: 1.0, to: 0.0 },
+          duration: 160,
+          ease: 'Quad.easeOut',
+          onComplete: () => {
+            if (slash && slash.active) slash.destroy();
+          }
         });
 
         fx.sparks.explode(4, posX, posY);
@@ -377,10 +410,14 @@ const WeaponSystem = {
     };
 
     if (s && s.onEquip) {
-      s.onEquip({ shieldSprite, shieldAura, player, fx: { holy: holyFx } });
+      s.onEquip({ shieldSprite, shieldAura, swordBlade, player, fx: { holy: holyFx } });
     } else {
       shieldSprite.setVisible(false);
       if (shieldAura) shieldAura.setVisible(false);
+      if (swordBlade) swordBlade.setVisible(false);
+    }
+    if (type !== 'sword' && swordBlade) {
+      swordBlade.setVisible(false);
     }
 
     if (announce && player) {
@@ -393,10 +430,11 @@ const WeaponSystem = {
     const prevType = buff.type;
     const s = this.get(prevType);
     if (s && s.onUnequip) {
-      s.onUnequip({ shieldSprite, shieldAura });
+      s.onUnequip({ shieldSprite, shieldAura, swordBlade });
     } else {
       shieldSprite.setVisible(false);
       if (shieldAura) shieldAura.setVisible(false);
+      if (swordBlade) swordBlade.setVisible(false);
     }
     buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
     if (playerBuffBar) playerBuffBar.clear();

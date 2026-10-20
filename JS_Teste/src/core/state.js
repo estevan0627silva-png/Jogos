@@ -1,6 +1,6 @@
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
-let player, shieldSprite, shieldAura, cursors, keys;
+let player, shieldSprite, shieldAura, swordBlade, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
 let enemies, obstacles, items, playerArrows, enemyArrows, slashes, xpOrbs;
 let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];

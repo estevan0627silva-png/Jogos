@@ -236,11 +236,11 @@ const WEAPON_CATALOG = {
     maxLevel: 5,
     forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área crescente.',
     levels: [
-      'Nv.1 (Base): Corte inicial equilibrado (área 1.0x, 1 dano, 480ms, knockback ativo).',
-      'Nv.2: Fio Expandido — Área 1.35x (+35% de raio de corte).',
-      'Nv.3: Lâmina Ampla — Área 1.70x (+70% de cobertura de corte).',
-      'Nv.4: Fúria Circular — Área 2.10x (+110% de alcance amplo).',
-      'Nv.5 (MÁX): Colosso Vorpal — Área 2.60x (+160% de varredura colossal)!'
+      'Nv.1 (Base): Corte inicial equilibrado (área 1.00x, 1 dano, 480ms, knockback ativo).',
+      'Nv.2: Fio Expandido — Área 1.24x (+24% de raio e alcance do corte).',
+      'Nv.3: Lâmina Ampla — Área 1.48x (+48% de cobertura de corte frontal).',
+      'Nv.4: Fúria Vorpal — Área 1.72x (+72% de área cortante).',
+      'Nv.5 (MÁX): Colosso Vorpal — Área 1.96x (+96% de varredura colossal)!'
     ]
   },
   shield: {
@@ -559,7 +559,7 @@ const events = new GameEventBus();
 // --- BUNDLE FILE: JS_Teste/src/core/state.js ---
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
-let player, shieldSprite, shieldAura, cursors, keys;
+let player, shieldSprite, shieldAura, swordBlade, cursors, keys;
 let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
 let enemies, obstacles, items, playerArrows, enemyArrows, slashes, xpOrbs;
 let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];
@@ -3306,6 +3306,67 @@ function drawScrollSpeedIcon(r) {
   r(C.goldLight, 4, 7, 2, 2);
 }
 
+// Procedural Slash Arc Texture (Crescente Tapered Aerodinâmico em 5 Camadas)
+function makeSlashTexture(scene) {
+  if (scene.textures.exists('slash_arc')) {
+    scene.textures.remove('slash_arc');
+  }
+
+  const canvasTex = scene.textures.createCanvas('slash_arc', 64, 88);
+  const ctx = canvasTex.context;
+
+  ctx.clearRect(0, 0, 64, 88);
+
+  const drawCrescent = (startX, startY, tipY, outerCpX, innerCpX, fillStyle, strokeStyle = null, lineWidth = 1) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    const midY = (startY + tipY) / 2;
+    ctx.quadraticCurveTo(outerCpX, midY, startX, tipY);
+    ctx.quadraticCurveTo(innerCpX, midY, startX, startY);
+    ctx.closePath();
+
+    if (fillStyle) {
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+    }
+    if (strokeStyle) {
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  // Camada 1: Halo etéreo externo profundo (azul arcano translúcido)
+  drawCrescent(10, 2, 86, 75, 20, 'rgba(0, 119, 182, 0.28)');
+
+  // Camada 2: Halo de aço ciano vibrante (brilho mágico cortante)
+  drawCrescent(12, 3, 85, 73, 22, 'rgba(77, 208, 225, 0.65)');
+
+  // Camada 3: Lâmina cristalina de energia (ciano claro)
+  drawCrescent(14, 4, 84, 70, 25, 'rgba(128, 222, 234, 0.90)');
+
+  // Camada 4: Núcleo puro branco incandescente (potência do golpe)
+  drawCrescent(18, 10, 78, 65, 30, 'rgba(255, 255, 255, 1.0)');
+
+  // Camada 5: Gume cortante de navalha na borda externa (fio afiado)
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(14, 4);
+  ctx.quadraticCurveTo(70, 44, 14, 84);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.restore();
+
+  canvasTex.refresh();
+  if (canvasTex.setFilter) {
+    canvasTex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+  }
+}
+
 
 // --- BUNDLE FILE: JS_Teste/src/art/worldArt.js ---
 // =============================================================================
@@ -3547,15 +3608,7 @@ function makeWorldTextures(scene) {
   });
   g.generateTexture('forest_bottom', 128, 80);
 
-  // 5. Rastro do golpe de espada (meia-lua cortante com gradiente luminoso semicircular)
-  g.clear();
-  g.lineStyle(14, C.manaDeep, 0.25).beginPath().arc(6, 36, 30, -1.22, 1.22).strokePath();
-  g.lineStyle(8, C.cyan, 0.65).beginPath().arc(6, 36, 31, -1.10, 1.10).strokePath();
-  g.lineStyle(4, C.manaLight, 0.92).beginPath().arc(6, 36, 32, -0.98, 0.98).strokePath();
-  g.lineStyle(2, C.white, 1.0).beginPath().arc(6, 36, 32, -0.85, 0.85).strokePath();
-  g.generateTexture('slash_arc', 52, 72);
-
-  // 6. Chão craquelado / rachado pelo impacto das rochas do Boss
+  // 5. Chão craquelado / rachado pelo impacto das rochas do Boss
   g.clear();
   g.fillStyle(0x3a2818, 0.78).fillEllipse(28, 20, 52, 26);
   g.fillStyle(0x22160d, 0.92).fillEllipse(28, 20, 40, 18);
@@ -4002,8 +4055,8 @@ function getWeaponStats(type, lvl = 1) {
 
   // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
   if (type === 'sword') {
-    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível
-    stats.area = 1.0 + (lvl - 1) * 0.40;
+    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível (+24% por nível)
+    stats.area = 1.0 + (lvl - 1) * 0.24;
   } else if (type === 'bow') {
     // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
     stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
@@ -4097,80 +4150,113 @@ const WeaponStrategies = {
     getAttackRate(lvl) {
       return getWeaponStats('sword', lvl).attackRate;
     },
+    onEquip({ swordBlade }) {
+      if (swordBlade) {
+        swordBlade.setVisible(true);
+        swordBlade.setAngle(25);
+      }
+    },
+    onUnequip({ swordBlade }) {
+      if (swordBlade) {
+        swordBlade.setVisible(false);
+      }
+    },
     attack({ scene, player, arrows, slashes, fx, nextProjId }) {
       slashes.getChildren().slice().forEach(old => old.destroy());
       sound.playSword();
       const lvl = getWeaponLevel('sword');
       const stats = getWeaponStats('sword', lvl);
 
+      // 1. Swing da lâmina única e persistente empunhada pelo cavaleiro (elimina duplicatas visuais)
+      if (swordBlade && swordBlade.active) {
+        scene.tweens.killTweensOf(swordBlade);
+        swordBlade.setAngle(-65);
+        scene.tweens.add({
+          targets: swordBlade,
+          angle: 125,
+          duration: 150,
+          ease: 'Cubic.easeOut',
+          onComplete: () => {
+            if (swordBlade && swordBlade.active && buff && buff.type === 'sword') {
+              swordBlade.setAngle(25);
+            }
+          }
+        });
+      }
+
       // SOMENTE Tamanho/Área escala com nível da espada (+ bônus de Crescimento)
       const scale = 0.80 * stats.area;
       const dmg = stats.damage;
       const knockback = stats.knockback;
-      const offsetDist = Math.round(26 + (stats.area - 1.0) * 16);
+      const swingId = nextProjId();
 
-      // Multiplicação de Slashes pelo Pergaminho Multi-Shot (180° Frontal)
+      // Multiplicação de Slashes pelo Pergaminho Multi-Shot (180° Frontal Escalável)
       const numSlashes = Math.max(1, stats.projectiles || 1);
-      let degAngles = [0];
+      let slashConfigs = [];
 
-      if (numSlashes === 2) {
-        degAngles = [-35, 35];
+      if (numSlashes === 1) {
+        slashConfigs = [{ deg: 0, offX: 32, offY: 0 }];
+      } else if (numSlashes === 2) {
+        slashConfigs = [
+          { deg: -16, offX: 32, offY: -16 },
+          { deg: 16, offX: 32, offY: 16 }
+        ];
       } else if (numSlashes === 3) {
-        degAngles = [-50, 0, 50];
+        slashConfigs = [
+          { deg: 0, offX: 34, offY: 0 },
+          { deg: -26, offX: 30, offY: -26 },
+          { deg: 26, offX: 30, offY: 26 }
+        ];
       } else if (numSlashes === 4) {
-        degAngles = [-65, -22, 22, 65];
-      } else if (numSlashes >= 5) {
-        degAngles = [];
-        const step = 160 / (numSlashes - 1);
+        slashConfigs = [
+          { deg: -34, offX: 28, offY: -32 },
+          { deg: -12, offX: 34, offY: -12 },
+          { deg: 12, offX: 34, offY: 12 },
+          { deg: 34, offX: 28, offY: 32 }
+        ];
+      } else {
+        const maxAngle = 72;
+        const step = (maxAngle * 2) / (numSlashes - 1);
         for (let i = 0; i < numSlashes; i++) {
-          degAngles.push(-80 + i * step);
+          const deg = -maxAngle + i * step;
+          const progress = (i / (numSlashes - 1)) * 2 - 1;
+          const offY = Math.round(progress * 36);
+          const offX = Math.round(34 - Math.abs(progress) * 8);
+          slashConfigs.push({ deg, offX, offY });
         }
       }
 
       // Trava rígida de 180° frontal: estritamente [-90°, +90°], proibido qualquer golpe nas costas
-      degAngles = degAngles.map(d => Phaser.Math.Clamp(d, -90, 90));
+      slashConfigs.forEach(cfg => {
+        cfg.deg = Phaser.Math.Clamp(cfg.deg, -90, 90);
+        cfg.offX = Math.max(12, cfg.offX);
+      });
 
-      degAngles.forEach(deg => {
-        const ang = Phaser.Math.DegToRad(deg);
-        const posX = player.x + Math.cos(ang) * offsetDist;
-        const posY = player.y + Math.sin(ang) * offsetDist;
+      slashConfigs.forEach(cfg => {
+        const ang = Phaser.Math.DegToRad(cfg.deg);
+        const posX = player.x + cfg.offX;
+        const posY = player.y + cfg.offY;
 
         const slash = slashes.create(posX, posY, 'slash_arc');
         slash.setScale(scale);
         slash.rotation = ang;
-        slash.offsetX = Math.cos(ang) * offsetDist;
-        slash.offsetY = Math.sin(ang) * offsetDist;
-        slash.body.setSize(Math.round(42 * scale), Math.round(64 * scale));
-        slash.slashId = nextProjId();
+        slash.offsetX = cfg.offX;
+        slash.offsetY = cfg.offY;
+        slash.body.setSize(Math.round(52 * scale), Math.round(76 * scale));
+        slash.body.setOffset(Math.round(6 * scale), Math.round(6 * scale));
+        slash.slashId = swingId;
         slash.dmg = dmg;
         slash.knockback = knockback;
 
-        const bladeOffX = Math.round(Math.cos(ang) * 10);
-        const bladeOffY = Math.round(Math.sin(ang) * 10);
-        slash.bladeOffsetX = bladeOffX;
-        slash.bladeOffsetY = bladeOffY;
-        slash.blade = scene.add.image(player.x + bladeOffX, player.y + bladeOffY, 'sword_blade')
-          .setOrigin(0.5, 0.78)
-          .setScale(0.85 * stats.area)
-          .setRotation(ang);
-
-        slash.on('destroy', () => {
-          if (slash.blade && slash.blade.active) slash.blade.destroy();
-        });
-
-        scene.tweens.add({
-          targets: slash.blade,
-          angle: { from: deg - 65, to: deg + 125 },
-          duration: 150,
-          ease: 'Cubic.easeOut'
-        });
-
         scene.tweens.add({
           targets: slash,
-          alpha: { from: 1, to: 0 },
-          duration: 190,
-          ease: 'Linear',
-          onComplete: () => slash.destroy()
+          scaleX: scale * 1.15,
+          alpha: { from: 1.0, to: 0.0 },
+          duration: 160,
+          ease: 'Quad.easeOut',
+          onComplete: () => {
+            if (slash && slash.active) slash.destroy();
+          }
         });
 
         fx.sparks.explode(4, posX, posY);
@@ -4323,10 +4409,14 @@ const WeaponSystem = {
     };
 
     if (s && s.onEquip) {
-      s.onEquip({ shieldSprite, shieldAura, player, fx: { holy: holyFx } });
+      s.onEquip({ shieldSprite, shieldAura, swordBlade, player, fx: { holy: holyFx } });
     } else {
       shieldSprite.setVisible(false);
       if (shieldAura) shieldAura.setVisible(false);
+      if (swordBlade) swordBlade.setVisible(false);
+    }
+    if (type !== 'sword' && swordBlade) {
+      swordBlade.setVisible(false);
     }
 
     if (announce && player) {
@@ -4339,10 +4429,11 @@ const WeaponSystem = {
     const prevType = buff.type;
     const s = this.get(prevType);
     if (s && s.onUnequip) {
-      s.onUnequip({ shieldSprite, shieldAura });
+      s.onUnequip({ shieldSprite, shieldAura, swordBlade });
     } else {
       shieldSprite.setVisible(false);
       if (shieldAura) shieldAura.setVisible(false);
+      if (swordBlade) swordBlade.setVisible(false);
     }
     buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
     if (playerBuffBar) playerBuffBar.clear();
@@ -4906,6 +4997,7 @@ function gameOver(scene) {
 
   if (shieldSprite) shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);
+  if (swordBlade) swordBlade.setVisible(false);
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (activeBoss) clearBossTelegraphs(activeBoss);
@@ -5146,6 +5238,7 @@ function startGameplay(scene) {
   }
   if (shieldSprite) shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);
+  if (swordBlade) swordBlade.setVisible(false);
   if (playerBuffBar) playerBuffBar.clear();
   if (enemyHpBars) enemyHpBars.clear();
   if (hudContainer) hudContainer.setVisible(true);
@@ -8481,6 +8574,7 @@ function preload() {
   makeItem(this, 'scroll_growth', 0x81c784, drawScrollGrowthIcon);
   makeItem(this, 'scroll_speed', 0xffb74d, drawScrollSpeedIcon);
   makeWorldTextures(this);
+  makeSlashTexture(this);
 
   // Garante filtro NEAREST puro em todas as texturas geradas (sem aspecto borrado ou esfarelado)
   Object.values(this.textures.list).forEach(tex => {
@@ -8614,6 +8708,7 @@ function create(data) {
   player.setVisible(false); // Oculto enquanto estiver nos menus
   shieldSprite = scene.add.image(0, 0, 'shield_worn').setVisible(false);
   shieldAura = scene.add.image(0, 0, 'shield_aura').setVisible(false).setAlpha(0.85);
+  swordBlade = scene.add.image(0, 0, 'sword_blade').setOrigin(0.5, 0.82).setVisible(false).setDepth(10);
 
   // Controles Desktop & Suporte Multi-Touch Mobile
   cursors = scene.input.keyboard.createCursorKeys();
@@ -9240,19 +9335,32 @@ function sortAndShade() {
   playerArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
   enemyArrows.getChildren().forEach(a => a.setDepth(a.y + 16));
 
-  // Escudo, aura rúnica e golpe de espada acompanham o cavaleiro (sempre voltados para a frente)
+  // Escudo, aura rúnica e lâmina da espada acompanham o cavaleiro (sempre voltados para a frente)
   if (player && player.visible) {
     shieldSprite.setPosition(Math.round(player.x + 12), Math.round(player.y + 4)).setDepth(player.depth + 1);
     if (shieldAura && shieldAura.visible) {
       shieldAura.setPosition(Math.round(player.x), Math.round(player.y)).setDepth(player.depth - 1);
       shieldAura.rotation += 0.02;
     }
+    if (swordBlade) {
+      if (buff && buff.type === 'sword') {
+        swordBlade.setVisible(true);
+        swordBlade.setPosition(Math.round(player.x + 10), Math.round(player.y + 2)).setDepth(player.depth + 2);
+        const swordLvl = (typeof getWeaponLevel === 'function') ? getWeaponLevel('sword') : 1;
+        const bladeScale = Phaser.Math.Clamp(1.0 + (swordLvl - 1) * 0.05, 1.0, 1.25);
+        swordBlade.setScale(bladeScale);
+        if (swordBlade.scene && !swordBlade.scene.tweens.isTweening(swordBlade)) {
+          swordBlade.setAngle(25);
+        }
+      } else {
+        swordBlade.setVisible(false);
+      }
+    }
+  } else if (swordBlade) {
+    swordBlade.setVisible(false);
   }
   slashes.getChildren().forEach(s => {
     s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y + (s.offsetY || 0))).setDepth(player.depth + 3);
-    if (s.blade && s.blade.active) {
-      s.blade.setPosition(Math.round(player.x + (s.bladeOffsetX || 8)), Math.round(player.y + (s.bladeOffsetY || 4))).setDepth(player.depth + 2);
-    }
   });
 }
 
