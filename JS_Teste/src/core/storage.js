@@ -1,11 +1,31 @@
-﻿// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
+// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
 const StorageManager = {
+  _mem: {},
+
+  safeGet(key) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const val = localStorage.getItem(key);
+        if (val !== null && val !== undefined) return val;
+      }
+    } catch (e) {}
+    return this._mem[key] !== undefined ? this._mem[key] : null;
+  },
+
+  safeSet(key, val) {
+    this._mem[key] = String(val);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, String(val));
+      }
+    } catch (e) {}
+  },
   getHighScores() {
     const defaults = [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
     try {
-      const data = localStorage.getItem(STORAGE_KEY);
+      const data = this.safeGet(STORAGE_KEY);
       return data ? JSON.parse(data) : defaults;
     } catch {
       return defaults;
@@ -18,7 +38,7 @@ const StorageManager = {
     scores.sort((a, b) => b.score - a.score);
     const topScores = scores.slice(0, 5);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(topScores));
+      this.safeSet(STORAGE_KEY, JSON.stringify(topScores));
     } catch {}
     return topScores;
   },
@@ -29,7 +49,7 @@ const StorageManager = {
 
   getGold() {
     try {
-      const raw = localStorage.getItem(STORAGE_GOLD_KEY);
+      const raw = this.safeGet(STORAGE_GOLD_KEY);
       return raw ? Math.max(0, parseInt(raw, 10) || 0) : 0;
     } catch {
       return 0;
@@ -39,7 +59,7 @@ const StorageManager = {
   setGold(total) {
     const val = Math.max(0, Math.floor(total));
     try {
-      localStorage.setItem(STORAGE_GOLD_KEY, String(val));
+      this.safeSet(STORAGE_GOLD_KEY, String(val));
     } catch {}
     if (hudGoldText && hudGoldText.active) {
       hudGoldText.setText(`${val}`);
@@ -81,7 +101,7 @@ const StorageManager = {
       starterWeapon: 'bow'
     };
     try {
-      const raw = localStorage.getItem(STORAGE_UPGRADES_KEY);
+      const raw = this.safeGet(STORAGE_UPGRADES_KEY);
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       const res = { ...defaults };
@@ -103,7 +123,7 @@ const StorageManager = {
 
   saveUpgrades(up) {
     try {
-      localStorage.setItem(STORAGE_UPGRADES_KEY, JSON.stringify(up));
+      this.safeSet(STORAGE_UPGRADES_KEY, JSON.stringify(up));
     } catch {}
     return up;
   },
@@ -124,7 +144,7 @@ const StorageManager = {
   getStatusUpgrades() {
     const defaults = { maxHp: 1, moveSpeed: 1, magnet: 1, wisdom: 1 };
     try {
-      const raw = localStorage.getItem(STORAGE_STATUS_KEY);
+      const raw = this.safeGet(STORAGE_STATUS_KEY);
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       return {
@@ -140,7 +160,7 @@ const StorageManager = {
 
   saveStatusUpgrades(st) {
     try {
-      localStorage.setItem(STORAGE_STATUS_KEY, JSON.stringify(st));
+      this.safeSet(STORAGE_STATUS_KEY, JSON.stringify(st));
     } catch {}
     return st;
   },
@@ -186,7 +206,7 @@ const StorageManager = {
       stats: { goblins: 0, warriors: 0, mages: 0, reflected: 0 }
     };
     try {
-      const raw = localStorage.getItem(STORAGE_ACHIEVEMENTS_KEY);
+      const raw = this.safeGet(STORAGE_ACHIEVEMENTS_KEY);
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       return {
@@ -205,7 +225,7 @@ const StorageManager = {
 
   saveAchievementsData(data) {
     try {
-      localStorage.setItem(STORAGE_ACHIEVEMENTS_KEY, JSON.stringify(data));
+      this.safeSet(STORAGE_ACHIEVEMENTS_KEY, JSON.stringify(data));
     } catch {}
     return data;
   },
@@ -273,7 +293,7 @@ const StorageManager = {
 
   getJoystickMode() {
     try {
-      const mode = localStorage.getItem(STORAGE_JOYSTICK_KEY);
+      const mode = this.safeGet(STORAGE_JOYSTICK_KEY);
       return mode || 'auto';
     } catch {
       return 'auto';
@@ -282,7 +302,7 @@ const StorageManager = {
 
   setJoystickMode(mode) {
     try {
-      localStorage.setItem(STORAGE_JOYSTICK_KEY, mode);
+      this.safeSet(STORAGE_JOYSTICK_KEY, mode);
     } catch {}
   }
 };

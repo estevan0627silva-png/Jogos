@@ -190,6 +190,7 @@ function rollLevelUpCards() {
 
 function openLevelUpDraft(scene) {
   if (!scene || (gameState !== 'PLAYING' && gameState !== 'LEVEL_UP')) return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'LEVEL_UP';
 
   // Pausa o mundo de jogo com segurança enquanto o jogador escolhe sua carta
@@ -250,6 +251,7 @@ function openLevelUpDraft(scene) {
 
     // Retoma a partida com janela curta de invencibilidade (750ms) para transição justa
     gameState = 'PLAYING';
+    if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
     scene.physics.resume();
     scene.time.paused = false;
@@ -427,6 +429,7 @@ function handleEscPress(scene) {
 
 function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'PAUSED';
 
   scene.physics.pause();
@@ -450,6 +453,7 @@ function resumeGame(scene) {
     pauseModal = null;
   }
   gameState = 'PLAYING';
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
   scene.physics.resume();
   scene.time.paused = false;
@@ -725,6 +729,33 @@ function showLeaderboard(scene, topScores, currentName) {
     modal.add([rowBg, rowTxt]);
   });
 
+  const goldToDouble = summary.totalGoldEarned ?? summary.earnedGold ?? 0;
+  if (goldToDouble > 0) {
+    let rewardedUsed = false;
+    const doubleGoldBtn = createButton(scene, cx, top + 338, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
+      if (rewardedUsed) return;
+      sound.playButtonClick();
+      if (typeof PlatformBridge !== 'undefined') {
+        PlatformBridge.showRewarded(scene, {
+          onReward: () => {
+            rewardedUsed = true;
+            addGold(goldToDouble);
+            sound.playAchievement();
+            doubleGoldBtn[1].setText(`✓ OURO DOBRADO COM SUCESSO! (+${goldToDouble}G)`);
+            doubleGoldBtn[0].setFillStyle(0x233e18);
+            doubleGoldBtn[0].setStrokeStyle(2, 0x81c784);
+            doubleGoldBtn[1].setColor('#a5d6a7');
+            floatText(scene, cx, top + 300, `+${goldToDouble} OURO EXTRA!`, '#ffd740');
+          }
+        });
+      }
+    }, 440, 32);
+    doubleGoldBtn[0].setFillStyle(0x4a2e12);
+    doubleGoldBtn[0].setStrokeStyle(2, 0xffd54f);
+    doubleGoldBtn[1].setColor('#ffe082');
+    modal.add(doubleGoldBtn);
+  }
+
   let restarting = false;
   const finishAndRestart = (autoStart, openShop = false, shopTab = 'mage') => {
     if (restarting) return;
@@ -732,7 +763,13 @@ function showLeaderboard(scene, topScores, currentName) {
     scene.input.keyboard.off('keydown-SPACE', onQuickRestart);
     scene.input.keyboard.off('keydown-ENTER', onQuickRestart);
     modal.destroy();
-    restartScene(scene, autoStart, openShop, shopTab);
+    if (typeof PlatformBridge !== 'undefined') {
+      PlatformBridge.showMidroll(scene, () => {
+        restartScene(scene, autoStart, openShop, shopTab);
+      });
+    } else {
+      restartScene(scene, autoStart, openShop, shopTab);
+    }
   };
 
   const onQuickRestart = () => {
@@ -744,7 +781,8 @@ function showLeaderboard(scene, topScores, currentName) {
   const forgeBtn = createButton(scene, cx + 138, top + 368, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 36);
   const mageBtn = createButton(scene, cx - 138, top + 412, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 36);
   const menuBtn = createButton(scene, cx + 138, top + 412, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 36);
-  const hintTxt = scene.add.text(cx, top + 452, '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const isTouchDevice = (typeof virtualJoystick !== 'undefined' && virtualJoystick && virtualJoystick.isMobile);
+  const hintTxt = scene.add.text(cx, top + 452, isTouchDevice ? 'Toque em um dos botões para prosseguir' : '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
 
   modal.add([...newRunBtn, ...forgeBtn, ...mageBtn, ...menuBtn, hintTxt]);
 

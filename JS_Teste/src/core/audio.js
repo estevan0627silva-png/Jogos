@@ -136,6 +136,29 @@ class SoundSystem {
     return this.muted;
   }
 
+  // Silenciamento mandatório para anúncios (QA Compliant: Poki & CrazyGames)
+  muteForAd() {
+    this.wasMutedBeforeAd = this.muted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+    }
+    if (this.ctx && this.ctx.state === 'running') {
+      try { this.ctx.suspend(); } catch (e) {}
+    }
+  }
+
+  // Restauração do áudio após anúncio respeitando a escolha original do jogador
+  unmuteAfterAd() {
+    if (this.ctx && this.ctx.state === 'suspended') {
+      try { this.ctx.resume(); } catch (e) {}
+    }
+    const shouldBeMuted = Boolean(this.wasMutedBeforeAd || this.muted);
+    this.muted = shouldBeMuted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(shouldBeMuted ? 0 : 0.7, this.ctx.currentTime);
+    }
+  }
+
   getNoiseBuffer() {
     if (!this.ctx) return null;
     if (!this.noiseBuffer) {

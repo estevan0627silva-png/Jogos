@@ -360,6 +360,7 @@ function playerHit(scene, hazard) {
 
 function gameOver(scene) {
   if (gameState === 'GAMEOVER') return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'GAMEOVER';
   playerInvulnerable = false;
   isHitstopping = false;

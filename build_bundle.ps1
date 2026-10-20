@@ -6,6 +6,7 @@ $srcFiles = @(
     "JS_Teste/src/core/state.js",
     "JS_Teste/src/core/storage.js",
     "JS_Teste/src/core/audio.js",
+    "JS_Teste/src/core/platformBridge.js",
     "JS_Teste/src/art/drawHelpers.js",
     "JS_Teste/src/art/characterArt.js",
     "JS_Teste/src/art/itemArt.js",
@@ -23,15 +24,20 @@ $srcFiles = @(
     "JS_Teste/src/main.js"
 )
 
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $scriptDir) { $scriptDir = "Jogos" }
+
 $bundle = ""
 foreach ($f in $srcFiles) {
-    if (Test-Path $f) {
-        $text = [System.IO.File]::ReadAllText($f, [System.Text.Encoding]::UTF8)
+    $fullPath = Join-Path $scriptDir $f
+    if (Test-Path $fullPath) {
+        $text = [System.IO.File]::ReadAllText($fullPath, [System.Text.Encoding]::UTF8)
         $bundle += "`r`n// --- BUNDLE FILE: $f ---`r`n" + $text + "`r`n"
     } else {
-        Write-Error "File not found: $f"
+        Write-Error "File not found: $fullPath"
     }
 }
 
-[System.IO.File]::WriteAllText("JS_Teste/game.js", $bundle, [System.Text.Encoding]::UTF8)
+$outPath = Join-Path $scriptDir "JS_Teste/game.js"
+[System.IO.File]::WriteAllText($outPath, $bundle, [System.Text.Encoding]::UTF8)
 Write-Host "JS_Teste/game.js successfully bundled! Total length: $($bundle.Length) chars"

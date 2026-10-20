@@ -588,10 +588,30 @@ let virtualJoystick = null;
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
 const StorageManager = {
+  _mem: {},
+
+  safeGet(key) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const val = localStorage.getItem(key);
+        if (val !== null && val !== undefined) return val;
+      }
+    } catch (e) {}
+    return this._mem[key] !== undefined ? this._mem[key] : null;
+  },
+
+  safeSet(key, val) {
+    this._mem[key] = String(val);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, String(val));
+      }
+    } catch (e) {}
+  },
   getHighScores() {
     const defaults = [{ name: 'ART', score: 40 }, { name: 'LAN', score: 28 }, { name: 'GWE', score: 18 }];
     try {
-      const data = localStorage.getItem(STORAGE_KEY);
+      const data = this.safeGet(STORAGE_KEY);
       return data ? JSON.parse(data) : defaults;
     } catch {
       return defaults;
@@ -604,7 +624,7 @@ const StorageManager = {
     scores.sort((a, b) => b.score - a.score);
     const topScores = scores.slice(0, 5);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(topScores));
+      this.safeSet(STORAGE_KEY, JSON.stringify(topScores));
     } catch {}
     return topScores;
   },
@@ -615,7 +635,7 @@ const StorageManager = {
 
   getGold() {
     try {
-      const raw = localStorage.getItem(STORAGE_GOLD_KEY);
+      const raw = this.safeGet(STORAGE_GOLD_KEY);
       return raw ? Math.max(0, parseInt(raw, 10) || 0) : 0;
     } catch {
       return 0;
@@ -625,7 +645,7 @@ const StorageManager = {
   setGold(total) {
     const val = Math.max(0, Math.floor(total));
     try {
-      localStorage.setItem(STORAGE_GOLD_KEY, String(val));
+      this.safeSet(STORAGE_GOLD_KEY, String(val));
     } catch {}
     if (hudGoldText && hudGoldText.active) {
       hudGoldText.setText(`${val}`);
@@ -667,7 +687,7 @@ const StorageManager = {
       starterWeapon: 'bow'
     };
     try {
-      const raw = localStorage.getItem(STORAGE_UPGRADES_KEY);
+      const raw = this.safeGet(STORAGE_UPGRADES_KEY);
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       const res = { ...defaults };
@@ -689,7 +709,7 @@ const StorageManager = {
 
   saveUpgrades(up) {
     try {
-      localStorage.setItem(STORAGE_UPGRADES_KEY, JSON.stringify(up));
+      this.safeSet(STORAGE_UPGRADES_KEY, JSON.stringify(up));
     } catch {}
     return up;
   },
@@ -710,7 +730,7 @@ const StorageManager = {
   getStatusUpgrades() {
     const defaults = { maxHp: 1, moveSpeed: 1, magnet: 1, wisdom: 1 };
     try {
-      const raw = localStorage.getItem(STORAGE_STATUS_KEY);
+      const raw = this.safeGet(STORAGE_STATUS_KEY);
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       return {
@@ -726,7 +746,7 @@ const StorageManager = {
 
   saveStatusUpgrades(st) {
     try {
-      localStorage.setItem(STORAGE_STATUS_KEY, JSON.stringify(st));
+      this.safeSet(STORAGE_STATUS_KEY, JSON.stringify(st));
     } catch {}
     return st;
   },
@@ -772,7 +792,7 @@ const StorageManager = {
       stats: { goblins: 0, warriors: 0, mages: 0, reflected: 0 }
     };
     try {
-      const raw = localStorage.getItem(STORAGE_ACHIEVEMENTS_KEY);
+      const raw = this.safeGet(STORAGE_ACHIEVEMENTS_KEY);
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       return {
@@ -791,7 +811,7 @@ const StorageManager = {
 
   saveAchievementsData(data) {
     try {
-      localStorage.setItem(STORAGE_ACHIEVEMENTS_KEY, JSON.stringify(data));
+      this.safeSet(STORAGE_ACHIEVEMENTS_KEY, JSON.stringify(data));
     } catch {}
     return data;
   },
@@ -859,7 +879,7 @@ const StorageManager = {
 
   getJoystickMode() {
     try {
-      const mode = localStorage.getItem(STORAGE_JOYSTICK_KEY);
+      const mode = this.safeGet(STORAGE_JOYSTICK_KEY);
       return mode || 'auto';
     } catch {
       return 'auto';
@@ -868,7 +888,7 @@ const StorageManager = {
 
   setJoystickMode(mode) {
     try {
-      localStorage.setItem(STORAGE_JOYSTICK_KEY, mode);
+      this.safeSet(STORAGE_JOYSTICK_KEY, mode);
     } catch {}
   }
 };
@@ -1055,6 +1075,29 @@ class SoundSystem {
       this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.7, this.ctx.currentTime);
     }
     return this.muted;
+  }
+
+  // Silenciamento mandatório para anúncios (QA Compliant: Poki & CrazyGames)
+  muteForAd() {
+    this.wasMutedBeforeAd = this.muted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+    }
+    if (this.ctx && this.ctx.state === 'running') {
+      try { this.ctx.suspend(); } catch (e) {}
+    }
+  }
+
+  // Restauração do áudio após anúncio respeitando a escolha original do jogador
+  unmuteAfterAd() {
+    if (this.ctx && this.ctx.state === 'suspended') {
+      try { this.ctx.resume(); } catch (e) {}
+    }
+    const shouldBeMuted = Boolean(this.wasMutedBeforeAd || this.muted);
+    this.muted = shouldBeMuted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(shouldBeMuted ? 0 : 0.7, this.ctx.currentTime);
+    }
   }
 
   getNoiseBuffer() {
@@ -1630,6 +1673,367 @@ class SoundSystem {
 const sound = new SoundSystem();
 
 // =============================================================================
+
+
+// --- BUNDLE FILE: JS_Teste/src/core/platformBridge.js ---
+// =============================================================================
+// PLATFORM BRIDGE — ADAPTER UNIVERSAL DE PUBLICAÇÃO WEB
+// Suporte unificado para:
+// - Itch.io / GameJolt / Offline Local (Zero dependências, 100% autônomo)
+// - CrazyGames (SDK v3: gameplayStart, gameplayStop, Midroll, Rewarded Ads)
+// - Poki (SDK v2: gameplayStart, gameplayStop, commercialBreak, rewardedBreak)
+// =============================================================================
+
+class PlatformBridgeController {
+  constructor() {
+    this.platform = 'STANDALONE'; // 'STANDALONE', 'CRAZYGAMES', 'POKI'
+    this.initialized = false;
+    this.initPromise = null;
+    this.lastMidrollTime = 0;
+    this.gameLaunchTime = Date.now();
+    this.minMidrollInterval = 150000; // Mínimo de 150s (2.5 min) entre midrolls (QA Compliant)
+    this.initialBufferTime = 90000;   // Sem anúncios nos primeiros 90s de jogo
+    this.rewardedUsedInRun = false;
+    this.isShowingAd = false;
+    this.loadingFinished = false;
+
+    this.detectPlatform();
+    this.init();
+  }
+
+  detectPlatform() {
+    if (typeof window === 'undefined') return;
+
+    const urlParams = new URLSearchParams(window.location.search || '');
+    const forced = urlParams.get('platform') || urlParams.get('sdk');
+    const hostname = window.location.hostname || '';
+
+    if (forced === 'poki' || hostname.includes('poki.com') || hostname.includes('poki-gdn.com')) {
+      this.platform = 'POKI';
+    } else if (
+      forced === 'crazygames' ||
+      hostname.includes('crazygames.com') ||
+      hostname.includes('1001juegos.com') ||
+      hostname.includes('gameflare.com')
+    ) {
+      this.platform = 'CRAZYGAMES';
+    } else {
+      this.platform = 'STANDALONE'; // Itch.io, Newgrounds, dev local
+    }
+
+    console.log(`[PlatformBridge] Plataforma detectada: ${this.platform}`);
+  }
+
+  // Inicializa o SDK específico de forma assíncrona e segura
+  async init() {
+    if (this.initialized) return true;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = new Promise((resolve) => {
+      try {
+        if (this.platform === 'POKI') {
+          this.initPoki(resolve);
+        } else if (this.platform === 'CRAZYGAMES') {
+          this.initCrazyGames(resolve);
+        } else {
+          // Modo Standalone / Itch.io: pronto imediatamente
+          this.initialized = true;
+          resolve(true);
+        }
+      } catch (err) {
+        console.warn('[PlatformBridge] Falha ao iniciar SDK da plataforma, usando fallback Standalone:', err);
+        this.platform = 'STANDALONE';
+        this.initialized = true;
+        resolve(true);
+      }
+    });
+
+    return this.initPromise;
+  }
+
+  initPoki(resolve) {
+    const onPokiReady = () => {
+      this.initialized = true;
+      if (this.loadingFinished && typeof window.PokiSDK !== 'undefined') {
+        try { window.PokiSDK.gameLoadingFinished(); } catch (e) {}
+      }
+      resolve(true);
+    };
+
+    if (typeof window.PokiSDK !== 'undefined') {
+      window.PokiSDK.init()
+        .then(() => {
+          console.log('[PlatformBridge] PokiSDK inicializado com sucesso.');
+          onPokiReady();
+        })
+        .catch(() => {
+          console.warn('[PlatformBridge] PokiSDK inicializado com adblocker ou restrição.');
+          onPokiReady();
+        });
+      return;
+    }
+
+    // Carregamento dinâmico do script Poki se estiver no domínio Poki
+    const script = document.createElement('script');
+    script.src = 'https://game-cdn.poki.com/scripts/v2/poki-sdk.js';
+    script.onload = () => {
+      if (typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.init()
+          .then(() => onPokiReady())
+          .catch(() => onPokiReady());
+      } else {
+        onPokiReady();
+      }
+    };
+    script.onerror = () => {
+      console.warn('[PlatformBridge] Não foi possível carregar PokiSDK, fallback ativado.');
+      this.platform = 'STANDALONE';
+      this.initialized = true;
+      resolve(true);
+    };
+    document.head.appendChild(script);
+  }
+
+  initCrazyGames(resolve) {
+    const onCrazyReady = () => {
+      this.initialized = true;
+      if (this.loadingFinished && window.CrazyGames?.SDK?.game?.loadingStop) {
+        try { window.CrazyGames.SDK.game.loadingStop(); } catch (e) {}
+      }
+      resolve(true);
+    };
+
+    if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+      window.CrazyGames.SDK.init()
+        .then(() => {
+          console.log('[PlatformBridge] CrazyGames SDK v3 inicializado.');
+          onCrazyReady();
+        })
+        .catch((err) => {
+          console.warn('[PlatformBridge] CrazyGames SDK falhou ao inicializar:', err);
+          onCrazyReady();
+        });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://sdk.crazygames.com/crazygames-sdk-v3.js';
+    script.onload = () => {
+      if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+        window.CrazyGames.SDK.init()
+          .then(() => onCrazyReady())
+          .catch(() => onCrazyReady());
+      } else {
+        onCrazyReady();
+      }
+    };
+    script.onerror = () => {
+      console.warn('[PlatformBridge] Não foi possível carregar CrazyGames SDK, fallback ativado.');
+      this.platform = 'STANDALONE';
+      this.initialized = true;
+      resolve(true);
+    };
+    document.head.appendChild(script);
+  }
+
+  // ---------------------------------------------------------------------------
+  // SINAIS DE CARREGAMENTO (Loading Life Cycle - Poki & CrazyGames QA)
+  // ---------------------------------------------------------------------------
+  loadingStart() {
+    try {
+      if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game?.loadingStart) {
+        window.CrazyGames.SDK.game.loadingStart();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] loadingStart erro:', e);
+    }
+  }
+
+  loadingStop() {
+    this.loadingFinished = true;
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.gameLoadingFinished();
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game?.loadingStop) {
+        window.CrazyGames.SDK.game.loadingStop();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] loadingStop erro:', e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // TELEMETRIA E CICLO DE JOGABILIDADE (Obrigatórios para Poki e CrazyGames)
+  // ---------------------------------------------------------------------------
+  gameplayStart() {
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.gameplayStart();
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game) {
+        window.CrazyGames.SDK.game.gameplayStart();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] gameplayStart erro:', e);
+    }
+  }
+
+  gameplayStop() {
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.gameplayStop();
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game) {
+        window.CrazyGames.SDK.game.gameplayStop();
+      }
+    } catch (e) {
+      console.warn('[PlatformBridge] gameplayStop erro:', e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ANÚNCIOS MIDROLL (INTERSTITIAL ENTRE PARTIDAS)
+  // ---------------------------------------------------------------------------
+  canShowMidroll() {
+    if (this.platform === 'STANDALONE') return false;
+    const now = Date.now();
+    // Protege o jogador na primeira partida (90s de buffer) e impõe cooldown de 150s
+    if (now - this.gameLaunchTime < this.initialBufferTime) return false;
+    if (now - this.lastMidrollTime < this.minMidrollInterval) return false;
+    return true;
+  }
+
+  showMidroll(scene, onComplete) {
+    const finish = () => {
+      this.isShowingAd = false;
+      this.restoreAudioAndPhysics(scene);
+      if (typeof onComplete === 'function') onComplete();
+    };
+
+    if (!this.canShowMidroll()) {
+      if (typeof onComplete === 'function') onComplete();
+      return;
+    }
+
+    this.isShowingAd = true;
+    this.pauseAudioAndPhysics(scene);
+    this.lastMidrollTime = Date.now();
+
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.commercialBreak()
+          .then(() => finish())
+          .catch(() => finish());
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.ad) {
+        window.CrazyGames.SDK.ad.requestAd('midroll', {
+          adStarted: () => { /* Som e física já pausados */ },
+          adFinished: () => finish(),
+          adError: () => finish()
+        });
+      } else {
+        finish();
+      }
+    } catch (err) {
+      console.warn('[PlatformBridge] Erro ao exibir Midroll:', err);
+      finish();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // ANÚNCIOS REWARDED (VÍDEOS COM RECOMPENSA VOLUNTÁRIA)
+  // ---------------------------------------------------------------------------
+  showRewarded(scene, { onReward, onDismiss, onError }) {
+    const handleReward = () => {
+      if (typeof onReward === 'function') onReward();
+    };
+
+    const finish = () => {
+      this.isShowingAd = false;
+      this.restoreAudioAndPhysics(scene);
+      if (typeof onDismiss === 'function') onDismiss();
+    };
+
+    this.isShowingAd = true;
+    this.pauseAudioAndPhysics(scene);
+
+    // Em modo Standalone/Itch.io (onde não há rede de anúncios), concede a recompensa imediatamente para permitir testes completos
+    if (this.platform === 'STANDALONE') {
+      console.log('[PlatformBridge] Standalone: recompensa concedida diretamente.');
+      handleReward();
+      finish();
+      return;
+    }
+
+    try {
+      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
+        window.PokiSDK.rewardedBreak()
+          .then((success) => {
+            if (success) handleReward();
+            finish();
+          })
+          .catch((err) => {
+            console.warn('[PlatformBridge] Poki rewarded erro:', err);
+            if (typeof onError === 'function') onError(err);
+            finish();
+          });
+      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.ad) {
+        window.CrazyGames.SDK.ad.requestAd('rewarded', {
+          adStarted: () => { /* Som e física já pausados */ },
+          adFinished: () => {
+            handleReward();
+            finish();
+          },
+          adError: (err) => {
+            console.warn('[PlatformBridge] CrazyGames rewarded erro:', err);
+            if (typeof onError === 'function') onError(err);
+            finish();
+          }
+        });
+      } else {
+        handleReward();
+        finish();
+      }
+    } catch (err) {
+      console.warn('[PlatformBridge] Erro ao invocar rewarded ad:', err);
+      if (typeof onError === 'function') onError(err);
+      finish();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PAUSA DE FÍSICA E SILENCIAMENTO DE ÁUDIO (Exigência de QA de todas as plataformas)
+  // ---------------------------------------------------------------------------
+  pauseAudioAndPhysics(scene) {
+    if (typeof sound !== 'undefined' && sound.muteForAd) {
+      sound.muteForAd();
+    }
+    if (scene && scene.physics) {
+      scene.physics.pause();
+    }
+    if (scene && scene.time) {
+      scene.time.paused = true;
+    }
+  }
+
+  restoreAudioAndPhysics(scene) {
+    if (typeof sound !== 'undefined' && sound.unmuteAfterAd) {
+      sound.unmuteAfterAd();
+    }
+    // Restaura a física e timers apenas se a partida ainda estiver em andamento
+    if (typeof gameState !== 'undefined' && gameState === 'PLAYING') {
+      if (scene && scene.physics) {
+        scene.physics.resume();
+      }
+      if (scene && scene.time) {
+        scene.time.paused = false;
+      }
+    }
+  }
+}
+
+// Instância singleton global do PlatformBridge
+const PlatformBridge = new PlatformBridgeController();
+if (typeof window !== 'undefined') {
+  window.PlatformBridge = PlatformBridge;
+}
 
 
 // --- BUNDLE FILE: JS_Teste/src/art/drawHelpers.js ---
@@ -4491,6 +4895,7 @@ function playerHit(scene, hazard) {
 
 function gameOver(scene) {
   if (gameState === 'GAMEOVER') return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'GAMEOVER';
   playerInvulnerable = false;
   isHitstopping = false;
@@ -4711,6 +5116,7 @@ function spawnStartingVillage(scene) {
 }
 
 function startGameplay(scene) {
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
   gameState = 'PLAYING';
   survivalTime = 0;
   runSilver = 0;
@@ -6147,6 +6553,7 @@ function rollLevelUpCards() {
 
 function openLevelUpDraft(scene) {
   if (!scene || (gameState !== 'PLAYING' && gameState !== 'LEVEL_UP')) return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'LEVEL_UP';
 
   // Pausa o mundo de jogo com segurança enquanto o jogador escolhe sua carta
@@ -6207,6 +6614,7 @@ function openLevelUpDraft(scene) {
 
     // Retoma a partida com janela curta de invencibilidade (750ms) para transição justa
     gameState = 'PLAYING';
+    if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
     scene.physics.resume();
     scene.time.paused = false;
@@ -6384,6 +6792,7 @@ function handleEscPress(scene) {
 
 function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'PAUSED';
 
   scene.physics.pause();
@@ -6407,6 +6816,7 @@ function resumeGame(scene) {
     pauseModal = null;
   }
   gameState = 'PLAYING';
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
   scene.physics.resume();
   scene.time.paused = false;
@@ -6682,6 +7092,33 @@ function showLeaderboard(scene, topScores, currentName) {
     modal.add([rowBg, rowTxt]);
   });
 
+  const goldToDouble = summary.totalGoldEarned ?? summary.earnedGold ?? 0;
+  if (goldToDouble > 0) {
+    let rewardedUsed = false;
+    const doubleGoldBtn = createButton(scene, cx, top + 338, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
+      if (rewardedUsed) return;
+      sound.playButtonClick();
+      if (typeof PlatformBridge !== 'undefined') {
+        PlatformBridge.showRewarded(scene, {
+          onReward: () => {
+            rewardedUsed = true;
+            addGold(goldToDouble);
+            sound.playAchievement();
+            doubleGoldBtn[1].setText(`✓ OURO DOBRADO COM SUCESSO! (+${goldToDouble}G)`);
+            doubleGoldBtn[0].setFillStyle(0x233e18);
+            doubleGoldBtn[0].setStrokeStyle(2, 0x81c784);
+            doubleGoldBtn[1].setColor('#a5d6a7');
+            floatText(scene, cx, top + 300, `+${goldToDouble} OURO EXTRA!`, '#ffd740');
+          }
+        });
+      }
+    }, 440, 32);
+    doubleGoldBtn[0].setFillStyle(0x4a2e12);
+    doubleGoldBtn[0].setStrokeStyle(2, 0xffd54f);
+    doubleGoldBtn[1].setColor('#ffe082');
+    modal.add(doubleGoldBtn);
+  }
+
   let restarting = false;
   const finishAndRestart = (autoStart, openShop = false, shopTab = 'mage') => {
     if (restarting) return;
@@ -6689,7 +7126,13 @@ function showLeaderboard(scene, topScores, currentName) {
     scene.input.keyboard.off('keydown-SPACE', onQuickRestart);
     scene.input.keyboard.off('keydown-ENTER', onQuickRestart);
     modal.destroy();
-    restartScene(scene, autoStart, openShop, shopTab);
+    if (typeof PlatformBridge !== 'undefined') {
+      PlatformBridge.showMidroll(scene, () => {
+        restartScene(scene, autoStart, openShop, shopTab);
+      });
+    } else {
+      restartScene(scene, autoStart, openShop, shopTab);
+    }
   };
 
   const onQuickRestart = () => {
@@ -6701,7 +7144,8 @@ function showLeaderboard(scene, topScores, currentName) {
   const forgeBtn = createButton(scene, cx + 138, top + 368, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 36);
   const mageBtn = createButton(scene, cx - 138, top + 412, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 36);
   const menuBtn = createButton(scene, cx + 138, top + 412, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 36);
-  const hintTxt = scene.add.text(cx, top + 452, '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const isTouchDevice = (typeof virtualJoystick !== 'undefined' && virtualJoystick && virtualJoystick.isMobile);
+  const hintTxt = scene.add.text(cx, top + 452, isTouchDevice ? 'Toque em um dos botões para prosseguir' : '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
 
   modal.add([...newRunBtn, ...forgeBtn, ...mageBtn, ...menuBtn, hintTxt]);
 
@@ -6748,6 +7192,7 @@ function exitSubMenu(scene) {
 // MENU PRINCIPAL DE TELA COMPLETA (CAPA DE JOGO 800x600)
 // -----------------------------------------------------------------------------
 function showMainMenu(scene) {
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   if (menuContainer) menuContainer.destroy();
   gameState = 'MENU';
   sound.startMenuBGM();
@@ -7031,6 +7476,7 @@ function showMainMenu(scene) {
 // -----------------------------------------------------------------------------
 function showBlacksmithMenu(scene) {
   if (!scene) return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'MENU';
   scene.time.paused = false;
   scene.time.timeScale = 1;
@@ -7220,6 +7666,7 @@ function showBlacksmithMenu(scene) {
 // -----------------------------------------------------------------------------
 function showMageShopMenu(scene) {
   if (!scene) return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'MENU';
   scene.time.paused = false;
   scene.time.timeScale = 1;
@@ -7982,6 +8429,7 @@ if (typeof window !== 'undefined') {
 // CENA: PRELOAD — cria todas as texturas com filtro NEAREST (zero serrilhado/esfarelado)
 // =============================================================================
 function preload() {
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.loadingStart();
   if (this.textures.exists('knight')) return;
   makeSheet(this, 'knight', 32, 32, 4, drawKnight);
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
@@ -8365,6 +8813,8 @@ function create(data) {
   };
   scene.physics.add.overlap(playerArrows, obstacles, hitObstacle);
   scene.physics.add.overlap(enemyArrows, obstacles, hitObstacle);
+
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.loadingStop();
 
   if (data && data.autoStart) {
     startGameplay(scene);

@@ -70,6 +70,7 @@ function spawnStartingVillage(scene) {
 }
 
 function startGameplay(scene) {
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
   gameState = 'PLAYING';
   survivalTime = 0;
   runSilver = 0;

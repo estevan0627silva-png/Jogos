@@ -5,6 +5,7 @@
 // CENA: PRELOAD — cria todas as texturas com filtro NEAREST (zero serrilhado/esfarelado)
 // =============================================================================
 function preload() {
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.loadingStart();
   if (this.textures.exists('knight')) return;
   makeSheet(this, 'knight', 32, 32, 4, drawKnight);
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
@@ -388,6 +389,8 @@ function create(data) {
   };
   scene.physics.add.overlap(playerArrows, obstacles, hitObstacle);
   scene.physics.add.overlap(enemyArrows, obstacles, hitObstacle);
+
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.loadingStop();
 
   if (data && data.autoStart) {
     startGameplay(scene);

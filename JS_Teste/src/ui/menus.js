@@ -29,6 +29,7 @@ function exitSubMenu(scene) {
 // MENU PRINCIPAL DE TELA COMPLETA (CAPA DE JOGO 800x600)
 // -----------------------------------------------------------------------------
 function showMainMenu(scene) {
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   if (menuContainer) menuContainer.destroy();
   gameState = 'MENU';
   sound.startMenuBGM();
@@ -312,6 +313,7 @@ function showMainMenu(scene) {
 // -----------------------------------------------------------------------------
 function showBlacksmithMenu(scene) {
   if (!scene) return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'MENU';
   scene.time.paused = false;
   scene.time.timeScale = 1;
@@ -501,6 +503,7 @@ function showBlacksmithMenu(scene) {
 // -----------------------------------------------------------------------------
 function showMageShopMenu(scene) {
   if (!scene) return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'MENU';
   scene.time.paused = false;
   scene.time.timeScale = 1;
