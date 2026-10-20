@@ -4,6 +4,32 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
 
 ---
 
+## [v2.0.0] — 2026-10-20
+### ⚔️ Título da Versão: **A Lâmina Vorpal & O Rastreador da Floresta (The Vorpal Blade & Forest Scout Update)**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Grande marco v2.0: Reformulação do combate da Espada Vorpal (lâmina única persistente, corte procedural aerodinâmico em 5 camadas e slashes múltiplos em leque 180°), correção da causa raiz de congelamento de animações no boot, nos golpes e no draft de level-up; introdução do novo inimigo Goblin Rastreador ágil com IA de zigue-zague vetorial; layout vertical anti-sobreposição no menu pós-derrota; e rebalanceamento da densidade de ondas desde os primeiros segundos da partida.
+
+### 🚀 O que mudou:
+- **🔄 Correção Raiz do Congelamento de Animações (Bug A):**
+  - **Sincronização de Ciclo de Vida e Boot:** Em `startGameplay()`, a física (`physics.resume()`), tempo (`time.paused = false`) e o gerenciador de animações (`scene.anims.resumeAll()`, `anims.paused = false`) são destravados de forma imperativa. O jogador e entidades spawnadas iniciam loops de caminhada contínuos (`repeat: -1`) sem risco de corrida de estado.
+  - **Isolamento de Flash de Dano e Hitstop:** Em `damageEnemy()` e `playerHit()`, o flash de impacto utiliza `setTintFill(0xffffff)` e `clearTint()` isoladamente, sem alterar ou resetar a máquina de estados de animação dos sprites. No retorno do `triggerHitstop()`, `scene.anims.paused = false` é garantido.
+  - **Retomada Estrita do Draft de Level-Up e Pausa:** Ao fechar o modal de escolha de cartas (`selectCard`) ou despausar (`resumeGame`), `scene.anims.resumeAll()` e `anims.paused = false` são aplicados no nível da cena, e todos os sprites ativos têm seu `resume()` ou reprodução com `repeat: -1` reestabelecidos.
+- **📐 Layout Vertical Anti-Sobreposição no Menu de Derrota (Bug B):**
+  - **Eliminação de Clipping e Colisão de Hitbox:** O modal de líderes e resumo pós-morte (`showLeaderboard`) foi reformulado com o padrão `verticalStackLayout`.
+  - **Espaçamento e Separação Visual:** As 5 linhas de recordes foram compactadas para 36px de passo (`top + 98 + i * 36`). O botão premiado **"✦ DOBRAR OURO DA EXPEDIÇÃO (+XG) ✦"** foi posicionado isolado em `top + 296` (altura 36px), enquanto os botões primários de ação ("⚔ NOVA JORNADA" e "FORJA") foram posicionados em `top + 352` (altura 38px), garantindo uma folga vertical de 19px sem qualquer sobreposição visual ou de cliques.
+- **👺 Novo Inimigo: Goblin Rastreador Ágil (Goblin Scout):**
+  - **Arte Procedural Exclusiva (22x22):** Renderizado com bandana carmesim esvoaçante na testa, adagas duplas polidas e silhueta aerodinâmica compacta em [characterArt.js](file:///f:/programação de jogos/Jogos/JS_Teste/src/art/characterArt.js).
+  - **Velocidade e Trajetória Evasiva:** Velocidade 32% superior à do goblin comum (`speed: 1.48`). Movimenta-se em zigue-zague sinusoidal dinâmico relativo ao vetor do jogador:
+    $$V_{\text{final}} = \vec{u}_{\text{fwd}} \times \text{speed} + \vec{u}_{\text{perp}} \times (\sin(time \times 0.0065 + \text{phase}) \times 80)$$
+    Ultrapassa linhas de frente, esquiva-se de flechas retas e pressiona o jogador com agilidade.
+- **🌊 Rebalanceamento de Densidade Inicial e Escalonamento de Ondas:**
+  - **Engajamento Imediato:** Intervalo inicial entre ondas (`spawnDelay`) reduzido de 1300ms para **900ms** (+44% de frequência inicial) e tamanho dos bandos iniciais aumentou para 1-2 inimigos imediatos.
+  - **Curva Agressiva:** Aceleração a cada 4.5s reduz o delay até 380ms e aumenta os grupos para 3 a 5 inimigos em fases avançadas.
+  - **Cap de Segurança:** Limite dinâmico de segurança (`12 + floor(survivalTime / 12)`, máx 28) garante alta intensidade sem comprometer os 60 FPS estáveis.
+
+---
+
 ## [v1.9.0] — 2026-10-20
 ### ⚔️ Título da Versão: **Reformulação do Combate da Espada Vorpal: Lâmina Única Persistente, Crescente Curvada Procedural em 5 Camadas, Disparo Múltiplo Escalonado e Progressão de +24% por Nível**
 

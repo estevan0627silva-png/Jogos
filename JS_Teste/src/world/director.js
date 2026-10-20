@@ -72,6 +72,7 @@ function spawnStartingVillage(scene) {
 function startGameplay(scene) {
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
   gameState = 'PLAYING';
+  isHitstopping = false;
   survivalTime = 0;
   runSilver = 0;
   runGold = 0;
@@ -86,17 +87,30 @@ function startGameplay(scene) {
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
   if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
-  spawnDelay = 1300;
+  spawnDelay = 900; // Início engajador e ativo (+40% de densidade inicial)
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();
   playerHp = playerMaxHp;
   playerInvulnerable = false;
 
+  // Destrava e sincroniza física, tempo e ciclo de animação ao iniciar/reiniciar
+  if (scene.physics && scene.physics.world) {
+    scene.physics.resume();
+    scene.physics.world.isPaused = false;
+  }
+  scene.time.paused = false;
+  scene.time.timeScale = 1;
+  if (scene.anims) {
+    if (scene.anims.resumeAll) scene.anims.resumeAll();
+    scene.anims.paused = false;
+  }
+
   if (player) {
     scene.tweens.killTweensOf(player);
     player.setPosition(160, 330).setFlipX(false).setAngle(0).setAlpha(1).clearTint().setVisible(true);
-    player.play('knight');
+    if (player.anims) player.anims.isPaused = false;
+    player.play({ key: 'knight', repeat: -1 });
   }
   if (shieldSprite) shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);
@@ -135,10 +149,10 @@ function startGameplay(scene) {
     }
   });
 
-  // Director Dinâmico: ajusta velocidade e intervalo gradualmente ao longo da Run estendida (120s+ até o Boss)
+  // Director Dinâmico: ajusta velocidade e intervalo progressivamente ao longo da Run
   every(4500, () => {
-    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 10);
-    spawnDelay = Math.max(MIN_SPAWN_DELAY, spawnDelay - 38);
+    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
+    spawnDelay = Math.max(380, spawnDelay - 45);
     enemies.getChildren().forEach(e => {
       if (e.active && !e.isBoss && e.enemyType && ENEMIES[e.enemyType]) {
         e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
@@ -178,28 +192,37 @@ function spawnDirectorWave(scene) {
     return;
   }
 
+  // Cap dinâmico de segurança de inimigos simultâneos na tela (preserva 60 FPS estáveis)
+  const maxEnemiesOnScreen = Math.min(28, 12 + Math.floor(survivalTime / 12));
+  const currentActiveEnemies = enemies.getChildren().filter(e => e.active && !e.isBoss).length;
+  if (currentActiveEnemies >= maxEnemiesOnScreen) {
+    return;
+  }
+
   let waveCount = 1;
   const r = Math.random();
   if (bossDefeated || survivalTime >= 100) {
-    // Pós-Boss: escalonamento agressivo com hordas densas
-    waveCount = r < 0.38 ? 4 : (r < 0.78 ? 3 : 2);
+    // Pós-Boss / Fim de Jogo: hordas épicas em grupos de 3 a 5 monstros
+    waveCount = r < 0.40 ? 5 : (r < 0.80 ? 4 : 3);
   } else if (survivalTime >= 70) {
-    waveCount = r < 0.45 ? 3 : 2;
+    // Fases avançadas pós-60s
+    waveCount = r < 0.45 ? 4 : (r < 0.80 ? 3 : 5);
   } else if (survivalTime >= 40) {
-    waveCount = r < 0.25 ? 3 : (r < 0.75 ? 2 : 1);
+    // Fase pré-boss com Rastreadores rápidos e bandos de 2 a 4
+    waveCount = r < 0.35 ? 3 : (r < 0.75 ? 2 : 4);
   } else if (survivalTime >= 20) {
-    // Intermediário (20s - 40s)
-    waveCount = r < 0.40 ? 2 : 1;
+    // Intermediário (20s - 40s): bandos de 2 a 3
+    waveCount = r < 0.50 ? 2 : (r < 0.85 ? 3 : 1);
   } else {
-    // Curva inicial suave (0 - 20s): 1 inimigo por pulso para aquecimento gradual
-    waveCount = 1;
+    // Início ativo (0 - 20s): bandos frequentes de 1 a 2 (+40% densidade)
+    waveCount = r < 0.45 ? 2 : 1;
   }
 
   for (let i = 0; i < waveCount; i++) {
     if (i === 0) {
       spawnEnemy(scene);
     } else {
-      scene.time.delayedCall(i * 190, () => {
+      scene.time.delayedCall(i * 180, () => {
         if (gameState === 'PLAYING') spawnEnemy(scene);
       });
     }

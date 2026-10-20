@@ -40,8 +40,9 @@ function triggerHitstop(scene, durationMs = 45) {
       if (scene && scene.physics && scene.physics.world) {
         scene.physics.world.isPaused = false;
       }
-      if (scene && scene.anims && scene.anims.resumeAll) {
-        scene.anims.resumeAll();
+      if (scene && scene.anims) {
+        if (scene.anims.resumeAll) scene.anims.resumeAll();
+        scene.anims.paused = false;
       }
     }
   };
@@ -69,16 +70,24 @@ function damageEnemy(scene, enemy, dmg = 1) {
     sparksFx.explode(8, enemy.x - 12, enemy.y);
   } else if (enemy.enemyType === 'mini_golem') {
     debrisFx.explode(6, enemy.x, enemy.y);
+  } else if (enemy.enemyType === 'goblin_scout') {
+    sparksFx.explode(6, enemy.x, enemy.y);
+    hitFx.explode(6, enemy.x, enemy.y);
   } else {
     hitFx.explode(7, enemy.x, enemy.y);
   }
 
-  // Flash branco estrito de impacto (65ms) sem ofuscar a visão
-  enemy.setTint(0xffffff);
+  // Flash branco estrito de impacto (65ms) sem interferir nos frames ou parar ciclo de animação
+  if (enemy.setTintFill) {
+    enemy.setTintFill(0xffffff);
+  } else {
+    enemy.setTint(0xffffff);
+  }
   scene.time.delayedCall(65, () => {
     if (!enemy || !enemy.active) return;
     if (enemy.hp > 0) {
-      enemy.setTint(0xffca28);
+      if (enemy.setTintFill) enemy.setTintFill(0xffca28);
+      else enemy.setTint(0xffca28);
       scene.time.delayedCall(65, () => {
         if (enemy && enemy.active) enemy.clearTint();
       });
@@ -326,7 +335,8 @@ function playerHit(scene, hazard) {
     events.emit(GameEvents.PLAYER_HIT, { scene, hp: playerHp });
     sparksFx.explode(8, player.x, player.y);
     hitFx.explode(14, player.x, player.y);
-    player.setTint(0xffffff);
+    if (player.setTintFill) player.setTintFill(0xffffff);
+    else player.setTint(0xffffff);
     scene.time.delayedCall(75, () => {
       if (player && player.active) player.clearTint();
     });

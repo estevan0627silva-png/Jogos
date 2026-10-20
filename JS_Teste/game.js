@@ -3,9 +3,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v1.6.0';
-const VERSION_TITLE = 'Combat Overhaul, Stone Golem & Refined Touch Controls';
-const VERSION_DESC = 'Boss Golem aos 60s com ejeção física e despertar de Mini-Golems conforme o HP, defesa do Mago com esquiva/teletransporte contra projéteis, movimentação em zigue-zague dos Goblins, sistema de vida padronizado em Corações/Hits, progressão infinita de armas com balanceamento, escalonamento de tamanho e Knockback da Espada, joystick virtual ancorado com toggle nas configurações e remoção do botão de ação.';
+const GAME_VERSION = 'v2.0.0';
+const VERSION_TITLE = 'A Lâmina Vorpal & O Rastreador da Floresta (The Vorpal Blade & Forest Scout Update)';
+const VERSION_DESC = 'Reformulação do combate da Espada Vorpal (lâmina única persistente, corte procedural aerodinâmico em 5 camadas e slashes múltiplos em leque 180°), correção raiz de congelamento de animações (boot, hitstops e draft de level-up), introdução do Goblin Rastreador veloz com zigue-zague vetorial, layout vertical do resumo pós-derrota e rebalanceamento da densidade de ondas desde os primeiros segundos.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -23,8 +23,9 @@ const BUFF_NAMES = {
   firestaff: 'CAJADO DE FOGO'
 };
 const ENEMIES = {                                    // vida, velocidade relativa, hitbox e XP dropado
-  goblin:     { hp: 1, speed: 1.12, w: 16, h: 20, xp: 2 },
-  warrior:    { hp: 2, speed: 0.86, w: 20, h: 26, xp: 5 },
+  goblin:       { hp: 1, speed: 1.12, w: 16, h: 20, xp: 2 },
+  goblin_scout: { hp: 1, speed: 1.48, w: 14, h: 16, xp: 2 }, // rastreador ágil e veloz com zigue-zague evasivo
+  warrior:      { hp: 2, speed: 0.86, w: 20, h: 26, xp: 5 },
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
   mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
@@ -2245,6 +2246,42 @@ function drawGoblin(r, f) {
     r(C.outline, x, up ? 12 : 13, 2, 1);
   };
   leg(5, f === 0); leg(8, f === 1);
+}
+
+// Goblin Scout / Rastreador Ágil (Silhueta compacta 22x22, bandana vermelha e adagas duplas)
+function drawGoblinScout(r, f) {
+  // 1. Bandana Carmesim Amarrada na Testa com Nó Esvoaçante
+  r(C.redBase, 2, 1, 6, 2);
+  r(C.redHighlight, 3, 1, 4, 1);
+  r(C.deepBlood, 0, 2, 2, 2); // Ponta do nó da bandana esvoaçando para trás
+
+  // 2. Orelhas Pontudas Inclinadas Aerodinâmicas
+  r(C.gobShadow, 0, 3, 2, 2); r(C.gobLight, 1, 3, 1, 1);
+  r(C.gobShadow, 8, 3, 2, 2); r(C.gobLight, 8, 3, 1, 1);
+
+  // 3. Cabeça e Rosto Esverdeado Ágil
+  r(C.gobShadow, 2, 3, 6, 3);
+  r(C.gobBase, 3, 3, 4, 3);
+
+  // 4. Olhos Amarelos Rápidos e Nariz Fino
+  r(C.yellow, 3, 4, 1, 1); r(C.eye, 3, 4, 1, 1);
+  r(C.yellow, 6, 4, 1, 1); r(C.eye, 6, 4, 1, 1);
+  r(C.gobDeep, 7, 5, 2, 1);
+
+  // 5. Colete de Couro Leve
+  r(C.leatherDark, 2, 6, 6, 3);
+  r(C.leatherBase, 3, 6, 4, 2);
+
+  // 6. Adagas Duplas Ágeis com Gume Polido
+  r(C.steelLight, 9, 3, 1, 4); r(C.white, 9, 3, 1, 1); // Adaga frontal
+  r(C.steelLight, 0, 5, 1, 3); r(C.white, 0, 5, 1, 1); // Adaga traseira
+
+  // 7. Pernas Pequenas com Passada Veloz
+  const leg = (x, up) => {
+    r(C.gobShadow, x, 9, 2, up ? 1 : 2);
+    r(C.outline, x, up ? 10 : 11, 2, 1);
+  };
+  leg(3, f === 0); leg(6, f === 1);
 }
 
 function drawWarrior(r, f) {
@@ -4666,8 +4703,9 @@ function triggerHitstop(scene, durationMs = 45) {
       if (scene && scene.physics && scene.physics.world) {
         scene.physics.world.isPaused = false;
       }
-      if (scene && scene.anims && scene.anims.resumeAll) {
-        scene.anims.resumeAll();
+      if (scene && scene.anims) {
+        if (scene.anims.resumeAll) scene.anims.resumeAll();
+        scene.anims.paused = false;
       }
     }
   };
@@ -4695,16 +4733,24 @@ function damageEnemy(scene, enemy, dmg = 1) {
     sparksFx.explode(8, enemy.x - 12, enemy.y);
   } else if (enemy.enemyType === 'mini_golem') {
     debrisFx.explode(6, enemy.x, enemy.y);
+  } else if (enemy.enemyType === 'goblin_scout') {
+    sparksFx.explode(6, enemy.x, enemy.y);
+    hitFx.explode(6, enemy.x, enemy.y);
   } else {
     hitFx.explode(7, enemy.x, enemy.y);
   }
 
-  // Flash branco estrito de impacto (65ms) sem ofuscar a visão
-  enemy.setTint(0xffffff);
+  // Flash branco estrito de impacto (65ms) sem interferir nos frames ou parar ciclo de animação
+  if (enemy.setTintFill) {
+    enemy.setTintFill(0xffffff);
+  } else {
+    enemy.setTint(0xffffff);
+  }
   scene.time.delayedCall(65, () => {
     if (!enemy || !enemy.active) return;
     if (enemy.hp > 0) {
-      enemy.setTint(0xffca28);
+      if (enemy.setTintFill) enemy.setTintFill(0xffca28);
+      else enemy.setTint(0xffca28);
       scene.time.delayedCall(65, () => {
         if (enemy && enemy.active) enemy.clearTint();
       });
@@ -4952,7 +4998,8 @@ function playerHit(scene, hazard) {
     events.emit(GameEvents.PLAYER_HIT, { scene, hp: playerHp });
     sparksFx.explode(8, player.x, player.y);
     hitFx.explode(14, player.x, player.y);
-    player.setTint(0xffffff);
+    if (player.setTintFill) player.setTintFill(0xffffff);
+    else player.setTint(0xffffff);
     scene.time.delayedCall(75, () => {
       if (player && player.active) player.clearTint();
     });
@@ -5210,6 +5257,7 @@ function spawnStartingVillage(scene) {
 function startGameplay(scene) {
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
   gameState = 'PLAYING';
+  isHitstopping = false;
   survivalTime = 0;
   runSilver = 0;
   runGold = 0;
@@ -5224,17 +5272,30 @@ function startGameplay(scene) {
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
   if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
-  spawnDelay = 1300;
+  spawnDelay = 900; // Início engajador e ativo (+40% de densidade inicial)
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();
   playerHp = playerMaxHp;
   playerInvulnerable = false;
 
+  // Destrava e sincroniza física, tempo e ciclo de animação ao iniciar/reiniciar
+  if (scene.physics && scene.physics.world) {
+    scene.physics.resume();
+    scene.physics.world.isPaused = false;
+  }
+  scene.time.paused = false;
+  scene.time.timeScale = 1;
+  if (scene.anims) {
+    if (scene.anims.resumeAll) scene.anims.resumeAll();
+    scene.anims.paused = false;
+  }
+
   if (player) {
     scene.tweens.killTweensOf(player);
     player.setPosition(160, 330).setFlipX(false).setAngle(0).setAlpha(1).clearTint().setVisible(true);
-    player.play('knight');
+    if (player.anims) player.anims.isPaused = false;
+    player.play({ key: 'knight', repeat: -1 });
   }
   if (shieldSprite) shieldSprite.setVisible(false);
   if (shieldAura) shieldAura.setVisible(false);
@@ -5273,10 +5334,10 @@ function startGameplay(scene) {
     }
   });
 
-  // Director Dinâmico: ajusta velocidade e intervalo gradualmente ao longo da Run estendida (120s+ até o Boss)
+  // Director Dinâmico: ajusta velocidade e intervalo progressivamente ao longo da Run
   every(4500, () => {
-    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 10);
-    spawnDelay = Math.max(MIN_SPAWN_DELAY, spawnDelay - 38);
+    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
+    spawnDelay = Math.max(380, spawnDelay - 45);
     enemies.getChildren().forEach(e => {
       if (e.active && !e.isBoss && e.enemyType && ENEMIES[e.enemyType]) {
         e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
@@ -5316,28 +5377,37 @@ function spawnDirectorWave(scene) {
     return;
   }
 
+  // Cap dinâmico de segurança de inimigos simultâneos na tela (preserva 60 FPS estáveis)
+  const maxEnemiesOnScreen = Math.min(28, 12 + Math.floor(survivalTime / 12));
+  const currentActiveEnemies = enemies.getChildren().filter(e => e.active && !e.isBoss).length;
+  if (currentActiveEnemies >= maxEnemiesOnScreen) {
+    return;
+  }
+
   let waveCount = 1;
   const r = Math.random();
   if (bossDefeated || survivalTime >= 100) {
-    // Pós-Boss: escalonamento agressivo com hordas densas
-    waveCount = r < 0.38 ? 4 : (r < 0.78 ? 3 : 2);
+    // Pós-Boss / Fim de Jogo: hordas épicas em grupos de 3 a 5 monstros
+    waveCount = r < 0.40 ? 5 : (r < 0.80 ? 4 : 3);
   } else if (survivalTime >= 70) {
-    waveCount = r < 0.45 ? 3 : 2;
+    // Fases avançadas pós-60s
+    waveCount = r < 0.45 ? 4 : (r < 0.80 ? 3 : 5);
   } else if (survivalTime >= 40) {
-    waveCount = r < 0.25 ? 3 : (r < 0.75 ? 2 : 1);
+    // Fase pré-boss com Rastreadores rápidos e bandos de 2 a 4
+    waveCount = r < 0.35 ? 3 : (r < 0.75 ? 2 : 4);
   } else if (survivalTime >= 20) {
-    // Intermediário (20s - 40s)
-    waveCount = r < 0.40 ? 2 : 1;
+    // Intermediário (20s - 40s): bandos de 2 a 3
+    waveCount = r < 0.50 ? 2 : (r < 0.85 ? 3 : 1);
   } else {
-    // Curva inicial suave (0 - 20s): 1 inimigo por pulso para aquecimento gradual
-    waveCount = 1;
+    // Início ativo (0 - 20s): bandos frequentes de 1 a 2 (+40% densidade)
+    waveCount = r < 0.45 ? 2 : 1;
   }
 
   for (let i = 0; i < waveCount; i++) {
     if (i === 0) {
       spawnEnemy(scene);
     } else {
-      scene.time.delayedCall(i * 190, () => {
+      scene.time.delayedCall(i * 180, () => {
         if (gameState === 'PLAYING') spawnEnemy(scene);
       });
     }
@@ -5391,17 +5461,17 @@ function spawnEnemy(scene, forcedType, customY) {
       // Regra 6: Durante a Boss Fight, gera exclusivamente Mini-Golems
       type = 'mini_golem';
     } else if (bossDefeated) {
-      // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.40 ? 'goblin' : (roll < 0.72 ? 'warrior' : 'elf'));
+      // Pós-Boss: O Mago aparece com taxa rara (8%), Rastreador Ágil (20%), Goblins, Guerreiros e Elfos
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.28 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.78 ? 'warrior' : 'elf')));
     } else if (survivalTime >= 40) {
-      // Fase pré-boss avançada: Goblins, guerreiros e elfos (SEM MAGO)
-      type = roll < 0.45 ? 'goblin' : (roll < 0.75 ? 'warrior' : 'elf');
+      // Fase pré-boss avançada: Goblins Rastreadores ágeis (28%), Goblins comuns, guerreiros e elfos (SEM MAGO)
+      type = roll < 0.28 ? 'goblin_scout' : (roll < 0.56 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 20) {
-      // Fase pré-boss intermediária
-      type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
+      // Fase pré-boss intermediária (20s - 40s): Introduz Rastreadores ágeis (16%)
+      type = roll < 0.16 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
     } else {
-      // Curva inicial suave: predominantemente goblins simples
-      type = roll < 0.80 ? 'goblin' : 'warrior';
+      // Curva inicial: predominantemente goblins simples e guerreiros
+      type = roll < 0.76 ? 'goblin' : 'warrior';
     }
   }
   const cfg = ENEMIES[type] || ENEMIES.goblin;
@@ -5417,7 +5487,7 @@ function spawnEnemy(scene, forcedType, customY) {
   }
 
   const enemy = enemies.create(860, y, type, 0);
-  enemy.play({ key: type, startFrame: Phaser.Math.Between(0, 1) }).setFlipX(true);
+  enemy.play({ key: type, repeat: -1, startFrame: Phaser.Math.Between(0, 1) }).setFlipX(true);
   enemy.body.setSize(cfg.w, cfg.h);
   enemy.setVelocityX(-enemySpeed * cfg.speed);
   enemy.phase = Math.random() * 10;
@@ -5461,6 +5531,8 @@ function spawnEnemy(scene, forcedType, customY) {
       activateMageBarrier(scene, enemy);
     });
   }
+
+  return enemy;
 }
 
 // =============================================================================
@@ -6648,13 +6720,18 @@ function openLevelUpDraft(scene) {
   if (!scene || (gameState !== 'PLAYING' && gameState !== 'LEVEL_UP')) return;
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'LEVEL_UP';
+  isHitstopping = false;
 
   // Pausa o mundo de jogo com segurança enquanto o jogador escolhe sua carta
   scene.physics.pause();
   scene.time.paused = true;
+  scene.tweens.pauseAll();
+  if (scene.anims && scene.anims.pauseAll) {
+    scene.anims.pauseAll();
+  }
   if (player && player.body) player.setVelocity(0, 0);
   [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.pause();
+    if (s && s.anims && s.anims.isPlaying) s.anims.pause();
   });
   sound.pauseBGM();
   sound.playLevelUp();
@@ -6710,10 +6787,21 @@ function openLevelUpDraft(scene) {
     if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
     scene.physics.resume();
+    scene.physics.world.isPaused = false;
     scene.time.paused = false;
     scene.tweens.resumeAll();
+    if (scene.anims) {
+      if (scene.anims.resumeAll) scene.anims.resumeAll();
+      scene.anims.paused = false;
+    }
     [player, ...enemies.getChildren()].forEach(s => {
-      if (s && s.anims) s.anims.resume();
+      if (s && s.anims) {
+        if (s.anims.isPaused) {
+          s.anims.resume();
+        } else if (!s.anims.isPlaying && s.anims.currentAnim) {
+          s.anims.play({ key: s.anims.currentAnim.key, repeat: -1 });
+        }
+      }
     });
     sound.resumeBGM();
 
@@ -6867,7 +6955,12 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     children.push(sub);
   }
 
-  return scene.add.container(0, 0, children).setDepth(3000).setScrollFactor(0);
+  const container = scene.add.container(0, 0, children).setDepth(3000).setScrollFactor(0);
+  activeModal = container;
+  container.on('destroy', () => {
+    if (activeModal === container) activeModal = null;
+  });
+  return container;
 }
 
 
@@ -6887,12 +6980,16 @@ function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'PAUSED';
+  isHitstopping = false;
 
   scene.physics.pause();
   scene.time.paused = true;
   scene.tweens.pauseAll();
+  if (scene.anims && scene.anims.pauseAll) {
+    scene.anims.pauseAll();
+  }
   [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.pause();
+    if (s && s.anims && s.anims.isPlaying) s.anims.pause();
   });
   if (player && player.body) {
     player.setVelocity(0, 0);
@@ -6912,10 +7009,21 @@ function resumeGame(scene) {
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
   scene.physics.resume();
+  scene.physics.world.isPaused = false;
   scene.time.paused = false;
   scene.tweens.resumeAll();
+  if (scene.anims) {
+    if (scene.anims.resumeAll) scene.anims.resumeAll();
+    scene.anims.paused = false;
+  }
   [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.resume();
+    if (s && s.anims) {
+      if (s.anims.isPaused) {
+        s.anims.resume();
+      } else if (!s.anims.isPlaying && s.anims.currentAnim) {
+        s.anims.play({ key: s.anims.currentAnim.key, repeat: -1 });
+      }
+    }
   });
   sound.resumeBGM();
   sound.playButtonClick();
@@ -7156,7 +7264,7 @@ function showInitials(scene) {
 
 function showLeaderboard(scene, topScores, currentName) {
   const modalW = 580;
-  const modalH = 500;
+  const modalH = 520;
   const cx = GAME_WIDTH / 2;
   const top = (GAME_HEIGHT - modalH) / 2;
 
@@ -7170,25 +7278,27 @@ function showLeaderboard(scene, topScores, currentName) {
     const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
     if (isMine) marked = true;
     const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
-    const rowY = top + 118 + i * 44;
+    const rowY = top + 98 + i * 36;
 
     const rowBg = scene.add.graphics();
-    rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
-    rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
+    rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 14, 460, 28, 4);
+    rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 14, 460, 28, 4);
 
     const rowTxt = scene.add.text(cx, rowY, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`, {
-      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 16),
+      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 15),
       fontStyle: isMine ? 'bold' : 'normal'
     }).setOrigin(0.5);
-    fitTextToBox(rowTxt, 430, 28, 12);
+    fitTextToBox(rowTxt, 430, 24, 11);
 
     modal.add([rowBg, rowTxt]);
   });
 
   const goldToDouble = summary.totalGoldEarned ?? summary.earnedGold ?? 0;
-  if (goldToDouble > 0) {
+  const hasRewardButton = goldToDouble > 0;
+
+  if (hasRewardButton) {
     let rewardedUsed = false;
-    const doubleGoldBtn = createButton(scene, cx, top + 338, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
+    const doubleGoldBtn = createButton(scene, cx, top + 296, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
       if (rewardedUsed) return;
       sound.playButtonClick();
       if (typeof PlatformBridge !== 'undefined') {
@@ -7201,11 +7311,11 @@ function showLeaderboard(scene, topScores, currentName) {
             doubleGoldBtn[0].setFillStyle(0x233e18);
             doubleGoldBtn[0].setStrokeStyle(2, 0x81c784);
             doubleGoldBtn[1].setColor('#a5d6a7');
-            floatText(scene, cx, top + 300, `+${goldToDouble} OURO EXTRA!`, '#ffd740');
+            floatText(scene, cx, top + 260, `+${goldToDouble} OURO EXTRA!`, '#ffd740');
           }
         });
       }
-    }, 440, 32);
+    }, 460, 36);
     doubleGoldBtn[0].setFillStyle(0x4a2e12);
     doubleGoldBtn[0].setStrokeStyle(2, 0xffd54f);
     doubleGoldBtn[1].setColor('#ffe082');
@@ -7233,12 +7343,17 @@ function showLeaderboard(scene, topScores, currentName) {
     finishAndRestart(true, false);
   };
 
-  const newRunBtn = createButton(scene, cx - 138, top + 368, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 36);
-  const forgeBtn = createButton(scene, cx + 138, top + 368, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 36);
-  const mageBtn = createButton(scene, cx - 138, top + 412, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 36);
-  const menuBtn = createButton(scene, cx + 138, top + 412, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 36);
+  // Layout Vertical Stack dinâmico e sem sobreposição
+  const actionRow1Y = hasRewardButton ? (top + 352) : (top + 316);
+  const actionRow2Y = hasRewardButton ? (top + 402) : (top + 368);
+  const hintY = hasRewardButton ? (top + 452) : (top + 422);
+
+  const newRunBtn = createButton(scene, cx - 138, actionRow1Y, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 38);
+  const forgeBtn = createButton(scene, cx + 138, actionRow1Y, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 38);
+  const mageBtn = createButton(scene, cx - 138, actionRow2Y, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 38);
+  const menuBtn = createButton(scene, cx + 138, actionRow2Y, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 38);
   const isTouchDevice = (typeof virtualJoystick !== 'undefined' && virtualJoystick && virtualJoystick.isMobile);
-  const hintTxt = scene.add.text(cx, top + 452, isTouchDevice ? 'Toque em um dos botões para prosseguir' : '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const hintTxt = scene.add.text(cx, hintY, isTouchDevice ? 'Toque em um dos botões para prosseguir' : '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
 
   modal.add([...newRunBtn, ...forgeBtn, ...mageBtn, ...menuBtn, hintTxt]);
 
@@ -8526,6 +8641,7 @@ function preload() {
   if (this.textures.exists('knight')) return;
   makeSheet(this, 'knight', 32, 32, 4, drawKnight);
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
+  makeSheet(this, 'goblin_scout', 22, 22, 2, drawGoblinScout);
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
 
@@ -8651,6 +8767,7 @@ function create(data) {
   const animSpecs = {
     knight: { fps: 12, frames: 4 },
     goblin: { fps: 12, frames: 2 },
+    goblin_scout: { fps: 14, frames: 2 },
     warrior: { fps: 8, frames: 2 },
     elf: { fps: 9, frames: 2 },
 
@@ -9022,7 +9139,29 @@ function updateGameplay(scene, time, dt) {
         e.barrierSprite.setPosition(Math.round(e.x - 16), Math.round(e.y));
         e.barrierSprite.setDepth(e.depth + 5);
       }
-      if (e.enemyType === 'goblin') {
+      if (e.enemyType === 'goblin_scout') {
+        if (e.phase === undefined) e.phase = Math.random() * 6.28;
+        // Movimentação em zigue-zague dinâmico relativo ao vetor do jogador:
+        // V_final = V_forward * speed + V_perpendicular * (sin(time * omega) * A)
+        let fwdX = -1, fwdY = 0;
+        let perpX = 0, perpY = 1;
+        if (player && player.active) {
+          const dx = player.x - e.x;
+          const dy = player.y - e.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 1) {
+            fwdX = dx / dist;
+            fwdY = dy / dist;
+            perpX = -fwdY;
+            perpY = fwdX;
+          }
+        }
+        const scoutSpeed = (enemySpeed || 195) * (ENEMIES.goblin_scout ? ENEMIES.goblin_scout.speed : 1.48);
+        const osc = Math.sin(time * 0.0065 + e.phase) * 80;
+        e.setVelocity(fwdX * scoutSpeed + perpX * osc, fwdY * scoutSpeed + perpY * osc);
+        e.y = Phaser.Math.Clamp(e.y, 125, 525);
+        if (e.body) e.body.updateFromGameObject();
+      } else if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
         // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
@@ -9176,6 +9315,9 @@ function sortAndShade() {
       pw = 74; ph = 20; cw = 56; ch = 12;
       pAlpha = 0.26; cAlpha = 0.44;
       groundY = feet - 3;
+    } else if (s.enemyType === 'goblin_scout') {
+      pw = 14; ph = 5; cw = 10; ch = 3;
+      pAlpha = 0.18; cAlpha = 0.30;
     } else if (s.enemyType === 'goblin') {
       pw = 18; ph = 6; cw = 12; ch = 3;
     } else if (s.enemyType === 'warrior') {

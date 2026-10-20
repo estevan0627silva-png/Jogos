@@ -192,13 +192,18 @@ function openLevelUpDraft(scene) {
   if (!scene || (gameState !== 'PLAYING' && gameState !== 'LEVEL_UP')) return;
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'LEVEL_UP';
+  isHitstopping = false;
 
   // Pausa o mundo de jogo com segurança enquanto o jogador escolhe sua carta
   scene.physics.pause();
   scene.time.paused = true;
+  scene.tweens.pauseAll();
+  if (scene.anims && scene.anims.pauseAll) {
+    scene.anims.pauseAll();
+  }
   if (player && player.body) player.setVelocity(0, 0);
   [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.pause();
+    if (s && s.anims && s.anims.isPlaying) s.anims.pause();
   });
   sound.pauseBGM();
   sound.playLevelUp();
@@ -254,10 +259,21 @@ function openLevelUpDraft(scene) {
     if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
     scene.physics.resume();
+    scene.physics.world.isPaused = false;
     scene.time.paused = false;
     scene.tweens.resumeAll();
+    if (scene.anims) {
+      if (scene.anims.resumeAll) scene.anims.resumeAll();
+      scene.anims.paused = false;
+    }
     [player, ...enemies.getChildren()].forEach(s => {
-      if (s && s.anims) s.anims.resume();
+      if (s && s.anims) {
+        if (s.anims.isPaused) {
+          s.anims.resume();
+        } else if (!s.anims.isPlaying && s.anims.currentAnim) {
+          s.anims.play({ key: s.anims.currentAnim.key, repeat: -1 });
+        }
+      }
     });
     sound.resumeBGM();
 
@@ -411,7 +427,12 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     children.push(sub);
   }
 
-  return scene.add.container(0, 0, children).setDepth(3000).setScrollFactor(0);
+  const container = scene.add.container(0, 0, children).setDepth(3000).setScrollFactor(0);
+  activeModal = container;
+  container.on('destroy', () => {
+    if (activeModal === container) activeModal = null;
+  });
+  return container;
 }
 
 
@@ -431,12 +452,16 @@ function pauseGame(scene) {
   if (gameState !== 'PLAYING') return;
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
   gameState = 'PAUSED';
+  isHitstopping = false;
 
   scene.physics.pause();
   scene.time.paused = true;
   scene.tweens.pauseAll();
+  if (scene.anims && scene.anims.pauseAll) {
+    scene.anims.pauseAll();
+  }
   [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.pause();
+    if (s && s.anims && s.anims.isPlaying) s.anims.pause();
   });
   if (player && player.body) {
     player.setVelocity(0, 0);
@@ -456,10 +481,21 @@ function resumeGame(scene) {
   if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
 
   scene.physics.resume();
+  scene.physics.world.isPaused = false;
   scene.time.paused = false;
   scene.tweens.resumeAll();
+  if (scene.anims) {
+    if (scene.anims.resumeAll) scene.anims.resumeAll();
+    scene.anims.paused = false;
+  }
   [player, ...enemies.getChildren()].forEach(s => {
-    if (s && s.anims) s.anims.resume();
+    if (s && s.anims) {
+      if (s.anims.isPaused) {
+        s.anims.resume();
+      } else if (!s.anims.isPlaying && s.anims.currentAnim) {
+        s.anims.play({ key: s.anims.currentAnim.key, repeat: -1 });
+      }
+    }
   });
   sound.resumeBGM();
   sound.playButtonClick();
@@ -700,7 +736,7 @@ function showInitials(scene) {
 
 function showLeaderboard(scene, topScores, currentName) {
   const modalW = 580;
-  const modalH = 500;
+  const modalH = 520;
   const cx = GAME_WIDTH / 2;
   const top = (GAME_HEIGHT - modalH) / 2;
 
@@ -714,25 +750,27 @@ function showLeaderboard(scene, topScores, currentName) {
     const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
     if (isMine) marked = true;
     const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
-    const rowY = top + 118 + i * 44;
+    const rowY = top + 98 + i * 36;
 
     const rowBg = scene.add.graphics();
-    rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
-    rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 17, 460, 34, 4);
+    rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 14, 460, 28, 4);
+    rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 14, 460, 28, 4);
 
     const rowTxt = scene.add.text(cx, rowY, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`, {
-      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 16),
+      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 15),
       fontStyle: isMine ? 'bold' : 'normal'
     }).setOrigin(0.5);
-    fitTextToBox(rowTxt, 430, 28, 12);
+    fitTextToBox(rowTxt, 430, 24, 11);
 
     modal.add([rowBg, rowTxt]);
   });
 
   const goldToDouble = summary.totalGoldEarned ?? summary.earnedGold ?? 0;
-  if (goldToDouble > 0) {
+  const hasRewardButton = goldToDouble > 0;
+
+  if (hasRewardButton) {
     let rewardedUsed = false;
-    const doubleGoldBtn = createButton(scene, cx, top + 338, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
+    const doubleGoldBtn = createButton(scene, cx, top + 296, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
       if (rewardedUsed) return;
       sound.playButtonClick();
       if (typeof PlatformBridge !== 'undefined') {
@@ -745,11 +783,11 @@ function showLeaderboard(scene, topScores, currentName) {
             doubleGoldBtn[0].setFillStyle(0x233e18);
             doubleGoldBtn[0].setStrokeStyle(2, 0x81c784);
             doubleGoldBtn[1].setColor('#a5d6a7');
-            floatText(scene, cx, top + 300, `+${goldToDouble} OURO EXTRA!`, '#ffd740');
+            floatText(scene, cx, top + 260, `+${goldToDouble} OURO EXTRA!`, '#ffd740');
           }
         });
       }
-    }, 440, 32);
+    }, 460, 36);
     doubleGoldBtn[0].setFillStyle(0x4a2e12);
     doubleGoldBtn[0].setStrokeStyle(2, 0xffd54f);
     doubleGoldBtn[1].setColor('#ffe082');
@@ -777,12 +815,17 @@ function showLeaderboard(scene, topScores, currentName) {
     finishAndRestart(true, false);
   };
 
-  const newRunBtn = createButton(scene, cx - 138, top + 368, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 36);
-  const forgeBtn = createButton(scene, cx + 138, top + 368, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 36);
-  const mageBtn = createButton(scene, cx - 138, top + 412, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 36);
-  const menuBtn = createButton(scene, cx + 138, top + 412, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 36);
+  // Layout Vertical Stack dinâmico e sem sobreposição
+  const actionRow1Y = hasRewardButton ? (top + 352) : (top + 316);
+  const actionRow2Y = hasRewardButton ? (top + 402) : (top + 368);
+  const hintY = hasRewardButton ? (top + 452) : (top + 422);
+
+  const newRunBtn = createButton(scene, cx - 138, actionRow1Y, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 38);
+  const forgeBtn = createButton(scene, cx + 138, actionRow1Y, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 38);
+  const mageBtn = createButton(scene, cx - 138, actionRow2Y, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 38);
+  const menuBtn = createButton(scene, cx + 138, actionRow2Y, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 38);
   const isTouchDevice = (typeof virtualJoystick !== 'undefined' && virtualJoystick && virtualJoystick.isMobile);
-  const hintTxt = scene.add.text(cx, top + 452, isTouchDevice ? 'Toque em um dos botões para prosseguir' : '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const hintTxt = scene.add.text(cx, hintY, isTouchDevice ? 'Toque em um dos botões para prosseguir' : '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
 
   modal.add([...newRunBtn, ...forgeBtn, ...mageBtn, ...menuBtn, hintTxt]);
 

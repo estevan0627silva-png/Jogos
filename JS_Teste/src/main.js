@@ -9,6 +9,7 @@ function preload() {
   if (this.textures.exists('knight')) return;
   makeSheet(this, 'knight', 32, 32, 4, drawKnight);
   makeSheet(this, 'goblin', 28, 28, 2, drawGoblin);
+  makeSheet(this, 'goblin_scout', 22, 22, 2, drawGoblinScout);
   makeSheet(this, 'warrior', 36, 36, 2, drawWarrior);
   makeSheet(this, 'elf', 32, 32, 2, drawElf);
 
@@ -134,6 +135,7 @@ function create(data) {
   const animSpecs = {
     knight: { fps: 12, frames: 4 },
     goblin: { fps: 12, frames: 2 },
+    goblin_scout: { fps: 14, frames: 2 },
     warrior: { fps: 8, frames: 2 },
     elf: { fps: 9, frames: 2 },
 
@@ -505,7 +507,29 @@ function updateGameplay(scene, time, dt) {
         e.barrierSprite.setPosition(Math.round(e.x - 16), Math.round(e.y));
         e.barrierSprite.setDepth(e.depth + 5);
       }
-      if (e.enemyType === 'goblin') {
+      if (e.enemyType === 'goblin_scout') {
+        if (e.phase === undefined) e.phase = Math.random() * 6.28;
+        // Movimentação em zigue-zague dinâmico relativo ao vetor do jogador:
+        // V_final = V_forward * speed + V_perpendicular * (sin(time * omega) * A)
+        let fwdX = -1, fwdY = 0;
+        let perpX = 0, perpY = 1;
+        if (player && player.active) {
+          const dx = player.x - e.x;
+          const dy = player.y - e.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 1) {
+            fwdX = dx / dist;
+            fwdY = dy / dist;
+            perpX = -fwdY;
+            perpY = fwdX;
+          }
+        }
+        const scoutSpeed = (enemySpeed || 195) * (ENEMIES.goblin_scout ? ENEMIES.goblin_scout.speed : 1.48);
+        const osc = Math.sin(time * 0.0065 + e.phase) * 80;
+        e.setVelocity(fwdX * scoutSpeed + perpX * osc, fwdY * scoutSpeed + perpY * osc);
+        e.y = Phaser.Math.Clamp(e.y, 125, 525);
+        if (e.body) e.body.updateFromGameObject();
+      } else if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
         // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
@@ -659,6 +683,9 @@ function sortAndShade() {
       pw = 74; ph = 20; cw = 56; ch = 12;
       pAlpha = 0.26; cAlpha = 0.44;
       groundY = feet - 3;
+    } else if (s.enemyType === 'goblin_scout') {
+      pw = 14; ph = 5; cw = 10; ch = 3;
+      pAlpha = 0.18; cAlpha = 0.30;
     } else if (s.enemyType === 'goblin') {
       pw = 18; ph = 6; cw = 12; ch = 3;
     } else if (s.enemyType === 'warrior') {

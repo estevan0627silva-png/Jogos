@@ -9,17 +9,17 @@ function spawnEnemy(scene, forcedType, customY) {
       // Regra 6: Durante a Boss Fight, gera exclusivamente Mini-Golems
       type = 'mini_golem';
     } else if (bossDefeated) {
-      // Regras 3 e 4: O Mago só aparece após o Boss ser derrotado e com taxa rara (8%)
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.40 ? 'goblin' : (roll < 0.72 ? 'warrior' : 'elf'));
+      // Pós-Boss: O Mago aparece com taxa rara (8%), Rastreador Ágil (20%), Goblins, Guerreiros e Elfos
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.28 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.78 ? 'warrior' : 'elf')));
     } else if (survivalTime >= 40) {
-      // Fase pré-boss avançada: Goblins, guerreiros e elfos (SEM MAGO)
-      type = roll < 0.45 ? 'goblin' : (roll < 0.75 ? 'warrior' : 'elf');
+      // Fase pré-boss avançada: Goblins Rastreadores ágeis (28%), Goblins comuns, guerreiros e elfos (SEM MAGO)
+      type = roll < 0.28 ? 'goblin_scout' : (roll < 0.56 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 20) {
-      // Fase pré-boss intermediária
-      type = roll < 0.52 ? 'goblin' : (roll < 0.84 ? 'warrior' : 'elf');
+      // Fase pré-boss intermediária (20s - 40s): Introduz Rastreadores ágeis (16%)
+      type = roll < 0.16 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
     } else {
-      // Curva inicial suave: predominantemente goblins simples
-      type = roll < 0.80 ? 'goblin' : 'warrior';
+      // Curva inicial: predominantemente goblins simples e guerreiros
+      type = roll < 0.76 ? 'goblin' : 'warrior';
     }
   }
   const cfg = ENEMIES[type] || ENEMIES.goblin;
@@ -35,7 +35,7 @@ function spawnEnemy(scene, forcedType, customY) {
   }
 
   const enemy = enemies.create(860, y, type, 0);
-  enemy.play({ key: type, startFrame: Phaser.Math.Between(0, 1) }).setFlipX(true);
+  enemy.play({ key: type, repeat: -1, startFrame: Phaser.Math.Between(0, 1) }).setFlipX(true);
   enemy.body.setSize(cfg.w, cfg.h);
   enemy.setVelocityX(-enemySpeed * cfg.speed);
   enemy.phase = Math.random() * 10;
@@ -79,6 +79,8 @@ function spawnEnemy(scene, forcedType, customY) {
       activateMageBarrier(scene, enemy);
     });
   }
+
+  return enemy;
 }
 
 // =============================================================================

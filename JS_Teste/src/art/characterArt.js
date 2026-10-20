@@ -115,6 +115,42 @@ function drawGoblin(r, f) {
   leg(5, f === 0); leg(8, f === 1);
 }
 
+// Goblin Scout / Rastreador Ágil (Silhueta compacta 22x22, bandana vermelha e adagas duplas)
+function drawGoblinScout(r, f) {
+  // 1. Bandana Carmesim Amarrada na Testa com Nó Esvoaçante
+  r(C.redBase, 2, 1, 6, 2);
+  r(C.redHighlight, 3, 1, 4, 1);
+  r(C.deepBlood, 0, 2, 2, 2); // Ponta do nó da bandana esvoaçando para trás
+
+  // 2. Orelhas Pontudas Inclinadas Aerodinâmicas
+  r(C.gobShadow, 0, 3, 2, 2); r(C.gobLight, 1, 3, 1, 1);
+  r(C.gobShadow, 8, 3, 2, 2); r(C.gobLight, 8, 3, 1, 1);
+
+  // 3. Cabeça e Rosto Esverdeado Ágil
+  r(C.gobShadow, 2, 3, 6, 3);
+  r(C.gobBase, 3, 3, 4, 3);
+
+  // 4. Olhos Amarelos Rápidos e Nariz Fino
+  r(C.yellow, 3, 4, 1, 1); r(C.eye, 3, 4, 1, 1);
+  r(C.yellow, 6, 4, 1, 1); r(C.eye, 6, 4, 1, 1);
+  r(C.gobDeep, 7, 5, 2, 1);
+
+  // 5. Colete de Couro Leve
+  r(C.leatherDark, 2, 6, 6, 3);
+  r(C.leatherBase, 3, 6, 4, 2);
+
+  // 6. Adagas Duplas Ágeis com Gume Polido
+  r(C.steelLight, 9, 3, 1, 4); r(C.white, 9, 3, 1, 1); // Adaga frontal
+  r(C.steelLight, 0, 5, 1, 3); r(C.white, 0, 5, 1, 1); // Adaga traseira
+
+  // 7. Pernas Pequenas com Passada Veloz
+  const leg = (x, up) => {
+    r(C.gobShadow, x, 9, 2, up ? 1 : 2);
+    r(C.outline, x, up ? 10 : 11, 2, 1);
+  };
+  leg(3, f === 0); leg(6, f === 1);
+}
+
 function drawWarrior(r, f) {
   // 1. Capa Carmesim Rasgada Esvoaçante com Dobras de Sombra
   r(C.deepBlood, 2, 8, 3, 8);

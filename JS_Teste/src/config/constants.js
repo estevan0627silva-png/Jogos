@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v1.6.0';
-const VERSION_TITLE = 'Combat Overhaul, Stone Golem & Refined Touch Controls';
-const VERSION_DESC = 'Boss Golem aos 60s com ejeção física e despertar de Mini-Golems conforme o HP, defesa do Mago com esquiva/teletransporte contra projéteis, movimentação em zigue-zague dos Goblins, sistema de vida padronizado em Corações/Hits, progressão infinita de armas com balanceamento, escalonamento de tamanho e Knockback da Espada, joystick virtual ancorado com toggle nas configurações e remoção do botão de ação.';
+const GAME_VERSION = 'v2.0.0';
+const VERSION_TITLE = 'A Lâmina Vorpal & O Rastreador da Floresta (The Vorpal Blade & Forest Scout Update)';
+const VERSION_DESC = 'Reformulação do combate da Espada Vorpal (lâmina única persistente, corte procedural aerodinâmico em 5 camadas e slashes múltiplos em leque 180°), correção raiz de congelamento de animações (boot, hitstops e draft de level-up), introdução do Goblin Rastreador veloz com zigue-zague vetorial, layout vertical do resumo pós-derrota e rebalanceamento da densidade de ondas desde os primeiros segundos.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -21,8 +21,9 @@ const BUFF_NAMES = {
   firestaff: 'CAJADO DE FOGO'
 };
 const ENEMIES = {                                    // vida, velocidade relativa, hitbox e XP dropado
-  goblin:     { hp: 1, speed: 1.12, w: 16, h: 20, xp: 2 },
-  warrior:    { hp: 2, speed: 0.86, w: 20, h: 26, xp: 5 },
+  goblin:       { hp: 1, speed: 1.12, w: 16, h: 20, xp: 2 },
+  goblin_scout: { hp: 1, speed: 1.48, w: 14, h: 16, xp: 2 }, // rastreador ágil e veloz com zigue-zague evasivo
+  warrior:      { hp: 2, speed: 0.86, w: 20, h: 26, xp: 5 },
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
   mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
