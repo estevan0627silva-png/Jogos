@@ -322,6 +322,9 @@ function create(data) {
         const kbDist = Math.min(34, s.knockback ? Math.round(s.knockback * 0.65) : 22);
         applySmoothKnockback(scene, e, kbDist, 130);
       }
+      if (e.enemyType === 'warrior' || e.isBoss) {
+        triggerHitstop(scene, 40);
+      }
     }
   });
   scene.physics.add.overlap(slashes, enemyArrows, (s, a) => {
@@ -707,9 +710,9 @@ function sortAndShade() {
     }
   }
   slashes.getChildren().forEach(s => {
-    s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y)).setDepth(player.depth + 3);
+    s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y + (s.offsetY || 0))).setDepth(player.depth + 3);
     if (s.blade && s.blade.active) {
-      s.blade.setPosition(Math.round(player.x + 8), Math.round(player.y + 4)).setDepth(player.depth + 2);
+      s.blade.setPosition(Math.round(player.x + (s.bladeOffsetX || 8)), Math.round(player.y + (s.bladeOffsetY || 4))).setDepth(player.depth + 2);
     }
   });
 }

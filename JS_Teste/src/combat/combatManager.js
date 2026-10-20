@@ -16,6 +16,38 @@ function removeEntity(obj) {
   obj.destroy();
 }
 
+// HITSTOP MILIMÉTRICO (Micro-freeze tátil de impacto em golpes pesados)
+function triggerHitstop(scene, durationMs = 45) {
+  if (!scene || isHitstopping || gameState !== 'PLAYING') return;
+  if (!scene.physics || !scene.physics.world) return;
+
+  isHitstopping = true;
+  scene.physics.world.isPaused = true;
+  if (scene.anims && scene.anims.pauseAll) {
+    scene.anims.pauseAll();
+  }
+
+  let resumed = false;
+  const resume = () => {
+    if (resumed) return;
+    resumed = true;
+    isHitstopping = false;
+    if (gameState === 'PLAYING') {
+      if (scene && scene.physics && scene.physics.world) {
+        scene.physics.world.isPaused = false;
+      }
+      if (scene && scene.anims && scene.anims.resumeAll) {
+        scene.anims.resumeAll();
+      }
+    }
+  };
+
+  if (scene.time && scene.time.delayedCall) {
+    scene.time.delayedCall(durationMs, resume);
+  }
+  setTimeout(resume, durationMs + 25);
+}
+
 function damageEnemy(scene, enemy, dmg = 1) {
   if (!enemy || !enemy.active) return;
   enemy.hp = (enemy.hp ?? 1) - dmg;
@@ -268,6 +300,7 @@ function playerHit(scene, hazard) {
 
   playerHp = Math.max(0, playerHp - 1);
   updateHeartsHUD();
+  triggerHitstop(scene, 55);
 
   if (playerHp > 0) {
     playerInvulnerable = true;
@@ -304,6 +337,7 @@ function playerHit(scene, hazard) {
       onComplete: () => {
         if (player && player.active) player.setAlpha(1);
         playerInvulnerable = false;
+  isHitstopping = false;
       }
     });
     return;
@@ -316,6 +350,7 @@ function gameOver(scene) {
   if (gameState === 'GAMEOVER') return;
   gameState = 'GAMEOVER';
   playerInvulnerable = false;
+  isHitstopping = false;
   pendingLevelUps = 0;
 
   consolidateSilverToGold();

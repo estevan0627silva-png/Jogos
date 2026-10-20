@@ -9,7 +9,7 @@ let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
 let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null;
 let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
-let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
+let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false, isHitstopping = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;

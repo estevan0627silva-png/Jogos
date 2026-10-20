@@ -60,6 +60,8 @@ const BOSS_BASS = [
   73.42, 110.00, 73.42, 77.78, 73.42, 65.41, 73.42, 110.00
 ];
 
+const XP_SCALE = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51];
+
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -73,6 +75,9 @@ class SoundSystem {
     this.bgmMode = 'battle';
     this.nextStepTime = 0;
     this.currentStep = 0;
+
+    this.xpComboIndex = 0;
+    this.lastXpCollectTime = 0;
 
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
@@ -154,6 +159,9 @@ class SoundSystem {
     this.bgmMode = mode;
     this.bgmPlaying = true;
     this.currentStep = 0;
+
+    this.xpComboIndex = 0;
+    this.lastXpCollectTime = 0;
     if (this.bgmGain && !this.muted) {
       const vol = mode === 'menu' ? 0.12 : (mode === 'boss' ? 0.16 : 0.14);
       this.bgmGain.gain.setValueAtTime(vol, this.ctx.currentTime);
@@ -620,14 +628,22 @@ class SoundSystem {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(740, now);
-    osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.07);
-    gain.gain.setValueAtTime(0.18, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    const nowMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    if (nowMs - this.lastXpCollectTime < 450) {
+      this.xpComboIndex = (this.xpComboIndex + 1) % XP_SCALE.length;
+    } else {
+      this.xpComboIndex = 0;
+    }
+    this.lastXpCollectTime = nowMs;
+    const baseFreq = XP_SCALE[this.xpComboIndex];
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.25, now + 0.07);
+    gain.gain.setValueAtTime(0.20, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
     osc.connect(gain);
     gain.connect(this.sfxGain);
     osc.start(now);
-    osc.stop(now + 0.08);
+    osc.stop(now + 0.09);
   }
 
   // Fanfarra de Level Up (harpa ascendente em Ré Maior / Lá Maior)

@@ -568,7 +568,7 @@ let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
 let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null;
 let gameState, survivalTime, runSilver = 0, runGold = 0, lastRunSummary = null;
-let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false;
+let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false, isHitstopping = false;
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
@@ -969,6 +969,8 @@ const BOSS_BASS = [
   73.42, 110.00, 73.42, 77.78, 73.42, 65.41, 73.42, 110.00
 ];
 
+const XP_SCALE = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51];
+
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -982,6 +984,9 @@ class SoundSystem {
     this.bgmMode = 'battle';
     this.nextStepTime = 0;
     this.currentStep = 0;
+
+    this.xpComboIndex = 0;
+    this.lastXpCollectTime = 0;
 
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
@@ -1063,6 +1068,9 @@ class SoundSystem {
     this.bgmMode = mode;
     this.bgmPlaying = true;
     this.currentStep = 0;
+
+    this.xpComboIndex = 0;
+    this.lastXpCollectTime = 0;
     if (this.bgmGain && !this.muted) {
       const vol = mode === 'menu' ? 0.12 : (mode === 'boss' ? 0.16 : 0.14);
       this.bgmGain.gain.setValueAtTime(vol, this.ctx.currentTime);
@@ -1529,14 +1537,22 @@ class SoundSystem {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(740, now);
-    osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.07);
-    gain.gain.setValueAtTime(0.18, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    const nowMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    if (nowMs - this.lastXpCollectTime < 450) {
+      this.xpComboIndex = (this.xpComboIndex + 1) % XP_SCALE.length;
+    } else {
+      this.xpComboIndex = 0;
+    }
+    this.lastXpCollectTime = nowMs;
+    const baseFreq = XP_SCALE[this.xpComboIndex];
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.25, now + 0.07);
+    gain.gain.setValueAtTime(0.20, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
     osc.connect(gain);
     gain.connect(this.sfxGain);
     osc.start(now);
-    osc.stop(now + 0.08);
+    osc.stop(now + 0.09);
   }
 
   // Fanfarra de Level Up (harpa ascendente em Ré Maior / Lá Maior)
@@ -3597,53 +3613,77 @@ const WeaponStrategies = {
       const scale = 0.80 * stats.area;
       const dmg = stats.damage;
       const knockback = stats.knockback;
-      const offsetX = Math.round(24 + (stats.area - 1.0) * 16);
+      const offsetDist = Math.round(26 + (stats.area - 1.0) * 16);
 
-      const slash = slashes.create(player.x + offsetX, player.y, 'slash_arc');
-      slash.setScale(scale);
-      slash.offsetX = offsetX;
-      slash.body.setSize(Math.round(42 * scale), Math.round(64 * scale));
-      slash.slashId = nextProjId();
-      slash.dmg = dmg;
-      slash.knockback = knockback;
-      slash.blade = scene.add.image(player.x, player.y, 'sword_blade')
-        .setOrigin(0.5, 0.78)
-        .setScale(0.85 * stats.area);
+      // Multiplicação de Slashes pelo Pergaminho Multi-Shot (180° Frontal)
+      const numSlashes = Math.max(1, stats.projectiles || 1);
+      let degAngles = [0];
 
-      fx.sparks.explode(5, player.x + offsetX, player.y);
+      if (numSlashes === 2) {
+        degAngles = [-35, 35];
+      } else if (numSlashes === 3) {
+        degAngles = [-50, 0, 50];
+      } else if (numSlashes === 4) {
+        degAngles = [-65, -22, 22, 65];
+      } else if (numSlashes >= 5) {
+        degAngles = [];
+        const step = 160 / (numSlashes - 1);
+        for (let i = 0; i < numSlashes; i++) {
+          degAngles.push(-80 + i * step);
+        }
+      }
 
-      slash.on('destroy', () => {
-        if (slash.blade && slash.blade.active) slash.blade.destroy();
-      });
+      // Trava rígida de 180° frontal: estritamente [-90°, +90°], proibido qualquer golpe nas costas
+      degAngles = degAngles.map(d => Phaser.Math.Clamp(d, -90, 90));
 
-      scene.tweens.add({ targets: slash.blade, angle: { from: -65, to: 125 }, duration: 150, ease: 'Cubic.easeOut' });
-      scene.tweens.add({
-        targets: slash, alpha: { from: 1, to: 0 }, duration: 190,
-        onComplete: () => slash.destroy()
-      });
+      degAngles.forEach(deg => {
+        const ang = Phaser.Math.DegToRad(deg);
+        const posX = player.x + Math.cos(ang) * offsetDist;
+        const posY = player.y + Math.sin(ang) * offsetDist;
 
-      // Pergaminho Multi-Shot: Adiciona ondas cortantes de vento para frente
-      if (stats.projectiles > 1) {
-        const extraWaves = stats.projectiles - 1;
-        let waveAngles = [0];
-        if (extraWaves === 2) waveAngles = [-0.14, 0.14];
-        else if (extraWaves === 3) waveAngles = [-0.20, 0, 0.20];
-        else if (extraWaves === 4) waveAngles = [-0.26, -0.09, 0.09, 0.26];
-        else if (extraWaves >= 5) waveAngles = [-0.30, -0.15, 0, 0.15, 0.30];
+        const slash = slashes.create(posX, posY, 'slash_arc');
+        slash.setScale(scale);
+        slash.rotation = ang;
+        slash.offsetX = Math.cos(ang) * offsetDist;
+        slash.offsetY = Math.sin(ang) * offsetDist;
+        slash.body.setSize(Math.round(42 * scale), Math.round(64 * scale));
+        slash.slashId = nextProjId();
+        slash.dmg = dmg;
+        slash.knockback = knockback;
 
-        waveAngles.forEach(ang => {
-          const waveProj = arrows.create(player.x + 36, player.y, 'arrow_player');
-          waveProj.setTint(0x7fe7ff);
-          waveProj.setScale(scale * 1.15);
-          waveProj.body.setSize(22, 14);
-          waveProj.dmg = dmg;
-          waveProj.knockback = 0; // Ondas são projéteis
-          waveProj.pierceCount = 3;
-          waveProj.projId = nextProjId();
-          waveProj.setVelocity(Math.cos(ang) * 720, Math.sin(ang) * 720);
-          waveProj.rotation = ang;
+        const bladeOffX = Math.round(Math.cos(ang) * 10);
+        const bladeOffY = Math.round(Math.sin(ang) * 10);
+        slash.bladeOffsetX = bladeOffX;
+        slash.bladeOffsetY = bladeOffY;
+        slash.blade = scene.add.image(player.x + bladeOffX, player.y + bladeOffY, 'sword_blade')
+          .setOrigin(0.5, 0.78)
+          .setScale(0.85 * stats.area)
+          .setRotation(ang);
+
+        slash.on('destroy', () => {
+          if (slash.blade && slash.blade.active) slash.blade.destroy();
         });
-        fx.holy.explode(6, player.x + 34, player.y);
+
+        scene.tweens.add({
+          targets: slash.blade,
+          angle: { from: deg - 65, to: deg + 125 },
+          duration: 150,
+          ease: 'Cubic.easeOut'
+        });
+
+        scene.tweens.add({
+          targets: slash,
+          alpha: { from: 1, to: 0 },
+          duration: 190,
+          ease: 'Linear',
+          onComplete: () => slash.destroy()
+        });
+
+        fx.sparks.explode(4, posX, posY);
+      });
+
+      if (numSlashes > 1) {
+        fx.holy.explode(6, player.x + 28, player.y);
       }
     }
   },
@@ -4018,6 +4058,38 @@ function removeEntity(obj) {
   obj.destroy();
 }
 
+// HITSTOP MILIMÉTRICO (Micro-freeze tátil de impacto em golpes pesados)
+function triggerHitstop(scene, durationMs = 45) {
+  if (!scene || isHitstopping || gameState !== 'PLAYING') return;
+  if (!scene.physics || !scene.physics.world) return;
+
+  isHitstopping = true;
+  scene.physics.world.isPaused = true;
+  if (scene.anims && scene.anims.pauseAll) {
+    scene.anims.pauseAll();
+  }
+
+  let resumed = false;
+  const resume = () => {
+    if (resumed) return;
+    resumed = true;
+    isHitstopping = false;
+    if (gameState === 'PLAYING') {
+      if (scene && scene.physics && scene.physics.world) {
+        scene.physics.world.isPaused = false;
+      }
+      if (scene && scene.anims && scene.anims.resumeAll) {
+        scene.anims.resumeAll();
+      }
+    }
+  };
+
+  if (scene.time && scene.time.delayedCall) {
+    scene.time.delayedCall(durationMs, resume);
+  }
+  setTimeout(resume, durationMs + 25);
+}
+
 function damageEnemy(scene, enemy, dmg = 1) {
   if (!enemy || !enemy.active) return;
   enemy.hp = (enemy.hp ?? 1) - dmg;
@@ -4270,6 +4342,7 @@ function playerHit(scene, hazard) {
 
   playerHp = Math.max(0, playerHp - 1);
   updateHeartsHUD();
+  triggerHitstop(scene, 55);
 
   if (playerHp > 0) {
     playerInvulnerable = true;
@@ -4306,6 +4379,7 @@ function playerHit(scene, hazard) {
       onComplete: () => {
         if (player && player.active) player.setAlpha(1);
         playerInvulnerable = false;
+  isHitstopping = false;
       }
     });
     return;
@@ -4318,6 +4392,7 @@ function gameOver(scene) {
   if (gameState === 'GAMEOVER') return;
   gameState = 'GAMEOVER';
   playerInvulnerable = false;
+  isHitstopping = false;
   pendingLevelUps = 0;
 
   consolidateSilverToGold();
@@ -8045,6 +8120,9 @@ function create(data) {
         const kbDist = Math.min(34, s.knockback ? Math.round(s.knockback * 0.65) : 22);
         applySmoothKnockback(scene, e, kbDist, 130);
       }
+      if (e.enemyType === 'warrior' || e.isBoss) {
+        triggerHitstop(scene, 40);
+      }
     }
   });
   scene.physics.add.overlap(slashes, enemyArrows, (s, a) => {
@@ -8430,9 +8508,9 @@ function sortAndShade() {
     }
   }
   slashes.getChildren().forEach(s => {
-    s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y)).setDepth(player.depth + 3);
+    s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y + (s.offsetY || 0))).setDepth(player.depth + 3);
     if (s.blade && s.blade.active) {
-      s.blade.setPosition(Math.round(player.x + 8), Math.round(player.y + 4)).setDepth(player.depth + 2);
+      s.blade.setPosition(Math.round(player.x + (s.bladeOffsetX || 8)), Math.round(player.y + (s.bladeOffsetY || 4))).setDepth(player.depth + 2);
     }
   });
 }
