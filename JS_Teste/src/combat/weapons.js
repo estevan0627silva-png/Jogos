@@ -1,8 +1,4 @@
 // =============================================================================
-// SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
-// Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
-// permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
-// =============================================================================
 
 // Schema Unificado de Status de Armas:
 // damage, area, attackRate, knockback, projectiles
@@ -54,19 +50,36 @@ function getWeaponStats(type, lvl = 1) {
     projectiles: base.projectiles
   };
 
-  // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
+  const effectiveLvl = Math.max(1, lvl);
+
+  // 1. Progressão Exponencial com Atributos Fortes e Guardrails de Engine
   if (type === 'sword') {
-    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível (+24% por nível)
-    stats.area = 1.0 + (lvl - 1) * 0.24;
+    // ATRIBUTO FORTE: Área / Tamanho (Escala +28% multiplicativo por nível até Nv. 5)
+    if (effectiveLvl <= 5) {
+      stats.area = Math.pow(1.28, effectiveLvl - 1);
+    } else {
+      stats.area = Math.min(3.60, Math.pow(1.28, 4) * (1 + 0.05 * (effectiveLvl - 5)));
+    }
   } else if (type === 'bow') {
-    // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
-    stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
+    // ATRIBUTO FORTE: Cadência (+25% disparos por segundo por nível -> delay reduz 20% por nível)
+    // Teto de segurança absoluto: 100ms (10 flechas/s a 60 FPS para estabilidade de engine)
+    stats.attackRate = Math.max(100, Math.round(500 * Math.pow(0.80, effectiveLvl - 1)));
   } else if (type === 'axe') {
-    // Machado: Aumenta SOMENTE o Knockback por nível
-    stats.knockback = 28 + (lvl - 1) * 19;
+    // ATRIBUTO FORTE: Knockback (+50% de repulsão por nível até Nv. 5)
+    // Teto de segurança absoluto: 220px (evita arremesso para fora da tela de 800px)
+    if (effectiveLvl <= 5) {
+      stats.knockback = Math.round(30 * Math.pow(1.50, effectiveLvl - 1));
+    } else {
+      stats.knockback = Math.min(220, Math.round(30 * Math.pow(1.50, 4) + (effectiveLvl - 5) * 12));
+    }
   } else if (type === 'firestaff') {
-    // Cajado de Fogo: Aumenta SOMENTE o Tamanho da Explosão e Poça por nível
-    stats.area = 45 + (lvl - 1) * 20;
+    // ATRIBUTO FORTE: Raio de Explosão e Poça (+27% no raio por nível -> área multiplica exponencialmente)
+    // Teto de segurança absoluto: raio de 160px
+    if (effectiveLvl <= 5) {
+      stats.area = Math.round(45 * Math.pow(1.27, effectiveLvl - 1));
+    } else {
+      stats.area = Math.min(160, Math.round(45 * Math.pow(1.27, 4) + (effectiveLvl - 5) * 6));
+    }
   }
 
   // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
@@ -84,9 +97,9 @@ function getWeaponStats(type, lvl = 1) {
   }
 
   if (asLvl > 0) {
-    const asMult = 1.0 + asLvl * 0.16;
+    const asMult = 1.0 + asLvl * 0.18;
     if (stats.attackRate > 0) {
-      stats.attackRate = Math.max(80, Math.round(stats.attackRate / asMult));
+      stats.attackRate = Math.max(90, Math.round(stats.attackRate / asMult));
     }
   }
 
@@ -99,7 +112,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.bow,
     baseDuration: BUFF_TIME.bow,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('bow', lvl).attackRate;
@@ -146,7 +161,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.sword,
     baseDuration: BUFF_TIME.sword,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('sword', lvl).attackRate;
@@ -273,7 +290,11 @@ const WeaponStrategies = {
     name: BUFF_NAMES.shield,
     baseDuration: BUFF_TIME.shield,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 1.50 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = (l <= 5)
+        ? 4.8 * Math.pow(1.35, l - 1)
+        : Math.min(24.0, 4.8 * Math.pow(1.35, 4) + (l - 5) * 1.5);
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate() { return 0; },
     attack() { /* O escudo é defensivo/reativo a impactos */ },
@@ -297,7 +318,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.axe,
     baseDuration: BUFF_TIME.axe,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('axe', lvl).attackRate;
@@ -341,7 +364,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.firestaff,
     baseDuration: BUFF_TIME.firestaff,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('firestaff', lvl).attackRate;
@@ -622,3 +647,10 @@ function triggerPlayerAction(scene) {
     });
   }
 }
+
+
+// --- BUNDLE FILE: JS_Teste/src/combat/combatManager.js ---
+// =============================================================================
+// GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
+// =============================================================================
+// COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)

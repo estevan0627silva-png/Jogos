@@ -1,11 +1,10 @@
-﻿
-// --- BUNDLE FILE: JS_Teste/src/config/constants.js ---
+// >>> START: src/config/constants.js
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.0.0';
-const VERSION_TITLE = 'A Lâmina Vorpal & O Rastreador da Floresta (The Vorpal Blade & Forest Scout Update)';
-const VERSION_DESC = 'Reformulação do combate da Espada Vorpal (lâmina única persistente, corte procedural aerodinâmico em 5 camadas e slashes múltiplos em leque 180°), correção raiz de congelamento de animações (boot, hitstops e draft de level-up), introdução do Goblin Rastreador veloz com zigue-zague vetorial, layout vertical do resumo pós-derrota e rebalanceamento da densidade de ondas desde os primeiros segundos.';
+const GAME_VERSION = 'v2.1.0';
+const VERSION_TITLE = 'Evolução Exponencial: Atributos Fortes & Redesign Nobre dos Cards';
+const VERSION_DESC = 'Mega atualização das mecânicas de evolução: progressão multiplicativa/exponencial com Atributo Forte exclusivo por arma (Espada: Área, Machado: Knockback, Arco: Cadência, Cajado: Área de Explosão, Escudo: Duração), tetos assintóticos de segurança contra bugs a 60 FPS, e redesign visual dos cards de Level Up eliminando poluição numérica técnica em favor de badges e descrições temáticas de alta fantasia.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -45,8 +44,9 @@ const STORAGE_JOYSTICK_KEY = 'knight_quest_joystick_mode_v1';
 
 // Catálogo do Ferreiro (Apenas Desbloqueio no Menu; os Níveis 1 a 5 evoluem IN-GAME via XP Level Up!)
 
+// <<< END: src/config/constants.js
 
-// --- BUNDLE FILE: JS_Teste/src/config/palette.js ---
+// >>> START: src/config/palette.js
 // PALETA DE CORES DA PIXEL ART (Padrão 16-bit com rampas de 3 a 4 sub-tons)
 // Todas as chaves originais foram preservadas para garantir 100% de retrocompatibilidade.
 // =============================================================================
@@ -208,85 +208,91 @@ const C = {
 
 // =============================================================================
 
+// <<< END: src/config/palette.js
 
-// --- BUNDLE FILE: JS_Teste/src/config/catalogs.js ---
+// >>> START: src/config/catalogs.js
 // =============================================================================
 // CATÁLOGOS DE EQUIPAMENTOS, STATUS E CONQUISTAS
 // =============================================================================
 const WEAPON_CATALOG = {
   bow: {
     name: 'ARCO REAL',
+    category: 'DISPARO REAL',
     icon: 'item_bow',
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 5,
-    forgeLore: 'Arco de teixo real. Projétil veloz com cadência escalável a cada nível.',
+    forgeLore: 'Arco nobre de teixo. Dispara flechas precisas com cadência exponencial acelerada.',
     levels: [
-      'Nv.1 (Base): 1 flecha precisa (500ms, 1 dano, 0 knockback).',
-      'Nv.2: Corda Tensionada — Cadência aprimorada (410ms, 1 dano).',
-      'Nv.3: Fôlego Ágil — Cadência veloz (330ms, 1 dano).',
-      'Nv.4: Disparo Rápido — Cadência fulminante (260ms, 1 dano).',
-      'Nv.5 (MÁX): Tempestade de Flechas — Cadência máxima a cada 200ms (1 dano)!'
+      { badge: 'DISPARO CERTEIRO', desc: 'Flechas velozes e perfurantes disparadas com ritmo cadenciado contra o avanço dos monstros.', toString() { return this.desc; } },
+      { badge: 'CORDA TENSIONADA', desc: 'Reduz notavelmente o intervalo entre disparos, lançando flechas em sucessão rápida.', toString() { return this.desc; } },
+      { badge: 'SARAIVADA VELOZ', desc: 'Disparos contínuos e ágeis que suprimem a vanguarda inimiga sem dar tempo de reação.', toString() { return this.desc; } },
+      { badge: 'FUSILAMENTO REAL', desc: 'Cadência quase instantânea: rajadas de flechas de alta frequência cravam o campo sem cessar.', toString() { return this.desc; } },
+      { badge: 'TEMPESTADE DE FLECHAS ★', desc: 'Cadência máxima supersônica! Uma torrente ininterrupta de flechas perfura as linhas inimigas!', toString() { return this.desc; } }
     ]
   },
   sword: {
     name: 'ESPADA VORPAL',
+    category: 'HERANÇA DE AÇO',
     icon: 'item_sword',
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 5,
-    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área crescente.',
+    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área cortante colossal.',
     levels: [
-      'Nv.1 (Base): Corte inicial equilibrado (área 1.00x, 1 dano, 480ms, knockback ativo).',
-      'Nv.2: Fio Expandido — Área 1.24x (+24% de raio e alcance do corte).',
-      'Nv.3: Lâmina Ampla — Área 1.48x (+48% de cobertura de corte frontal).',
-      'Nv.4: Fúria Vorpal — Área 1.72x (+72% de área cortante).',
-      'Nv.5 (MÁX): Colosso Vorpal — Área 1.96x (+96% de varredura colossal)!'
+      { badge: 'CORTE NOBRE', desc: 'Desfere golpes precisos de aço temperado com área de impacto equilibrada e repulsão frontal ativa.', toString() { return this.desc; } },
+      { badge: 'FIO EXPANDIDO', desc: 'Amplia a lâmina com alcance acelerado, ceifando a primeira linha de monstros com facilidade.', toString() { return this.desc; } },
+      { badge: 'CORTE COLOSSAL', desc: 'Golpes de enorme envergadura frontal que varrem formações inimigas inteiras em arco cortante.', toString() { return this.desc; } },
+      { badge: 'FÚRIA VORPAL', desc: 'Lâmina descomunal que rasga o ar em semicírculo devastador, desestabilizando qualquer avanço.', toString() { return this.desc; } },
+      { badge: 'COLOSSO SUPREMO ★', desc: 'Varredura colossal lendária! Uma muralha de lâmina titânica que aniquila todo o campo frontal!', toString() { return this.desc; } }
     ]
   },
   shield: {
     name: 'ESCUDO SAGRADO',
+    category: 'BALUARTE SAGRADO',
     icon: 'item_shield',
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: 5,
-    forgeLore: 'Égide abençoada. Reflete flechas mantendo o aspecto normal e explode ao bloquear golpes.',
+    forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
     levels: [
-      'Nv.1 (Base): Dura 4.8s, reflete 1 flecha simples (1 dano) e onda curta.',
-      'Nv.2: Borda Reforçada — Dura 6.2s, reflete 1 flecha veloz e onda média.',
-      'Nv.3: Espelho Duplo — Dura 7.6s, reflete 2 flechas em V e onda forte.',
-      'Nv.4: Baluarte Real — Dura 9.2s, reflete 3 flechas perfurantes (2 dano).',
-      'Nv.5 (MÁX): Égide Divina — Dura 11.5s, reflete 5 flechas perfurantes + Onda Titânica!'
+      { badge: 'ÉGIDE BÁSICA', desc: 'Envolve o herói em aura celestial por tempo equilibrado, refletindo flechas e detonando em choque se atingido.', toString() { return this.desc; } },
+      { badge: 'ÉGIDE REFORÇADA', desc: 'Aumenta substancialmente o tempo de proteção ativa, mantendo a imunidade reativa por muito mais tempo.', toString() { return this.desc; } },
+      { badge: 'ESPELHO DIVINO', desc: 'Duração prolongada vigorosa: reflete flechas em ângulos duplos e garante proteção duradoura na batalha.', toString() { return this.desc; } },
+      { badge: 'BALUARTE REAL', desc: 'Fortaleza celestial duradoura, suportando a pressão do combate e detonando em choque sagrado ampliado.', toString() { return this.desc; } },
+      { badge: 'ÉGIDE ETERNA ★', desc: 'Proteção celestial de duração colossal! O herói combate imperturbável envolto em graça divina suprema!', toString() { return this.desc; } }
     ]
   },
   axe: {
     name: 'MACHADO BUMERANGUE',
+    category: 'FORÇA RÚNICA',
     icon: 'item_axe',
     unlockedDefault: false,
     unlockCost: 25,
     maxLevel: 5,
-    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com knockback repulsor escalável.',
+    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
     levels: [
-      'Nv.1 (Base): 1 machado bumerangue (1 dano, 560ms, knockback base 28px).',
-      'Nv.2: Impacto Pesado — Knockback 44px (+16px de força de empurrão).',
-      'Nv.3: Golpe Sísmico — Knockback 62px (+34px de força de empurrão).',
-      'Nv.4: Repulsão Rúnica — Knockback 82px (+54px de força de empurrão).',
-      'Nv.5 (MÁX): Fúria dos Titãs — Knockback 105px (arremesso massivo de inimigos)!'
+      { badge: 'GOLPE RÚNICO', desc: 'Lança machado duplo em arco circular de retorno, desferindo golpes de impacto na ida e na volta.', toString() { return this.desc; } },
+      { badge: 'IMPACTO PESADO', desc: 'Aumenta consideravelmente a força de choque, arremessando monstros para trás na rota do bumerangue.', toString() { return this.desc; } },
+      { badge: 'REPULSÃO SÍSMICA', desc: 'Ondas sísmicas violentas que estilhaçam o avanço inimigo e lançam tropas para a retaguarda.', toString() { return this.desc; } },
+      { badge: 'CHOQUE ESMAGADOR', desc: 'Impacto rúnico massivo capaz de arremessar pelotões inteiros de volta para a floresta.', toString() { return this.desc; } },
+      { badge: 'FÚRIA DOS TITÃS ★', desc: 'Força de repulsão titânica colossal! Monstros atingidos voam pelos ares com violência descomunal!', toString() { return this.desc; } }
     ]
   },
   firestaff: {
     name: 'CAJADO DE FOGO',
+    category: 'CANALIZAÇÃO SOLAR',
     icon: 'item_firestaff',
     unlockedDefault: false,
     unlockCost: 45,
     maxLevel: 5,
-    forgeLore: 'Cetro ardente. Lança orbes solares que explodem e deixam poças de fogo que danificam apenas monstros.',
+    forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
     levels: [
-      'Nv.1 (Base): Orbe solar com explosão e poça de fogo (raio 45px, 1 dano, 600ms, 0 knockback).',
-      'Nv.2: Brasa Alastrada — Raio 62px de explosão e poça ardente no chão.',
-      'Nv.3: Labareda Intensa — Raio 80px de explosão e poça de fogo contínua.',
-      'Nv.4: Inferno Crescente — Raio 100px de explosão e poça de fogo massiva.',
-      'Nv.5 (MÁX): Cataclismo Solar — Raio 125px de explosão devastadora e mar de chamas no solo!'
+      { badge: 'ORBE SOLAR', desc: 'Dispara esfera ígnea concentrada que explode no impacto e cria uma poça de chamas ardentes no chão.', toString() { return this.desc; } },
+      { badge: 'BRASA VIVA', desc: 'Amplia a área da explosão e o raio das chamas no solo, consumindo monstros com fogo contínuo.', toString() { return this.desc; } },
+      { badge: 'LABAREDA INTENSA', desc: 'Detonação de fogo de grande alcance que queima ondas inteiras em uma barreira incandescente.', toString() { return this.desc; } },
+      { badge: 'INFERNO VORAZ', desc: 'Explosão expansiva massiva que incendeia metade da estrada com chamas impiedosas.', toString() { return this.desc; } },
+      { badge: 'CATACLISMO SOLAR ★', desc: 'Erupção solar titânica! O campo explode em um mar colossal de fogo e cinzas ardentes!', toString() { return this.desc; } }
     ]
   }
 };
@@ -300,11 +306,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_multishot',
     maxLevel: 5,
     levels: [
-      'Nv.1: +1 Projétil / Onda de Vento cortante em todos os ataques.',
-      'Nv.2: +2 Projéteis / Ondas cortantes adicionais.',
-      'Nv.3: +3 Projéteis / Ondas cortantes em leque.',
-      'Nv.4: +4 Projéteis / Saraivada cortante contínua.',
-      'Nv.5 (MÁX): +5 Projéteis / Chuva maciça de projéteis e cortes!'
+      { badge: 'DISPARO DUPLO', desc: 'Adiciona uma lâmina de corte frontal e um projétil adicional a todas as armas empunhadas.', toString() { return this.desc; } },
+      { badge: 'LEQUE DE DISPAROS', desc: 'Expande ainda mais o leque frontal, liberando ondas e projéteis extras em arco.', toString() { return this.desc; } },
+      { badge: 'SARAIVADA ARCANA', desc: 'Dispara uma salva volumosa em leque que satura o corredor de combate com múltiplos golpes.', toString() { return this.desc; } },
+      { badge: 'CHUVA DE ATAQUES', desc: 'Múltiplos disparos simultâneos que cobrem toda a área frontal com dano implacável.', toString() { return this.desc; } },
+      { badge: 'ONIPRESENÇA MÁXIMA ★', desc: 'O poder supremo do Disparo Múltiplo! Uma avalanche de lâminas e disparos varre tudo à frente!', toString() { return this.desc; } }
     ]
   },
   growth: {
@@ -314,11 +320,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_growth',
     maxLevel: 5,
     levels: [
-      'Nv.1: +20% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.2: +40% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.3: +65% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.4: +90% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.5 (MÁX): +120% de tamanho/área titânica em todos os ataques!'
+      { badge: 'EXPANSÃO MÍSTICA', desc: 'Amplia a área de impacto de todos os cortes, projéteis e poças de fogo ardentes no solo.', toString() { return this.desc; } },
+      { badge: 'ALCANCE AMPLIADO', desc: 'Aumenta expressivamente o tamanho dos ataques, atingindo inimigos mais distantes com segurança.', toString() { return this.desc; } },
+      { badge: 'ÁURA GIGANTE', desc: 'Golpes e chamas ganham dimensões formidáveis, devorando o espaço dos monstros na estrada.', toString() { return this.desc; } },
+      { badge: 'MAGNITUDE TITÂNICA', desc: 'Tamanho monumental em cada arma, tornando impossível qualquer inimigo avançar ileso.', toString() { return this.desc; } },
+      { badge: 'DIMENSÃO SUPREMA ★', desc: 'Crescimento absoluto! Todas as armas e chamas operam em escala colossal titânica!', toString() { return this.desc; } }
     ]
   },
   attackspeed: {
@@ -328,11 +334,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_speed',
     maxLevel: 5,
     levels: [
-      'Nv.1: +15% de velocidade de ataque (cadência mais rápida).',
-      'Nv.2: +30% de velocidade de ataque em todas as armas.',
-      'Nv.3: +45% de velocidade de ataque em todas as armas.',
-      'Nv.4: +60% de velocidade de ataque em todas as armas.',
-      'Nv.5 (MÁX): +80% de velocidade de ataque frenética!'
+      { badge: 'FÔLEGO ÁGIL', desc: 'Acelera a cadência de manuseio e ataque de todas as armas ativas na jornada.', toString() { return this.desc; } },
+      { badge: 'CADÊNCIA FULMINANTE', desc: 'Golpes e disparos se sucedem com rapidez impressionante, pressionando as defesas inimigas.', toString() { return this.desc; } },
+      { badge: 'REFLEXOS AURAIS', desc: 'Ritmo frenético de ataque que suprime hordas velozes sem dar espaço para aproximação.', toString() { return this.desc; } },
+      { badge: 'VELOCIDADE FRENÉTICA', desc: 'Ataques desferidos em sucessão avassaladora com intervalo mínimo entre ativações.', toString() { return this.desc; } },
+      { badge: 'TEMPESTADE TEMPORAL ★', desc: 'Velocidade de ataque suprema! O herói maneja suas relíquias em uma velocidade sobrenatural!', toString() { return this.desc; } }
     ]
   }
 };
@@ -480,8 +486,9 @@ const ACHIEVEMENTS_CATALOG = [
   }
 ];
 
+// <<< END: src/config/catalogs.js
 
-// --- BUNDLE FILE: JS_Teste/src/core/events.js ---
+// >>> START: src/core/events.js
 // SISTEMA DE EVENTOS DESACOPLADO (Observer Pattern / EventBus)
 // Permite que combate, áudio, interface, conquistas e drops reajam a eventos do jogo
 // sem dependência cíclica ou chamadas diretas rígidas.
@@ -556,8 +563,9 @@ const events = new GameEventBus();
 
 // =============================================================================
 
+// <<< END: src/core/events.js
 
-// --- BUNDLE FILE: JS_Teste/src/core/state.js ---
+// >>> START: src/core/state.js
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, swordBlade, cursors, keys;
@@ -583,8 +591,9 @@ let virtualJoystick = null;
 
 // =============================================================================
 
+// <<< END: src/core/state.js
 
-// --- BUNDLE FILE: JS_Teste/src/core/storage.js ---
+// >>> START: src/core/storage.js
 // GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
@@ -938,8 +947,9 @@ if (typeof document !== 'undefined') {
 
 // =============================================================================
 
+// <<< END: src/core/storage.js
 
-// --- BUNDLE FILE: JS_Teste/src/core/audio.js ---
+// >>> START: src/core/audio.js
 // SISTEMA DE ÁUDIO CHIPTUNE (Web Audio API nativa — 100% sintetizado, sem arquivos)
 // =============================================================================
 const BGM_MELODY = [
@@ -1675,369 +1685,9 @@ const sound = new SoundSystem();
 
 // =============================================================================
 
+// <<< END: src/core/audio.js
 
-// --- BUNDLE FILE: JS_Teste/src/core/platformBridge.js ---
-// =============================================================================
-// PLATFORM BRIDGE — ADAPTER UNIVERSAL DE PUBLICAÇÃO WEB
-// Suporte unificado para:
-// - Itch.io / GameJolt / Offline Local (Zero dependências, 100% autônomo)
-// - CrazyGames (SDK v3: gameplayStart, gameplayStop, Midroll, Rewarded Ads)
-// - Poki (SDK v2: gameplayStart, gameplayStop, commercialBreak, rewardedBreak)
-// =============================================================================
-
-class PlatformBridgeController {
-  constructor() {
-    this.platform = 'STANDALONE'; // 'STANDALONE', 'CRAZYGAMES', 'POKI'
-    this.initialized = false;
-    this.initPromise = null;
-    this.lastMidrollTime = 0;
-    this.gameLaunchTime = Date.now();
-    this.minMidrollInterval = 150000; // Mínimo de 150s (2.5 min) entre midrolls (QA Compliant)
-    this.initialBufferTime = 90000;   // Sem anúncios nos primeiros 90s de jogo
-    this.rewardedUsedInRun = false;
-    this.isShowingAd = false;
-    this.loadingFinished = false;
-
-    this.detectPlatform();
-    this.init();
-  }
-
-  detectPlatform() {
-    if (typeof window === 'undefined') return;
-
-    const urlParams = new URLSearchParams(window.location.search || '');
-    const forced = urlParams.get('platform') || urlParams.get('sdk');
-    const hostname = window.location.hostname || '';
-
-    if (forced === 'poki' || hostname.includes('poki.com') || hostname.includes('poki-gdn.com')) {
-      this.platform = 'POKI';
-    } else if (
-      forced === 'crazygames' ||
-      hostname.includes('crazygames.com') ||
-      hostname.includes('1001juegos.com') ||
-      hostname.includes('gameflare.com')
-    ) {
-      this.platform = 'CRAZYGAMES';
-    } else {
-      this.platform = 'STANDALONE'; // Itch.io, Newgrounds, dev local
-    }
-
-    console.log(`[PlatformBridge] Plataforma detectada: ${this.platform}`);
-  }
-
-  // Inicializa o SDK específico de forma assíncrona e segura
-  async init() {
-    if (this.initialized) return true;
-    if (this.initPromise) return this.initPromise;
-
-    this.initPromise = new Promise((resolve) => {
-      try {
-        if (this.platform === 'POKI') {
-          this.initPoki(resolve);
-        } else if (this.platform === 'CRAZYGAMES') {
-          this.initCrazyGames(resolve);
-        } else {
-          // Modo Standalone / Itch.io: pronto imediatamente
-          this.initialized = true;
-          resolve(true);
-        }
-      } catch (err) {
-        console.warn('[PlatformBridge] Falha ao iniciar SDK da plataforma, usando fallback Standalone:', err);
-        this.platform = 'STANDALONE';
-        this.initialized = true;
-        resolve(true);
-      }
-    });
-
-    return this.initPromise;
-  }
-
-  initPoki(resolve) {
-    const onPokiReady = () => {
-      this.initialized = true;
-      if (this.loadingFinished && typeof window.PokiSDK !== 'undefined') {
-        try { window.PokiSDK.gameLoadingFinished(); } catch (e) {}
-      }
-      resolve(true);
-    };
-
-    if (typeof window.PokiSDK !== 'undefined') {
-      window.PokiSDK.init()
-        .then(() => {
-          console.log('[PlatformBridge] PokiSDK inicializado com sucesso.');
-          onPokiReady();
-        })
-        .catch(() => {
-          console.warn('[PlatformBridge] PokiSDK inicializado com adblocker ou restrição.');
-          onPokiReady();
-        });
-      return;
-    }
-
-    // Carregamento dinâmico do script Poki se estiver no domínio Poki
-    const script = document.createElement('script');
-    script.src = 'https://game-cdn.poki.com/scripts/v2/poki-sdk.js';
-    script.onload = () => {
-      if (typeof window.PokiSDK !== 'undefined') {
-        window.PokiSDK.init()
-          .then(() => onPokiReady())
-          .catch(() => onPokiReady());
-      } else {
-        onPokiReady();
-      }
-    };
-    script.onerror = () => {
-      console.warn('[PlatformBridge] Não foi possível carregar PokiSDK, fallback ativado.');
-      this.platform = 'STANDALONE';
-      this.initialized = true;
-      resolve(true);
-    };
-    document.head.appendChild(script);
-  }
-
-  initCrazyGames(resolve) {
-    const onCrazyReady = () => {
-      this.initialized = true;
-      if (this.loadingFinished && window.CrazyGames?.SDK?.game?.loadingStop) {
-        try { window.CrazyGames.SDK.game.loadingStop(); } catch (e) {}
-      }
-      resolve(true);
-    };
-
-    if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
-      window.CrazyGames.SDK.init()
-        .then(() => {
-          console.log('[PlatformBridge] CrazyGames SDK v3 inicializado.');
-          onCrazyReady();
-        })
-        .catch((err) => {
-          console.warn('[PlatformBridge] CrazyGames SDK falhou ao inicializar:', err);
-          onCrazyReady();
-        });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://sdk.crazygames.com/crazygames-sdk-v3.js';
-    script.onload = () => {
-      if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
-        window.CrazyGames.SDK.init()
-          .then(() => onCrazyReady())
-          .catch(() => onCrazyReady());
-      } else {
-        onCrazyReady();
-      }
-    };
-    script.onerror = () => {
-      console.warn('[PlatformBridge] Não foi possível carregar CrazyGames SDK, fallback ativado.');
-      this.platform = 'STANDALONE';
-      this.initialized = true;
-      resolve(true);
-    };
-    document.head.appendChild(script);
-  }
-
-  // ---------------------------------------------------------------------------
-  // SINAIS DE CARREGAMENTO (Loading Life Cycle - Poki & CrazyGames QA)
-  // ---------------------------------------------------------------------------
-  loadingStart() {
-    try {
-      if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game?.loadingStart) {
-        window.CrazyGames.SDK.game.loadingStart();
-      }
-    } catch (e) {
-      console.warn('[PlatformBridge] loadingStart erro:', e);
-    }
-  }
-
-  loadingStop() {
-    this.loadingFinished = true;
-    try {
-      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
-        window.PokiSDK.gameLoadingFinished();
-      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game?.loadingStop) {
-        window.CrazyGames.SDK.game.loadingStop();
-      }
-    } catch (e) {
-      console.warn('[PlatformBridge] loadingStop erro:', e);
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // TELEMETRIA E CICLO DE JOGABILIDADE (Obrigatórios para Poki e CrazyGames)
-  // ---------------------------------------------------------------------------
-  gameplayStart() {
-    try {
-      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
-        window.PokiSDK.gameplayStart();
-      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game) {
-        window.CrazyGames.SDK.game.gameplayStart();
-      }
-    } catch (e) {
-      console.warn('[PlatformBridge] gameplayStart erro:', e);
-    }
-  }
-
-  gameplayStop() {
-    try {
-      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
-        window.PokiSDK.gameplayStop();
-      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.game) {
-        window.CrazyGames.SDK.game.gameplayStop();
-      }
-    } catch (e) {
-      console.warn('[PlatformBridge] gameplayStop erro:', e);
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // ANÚNCIOS MIDROLL (INTERSTITIAL ENTRE PARTIDAS)
-  // ---------------------------------------------------------------------------
-  canShowMidroll() {
-    if (this.platform === 'STANDALONE') return false;
-    const now = Date.now();
-    // Protege o jogador na primeira partida (90s de buffer) e impõe cooldown de 150s
-    if (now - this.gameLaunchTime < this.initialBufferTime) return false;
-    if (now - this.lastMidrollTime < this.minMidrollInterval) return false;
-    return true;
-  }
-
-  showMidroll(scene, onComplete) {
-    const finish = () => {
-      this.isShowingAd = false;
-      this.restoreAudioAndPhysics(scene);
-      if (typeof onComplete === 'function') onComplete();
-    };
-
-    if (!this.canShowMidroll()) {
-      if (typeof onComplete === 'function') onComplete();
-      return;
-    }
-
-    this.isShowingAd = true;
-    this.pauseAudioAndPhysics(scene);
-    this.lastMidrollTime = Date.now();
-
-    try {
-      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
-        window.PokiSDK.commercialBreak()
-          .then(() => finish())
-          .catch(() => finish());
-      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.ad) {
-        window.CrazyGames.SDK.ad.requestAd('midroll', {
-          adStarted: () => { /* Som e física já pausados */ },
-          adFinished: () => finish(),
-          adError: () => finish()
-        });
-      } else {
-        finish();
-      }
-    } catch (err) {
-      console.warn('[PlatformBridge] Erro ao exibir Midroll:', err);
-      finish();
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // ANÚNCIOS REWARDED (VÍDEOS COM RECOMPENSA VOLUNTÁRIA)
-  // ---------------------------------------------------------------------------
-  showRewarded(scene, { onReward, onDismiss, onError }) {
-    const handleReward = () => {
-      if (typeof onReward === 'function') onReward();
-    };
-
-    const finish = () => {
-      this.isShowingAd = false;
-      this.restoreAudioAndPhysics(scene);
-      if (typeof onDismiss === 'function') onDismiss();
-    };
-
-    this.isShowingAd = true;
-    this.pauseAudioAndPhysics(scene);
-
-    // Em modo Standalone/Itch.io (onde não há rede de anúncios), concede a recompensa imediatamente para permitir testes completos
-    if (this.platform === 'STANDALONE') {
-      console.log('[PlatformBridge] Standalone: recompensa concedida diretamente.');
-      handleReward();
-      finish();
-      return;
-    }
-
-    try {
-      if (this.platform === 'POKI' && typeof window.PokiSDK !== 'undefined') {
-        window.PokiSDK.rewardedBreak()
-          .then((success) => {
-            if (success) handleReward();
-            finish();
-          })
-          .catch((err) => {
-            console.warn('[PlatformBridge] Poki rewarded erro:', err);
-            if (typeof onError === 'function') onError(err);
-            finish();
-          });
-      } else if (this.platform === 'CRAZYGAMES' && window.CrazyGames?.SDK?.ad) {
-        window.CrazyGames.SDK.ad.requestAd('rewarded', {
-          adStarted: () => { /* Som e física já pausados */ },
-          adFinished: () => {
-            handleReward();
-            finish();
-          },
-          adError: (err) => {
-            console.warn('[PlatformBridge] CrazyGames rewarded erro:', err);
-            if (typeof onError === 'function') onError(err);
-            finish();
-          }
-        });
-      } else {
-        handleReward();
-        finish();
-      }
-    } catch (err) {
-      console.warn('[PlatformBridge] Erro ao invocar rewarded ad:', err);
-      if (typeof onError === 'function') onError(err);
-      finish();
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // PAUSA DE FÍSICA E SILENCIAMENTO DE ÁUDIO (Exigência de QA de todas as plataformas)
-  // ---------------------------------------------------------------------------
-  pauseAudioAndPhysics(scene) {
-    if (typeof sound !== 'undefined' && sound.muteForAd) {
-      sound.muteForAd();
-    }
-    if (scene && scene.physics) {
-      scene.physics.pause();
-    }
-    if (scene && scene.time) {
-      scene.time.paused = true;
-    }
-  }
-
-  restoreAudioAndPhysics(scene) {
-    if (typeof sound !== 'undefined' && sound.unmuteAfterAd) {
-      sound.unmuteAfterAd();
-    }
-    // Restaura a física e timers apenas se a partida ainda estiver em andamento
-    if (typeof gameState !== 'undefined' && gameState === 'PLAYING') {
-      if (scene && scene.physics) {
-        scene.physics.resume();
-      }
-      if (scene && scene.time) {
-        scene.time.paused = false;
-      }
-    }
-  }
-}
-
-// Instância singleton global do PlatformBridge
-const PlatformBridge = new PlatformBridgeController();
-if (typeof window !== 'undefined') {
-  window.PlatformBridge = PlatformBridge;
-}
-
-
-// --- BUNDLE FILE: JS_Teste/src/art/drawHelpers.js ---
+// >>> START: src/art/drawHelpers.js
 // ARTE: FERRAMENTAS DE PIXEL ART
 // Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
 // carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
@@ -2129,8 +1779,9 @@ function makeItem(scene, key, glow, drawIcon) {
 
 // =============================================================================
 
+// <<< END: src/art/drawHelpers.js
 
-// --- BUNDLE FILE: JS_Teste/src/art/characterArt.js ---
+// >>> START: src/art/characterArt.js
 // =============================================================================
 // ARTE PROCEDURAL: PERSONAGENS, INIMIGOS, CHEFES E NPCS
 // =============================================================================
@@ -2893,8 +2544,9 @@ function drawMageMaster(r, f) {
 }
 
 
+// <<< END: src/art/characterArt.js
 
-// --- BUNDLE FILE: JS_Teste/src/art/itemArt.js ---
+// >>> START: src/art/itemArt.js
 // =============================================================================
 // ARTE PROCEDURAL: ÍCONES DE ARMAS, PROJÉTEIS, COLETÁVEIS E HUD
 // =============================================================================
@@ -3404,8 +3056,9 @@ function makeSlashTexture(scene) {
   }
 }
 
+// <<< END: src/art/itemArt.js
 
-// --- BUNDLE FILE: JS_Teste/src/art/worldArt.js ---
+// >>> START: src/art/worldArt.js
 // =============================================================================
 // ARTE PROCEDURAL: CENÁRIO, TEXTURAS DO MUNDO E CONSTRUÇÕES DA VILA
 // =============================================================================
@@ -4032,12 +3685,9 @@ function drawGateTower(r) {
 }
 
 
+// <<< END: src/art/worldArt.js
 
-// --- BUNDLE FILE: JS_Teste/src/combat/weapons.js ---
-// =============================================================================
-// SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
-// Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
-// permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
+// >>> START: src/combat/weapons.js
 // =============================================================================
 
 // Schema Unificado de Status de Armas:
@@ -4090,19 +3740,36 @@ function getWeaponStats(type, lvl = 1) {
     projectiles: base.projectiles
   };
 
-  // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
+  const effectiveLvl = Math.max(1, lvl);
+
+  // 1. Progressão Exponencial com Atributos Fortes e Guardrails de Engine
   if (type === 'sword') {
-    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível (+24% por nível)
-    stats.area = 1.0 + (lvl - 1) * 0.24;
+    // ATRIBUTO FORTE: Área / Tamanho (Escala +28% multiplicativo por nível até Nv. 5)
+    if (effectiveLvl <= 5) {
+      stats.area = Math.pow(1.28, effectiveLvl - 1);
+    } else {
+      stats.area = Math.min(3.60, Math.pow(1.28, 4) * (1 + 0.05 * (effectiveLvl - 5)));
+    }
   } else if (type === 'bow') {
-    // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
-    stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
+    // ATRIBUTO FORTE: Cadência (+25% disparos por segundo por nível -> delay reduz 20% por nível)
+    // Teto de segurança absoluto: 100ms (10 flechas/s a 60 FPS para estabilidade de engine)
+    stats.attackRate = Math.max(100, Math.round(500 * Math.pow(0.80, effectiveLvl - 1)));
   } else if (type === 'axe') {
-    // Machado: Aumenta SOMENTE o Knockback por nível
-    stats.knockback = 28 + (lvl - 1) * 19;
+    // ATRIBUTO FORTE: Knockback (+50% de repulsão por nível até Nv. 5)
+    // Teto de segurança absoluto: 220px (evita arremesso para fora da tela de 800px)
+    if (effectiveLvl <= 5) {
+      stats.knockback = Math.round(30 * Math.pow(1.50, effectiveLvl - 1));
+    } else {
+      stats.knockback = Math.min(220, Math.round(30 * Math.pow(1.50, 4) + (effectiveLvl - 5) * 12));
+    }
   } else if (type === 'firestaff') {
-    // Cajado de Fogo: Aumenta SOMENTE o Tamanho da Explosão e Poça por nível
-    stats.area = 45 + (lvl - 1) * 20;
+    // ATRIBUTO FORTE: Raio de Explosão e Poça (+27% no raio por nível -> área multiplica exponencialmente)
+    // Teto de segurança absoluto: raio de 160px
+    if (effectiveLvl <= 5) {
+      stats.area = Math.round(45 * Math.pow(1.27, effectiveLvl - 1));
+    } else {
+      stats.area = Math.min(160, Math.round(45 * Math.pow(1.27, 4) + (effectiveLvl - 5) * 6));
+    }
   }
 
   // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
@@ -4120,9 +3787,9 @@ function getWeaponStats(type, lvl = 1) {
   }
 
   if (asLvl > 0) {
-    const asMult = 1.0 + asLvl * 0.16;
+    const asMult = 1.0 + asLvl * 0.18;
     if (stats.attackRate > 0) {
-      stats.attackRate = Math.max(80, Math.round(stats.attackRate / asMult));
+      stats.attackRate = Math.max(90, Math.round(stats.attackRate / asMult));
     }
   }
 
@@ -4135,7 +3802,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.bow,
     baseDuration: BUFF_TIME.bow,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('bow', lvl).attackRate;
@@ -4182,7 +3851,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.sword,
     baseDuration: BUFF_TIME.sword,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('sword', lvl).attackRate;
@@ -4309,7 +3980,11 @@ const WeaponStrategies = {
     name: BUFF_NAMES.shield,
     baseDuration: BUFF_TIME.shield,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 1.50 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = (l <= 5)
+        ? 4.8 * Math.pow(1.35, l - 1)
+        : Math.min(24.0, 4.8 * Math.pow(1.35, 4) + (l - 5) * 1.5);
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate() { return 0; },
     attack() { /* O escudo é defensivo/reativo a impactos */ },
@@ -4333,7 +4008,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.axe,
     baseDuration: BUFF_TIME.axe,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('axe', lvl).attackRate;
@@ -4377,7 +4054,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.firestaff,
     baseDuration: BUFF_TIME.firestaff,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(18.0, this.baseDuration * Math.pow(1.12, l - 1));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('firestaff', lvl).attackRate;
@@ -4665,6 +4344,14 @@ function triggerPlayerAction(scene) {
 // GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
 // =============================================================================
 // COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
+
+// <<< END: src/combat/weapons.js
+
+// >>> START: src/combat/combatManager.js
+// =============================================================================
+// GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
+// =============================================================================
+// COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
 // =============================================================================
 function removeEntity(obj) {
   if (!obj || !obj.active) return;
@@ -4794,10 +4481,13 @@ function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
     enemy.setVelocityX(0);
   }
 
+  // Interpolação suave e orgânica que adapta o tempo à magnitude do impacto
+  const safeDuration = (duration && duration !== 130) ? duration : Math.min(190, 115 + Math.round(distance * 0.35));
+
   scene.tweens.add({
     targets: enemy,
     x: targetX,
-    duration: duration,
+    duration: safeDuration,
     ease: 'Cubic.easeOut',
     onUpdate: () => {
       if (enemy && enemy.active && enemy.body) {
@@ -5085,8 +4775,9 @@ function gameOver(scene) {
 }
 
 
+// <<< END: src/combat/combatManager.js
 
-// --- BUNDLE FILE: JS_Teste/src/combat/lootManager.js ---
+// >>> START: src/combat/lootManager.js
 // =============================================================================
 // GERENCIADOR DE DROPS, XP, MOEDAS E ATRAÇÃO MAGNÉTICA
 // =============================================================================
@@ -5181,8 +4872,9 @@ function collectCoin(scene, coin) {
 }
 
 
+// <<< END: src/combat/lootManager.js
 
-// --- BUNDLE FILE: JS_Teste/src/world/director.js ---
+// >>> START: src/world/director.js
 // =============================================================================
 // DIRETOR DO MUNDO: ONDAS DE SPAWN, VILA INICIAL E ELEMENTOS AMBIENTAIS
 // =============================================================================
@@ -5448,8 +5140,9 @@ function spawnItem(scene) {
 }
 
 
+// <<< END: src/world/director.js
 
-// --- BUNDLE FILE: JS_Teste/src/world/enemies.js ---
+// >>> START: src/world/enemies.js
 // =============================================================================
 // INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
 // =============================================================================
@@ -5670,8 +5363,9 @@ function teleportMage(scene, mage) {
   }
 }
 
+// <<< END: src/world/enemies.js
 
-// --- BUNDLE FILE: JS_Teste/src/world/boss.js ---
+// >>> START: src/world/boss.js
 // =============================================================================
 // BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (ATAQUES, TELEGRAFIAS E CONTROLE)
 // =============================================================================
@@ -6183,8 +5877,9 @@ function defeatBoss(scene, boss) {
 }
 
 
+// <<< END: src/world/boss.js
 
-// --- BUNDLE FILE: JS_Teste/src/ui/hud.js ---
+// >>> START: src/ui/hud.js
 // =============================================================================
 // INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS
 // =============================================================================
@@ -6524,8 +6219,9 @@ function updateScrollHUD() {
   }
 }
 
+// <<< END: src/ui/hud.js
 
-// --- BUNDLE FILE: JS_Teste/src/ui/modals.js ---
+// >>> START: src/ui/modals.js
 // =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
@@ -6541,24 +6237,33 @@ function rollLevelUpCards() {
     if (cfg) {
       const nextLvl = currLvl + 1;
       const isHeld = buff && buff.type === key;
-      const lvlDesc = (cfg.levels && cfg.levels[nextLvl - 1])
-        ? cfg.levels[nextLvl - 1]
-        : `✦ PODER TRANSCENDENTAL (NV. ${nextLvl})!\n+15% Cadência de disparo, +Dano e escala contínua de combate.`;
+      const lvlData = (cfg.levels && cfg.levels[nextLvl - 1]) ? cfg.levels[nextLvl - 1] : null;
+
+      let badge = 'EVOLUÇÃO ★';
+      let desc = 'Eleva o poder da relíquia além dos limites mortais, refinando seu atributo com vigor lendário.';
+
+      if (lvlData) {
+        badge = typeof lvlData === 'object' ? lvlData.badge : (nextLvl >= 5 ? 'GRAU MÁXIMO ★' : 'EVOLUÇÃO NOBRE');
+        desc = typeof lvlData === 'object' ? lvlData.desc : lvlData;
+      } else {
+        badge = 'TRANSCENDÊNCIA ★';
+        desc = 'Eleva o poder da relíquia além dos limites mortais, refinando seu atributo com vigor lendário.';
+      }
 
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
-        category: isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA',
+        category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-        badgeColor: nextLvl >= 5 ? '#ffca28' : '#7fe7ff',
+        badge: badge,
+        badgeColor: nextLvl >= 5 ? '#ffd740' : '#7fe7ff',
         borderColor: nextLvl >= 5 ? 0xffca28 : 0x7fe7ff,
         icon: cfg.icon,
-        desc: `${lvlDesc}\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `${desc}\n\n✦ Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
           equipWeaponBuff(scene, key, false);
-          floatText(scene, player.x, player.y - 28, `${cfg.name} NV.${nextLvl}!`, '#ffca28');
+          floatText(scene, player.x, player.y - 28, `${cfg.name} EVOLUÍDO!`, '#ffca28');
         }
       });
     }
@@ -6574,22 +6279,25 @@ function rollLevelUpCards() {
     const nextLvl = currLvl + 1;
     const sCfg = SCROLL_CATALOG[sKey];
     if (!sCfg) return;
-    const lvlDesc = sCfg.levels[nextLvl - 1] || `+Poder arcano NV. ${nextLvl}`;
+    const lvlData = (sCfg.levels && sCfg.levels[nextLvl - 1]) ? sCfg.levels[nextLvl - 1] : null;
+    const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ★';
+    const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
+
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
-      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO ARCANO',
+      category: chosenScroll === sKey ? 'PERGAMINHO EXCLUSIVO' : 'PERGAMINHO ARCANO',
       title: sCfg.name,
-      badge: currLvl === 0 ? 'NOVO! NV. 1' : `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-      badgeColor: '#b388ff',
-      borderColor: 0xb388ff,
+      badge: badge,
+      badgeColor: nextLvl >= 5 ? '#ffd740' : '#b388ff',
+      borderColor: nextLvl >= 5 ? 0xffca28 : 0xb388ff,
       icon: sCfg.icon,
-      desc: `${lvlDesc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida (Nv. Máx 5)!' : 'Aprimora seu pergaminho exclusivo nesta partida!'}`,
+      desc: `${desc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida!' : 'Refina seu pergaminho exclusivo nesta partida!'}`,
       weight: chosenScroll === sKey ? 3 : 2,
       apply: (scene) => {
         chosenScroll = sKey;
         scrollLevels[sKey] = nextLvl;
         sound.playLevelUp();
-        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} NV.${nextLvl}!`, '#b388ff');
+        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} ARCANO!`, '#b388ff');
         updateScrollHUD();
       }
     });
@@ -6601,11 +6309,11 @@ function rollLevelUpCards() {
       id: 'item_duration_boost',
       category: 'RELÍQUIA TEMPORAL',
       title: 'AMPULHETA REAL',
-      badge: '+1.2s DURAÇÃO',
+      badge: 'EXTENSÃO TEMPORAL',
       badgeColor: '#ffca28',
       borderColor: 0xc5a059,
       icon: 'hud_hourglass',
-      desc: 'Aumenta em +1.2s a duração de todas as armas nesta partida e recarrega sua arma ativa!',
+      desc: 'Amplia substancialmente o tempo de atividade das relíquias em combate e recarrega sua arma ativa!',
       apply: (scene) => {
         runBonusDuration += 1.2;
         if (buff.type) {
@@ -6614,18 +6322,18 @@ function rollLevelUpCards() {
           const randW = Phaser.Utils.Array.GetRandom(unlockedKeys);
           equipWeaponBuff(scene, randW, false);
         }
-        floatText(scene, player.x, player.y - 28, '+1.2s DURAÇÃO DE ARMAS!', '#ffca28');
+        floatText(scene, player.x, player.y - 28, 'DURAÇÃO AMPLIADA!', '#ffca28');
       }
     },
     {
       id: 'item_random_relic',
       category: 'BAÚ DE ARMAS',
       title: 'ARSENAL DO REI',
-      badge: 'ARMA + 4 PRATAS',
+      badge: 'ARSENAL REAL',
       badgeColor: '#e0f7fa',
       borderColor: 0x80deea,
       icon: 'silver_coin',
-      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate com +3s extras e concede +4 Moedas de Prata!',
+      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate sobrecarregada com moedas de prata!',
       apply: (scene) => {
         const chosen = Phaser.Utils.Array.GetRandom(unlockedKeys);
         equipWeaponBuff(scene, chosen, false);
@@ -6640,16 +6348,16 @@ function rollLevelUpCards() {
       id: 'item_holy_chalice',
       category: 'ITEM SAGRADO',
       title: 'BÊNÇÃO DO ESCUDO',
-      badge: playerHp < playerMaxHp ? '+1 CORAÇÃO + ONDA' : 'ONDA + ESCUDO',
+      badge: playerHp < playerMaxHp ? 'RESTAURAÇÃO VITAL' : 'BÊNÇÃO DE PRATA',
       badgeColor: '#ff8a80',
       borderColor: 0xff5252,
       icon: 'stat_health',
-      desc: 'Restaura 1 Coração de Vida (ou concede +5 Pratas se cheio) e libera uma Onda Sagrada ao redor do herói!',
+      desc: 'Restaura a força vital do Cavaleiro e conjura uma expansão sagrada de repulsão!',
       apply: (scene) => {
         if (playerHp < playerMaxHp) {
           playerHp = Math.min(playerMaxHp, playerHp + 1);
           updateHeartsHUD();
-          floatText(scene, player.x, player.y - 28, '+1 CORAÇÃO RESTAURADO!', '#ff5252');
+          floatText(scene, player.x, player.y - 28, 'VIDA RESTAURADA!', '#ff5252');
         } else {
           runSilver += 5;
           if (hudSilverText && hudSilverText.active) hudSilverText.setText(`${runSilver}`);
@@ -6660,19 +6368,19 @@ function rollLevelUpCards() {
     }
   ];
 
-  // Se o jogador já maximizou várias armas, adiciona cartas de Mestria para as armas Nv. 5
+  // Se o jogador já avançou as armas para níveis altos, adiciona cartas de Mestria Suprema
   unlockedKeys.forEach(key => {
-    if (getWeaponLevel(key) >= MAX_WEAPON_LEVEL) {
+    if (getWeaponLevel(key) >= 5) {
       const cfg = WEAPON_CATALOG[key];
       itemCards.push({
         id: `mastery_${key}`,
-        category: 'MESTRIA MÁXIMA',
+        category: 'MESTRIA LENDÁRIA',
         title: `${cfg.name} SUPREMO`,
-        badge: 'EQUIPAR NV. 5 ★',
+        badge: 'TRANSCENDÊNCIA ★',
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `Equipa imediatamente ${cfg.name} no Nível 5 Máximo com +4s de duração bônus!`,
+        desc: `Equipa imediatamente ${cfg.name} em seu grau máximo de mestria com bônus de duração estendida!`,
         apply: (scene) => {
           equipWeaponBuff(scene, key, false);
           buff.timeLeft += 4.0;
@@ -7367,8 +7075,9 @@ function showLeaderboard(scene, topScores, currentName) {
 
 
 
+// <<< END: src/ui/modals.js
 
-// --- BUNDLE FILE: JS_Teste/src/ui/menus.js ---
+// >>> START: src/ui/menus.js
 // =============================================================================
 // TELAS E MENUS DO JOGO: MENU PRINCIPAL, FORJA, MAGO, CONQUISTAS E OPÇÕES
 // =============================================================================
@@ -8297,8 +8006,9 @@ function showSettingsMenu(scene) {
 }
 
 
+// <<< END: src/ui/menus.js
 
-// --- BUNDLE FILE: JS_Teste/src/ui/virtualJoystick.js ---
+// >>> START: src/ui/virtualJoystick.js
 // =============================================================================
 // SISTEMA DE CONTROLE POR JOYSTICK VIRTUAL MOBILE (FIXO E ANCORADO NA UI)
 // =============================================================================
@@ -8628,8 +8338,9 @@ if (typeof window !== 'undefined') {
   window.VirtualJoystick = VirtualJoystick;
 }
 
+// <<< END: src/ui/virtualJoystick.js
 
-// --- BUNDLE FILE: JS_Teste/src/main.js ---
+// >>> START: src/main.js
 // =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
@@ -9543,3 +9254,4 @@ window.game = game;
 
 
 
+// <<< END: src/main.js

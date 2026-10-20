@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.0.0';
-const VERSION_TITLE = 'A Lâmina Vorpal & O Rastreador da Floresta (The Vorpal Blade & Forest Scout Update)';
-const VERSION_DESC = 'Reformulação do combate da Espada Vorpal (lâmina única persistente, corte procedural aerodinâmico em 5 camadas e slashes múltiplos em leque 180°), correção raiz de congelamento de animações (boot, hitstops e draft de level-up), introdução do Goblin Rastreador veloz com zigue-zague vetorial, layout vertical do resumo pós-derrota e rebalanceamento da densidade de ondas desde os primeiros segundos.';
+const GAME_VERSION = 'v2.1.0';
+const VERSION_TITLE = 'Evolução Exponencial: Atributos Fortes & Redesign Nobre dos Cards';
+const VERSION_DESC = 'Mega atualização das mecânicas de evolução: progressão multiplicativa/exponencial com Atributo Forte exclusivo por arma (Espada: Área, Machado: Knockback, Arco: Cadência, Cajado: Área de Explosão, Escudo: Duração), tetos assintóticos de segurança contra bugs a 60 FPS, e redesign visual dos cards de Level Up eliminando poluição numérica técnica em favor de badges e descrições temáticas de alta fantasia.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;

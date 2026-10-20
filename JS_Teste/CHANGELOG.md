@@ -4,6 +4,41 @@ Todas as alterações notáveis deste projeto serão documentadas neste arquivo,
 
 ---
 
+## [v2.1.0] — 2026-10-20
+### 🌟 Título da Versão: **Evolução Exponencial: Atributos Fortes & Redesign Nobre dos Cards de Power Up**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Mega atualização das mecânicas de evolução: progressão multiplicativa/exponencial com Atributo Forte exclusivo por arma (Espada: Área, Machado: Knockback, Arco: Cadência, Cajado: Área de Explosão, Escudo: Duração), tetos assintóticos de segurança contra bugs a 60 FPS, e redesign visual dos cards de Level Up eliminando poluição numérica técnica em favor de badges e descrições temáticas de alta fantasia.
+
+### 🚀 O que mudou:
+- **🎴 Redesign Nobre dos Cards de Level Up (Eliminação de Poluição Numérica):**
+  - **Remoção de Rótulos Burocráticos:** Eliminadas todas as sequências técnicas como `NV. 1 ➔ NV. 2`, `(500ms, 1 dano, 0 knockback)` e `(+24% de raio e alcance)`.
+  - **Badges Heróicos Exclusivos por Nível:** Cada estágio de cada arma agora exibe um badge de conquista estilizado em ouro/ciano (`[ CORTE NOBRE ]`, `[ FIO EXPANDIDO ]`, `[ TEMPESTADE DE FLECHAS ★ ]`, `[ FÚRIA DOS TITÃS ★ ]`, `[ CATACLISMO SOLAR ★ ]`, `[ ÉGIDE ETERNA ★ ]`).
+  - **Narrativa e Sensação de Combate:** As descrições das cartas agora focam puramente no sentimento e impacto tático do combate, permitindo ao jogador escolher pela fantasia e efeito prático na arena.
+  - **Pergaminhos e Relíquias Estilizados:** Badges dos pergaminhos atualizados (`[ DISPARO DUPLO ]`, `[ LEQUE DE DISPAROS ]`, `[ EXPANSÃO MÍSTICA ]`, `[ CADÊNCIA FULMINANTE ]`) e cartas de itens com nomes nobres (`[ EXTENSÃO TEMPORAL ]`, `[ ARSENAL REAL ]`, `[ RESTAURAÇÃO VITAL ]`).
+- **📈 Progressão Exponencial Multiplicativa com Atributos Fortes:**
+  - **⚔️ Espada Vorpal (Atributo Forte: Área / Tamanho):**
+    - Escala multiplicativa de **+28% por nível** ($1.00\times \rightarrow 1.28\times \rightarrow 1.64\times \rightarrow 2.10\times \rightarrow 2.68\times$). No Nível 5, o semicírculo de corte cobre quase metade da tela frontal.
+    - Modo Infinito (`Lvl > 5`): Crescimento atenuado com Hard Cap em $3.60\times$, prevenindo estouro de tela ou tunneling de colisão.
+  - **🪓 Machado Bumerangue (Atributo Forte: Knockback / Repulsão Física):**
+    - Repulsão multiplicativa de **+50% por nível** ($30\text{px} \rightarrow 45\text{px} \rightarrow 68\text{px} \rightarrow 102\text{px} \rightarrow 152\text{px}$). No Nível 5, monstros atingidos voam para a retaguarda com impacto sísmico.
+    - Modo Infinito (`Lvl > 5`): Hard Cap seguro em $220\text{px}$ para manter os inimigos dentro do espaço visível da arena.
+    - Duração dinâmica adaptativa em `applySmoothKnockback()` (`safeDuration = Math.min(190, 115 + Math.round(distance * 0.35))`) para que repulsões pesadas deslizem com desaceleração cúbica sem estalos bruscos.
+  - **🏹 Arco Real (Atributo Forte: Velocidade de Ataque / Cadência):**
+    - Redução exponencial de **20% no delay por nível** ($500\text{ms} \rightarrow 400\text{ms} \rightarrow 320\text{ms} \rightarrow 256\text{ms} \rightarrow 205\text{ms}$). A frequência salta de 2.0 para quase 5 flechas por segundo no Nv. 5.
+    - Modo Infinito (`Lvl > 5`): Floor mínimo seguro travado em $100\text{ms}$ (10 disparos/s = 1 disparo a cada 6 frames a 60 FPS), garantindo zero congelamento de garbage collector ou sobrecarga de entidades.
+  - **🔥 Cajado de Fogo (Atributo Forte: Tamanho / Área de Explosão):**
+    - Raio de explosão multiplica **+27% por nível** ($45\text{px} \rightarrow 57\text{px} \rightarrow 72\text{px} \rightarrow 92\text{px} \rightarrow 117\text{px}$). A área da poça de fogo cresce +576% no Nível 5, incendiando o solo em um mar colossal de fogo.
+    - Modo Infinito (`Lvl > 5`): Hard Cap seguro de $160\text{px}$ de raio ($320\text{px}$ de diâmetro).
+  - **🛡️ Escudo Sagrado (Atributo Forte: Duração / Uptime):**
+    - Duração base multiplica **+35% por nível** ($4.8\text{s} \rightarrow 6.5\text{s} \rightarrow 8.7\text{s} \rightarrow 11.8\text{s} \rightarrow 16.0\text{s}$). O herói ganha mais do triplo de proteção celestial contínua no Nv. 5.
+    - Modo Infinito (`Lvl > 5`): Hard Cap de $24.0\text{s}$ base.
+    - Duração das demais armas (Arco, Espada, Machado, Cajado) segue escala multiplicativa suave de +12% por nível ($6.0\text{s} \rightarrow 9.4\text{s}$ no Nv. 5, teto de 18.0s).
+- **🛡️ Confiabilidade & Zero Regressão:**
+  - Validação completa de sintaxe e dependências em todos os 25 módulos e no bundle `game.js`.
+
+---
+
 ## [v2.0.0] — 2026-10-20
 ### ⚔️ Título da Versão: **A Lâmina Vorpal & O Rastreador da Floresta (The Vorpal Blade & Forest Scout Update)**
 

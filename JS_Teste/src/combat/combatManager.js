@@ -131,10 +131,13 @@ function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
     enemy.setVelocityX(0);
   }
 
+  // Interpolação suave e orgânica que adapta o tempo à magnitude do impacto
+  const safeDuration = (duration && duration !== 130) ? duration : Math.min(190, 115 + Math.round(distance * 0.35));
+
   scene.tweens.add({
     targets: enemy,
     x: targetX,
-    duration: duration,
+    duration: safeDuration,
     ease: 'Cubic.easeOut',
     onUpdate: () => {
       if (enemy && enemy.active && enemy.body) {
