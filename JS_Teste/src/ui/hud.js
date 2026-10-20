@@ -7,7 +7,9 @@ const textStyle = (color, size = 17, weight = 'bold') => ({
   fontSize: size + 'px',
   fontStyle: weight,
   color,
-  fontFamily: 'Courier New, monospace'
+  fontFamily: '"Cinzel", "Georgia", "Palatino Linotype", serif',
+  stroke: '#0e0b08',
+  strokeThickness: Math.max(2, Math.round(size * 0.16))
 });
 
 function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {

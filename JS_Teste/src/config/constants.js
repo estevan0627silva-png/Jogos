@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.2.0';
-const VERSION_TITLE = 'Curva Exponencial Suave & Sistema Rítmico de Hordas Especiais';
-const VERSION_DESC = 'Calibração da curva inicial (0-20s suave com 1 monstro por vez, foco em farm de XP e zero arqueiros), aceleração exponencial progressiva, e sistema cíclico de Hordas Especiais a partir dos 45s (alternando entre Horda Densa de Goblins e Horda de Rastreadores com Guerreiros a cada 30 segundos com escalonamento dinâmico).';
+const GAME_VERSION = 'v2.3.0';
+const VERSION_TITLE = 'Remaster Visual 64-bit: Nitidez de Alta Fidelidade, Iluminação & Oclusão';
+const VERSION_DESC = 'Mega atualização gráfica elevando o jogo do padrão 16-bit plano para a fidelidade 64-bit: contornos direcionais com oclusão ambiente e luz de borda, vinheta cinematográfica de profundidade, feixes de luz solar volumétrica (Komorebi), sombras de solo em 3 camadas com sensibilidade de altitude, e tipografia nobre de alto contraste.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;

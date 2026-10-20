@@ -2,6 +2,37 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.3.0] — 2026-10-20
+### 🎨 Título da Versão: **Remasterização Visual 64-Bit (Fidelidade Gráfica, Oclusão Volumétrica & Nitidez Consolidada)**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Evolução gráfica completa dos 16-bit para 64-bit mantendo 100% da integridade física e alinhamento dos sprites: contorno inteligente sensível à luz (chanfro direcional/rim-light), sistema volumétrico de sombras de contato em 3 camadas com atenuação por altitude, vinheta atmosférica de alta definição, feixes solares volumétricos (Godrays) com blend aditivo e tipografia clássica nítida (Cinzel Serif) com contraste aprimorado.
+
+### 🚀 O que mudou:
+- **💎 Sombreador Procedural com Luz Direcional (Rim Light & Bevel 64-bit):**
+  - O motor de rasterização procedural `drawPixels` foi reestruturado com lógica de luz ambiente incidente no quadrante superior-esquerdo.
+  - Arestas externas superiores e esquerdas agora recebem chanfro suave luminoso (`C.outlineSoft`), enquanto as arestas inferiores e direitas recebem oclusão profunda (`C.outline`).
+  - Adicionado helper utilitário de rim-light (`r.rim`) para realces volumétricos reflexivos.
+  - **Zero Quebra de Malha:** Preservação estrita das dimensões (32x32, 48x48, 88x88), contagens de quadros de animação e pontos de ancoragem da lâmina da espada, escudo e projéteis.
+- **🌑 Oclusão Volumétrica de Solo em 3 Camadas com Altura Dinâmica:**
+  - O sistema de sombreamento sob entidades (`sortAndShade`) evoluiu de uma simples elipse dupla plana para um modelo físico de 3 camadas:
+    1. *Halo Difuso Ambiente 64-bit:* Projeção ampla e suave que integra a criatura ao bioma.
+    2. *Penumbra Suave Intermediária:* Zona de transição que confere peso gravitacional ao corpo.
+    3. *Oclusão Nítida de Contato (Ambiente Occlusion):* Núcleo escuro assentando solas, patas e cascos firmemente na grama/terra.
+  - Entidades no ar (como Mini-Golems ejetados em arco parabólico) agora escalam a dispersão e atenuação da sombra proporcionalmente à altitude (`altFactor`).
+- **☀️ Feixes Solares Volumétricos (Godrays) & Atmosfera Viva:**
+  - Geração procedural de texturas de raios solares angulares (`sunbeam_rays`) no dossel da floresta.
+  - Renderizados com modo de mesclagem aditiva (`Phaser.BlendModes.ADD`), respiração senoidal de pulso suave e deslocamento por paralaxe relativo à câmera.
+- **🌌 Vinheta Suave de Borda HD (Vignette 64-bit):**
+  - Nova textura procedural de 800x600 (`vignette_64bit`) com 12 camadas de decaimento radial suave.
+  - Fixada na câmera sobrepondo o cenário com blend sutil, concentrando o foco do jogador na arena central e eliminando bordas duras na tela.
+- **📜 Tipografia Fantasia Crisp & Alto Contraste:**
+  - Padronização de todas as fontes da interface, HUD, popups de dano e cartas de upgrade na família tipográfica clássica *Cinzel / Georgia Serif*.
+  - Traçado de contorno protetor escuro (`#0e0b08`) com espessura calibrada para garantir legibilidade instantânea contra qualquer fundo de bioma.
+  - Inclusão dos links de pré-carregamento Google Fonts com fallbacks locais 100% funcionais offline.
+
+---
+
 ## [v2.2.0] — 2026-10-20
 ### ⚔️ Título da Versão: **Curva Exponencial Suave & Sistema Rítmico de Hordas Especiais**
 

@@ -3,9 +3,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.2.0';
-const VERSION_TITLE = 'Curva Exponencial Suave & Sistema Rítmico de Hordas Especiais';
-const VERSION_DESC = 'Calibração da curva inicial (0-20s suave com 1 monstro por vez, foco em farm de XP e zero arqueiros), aceleração exponencial progressiva, e sistema cíclico de Hordas Especiais a partir dos 45s (alternando entre Horda Densa de Goblins e Horda de Rastreadores com Guerreiros a cada 30 segundos com escalonamento dinâmico).';
+const GAME_VERSION = 'v2.3.0';
+const VERSION_TITLE = 'Remaster Visual 64-bit: Nitidez de Alta Fidelidade, Iluminação & Oclusão';
+const VERSION_DESC = 'Mega atualização gráfica elevando o jogo do padrão 16-bit plano para a fidelidade 64-bit: contornos direcionais com oclusão ambiente e luz de borda, vinheta cinematográfica de profundidade, feixes de luz solar volumétrica (Komorebi), sombras de solo em 3 camadas com sensibilidade de altitude, e tipografia nobre de alto contraste.';
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -567,7 +567,7 @@ const events = new GameEventBus();
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, swordBlade, cursors, keys;
-let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
+let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars, vignetteOverlay, sunRays, ambientMotes;
 let enemies, obstacles, items, playerArrows, enemyArrows, slashes, xpOrbs;
 let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
@@ -2045,15 +2045,15 @@ if (typeof window !== 'undefined') {
 
 
 // --- BUNDLE FILE: JS_Teste/src/art/drawHelpers.js ---
-// ARTE: FERRAMENTAS DE PIXEL ART
-// Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
-// carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
-// Utilitários de desenho: r.dither (xadrez sub-pixel), r.shine (especular) e r.bevel (3D).
+// ARTE: FERRAMENTAS DE PIXEL ART & RENDERIZAÇÃO 64-BIT
+// Cada "pixel" lógico opera em grade 2x2 com contornos com iluminação direcional (Luz zenital no topo/esquerda e oclusão de contato na base/direita).
+// Utilitários de desenho: r.dither (gradiente sub-pixel), r.shine (especular), r.rim (luz de borda) e r.bevel (volume 3D).
 // =============================================================================
 function drawPixels(g, ox, oy, draw, frame = 0) {
-  const pass = (dx, dy, outline) => {
+  const pass = (dx, dy, outline, isLightEdge = false) => {
+    const outlineColor = isLightEdge ? (C.outlineSoft || 0x2e241c) : (C.outline || 0x16100c);
     const r = (color, x, y, w = 1, h = 1) => {
-      g.fillStyle(outline ? C.outline : color).fillRect(
+      g.fillStyle(outline ? outlineColor : color).fillRect(
         ox + x * 2 + dx,
         oy + y * 2 + dy,
         w * 2,
@@ -2061,10 +2061,10 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
       );
     };
 
-    // Dithering 16-bit: padrão xadrez 1x1 sub-pixel para gradientes suaves de metal/tecido/terreno
+    // Dithering 64-bit: padrão xadrez 1x1 sub-pixel para gradientes suaves de metal/tecido/terreno
     r.dither = (colorA, colorB, x, y, w = 1, h = 1, invert = false) => {
       if (outline) {
-        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+        g.fillStyle(outlineColor).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
       } else {
         for (let lx = 0; lx < w; lx++) {
           for (let ly = 0; ly < h; ly++) {
@@ -2087,10 +2087,17 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
       }
     };
 
+    // Luz de borda / Rim light volumétrica de alta nitidez
+    r.rim = (x, y, w = 1, h = 1, color = C.white) => {
+      if (!outline) {
+        g.fillStyle(color).fillRect(ox + x * 2, oy + y * 2, w * 2, 1);
+      }
+    };
+
     // Borda chanfrada 3D para moedas, botões e medalhões
     r.bevel = (highlightColor, shadowColor, x, y, w, h) => {
       if (outline) {
-        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+        g.fillStyle(outlineColor).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
       } else {
         g.fillStyle(highlightColor)
           .fillRect(ox + x * 2, oy + y * 2, w * 2, 2)
@@ -2104,11 +2111,13 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
     draw(r, frame, r);
   };
 
-  pass(-1, 0, true);
-  pass(1, 0, true);
-  pass(0, -1, true);
-  pass(0, 1, true); // contorno escuro 4-pass
-  pass(0, 0, false); // cores e detalhes
+  // Contorno Direcional 64-bit (Luz ambiente e Oclusão de Contato):
+  // Topo e Esquerda recebem iluminação da copa (outlineSoft); Base e Direita recebem sombra de contato (outline)
+  pass(-1, 0, true, true);  // Esquerda: luz suave
+  pass(0, -1, true, true);  // Topo: luz suave
+  pass(1, 0, true, false);  // Direita: sombra de contato
+  pass(0, 1, true, false);  // Base: sombra de contato profunda
+  pass(0, 0, false, false); // Cores e detalhes em alta nitidez
 }
 
 // Gera uma folha de sprites (quadros lado a lado) e registra cada quadro
@@ -3783,6 +3792,36 @@ function makeWorldTextures(scene) {
   g.fillRect(9, 9, 2, 2).fillRect(37, 9, 2, 2);
   g.fillRect(9, 37, 2, 2).fillRect(37, 37, 2, 2);
   g.generateTexture('shield_aura', 48, 48);
+
+  // 64-BIT: Vinheta Cinematográfica de Alta Nitidez (800x600)
+  if (!scene.textures.exists('vignette_64bit')) {
+    const vCanvas = scene.textures.createCanvas('vignette_64bit', 800, 600);
+    const vCtx = vCanvas.context;
+    const vGrad = vCtx.createRadialGradient(400, 300, 220, 400, 300, 520);
+    vGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vGrad.addColorStop(0.55, 'rgba(10, 7, 5, 0.08)');
+    vGrad.addColorStop(0.85, 'rgba(8, 5, 4, 0.28)');
+    vGrad.addColorStop(1, 'rgba(5, 3, 2, 0.58)');
+    vCtx.fillStyle = vGrad;
+    vCtx.fillRect(0, 0, 800, 600);
+    vCanvas.refresh();
+  }
+
+  // 64-BIT: Feixes de Luz Solar Volumétrica / Komorebi (400x260)
+  if (!scene.textures.exists('sunbeam_rays')) {
+    const sCanvas = scene.textures.createCanvas('sunbeam_rays', 400, 260);
+    const sCtx = sCanvas.context;
+    const sGrad = sCtx.createLinearGradient(0, 0, 160, 260);
+    sGrad.addColorStop(0, 'rgba(255, 240, 190, 0.16)');
+    sGrad.addColorStop(0.4, 'rgba(255, 220, 140, 0.07)');
+    sGrad.addColorStop(1, 'rgba(255, 200, 100, 0)');
+    sCtx.fillStyle = sGrad;
+    sCtx.beginPath();
+    sCtx.moveTo(30, 0); sCtx.lineTo(120, 0); sCtx.lineTo(240, 260); sCtx.lineTo(140, 260); sCtx.closePath(); sCtx.fill();
+    sCtx.beginPath();
+    sCtx.moveTo(210, 0); sCtx.lineTo(290, 0); sCtx.lineTo(390, 260); sCtx.lineTo(300, 260); sCtx.closePath(); sCtx.fill();
+    sCanvas.refresh();
+  }
 
   g.destroy();
 }
@@ -6290,7 +6329,9 @@ const textStyle = (color, size = 17, weight = 'bold') => ({
   fontSize: size + 'px',
   fontStyle: weight,
   color,
-  fontFamily: 'Courier New, monospace'
+  fontFamily: '"Cinzel", "Georgia", "Palatino Linotype", serif',
+  stroke: '#0e0b08',
+  strokeThickness: Math.max(2, Math.round(size * 0.16))
 });
 
 function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {
@@ -8897,8 +8938,11 @@ function create(data) {
   ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
   road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
   forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
+  sunRays = scene.add.tileSprite(400, 130, 800, 260, 'sunbeam_rays').setDepth(-4).setAlpha(0.06).setBlendMode(Phaser.BlendModes.ADD);
+  scene.tweens.add({ targets: sunRays, alpha: { from: 0.04, to: 0.08 }, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   shadows = scene.add.graphics().setDepth(-2);
   forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
+  vignetteOverlay = scene.add.image(400, 300, 'vignette_64bit').setDepth(1590).setScrollFactor(0);
   bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
 
   // Grupos físicos
@@ -9163,6 +9207,7 @@ function updateMenuBackground(dt) {
   road.tilePositionX += scrollSpeed * dt;
   forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
   forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
+  if (sunRays) sunRays.tilePositionX += scrollSpeed * 0.45 * dt;
   obstacles.setVelocityX(-scrollSpeed);
 }
 
@@ -9174,6 +9219,7 @@ function updateGameplay(scene, time, dt) {
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
   forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
+  if (sunRays) sunRays.tilePositionX += worldSpeed * 0.5 * dt;
   obstacles.setVelocityX(-worldSpeed);
   villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
@@ -9454,10 +9500,21 @@ function sortAndShade() {
     }
 
     const sx = Math.round(s.x);
-    // 1. Penumbra suave externa (dissipa suavemente no solo)
-    shadows.fillStyle(0x161009, pAlpha).fillEllipse(sx, groundY, pw, ph);
-    // 2. Núcleo escuro de contato (assenta os pés firmemente na terra)
-    shadows.fillStyle(0x0a0604, cAlpha).fillEllipse(sx, groundY, cw, ch);
+    const altitude = Math.max(0, groundY - Math.round(s.y + (s.displayHeight ? s.displayHeight / 2 : 14)));
+    const altFactor = Math.max(0.40, 1.0 - altitude * 0.015);
+    const curPw = Math.round(pw * altFactor);
+    const curPh = Math.round(ph * altFactor);
+    const curCw = Math.round(cw * altFactor);
+    const curCh = Math.round(ch * altFactor);
+
+    // 1. Halo difuso ambiente 64-bit
+    shadows.fillStyle(0x1e150c, pAlpha * 0.45 * altFactor).fillEllipse(sx, groundY, Math.round(curPw * 1.35), Math.round(curPh * 1.35));
+    // 2. Penumbra suave intermediaria
+    shadows.fillStyle(0x120c08, pAlpha * altFactor).fillEllipse(sx, groundY, curPw, curPh);
+    // 3. Oclusao nitida de contato com o solo
+    if (altitude < 16) {
+      shadows.fillStyle(0x050302, cAlpha * 1.15).fillEllipse(sx, groundY, curCw, Math.max(2, Math.round(curCh * 0.85)));
+    }
   };
 
   obstacles.getChildren().forEach(o => {

@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
 
@@ -167,8 +167,11 @@ function create(data) {
   ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
   road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
   forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
+  sunRays = scene.add.tileSprite(400, 130, 800, 260, 'sunbeam_rays').setDepth(-4).setAlpha(0.06).setBlendMode(Phaser.BlendModes.ADD);
+  scene.tweens.add({ targets: sunRays, alpha: { from: 0.04, to: 0.08 }, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   shadows = scene.add.graphics().setDepth(-2);
   forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
+  vignetteOverlay = scene.add.image(400, 300, 'vignette_64bit').setDepth(1590).setScrollFactor(0);
   bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
 
   // Grupos físicos
@@ -433,6 +436,7 @@ function updateMenuBackground(dt) {
   road.tilePositionX += scrollSpeed * dt;
   forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
   forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
+  if (sunRays) sunRays.tilePositionX += scrollSpeed * 0.45 * dt;
   obstacles.setVelocityX(-scrollSpeed);
 }
 
@@ -444,6 +448,7 @@ function updateGameplay(scene, time, dt) {
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
   forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
+  if (sunRays) sunRays.tilePositionX += worldSpeed * 0.5 * dt;
   obstacles.setVelocityX(-worldSpeed);
   villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
@@ -724,10 +729,21 @@ function sortAndShade() {
     }
 
     const sx = Math.round(s.x);
-    // 1. Penumbra suave externa (dissipa suavemente no solo)
-    shadows.fillStyle(0x161009, pAlpha).fillEllipse(sx, groundY, pw, ph);
-    // 2. Núcleo escuro de contato (assenta os pés firmemente na terra)
-    shadows.fillStyle(0x0a0604, cAlpha).fillEllipse(sx, groundY, cw, ch);
+    const altitude = Math.max(0, groundY - Math.round(s.y + (s.displayHeight ? s.displayHeight / 2 : 14)));
+    const altFactor = Math.max(0.40, 1.0 - altitude * 0.015);
+    const curPw = Math.round(pw * altFactor);
+    const curPh = Math.round(ph * altFactor);
+    const curCw = Math.round(cw * altFactor);
+    const curCh = Math.round(ch * altFactor);
+
+    // 1. Halo difuso ambiente 64-bit
+    shadows.fillStyle(0x1e150c, pAlpha * 0.45 * altFactor).fillEllipse(sx, groundY, Math.round(curPw * 1.35), Math.round(curPh * 1.35));
+    // 2. Penumbra suave intermediaria
+    shadows.fillStyle(0x120c08, pAlpha * altFactor).fillEllipse(sx, groundY, curPw, curPh);
+    // 3. Oclusao nitida de contato com o solo
+    if (altitude < 16) {
+      shadows.fillStyle(0x050302, cAlpha * 1.15).fillEllipse(sx, groundY, curCw, Math.max(2, Math.round(curCh * 0.85)));
+    }
   };
 
   obstacles.getChildren().forEach(o => {
