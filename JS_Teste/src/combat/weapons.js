@@ -76,10 +76,11 @@ function getWeaponStats(type, lvl = 1) {
     stats.damage = Math.max(1, Math.round(1 * generalMult));
   }
 
-  // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
-  const msLvl = (chosenScroll === 'multishot') ? (scrollLevels.multishot || 0) : 0;
-  const grLvl = (chosenScroll === 'growth') ? (scrollLevels.growth || 0) : 0;
-  const asLvl = (chosenScroll === 'attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
+  // 2. Sistema de Pergaminhos: Aplica bônus de até 2 pergaminhos arcanos escolhidos por partida
+  const hasScroll = (key) => (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls.includes(key) : (chosenScroll === key);
+  const msLvl = hasScroll('multishot') ? (scrollLevels.multishot || 0) : 0;
+  const grLvl = hasScroll('growth') ? (scrollLevels.growth || 0) : 0;
+  const asLvl = hasScroll('attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
 
   if (msLvl > 0) {
     stats.projectiles += msLvl;

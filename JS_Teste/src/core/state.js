@@ -13,9 +13,11 @@ let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false, isHitstopping = f
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
+let chosenScrolls = [];
 let chosenScroll = null;
 let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
+let hudScrollBadges = [], hudScrollTexts = [];
 let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0, entityIdCounter = 0;
 let nextHordeTime = 45, hordeCycleCount = 0;

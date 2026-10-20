@@ -35,11 +35,18 @@ function rollLevelUpCards() {
     }
   });
 
-  // Cartas de Pergaminhos Arcanos (Regra: apenas 1 pergaminho por partida, até Nv. 5)
+  // Cartas de Pergaminhos Arcanos (Regra: até 2 pergaminhos por partida, até Nv. 5 cada)
   const scrollCards = [];
   const scrollKeys = ['multishot', 'growth', 'attackspeed'];
+  const maxChosenScrolls = 2;
+  const activeChosen = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls : (chosenScroll ? [chosenScroll] : []);
+  const currentChosenCount = activeChosen.length;
+
   scrollKeys.forEach(sKey => {
-    if (chosenScroll !== null && chosenScroll !== sKey) return;
+    const isAlreadyChosen = activeChosen.includes(sKey);
+    // Se o jogador já possui 2 pergaminhos distintos e este não é um deles, não oferece
+    if (!isAlreadyChosen && currentChosenCount >= maxChosenScrolls) return;
+
     const currLvl = scrollLevels[sKey] || 0;
     if (currLvl >= 5) return;
     const nextLvl = currLvl + 1;
@@ -49,18 +56,35 @@ function rollLevelUpCards() {
     const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ★';
     const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
 
+    const slotLabel = isAlreadyChosen
+      ? 'PERGAMINHO EXCLUSIVO'
+      : (currentChosenCount === 0 ? 'PERGAMINHO ARCANO (1/2)' : 'PERGAMINHO ARCANO (2/2)');
+
+    const promptExtra = isAlreadyChosen
+      ? '✦ Refina este pergaminho exclusivo nesta partida!'
+      : (currentChosenCount === 0
+          ? '✦ ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
+          : '✦ ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
+
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
-      category: chosenScroll === sKey ? 'PERGAMINHO EXCLUSIVO' : 'PERGAMINHO ARCANO',
+      category: slotLabel,
       title: sCfg.name,
       badge: badge,
       badgeColor: nextLvl >= 5 ? '#ffd740' : '#b388ff',
       borderColor: nextLvl >= 5 ? 0xffca28 : 0xb388ff,
       icon: sCfg.icon,
-      desc: `${desc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida!' : 'Refina seu pergaminho exclusivo nesta partida!'}`,
-      weight: chosenScroll === sKey ? 3 : 2,
+      desc: `${desc}\n\n${promptExtra}`,
+      weight: isAlreadyChosen ? 3 : 2,
       apply: (scene) => {
-        chosenScroll = sKey;
+        if (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) {
+          if (!chosenScrolls.includes(sKey)) {
+            chosenScrolls.push(sKey);
+          }
+          chosenScroll = chosenScrolls[0] || null;
+        } else {
+          chosenScroll = sKey;
+        }
         scrollLevels[sKey] = nextLvl;
         sound.playLevelUp();
         floatText(scene, player.x, player.y - 32, `${sCfg.shortName} ARCANO!`, '#b388ff');
@@ -181,6 +205,14 @@ function rollLevelUpCards() {
   });
 
   shuffledItems.forEach(card => {
+    if (selected.length < 3 && !usedIds.has(card.id)) {
+      selected.push(card);
+      usedIds.add(card.id);
+    }
+  });
+
+  // Caso armas e itens tenham esgotado opções válidas, preenche com pergaminhos restantes
+  shuffledScrolls.forEach(card => {
     if (selected.length < 3 && !usedIds.has(card.id)) {
       selected.push(card);
       usedIds.add(card.id);

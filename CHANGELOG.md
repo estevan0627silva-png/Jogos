@@ -2,6 +2,37 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.4.0] — 2026-10-20
+### 📜 Título da Versão: **Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (Slot Duplo por Partida)**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Expansão do limite máximo de pergaminhos arcanos escolhidos por partida de 1 para 2. Os jogadores agora podem selecionar e combinar dois pergaminhos distintos (ex: Disparo Múltiplo + Crescimento de Área ou Velocidade de Ataque) com aplicação simultânea de bônus cumulativos, HUD com slots duplos de nível e sinalização tática nas cartas de evolução.
+
+### 🚀 O que mudou:
+- **📜 Expansão do Teto de Pergaminhos (1 ➔ 2 por Run):**
+  - O herói agora pode escolher e empunhar **até 2 Pergaminhos Arcanos distintos** em uma mesma partida.
+  - Cada um dos dois pergaminhos continua evoluindo de forma independente até o Nível 5 máximo (com badges de maestria de nível 1 ao 5).
+  - Uma vez escolhidos 2 pergaminhos, o terceiro pergaminho restante é automaticamente excluído do catálogo daquela partida, mantendo as escolhas táticas exclusivas.
+- **⚡ Sinergia Total de Atributos em Combate:**
+  - Em `weapons.js`, todos os pergaminhos equipados aplicam seus bônus simultaneamente em todas as armas ativas:
+    - *Disparo Múltiplo:* +1 a +5 projéteis/cortes extras.
+    - *Crescimento:* +22% a +110% de área de impacto em todos os ataques e poças de fogo.
+    - *Velocidade de Ataque:* +18% a +90% de aceleração de cadência.
+  - Combinações poderosas como Disparo Múltiplo + Crescimento geram leques colossais de dano, enquanto Disparo Múltiplo + Velocidade criam rajadas contínuas de ataque.
+- **🛡️ HUD com Suporte a Slots Duplos:**
+  - O painel superior de relíquias (`hud.js`) foi reformulado para suportar slots visuais duplos:
+    - Com **1 pergaminho:** O ícone e o texto `NV.X` permanecem centralizados no espaço de relíquias (`x: 495`).
+    - Com **2 pergaminhos:** A interface transiciona suavemente posicionando o 1º ícone em `x: 478` e o 2º ícone em `x: 501`, ambos com seu respectivo nível visível e legível.
+- **🃏 Sinalização Tática no Draft de Level Up:**
+  - O modal de evolução identifica visualmente o progresso da cota de pergaminhos:
+    - `PERGAMINHO ARCANO (1/2)` quando o jogador ainda não escolheu nenhum.
+    - `PERGAMINHO ARCANO (2/2)` ao oferecer o segundo e último pergaminho permitido.
+    - `PERGAMINHO EXCLUSIVO` para evoluções de pergaminhos já vinculados.
+- **🔄 Reset Limpo de Partida:**
+  - Ao reiniciar (`director.js`), o array `chosenScrolls` é esvaziado, `chosenScroll` volta a ser `null`, todos os níveis arcanos voltam a 0 e o HUD oculta instantaneamente ambos os slots.
+
+---
+
 ## [v2.3.0] — 2026-10-20
 ### 🎨 Título da Versão: **Remasterização Visual 64-Bit (Fidelidade Gráfica, Oclusão Volumétrica & Nitidez Consolidada)**
 

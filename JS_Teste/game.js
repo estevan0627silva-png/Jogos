@@ -3,9 +3,10 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.3.0';
-const VERSION_TITLE = 'Remaster Visual 64-bit: Nitidez de Alta Fidelidade, Iluminação & Oclusão';
-const VERSION_DESC = 'Mega atualização gráfica elevando o jogo do padrão 16-bit plano para a fidelidade 64-bit: contornos direcionais com oclusão ambiente e luz de borda, vinheta cinematográfica de profundidade, feixes de luz solar volumétrica (Komorebi), sombras de solo em 3 camadas com sensibilidade de altitude, e tipografia nobre de alto contraste.';
+const GAME_VERSION = 'v2.4.0';
+const VERSION_TITLE = 'Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (2 por Run)';
+const VERSION_DESC = 'Expansão do limite máximo de pergaminhos arcanos escolhidos por partida de 1 para 2. Os jogadores agora podem selecionar e combinar dois pergaminhos distintos (ex: Disparo Múltiplo + Crescimento de Área ou Velocidade de Ataque) com aplicação simultânea de bônus cumulativos, HUD com slots duplos de nível e sinalização tática nas cartas de evolução.';
+const MAX_CHOSEN_SCROLLS = 2;
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -297,7 +298,7 @@ const WEAPON_CATALOG = {
   }
 };
 
-// Catálogo do Sistema de Pergaminhos Arcanos (Escolha Única por partida, até Nível 5)
+// Catálogo do Sistema de Pergaminhos Arcanos (Até 2 Escolhas por partida, até Nível 5 cada)
 const SCROLL_CATALOG = {
   multishot: {
     id: 'multishot',
@@ -579,9 +580,11 @@ let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false, isHitstopping = f
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
+let chosenScrolls = [];
 let chosenScroll = null;
 let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
+let hudScrollBadges = [], hudScrollTexts = [];
 let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0, entityIdCounter = 0;
 let nextHordeTime = 45, hordeCycleCount = 0;
@@ -4158,10 +4161,11 @@ function getWeaponStats(type, lvl = 1) {
     stats.damage = Math.max(1, Math.round(1 * generalMult));
   }
 
-  // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
-  const msLvl = (chosenScroll === 'multishot') ? (scrollLevels.multishot || 0) : 0;
-  const grLvl = (chosenScroll === 'growth') ? (scrollLevels.growth || 0) : 0;
-  const asLvl = (chosenScroll === 'attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
+  // 2. Sistema de Pergaminhos: Aplica bônus de até 2 pergaminhos arcanos escolhidos por partida
+  const hasScroll = (key) => (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls.includes(key) : (chosenScroll === key);
+  const msLvl = hasScroll('multishot') ? (scrollLevels.multishot || 0) : 0;
+  const grLvl = hasScroll('growth') ? (scrollLevels.growth || 0) : 0;
+  const asLvl = hasScroll('attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
 
   if (msLvl > 0) {
     stats.projectiles += msLvl;
@@ -5343,8 +5347,10 @@ function startGameplay(scene) {
   xpToNextLevel = getXpRequiredForLevel(1);
   pendingLevelUps = 0;
   runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
+  chosenScrolls = [];
   chosenScroll = null;
   scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
+  if (typeof updateScrollHUD === 'function') updateScrollHUD();
   clearFirePools();
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
@@ -6433,10 +6439,16 @@ function createHUD(scene) {
   hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
   hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(460, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
-  hudScrollBadge = scene.add.image(495, 28, 'scroll_multishot').setScale(0.95).setVisible(false);
-  hudScrollText = scene.add.text(495, 43, '', textStyle('#b388ff', 9)).setOrigin(0.5, 0.5).setVisible(false);
-  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, hudScrollBadge, hudScrollText]);
+  hudItemTime = scene.add.text(450, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
+  const badge1 = scene.add.image(478, 27, 'scroll_multishot').setScale(0.85).setVisible(false);
+  const txt1 = scene.add.text(478, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  const badge2 = scene.add.image(501, 27, 'scroll_growth').setScale(0.85).setVisible(false);
+  const txt2 = scene.add.text(501, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  hudScrollBadges = [badge1, badge2];
+  hudScrollTexts = [txt1, txt2];
+  hudScrollBadge = badge1;
+  hudScrollText = txt1;
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
 
   // 4. PAINEL DE RECORDE DO REINO (x: 520..628)
   const bestBg = scene.add.graphics();
@@ -6607,7 +6619,7 @@ function updateItemHUD() {
 
   const maxTime = buff.maxTime || BUFF_TIME[buff.type] || 6;
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
-  const barW = 114;
+  const barW = 100;
   const barH = 7;
   const barX = 330;
   const barY = 32;
@@ -6647,17 +6659,41 @@ function updateItemHUD() {
 
 
 function updateScrollHUD() {
-  if (!hudScrollBadge || !hudScrollText) return;
-  if (!chosenScroll) {
-    hudScrollBadge.setVisible(false);
-    hudScrollText.setVisible(false);
-    return;
+  if (!hudScrollBadges || hudScrollBadges.length === 0) return;
+  const activeScrolls = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls))
+    ? chosenScrolls
+    : (chosenScroll ? [chosenScroll] : []);
+
+  for (let i = 0; i < 2; i++) {
+    const badge = hudScrollBadges[i];
+    const txt = hudScrollTexts[i];
+    if (!badge || !txt) continue;
+
+    const sKey = activeScrolls[i];
+    if (sKey && SCROLL_CATALOG[sKey]) {
+      const sCfg = SCROLL_CATALOG[sKey];
+      const lvl = scrollLevels[sKey] || 1;
+      badge.setTexture(sCfg.icon).setVisible(true);
+      txt.setText(`NV.${lvl}`).setVisible(true);
+    } else {
+      badge.setVisible(false);
+      txt.setVisible(false);
+    }
   }
-  const sCfg = SCROLL_CATALOG[chosenScroll];
-  const lvl = scrollLevels[chosenScroll] || 1;
-  if (sCfg) {
-    hudScrollBadge.setTexture(sCfg.icon).setVisible(true);
-    hudScrollText.setText(`NV.${lvl}`).setVisible(true);
+
+  // Se possuir exatamente 1 pergaminho, centraliza o badge (x: 495)
+  if (activeScrolls.length === 1 && hudScrollBadges[0] && hudScrollTexts[0]) {
+    hudScrollBadges[0].setX(495);
+    hudScrollTexts[0].setX(495);
+  } else if (activeScrolls.length >= 2) {
+    if (hudScrollBadges[0] && hudScrollTexts[0]) {
+      hudScrollBadges[0].setX(478);
+      hudScrollTexts[0].setX(478);
+    }
+    if (hudScrollBadges[1] && hudScrollTexts[1]) {
+      hudScrollBadges[1].setX(501);
+      hudScrollTexts[1].setX(501);
+    }
   }
 }
 
@@ -6700,11 +6736,18 @@ function rollLevelUpCards() {
     }
   });
 
-  // Cartas de Pergaminhos Arcanos (Regra: apenas 1 pergaminho por partida, até Nv. 5)
+  // Cartas de Pergaminhos Arcanos (Regra: até 2 pergaminhos por partida, até Nv. 5 cada)
   const scrollCards = [];
   const scrollKeys = ['multishot', 'growth', 'attackspeed'];
+  const maxChosenScrolls = 2;
+  const activeChosen = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls : (chosenScroll ? [chosenScroll] : []);
+  const currentChosenCount = activeChosen.length;
+
   scrollKeys.forEach(sKey => {
-    if (chosenScroll !== null && chosenScroll !== sKey) return;
+    const isAlreadyChosen = activeChosen.includes(sKey);
+    // Se o jogador já possui 2 pergaminhos distintos e este não é um deles, não oferece
+    if (!isAlreadyChosen && currentChosenCount >= maxChosenScrolls) return;
+
     const currLvl = scrollLevels[sKey] || 0;
     if (currLvl >= 5) return;
     const nextLvl = currLvl + 1;
@@ -6714,18 +6757,35 @@ function rollLevelUpCards() {
     const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ★';
     const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
 
+    const slotLabel = isAlreadyChosen
+      ? 'PERGAMINHO EXCLUSIVO'
+      : (currentChosenCount === 0 ? 'PERGAMINHO ARCANO (1/2)' : 'PERGAMINHO ARCANO (2/2)');
+
+    const promptExtra = isAlreadyChosen
+      ? '✦ Refina este pergaminho exclusivo nesta partida!'
+      : (currentChosenCount === 0
+          ? '✦ ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
+          : '✦ ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
+
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
-      category: chosenScroll === sKey ? 'PERGAMINHO EXCLUSIVO' : 'PERGAMINHO ARCANO',
+      category: slotLabel,
       title: sCfg.name,
       badge: badge,
       badgeColor: nextLvl >= 5 ? '#ffd740' : '#b388ff',
       borderColor: nextLvl >= 5 ? 0xffca28 : 0xb388ff,
       icon: sCfg.icon,
-      desc: `${desc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida!' : 'Refina seu pergaminho exclusivo nesta partida!'}`,
-      weight: chosenScroll === sKey ? 3 : 2,
+      desc: `${desc}\n\n${promptExtra}`,
+      weight: isAlreadyChosen ? 3 : 2,
       apply: (scene) => {
-        chosenScroll = sKey;
+        if (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) {
+          if (!chosenScrolls.includes(sKey)) {
+            chosenScrolls.push(sKey);
+          }
+          chosenScroll = chosenScrolls[0] || null;
+        } else {
+          chosenScroll = sKey;
+        }
         scrollLevels[sKey] = nextLvl;
         sound.playLevelUp();
         floatText(scene, player.x, player.y - 32, `${sCfg.shortName} ARCANO!`, '#b388ff');
@@ -6846,6 +6906,14 @@ function rollLevelUpCards() {
   });
 
   shuffledItems.forEach(card => {
+    if (selected.length < 3 && !usedIds.has(card.id)) {
+      selected.push(card);
+      usedIds.add(card.id);
+    }
+  });
+
+  // Caso armas e itens tenham esgotado opções válidas, preenche com pergaminhos restantes
+  shuffledScrolls.forEach(card => {
     if (selected.length < 3 && !usedIds.has(card.id)) {
       selected.push(card);
       usedIds.add(card.id);

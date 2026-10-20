@@ -84,7 +84,7 @@ const WEAPON_CATALOG = {
   }
 };
 
-// Catálogo do Sistema de Pergaminhos Arcanos (Escolha Única por partida, até Nível 5)
+// Catálogo do Sistema de Pergaminhos Arcanos (Até 2 Escolhas por partida, até Nível 5 cada)
 const SCROLL_CATALOG = {
   multishot: {
     id: 'multishot',

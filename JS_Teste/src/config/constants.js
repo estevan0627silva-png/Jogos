@@ -1,9 +1,10 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.3.0';
-const VERSION_TITLE = 'Remaster Visual 64-bit: Nitidez de Alta Fidelidade, Iluminação & Oclusão';
-const VERSION_DESC = 'Mega atualização gráfica elevando o jogo do padrão 16-bit plano para a fidelidade 64-bit: contornos direcionais com oclusão ambiente e luz de borda, vinheta cinematográfica de profundidade, feixes de luz solar volumétrica (Komorebi), sombras de solo em 3 camadas com sensibilidade de altitude, e tipografia nobre de alto contraste.';
+const GAME_VERSION = 'v2.4.0';
+const VERSION_TITLE = 'Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (2 por Run)';
+const VERSION_DESC = 'Expansão do limite máximo de pergaminhos arcanos escolhidos por partida de 1 para 2. Os jogadores agora podem selecionar e combinar dois pergaminhos distintos (ex: Disparo Múltiplo + Crescimento de Área ou Velocidade de Ataque) com aplicação simultânea de bônus cumulativos, HUD com slots duplos de nível e sinalização tática nas cartas de evolução.';
+const MAX_CHOSEN_SCROLLS = 2;
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;

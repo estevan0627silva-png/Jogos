@@ -111,10 +111,16 @@ function createHUD(scene) {
   hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
   hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(460, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
-  hudScrollBadge = scene.add.image(495, 28, 'scroll_multishot').setScale(0.95).setVisible(false);
-  hudScrollText = scene.add.text(495, 43, '', textStyle('#b388ff', 9)).setOrigin(0.5, 0.5).setVisible(false);
-  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, hudScrollBadge, hudScrollText]);
+  hudItemTime = scene.add.text(450, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
+  const badge1 = scene.add.image(478, 27, 'scroll_multishot').setScale(0.85).setVisible(false);
+  const txt1 = scene.add.text(478, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  const badge2 = scene.add.image(501, 27, 'scroll_growth').setScale(0.85).setVisible(false);
+  const txt2 = scene.add.text(501, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  hudScrollBadges = [badge1, badge2];
+  hudScrollTexts = [txt1, txt2];
+  hudScrollBadge = badge1;
+  hudScrollText = txt1;
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
 
   // 4. PAINEL DE RECORDE DO REINO (x: 520..628)
   const bestBg = scene.add.graphics();
@@ -285,7 +291,7 @@ function updateItemHUD() {
 
   const maxTime = buff.maxTime || BUFF_TIME[buff.type] || 6;
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
-  const barW = 114;
+  const barW = 100;
   const barH = 7;
   const barX = 330;
   const barY = 32;
@@ -325,16 +331,40 @@ function updateItemHUD() {
 
 
 function updateScrollHUD() {
-  if (!hudScrollBadge || !hudScrollText) return;
-  if (!chosenScroll) {
-    hudScrollBadge.setVisible(false);
-    hudScrollText.setVisible(false);
-    return;
+  if (!hudScrollBadges || hudScrollBadges.length === 0) return;
+  const activeScrolls = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls))
+    ? chosenScrolls
+    : (chosenScroll ? [chosenScroll] : []);
+
+  for (let i = 0; i < 2; i++) {
+    const badge = hudScrollBadges[i];
+    const txt = hudScrollTexts[i];
+    if (!badge || !txt) continue;
+
+    const sKey = activeScrolls[i];
+    if (sKey && SCROLL_CATALOG[sKey]) {
+      const sCfg = SCROLL_CATALOG[sKey];
+      const lvl = scrollLevels[sKey] || 1;
+      badge.setTexture(sCfg.icon).setVisible(true);
+      txt.setText(`NV.${lvl}`).setVisible(true);
+    } else {
+      badge.setVisible(false);
+      txt.setVisible(false);
+    }
   }
-  const sCfg = SCROLL_CATALOG[chosenScroll];
-  const lvl = scrollLevels[chosenScroll] || 1;
-  if (sCfg) {
-    hudScrollBadge.setTexture(sCfg.icon).setVisible(true);
-    hudScrollText.setText(`NV.${lvl}`).setVisible(true);
+
+  // Se possuir exatamente 1 pergaminho, centraliza o badge (x: 495)
+  if (activeScrolls.length === 1 && hudScrollBadges[0] && hudScrollTexts[0]) {
+    hudScrollBadges[0].setX(495);
+    hudScrollTexts[0].setX(495);
+  } else if (activeScrolls.length >= 2) {
+    if (hudScrollBadges[0] && hudScrollTexts[0]) {
+      hudScrollBadges[0].setX(478);
+      hudScrollTexts[0].setX(478);
+    }
+    if (hudScrollBadges[1] && hudScrollTexts[1]) {
+      hudScrollBadges[1].setX(501);
+      hudScrollTexts[1].setX(501);
+    }
   }
 }
