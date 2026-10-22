@@ -59,9 +59,9 @@ function spawnStartingVillage(scene) {
     npc.setTint(spec.tint);
     npc.play('village_npc');
     npc.speechBubble = scene.add.text(spec.x, spec.y - 24, spec.msg, {
-      ...textStyle('#fff8e1', 10),
-      stroke: '#16120e',
-      strokeThickness: 3
+      ...roundedTextStyle('#fff8e1', 11, 'bold', '#16120e', 3)
+
+
     }).setOrigin(0.5).setDepth(spec.y + 30);
   });
 

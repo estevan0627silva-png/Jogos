@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // TELAS E MENUS DO JOGO (16:9 WIDESCREEN — 960x540)
 // DESIGN: CENÁRIOS IMERSIVOS, BALCÕES DOS MESTRES, PERGAMINHO, FERRO & OURO NOBRE
 // INSPIRAÇÃO: UI KIT MEDIEVAL (IMG 1), BALCÃO DOS VENDEDORES (IMG 2 & 4) & FLOREIOS VITORIANOS (IMG 3)
@@ -684,7 +684,7 @@ function showBlacksmithMenu(scene) {
 
   const smithTitleTxt = scene.add.text(326, 92, 'MESTRE ANVILGAR (FERREIRO REAL)', textStyle('#5c3722', 11, 'bold'));
   const smithSpeechTxt = scene.add.text(326, 110, '“O fogo forja o aço! Escolha seu armamento para a batalha.”', {
-    ...textStyle('#2c1b10', 10.5, 'normal'),
+    ...roundedTextStyle('#2c1b10', 11, 'normal'),
     lineSpacing: 3,
     wordWrap: { width: 280, useAdvancedWrap: true }
   });
@@ -875,7 +875,8 @@ function showBlacksmithMenu(scene) {
     // Nome da Arma em tipografia nobre
     const nameTxt = scene.add.text(cx, startY + 92, cfg.name, {
       ...textStyle(isStarter ? '#794b02' : (isUnlocked ? '#2c1b10' : '#6b5443'), 12),
-      fontFamily: 'Georgia, serif'
+      fontFamily: 'Georgia, serif',
+      align: 'center'
     }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 16, 18, 9.5);
 
@@ -887,7 +888,7 @@ function showBlacksmithMenu(scene) {
     // Descrição e lore de combate
     const descStr = weaponStyles[key] || cfg.forgeLore || '';
     const descTxt = scene.add.text(cx, startY + 164, descStr, {
-      ...textStyle('#3d2817', 9.5, 'normal'),
+      ...roundedTextStyle('#3d2817', 10, 'normal'),
       align: 'center',
       lineSpacing: 2.5,
       wordWrap: { width: cardW - 20, useAdvancedWrap: true }
@@ -974,8 +975,9 @@ function showBlacksmithMenu(scene) {
 
 // =============================================================================
 // O SANTUÁRIO DO MAGO ALQUIMISTA (UPGRADES PERMANENTES DE STATUS)
-// DESIGN: CENÁRIO COMPLETO COM ARQUIMAGO ATRÁS DO BALCÃO, GRIMÓRIO ABERTO E 4 POÇÕES
-// INSPIRAÇÃO: WITCH SHOP (IMG 4), UI KIT (IMG 1 & 3) & CUPHEAD (IMG 2)
+// DESIGN: CENÁRIO COMPLETO COM ARQUIMAGO ATRÁS DO BALCÃO, ITENS DAS REFERÊNCIAS
+// E MESA DE MADEIRA FORRADA COM TECIDO ROXO E ENTALHES EM DOURADO PARA AS CARTAS
+// INSPIRAÇÃO: CUPHEAD SHOP (IMG 5), PROPS FANTASIA & ITENS ALQUÍMICOS (IMG 1, 2, 3, 4)
 // =============================================================================
 function showMageShopMenu(scene) {
   if (!scene) return;
@@ -991,50 +993,192 @@ function showMageShopMenu(scene) {
   menuContainer = scene.add.container(0, 0).setDepth(3000).setScrollFactor(0);
   menuContainer.isMainMenu = false;
 
-  // 1. CENÁRIO DO SANTUÁRIO: PAREDE OBSIDIANA, RUNAS MÍSTICAS & PRATELEIRAS ALQUÍMICAS
+  // 1. CENÁRIO DO SANTUÁRIO: PAREDE OBSIDIANA, VIGAS EM ARCO (CUPHEAD) & PRATELEIRAS ALQUÍMICAS (IMG 1-4)
   const sanctumArt = scene.add.graphics();
-  // Parede de pedra mística escura
-  sanctumArt.fillStyle(0x0f0c1c, 1).fillRect(0, 0, 960, 240);
-  for (let by = 0; by < 240; by += 28) {
-    sanctumArt.fillStyle(0x1a152e, 0.45).fillRect(0, by, 960, 2);
+
+  // Parede de alvenaria mística escura
+  sanctumArt.fillStyle(0x0e0a1a, 1).fillRect(0, 0, 960, 240);
+  for (let by = 0; by < 240; by += 26) {
+    sanctumArt.fillStyle(0x19122a, 0.45).fillRect(0, by, 960, 2);
   }
 
-  // Runas arcanas gravadas na parede com aura de brilho (ciano & violeta)
-  sanctumArt.lineStyle(2, 0x7c4dff, 0.45);
-  sanctumArt.strokeCircle(105, 120, 32);
-  sanctumArt.lineBetween(105, 88, 105, 152);
-  sanctumArt.lineBetween(73, 120, 137, 120);
+  // Vigas e arcos de teto no estilo Cuphead Shop (Imagem 5)
+  sanctumArt.fillStyle(0x24140c, 1).fillRect(0, 0, 960, 16);
+  sanctumArt.fillStyle(0x381f13, 1).fillRect(0, 14, 960, 4);
+  // Arcos estruturais laterais
+  sanctumArt.lineStyle(8, 0x24140c, 0.95);
+  sanctumArt.strokeCircle(60, 0, 90);
+  sanctumArt.strokeCircle(900, 0, 90);
+  sanctumArt.lineStyle(2, 0x54321d, 0.8);
+  sanctumArt.strokeCircle(60, 0, 92);
+  sanctumArt.strokeCircle(900, 0, 92);
+
+  // Lanterna de ferro fundido pendurada em corrente (Cuphead shop) com halo quente
+  sanctumArt.lineStyle(1.5, 0x1f1610, 0.9);
+  for (let cy = 0; cy < 38; cy += 6) {
+    sanctumArt.strokeCircle(385, cy, 2.5);
+  }
+  // Halo de iluminação quente âmbar
+  sanctumArt.fillStyle(0xffa000, 0.12).fillCircle(385, 54, 52);
+  sanctumArt.fillStyle(0xffd54f, 0.22).fillCircle(385, 54, 26);
+  // Corpo da lanterna
+  sanctumArt.fillStyle(0x1f1610, 1).fillRoundedRect(377, 40, 16, 22, 3);
+  sanctumArt.fillStyle(0xffeb3b, 0.95).fillRoundedRect(379, 44, 12, 14, 2);
+  sanctumArt.fillStyle(0xff6f00, 1).fillRect(384, 49, 3, 5); // chama
+  sanctumArt.lineStyle(1, 0xc5a059, 0.8).strokeRoundedRect(377, 40, 16, 22, 3);
+
+  // Runas arcanas gravadas no fundo da parede com aura de brilho (ciano & violeta)
+  sanctumArt.lineStyle(2, 0x7c4dff, 0.35);
+  sanctumArt.strokeCircle(105, 120, 30);
+  sanctumArt.lineBetween(105, 90, 105, 150);
+  sanctumArt.lineBetween(75, 120, 135, 120);
   sanctumArt.strokeRect(93, 108, 24, 24);
 
-  // Prateleiras de boticário na parede à direita (x: 640..920, y: 55..185)
-  sanctumArt.fillStyle(0x22132e, 0.96).fillRoundedRect(640, 58, 280, 125, 8);
-  sanctumArt.lineStyle(2, 0x6a1b9a).strokeRoundedRect(640, 58, 280, 125, 8);
-  sanctumArt.lineStyle(1, 0xba68c8, 0.5).strokeRoundedRect(644, 62, 272, 117, 6);
+  // ---------------------------------------------------------------------------
+  // PAREDE ESQUERDA: BOTICÁRIO COM ITENS DA IMAGEM 1 & 3
+  // ---------------------------------------------------------------------------
+  // Prateleira rústica de pedra entalhada (x: 24..180, y: 62..185)
+  sanctumArt.fillStyle(0x1b1324, 0.95).fillRoundedRect(24, 62, 160, 120, 6);
+  sanctumArt.lineStyle(2, 0x5c2b75).strokeRoundedRect(24, 62, 160, 120, 6);
+  sanctumArt.fillStyle(0x351945, 1).fillRect(28, 114, 152, 5); // prateleira 1
+  sanctumArt.fillStyle(0x351945, 1).fillRect(28, 164, 152, 5); // prateleira 2
 
-  // Prateleiras horizontais com frascos e grimórios coloridos
-  sanctumArt.fillStyle(0x3e1f57, 1).fillRect(650, 105, 260, 6);
-  sanctumArt.fillRect(650, 150, 260, 6);
+  // Item A (Imagem 1): O GRANDE FRASCO COM OLHO DE MONSTRO PRESERVADO EM LÍQUIDO VERDE
+  sanctumArt.fillStyle(0x00e676, 0.25).fillCircle(54, 94, 14); // aura mágica
+  sanctumArt.fillStyle(0x1a3320, 0.9).fillRoundedRect(42, 78, 24, 34, 4); // frasco de vidro
+  sanctumArt.fillStyle(0x00e676, 0.75).fillRoundedRect(44, 84, 20, 26, 3); // líquido verde
+  sanctumArt.lineStyle(1.5, 0x81c784, 0.8).strokeRoundedRect(42, 78, 24, 34, 4);
+  // Olho de monstro flutuando dentro
+  sanctumArt.fillStyle(0xfff59d, 1).fillCircle(54, 97, 6); // globo ocular
+  sanctumArt.fillStyle(0xd50000, 1).fillCircle(54, 97, 3); // íris vermelha
+  sanctumArt.fillStyle(0x0a0505, 1).fillCircle(54, 97, 1.5); // pupila
+  sanctumArt.fillStyle(0xffffff, 0.8).fillRect(45, 82, 3, 18); // brilho do vidro
+  sanctumArt.fillStyle(0x8d5524, 1).fillRect(47, 74, 14, 5); // rolha de cortiça
 
-  // Frascos de poção rubi, esmeralda e safira nas prateleiras
-  const bottleColors = [0xe91e63, 0x00e676, 0x00e5ff, 0xffd600, 0x9c27b0, 0xff5722];
-  bottleColors.forEach((col, bIdx) => {
-    const bx = 665 + bIdx * 42;
-    sanctumArt.fillStyle(col, 0.9).fillCircle(bx, 95, 8);
-    sanctumArt.fillStyle(0xffffff, 0.6).fillRect(bx - 2, 82, 4, 7);
+  // Item B (Imagem 1): CRÂNIO DE ANIMAL COM CHIFRES/DENTES
+  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillCircle(104, 96, 9);
+  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillRect(98, 98, 12, 10);
+  sanctumArt.fillStyle(0x2e1c12, 1).fillCircle(101, 95, 2.5).fillCircle(107, 95, 2.5); // órbitas
+  sanctumArt.fillStyle(0x2e1c12, 1).fillRect(100, 104, 2, 4).fillRect(103, 104, 2, 4).fillRect(106, 104, 2, 4); // dentes
+  sanctumArt.lineStyle(1.5, 0x8d6e63).lineBetween(97, 92, 89, 84); // chifre esquerdo
+  sanctumArt.lineStyle(1.5, 0x8d6e63).lineBetween(111, 92, 119, 84); // chifre direito
+
+  // Item C (Imagem 1): COGUMELO MÍSTICO LUMINOSO EM PIRESTESTO
+  sanctumArt.fillStyle(0xffb74d, 0.25).fillCircle(154, 94, 12); // halo
+  sanctumArt.fillStyle(0xefebe9, 1).fillRect(152, 95, 4, 14); // haste
+  sanctumArt.fillStyle(0xd84315, 1).fillCircle(154, 92, 9); // chapéu do cogumelo
+  sanctumArt.fillStyle(0xfff9c4, 1).fillCircle(151, 90, 1.5).fillCircle(156, 89, 1.5).fillCircle(154, 94, 1.5); // pintas
+
+  // Prateleira inferior esquerda:
+  // Item D (Imagem 1): ADAGA CERIMONIAL DE OBSIDIANA CRAVADA NUM SUPORTE
+  sanctumArt.fillStyle(0x3e2723, 1).fillRect(40, 156, 26, 4); // suporte
+  sanctumArt.fillStyle(0x212121, 1).fillTriangle(42, 154, 64, 146, 46, 144); // lâmina de obsidiana
+  sanctumArt.fillStyle(0x7c4dff, 0.6).fillRect(46, 147, 10, 1.5); // veio arcano
+  sanctumArt.fillStyle(0x8d5524, 1).fillRect(36, 152, 7, 3); // empunhadura
+
+  // Item E (Imagem 1): CHIFRE DE BEBER ORNAMENTADO COM OURO
+  sanctumArt.lineStyle(3, 0xf5ecd0).lineBetween(88, 154, 114, 144);
+  sanctumArt.fillStyle(0xffca28, 1).fillCircle(88, 154, 3.5); // anel dourado
+  sanctumArt.fillStyle(0xffca28, 1).fillCircle(114, 144, 2.5);
+
+  // Item F (Imagem 1): COLAR DE PRESAS E FEIXE DE PENAS PENDURADOS NA BASE DA PRATELEIRA
+  sanctumArt.lineStyle(1, 0x8d6e63, 0.8).lineBetween(132, 169, 148, 169);
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillTriangle(135, 169, 137, 178, 139, 169);
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillTriangle(141, 169, 143, 180, 145, 169);
+  // Feixe de penas mágicas
+  sanctumArt.lineStyle(1.5, 0x00bcd4, 0.9).lineBetween(164, 166, 168, 182);
+  sanctumArt.lineStyle(1.5, 0xab47bc, 0.9).lineBetween(162, 166, 163, 180);
+
+  // ---------------------------------------------------------------------------
+  // PAREDE DIREITA: BOTICÁRIO REPLETO DE CRISTAIS, AMPULHETA E GRIMÓRIOS (IMG 2, 3, 4)
+  // ---------------------------------------------------------------------------
+  sanctumArt.fillStyle(0x1b1324, 0.96).fillRoundedRect(635, 56, 295, 128, 8);
+  sanctumArt.lineStyle(2, 0x6a1b9a).strokeRoundedRect(635, 56, 295, 128, 8);
+  sanctumArt.lineStyle(1, 0xba68c8, 0.5).strokeRoundedRect(639, 60, 287, 120, 6);
+
+  sanctumArt.fillStyle(0x3e1f57, 1).fillRect(645, 105, 275, 6);
+  sanctumArt.fillRect(645, 150, 275, 6);
+
+  // Item G (Imagem 2): AMPULHETA MÁGICA COM FUMAÇA VIOLETA SUBINDO
+  sanctumArt.fillStyle(0xffca28, 1).fillRect(655, 76, 18, 3).fillRect(655, 99, 18, 3);
+  sanctumArt.fillStyle(0xe1bee7, 0.5).fillTriangle(658, 80, 670, 80, 664, 88);
+  sanctumArt.fillStyle(0xe1bee7, 0.5).fillTriangle(664, 88, 658, 97, 670, 97);
+  sanctumArt.fillStyle(0xffd54f, 1).fillCircle(664, 94, 3); // areia brilhante
+  // Vapores espectrais arroxeados subindo
+  sanctumArt.fillStyle(0xba68c8, 0.35).fillCircle(664, 71, 4).fillCircle(662, 65, 5).fillCircle(666, 59, 3);
+
+  // Item H (Imagem 2): GRANDES CRISTAIS ELEMENTAIS (Ametista, Safira de Gelo e Rubi)
+  // Cristal Ametista Púrpura (facetado pontiagudo)
+  sanctumArt.fillStyle(0x9c27b0, 0.95).fillTriangle(690, 104, 696, 74, 702, 104);
+  sanctumArt.fillStyle(0xe1bee7, 0.8).fillTriangle(694, 104, 696, 74, 698, 104); // faceta de brilho
+  // Cristal Safira Glacial (ciano)
+  sanctumArt.fillStyle(0x00e5ff, 0.9).fillTriangle(708, 104, 713, 79, 718, 104);
+  sanctumArt.fillStyle(0xffffff, 0.7).fillRect(712, 84, 2, 15);
+  // Cristal Rubi Flamejante (vermelho)
+  sanctumArt.fillStyle(0xff1744, 0.95).fillTriangle(724, 104, 729, 82, 734, 104);
+
+  // Item I (Imagem 4): ÓCULOS DE ALQUIMISTA EM LATÃO COM LENTES CIANO BRILHANTES
+  sanctumArt.fillStyle(0xffca28, 1).fillCircle(755, 92, 7).fillCircle(771, 92, 7);
+  sanctumArt.fillStyle(0x00e5ff, 0.85).fillCircle(755, 92, 5).fillCircle(771, 92, 5);
+  sanctumArt.lineStyle(1.5, 0x8d5524).lineBetween(762, 92, 764, 92); // ponte de couro
+  sanctumArt.fillStyle(0xffffff, 0.9).fillRect(753, 90, 2, 2).fillRect(769, 90, 2, 2);
+
+  // Item J (Imagem 4): FRASCOS DE POÇÃO ESFÉRICOS COM VÁLVULAS & ROLHAS
+  const potionSpecs = [
+    { x: 798, col: 0xe91e63, r: 8, cap: 0x8d5524 }, // Lágrima Rubi
+    { x: 825, col: 0x00e676, r: 7, cap: 0xffca28 }, // Veneno Esmeralda
+    { x: 852, col: 0x7c4dff, r: 9, cap: 0x37474f }, // Essência Astral
+    { x: 882, col: 0xffd600, r: 8, cap: 0x8d5524 }  // Elixir Dourado
+  ];
+  potionSpecs.forEach(p => {
+    sanctumArt.fillStyle(p.col, 0.9).fillCircle(p.x, 93, p.r);
+    sanctumArt.fillStyle(0xffffff, 0.6).fillRect(p.x - 2, 93 - p.r, 4, 3);
+    sanctumArt.fillStyle(p.cap, 1).fillRect(p.x - 3, 93 - p.r - 5, 6, 6);
+    sanctumArt.fillStyle(0xffffff, 0.7).fillRect(p.x - p.r / 2, 91, 2, 4); // brilho esférico
   });
-  // Livros encadernados na prateleira inferior
-  sanctumArt.fillStyle(0x4a148c, 1).fillRect(665, 120, 12, 30);
-  sanctumArt.fillStyle(0x006064, 1).fillRect(682, 116, 14, 34);
-  sanctumArt.fillStyle(0xb71c1c, 1).fillRect(701, 122, 12, 28);
-  sanctumArt.fillStyle(0xe65100, 1).fillRect(718, 118, 14, 32);
 
-  // Esferas de mana flutuando no ar com brilho
-  sanctumArt.fillStyle(0x00e5ff, 0.25).fillCircle(500, 100, 14);
-  sanctumArt.fillStyle(0x00e5ff, 0.85).fillCircle(500, 100, 5);
-  sanctumArt.fillStyle(0xe040fb, 0.25).fillCircle(430, 70, 12);
-  sanctumArt.fillStyle(0xe040fb, 0.85).fillCircle(430, 70, 4);
+  // Prateleira inferior direita:
+  // Item K (Imagem 3): GRIMÓRIO ESCURO COM OLHO ARCANO CENTRAL E CANTOS DOURADOS
+  sanctumArt.fillStyle(0x211728, 1).fillRect(655, 118, 32, 32);
+  sanctumArt.lineStyle(1.5, 0xffca28).strokeRect(655, 118, 32, 32);
+  sanctumArt.fillStyle(0xffca28, 1).fillCircle(657, 120, 2).fillCircle(685, 120, 2).fillCircle(657, 148, 2).fillCircle(685, 148, 2);
+  sanctumArt.fillStyle(0x7c4dff, 1).fillCircle(671, 134, 5); // olho violeta central
+  sanctumArt.fillStyle(0x0a0505, 1).fillCircle(671, 134, 2);
 
+  // Item L (Imagem 4): GRIMÓRIO COM FECHO DE CINTO E LIVROS ENCADERNADOS
+  sanctumArt.fillStyle(0x8d5524, 1).fillRect(696, 116, 14, 34); // livro marrom
+  sanctumArt.fillStyle(0xffca28, 1).fillRect(694, 131, 18, 3); // fivela do cinto
+  sanctumArt.fillStyle(0x006064, 1).fillRect(716, 118, 14, 32); // tomo turquesa
+  sanctumArt.fillStyle(0xb71c1c, 1).fillRect(734, 122, 12, 28); // tomo rubi
+  sanctumArt.fillStyle(0x4a148c, 1).fillRect(750, 116, 16, 34); // tomo ametista
+
+  // Item M (Imagem 2 & 4): PERGAMINHOS ENROLADOS COM SELO DE CERA & CHAVES MÍSTICAS
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(778, 124, 24, 8, 2);
+  sanctumArt.fillStyle(0xd50000, 1).fillCircle(790, 128, 3); // sinete de cera vermelha
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(782, 134, 22, 8, 2);
+  sanctumArt.fillStyle(0x00b0ff, 1).fillCircle(793, 138, 2.5); // sinete azul
+
+  // Molho de chaves de ferro pendurado na lateral (Imagem 4)
+  sanctumArt.lineStyle(1.5, 0xb0bec5).strokeCircle(820, 126, 4);
+  sanctumArt.lineStyle(1.5, 0xb0bec5).lineBetween(820, 130, 820, 145);
+  sanctumArt.lineStyle(1, 0xb0bec5).lineBetween(820, 138, 823, 138).lineBetween(820, 142, 824, 142);
+
+  // Item N (Imagem 3): CRÂNIO HUMANO COM RUNAS VERMELHAS GRAVADAS NA TESTA
+  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillCircle(856, 130, 10);
+  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillRect(850, 134, 12, 9);
+  sanctumArt.fillStyle(0x1a0f1c, 1).fillCircle(853, 130, 2.5).fillCircle(859, 130, 2.5);
+  sanctumArt.lineStyle(1.5, 0xff1744).lineBetween(854, 123, 858, 123); // runa rubi brilhante
+  sanctumArt.lineStyle(1.5, 0xff1744).lineBetween(856, 121, 856, 126);
+
+  // Esferas de mana flutuando no ar com pulsação suave
+  sanctumArt.fillStyle(0x00e5ff, 0.25).fillCircle(495, 96, 15);
+  sanctumArt.fillStyle(0x00e5ff, 0.85).fillCircle(495, 96, 5);
+  sanctumArt.fillStyle(0xe040fb, 0.25).fillCircle(425, 72, 13);
+  sanctumArt.fillStyle(0xe040fb, 0.85).fillCircle(425, 72, 4);
+
+  // ---------------------------------------------------------------------------
   // 2. O ARQUIMAGO ALQUIMISTA ATRÁS DO BALCÃO
+  // ---------------------------------------------------------------------------
   const mageSprite = scene.add.sprite(225, 142, 'mage_master')
     .play('mage_master')
     .setScale(2.2);
@@ -1048,31 +1192,34 @@ function showMageShopMenu(scene) {
     ease: 'Sine.easeInOut'
   });
 
-  // Balão de Diálogo de Pergaminho Místico (Imagem 1 & 4)
+  // Balão de Diálogo em Pergaminho Nobre com Cantos Arredondados
   const speechBubble = scene.add.graphics();
   const drawSpeechBubble = () => {
     speechBubble.clear();
-    // Pergaminho místico com borda violeta / ouro
-    speechBubble.fillStyle(0xf5ebd6, 0.98).fillRoundedRect(310, 82, 310, 96, 10);
-    speechBubble.lineStyle(2, 0x6a1b9a).strokeRoundedRect(310, 82, 310, 96, 10);
-    speechBubble.lineStyle(1, 0xc5a059, 0.7).strokeRoundedRect(313, 85, 304, 90, 8);
+    // Pergaminho místico com borda violeta nobre e filete dourado
+    speechBubble.fillStyle(0xf9f2e3, 0.99).fillRoundedRect(310, 80, 314, 98, 14);
+    speechBubble.lineStyle(2, 0x5e1d88).strokeRoundedRect(310, 80, 314, 98, 14);
+    speechBubble.lineStyle(1, 0xc5a059, 0.85).strokeRoundedRect(313, 83, 308, 92, 11);
 
-    // Ponta do balão apontando para o Mago
-    speechBubble.fillStyle(0xf5ebd6, 1).fillTriangle(310, 130, 286, 138, 310, 146);
-    speechBubble.lineStyle(2, 0x6a1b9a).lineBetween(310, 130, 286, 138);
-    speechBubble.lineStyle(2, 0x6a1b9a).lineBetween(286, 138, 310, 146);
+    // Ponta estilizada do balão apontando para o Mago
+    speechBubble.fillStyle(0xf9f2e3, 1).fillTriangle(310, 128, 284, 137, 310, 146);
+    speechBubble.lineStyle(2, 0x5e1d88).lineBetween(310, 128, 284, 137);
+    speechBubble.lineStyle(2, 0x5e1d88).lineBetween(284, 137, 310, 146);
   };
   drawSpeechBubble();
 
-  const mageTitleTxt = scene.add.text(326, 92, 'ARQUIMAGO ALQUIMISTA (MESTRE)', textStyle('#4a148c', 11, 'bold'));
-  const mageSpeechTxt = scene.add.text(326, 110, '“Beba dos meus elixires e seu poder ecoará em cada batalha!”', {
-    ...textStyle('#2c1b10', 10.5, 'normal'),
-    lineSpacing: 3,
-    wordWrap: { width: 280, useAdvancedWrap: true }
+  const mageTitleTxt = scene.add.text(328, 91, 'ARQUIMAGO ALQUIMISTA (MESTRE)', textStyle('#4a148c', 11, 'bold'));
+  const mageSpeechTxt = scene.add.text(328, 110, '“Beba dos meus elixires e seu poder ecoará em cada batalha!”', {
+    ...roundedTextStyle('#26132b', 11.5, 'normal'),
+    lineSpacing: 4,
+    wordWrap: { width: 284, useAdvancedWrap: true }
   });
 
+  // ---------------------------------------------------------------------------
   // 3. O BALCÃO DE MOGNO MÍSTICO (y: 195..248)
+  // ---------------------------------------------------------------------------
   const counterArt = scene.add.graphics();
+  // Viga de mogno místico
   counterArt.fillStyle(0x28122e, 1).fillRect(0, 196, 960, 52);
   counterArt.fillStyle(0x562363, 1).fillRect(0, 196, 960, 6); // Brilho de mogno polido
   counterArt.lineStyle(2, 0x15071a).strokeRect(0, 196, 960, 52);
@@ -1084,25 +1231,158 @@ function showMageShopMenu(scene) {
   }
 
   // Itens em cima do Balcão:
-  // A) O GRIMÓRIO ABERTO COM RUNAS DOURADAS (Referência direta à Imagem 4!)
-  counterArt.fillStyle(0x3e1818, 1).fillRect(76, 172, 48, 26); // Capa de couro
-  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(80, 170, 20, 24, 2); // Página esquerda
-  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(102, 170, 20, 24, 2); // Página direita
-  // Runas desenhadas nas páginas
+  // A) O GRIMÓRIO ABERTO COM RUNAS DOURADAS E MARCADOR DE SEDA (Imagem 4)
+  counterArt.fillStyle(0x3e1818, 1).fillRect(74, 172, 52, 26); // Capa de couro
+  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(78, 170, 22, 24, 2); // Página esquerda
+  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(102, 170, 22, 24, 2); // Página direita
+  // Runas douradas / violetas escritas
   counterArt.fillStyle(0x7c4dff, 0.8);
-  counterArt.fillRect(83, 174, 14, 2); counterArt.fillRect(83, 178, 12, 2); counterArt.fillRect(83, 182, 14, 2);
-  counterArt.fillRect(105, 174, 14, 2); counterArt.fillRect(105, 178, 11, 2); counterArt.fillRect(105, 182, 13, 2);
+  counterArt.fillRect(81, 174, 15, 2); counterArt.fillRect(81, 178, 13, 2); counterArt.fillRect(81, 182, 15, 2);
+  counterArt.fillRect(105, 174, 15, 2); counterArt.fillRect(105, 178, 12, 2); counterArt.fillRect(105, 182, 14, 2);
+  // Fita marcadora vermelha saindo do livro e caindo pelo balcão
+  counterArt.lineStyle(2, 0xd50000, 0.9).lineBetween(100, 180, 100, 204);
 
-  // B) Frasco de ensaio com poção verde borbulhante e vapores
+  // B) CÁLICE DE OURO ORNAMENTADO COM RUBI (Imagem 2)
+  counterArt.fillStyle(0xffca28, 1).fillTriangle(680, 186, 696, 174, 712, 186);
+  counterArt.fillStyle(0xffca28, 1).fillRect(694, 186, 4, 10).fillRect(688, 194, 16, 3);
+  counterArt.fillStyle(0xff1744, 1).fillCircle(696, 181, 3); // gema rubi no cálice
+
+  // C) FRASCO DE ENSAIO BORBULHANTE COM VAPORES (Imagem 1 & 4)
   counterArt.fillStyle(0x00e676, 0.9).fillCircle(740, 182, 10);
   counterArt.fillStyle(0xffffff, 0.7).fillRect(738, 166, 4, 10);
+  counterArt.fillStyle(0x69f0ae, 0.5).fillCircle(740, 162, 3).fillCircle(738, 156, 4);
 
-  // C) Almofariz e pilão com ervas trituradas
+  // D) ALMOFARIZ E PILÃO COM ERVAS MÍSTICAS TRITURADAS (Imagem 1)
   counterArt.fillStyle(0x37474f, 1).fillCircle(805, 184, 10);
   counterArt.fillStyle(0x76ff03, 1).fillCircle(805, 183, 6);
   counterArt.fillStyle(0xb0bec5, 1).fillRect(809, 172, 4, 16);
 
-  // 4. PLACA DE MADEIRA PENDURADA NO TOPO (TÍTULO DO SANTUÁRIO — IMAGEM 4)
+  // E) CAJADO DO MAGO COM CRISTAL VIOLETA ENCOSTADO À DIREITA (Imagem 2)
+  counterArt.lineStyle(4, 0x4e342e).lineBetween(930, 240, 915, 140);
+  counterArt.fillStyle(0xffca28, 1).fillCircle(915, 140, 7); // engaste de ouro
+  counterArt.fillStyle(0xba68c8, 1).fillCircle(915, 140, 5); // orbe de cristal ametista
+  counterArt.fillStyle(0xffffff, 0.8).fillCircle(913, 138, 1.5);
+
+  // ---------------------------------------------------------------------------
+  // 4. MESA DE MADEIRA FORRADA COM TECIDO ROXO E ENTALHES EM DOURADO (BACKGROUND DAS CARTAS)
+  // ---------------------------------------------------------------------------
+  const tableClothArt = scene.add.graphics();
+
+  // A) BASE DA MESA DE MADEIRA MACIÇA POLIDA (y: 236..540, largura 960)
+  // Moldura chanfrada de madeira nobre do topo
+  tableClothArt.fillStyle(0x23120b, 1).fillRect(0, 236, 960, 12);
+  tableClothArt.fillStyle(0x462415, 1).fillRect(0, 236, 960, 3); // brilho de quina
+  tableClothArt.fillStyle(0x140a06, 1).fillRect(0, 246, 960, 2); // vinco de sombra
+
+  // Pranchas de carvalho escuro / mogno
+  tableClothArt.fillStyle(0x1b0e08, 1).fillRect(0, 248, 960, 292);
+  [318, 390, 462, 532].forEach(py => {
+    tableClothArt.fillStyle(0x100805, 0.7).fillRect(0, py, 960, 2);
+    tableClothArt.fillStyle(0x311a10, 0.35).fillRect(0, py + 2, 960, 1);
+  });
+  // Veios finos orgânicos da madeira
+  tableClothArt.lineStyle(1, 0x2e1910, 0.45);
+  for (let gx = 10; gx < 960; gx += 45) {
+    tableClothArt.lineBetween(gx, 250, gx + 25, 538);
+  }
+
+  // Cantoneiras decorativas de latão nas bordas externas da mesa
+  tableClothArt.fillStyle(0x8d5524, 0.9).fillRect(0, 252, 12, 280).fillRect(948, 252, 12, 280);
+  tableClothArt.lineStyle(1.5, 0xc5a059).strokeRect(0, 252, 12, 280).strokeRect(948, 252, 12, 280);
+  for (let ry = 270; ry < 530; ry += 35) {
+    tableClothArt.fillStyle(0xffd700, 1).fillCircle(6, ry, 2.5).fillCircle(954, ry, 2.5);
+  }
+
+  // B) O TECIDO ROXO VELUDO REAL (COBRE O CENTRO DA MESA: x: 16..944, y: 244..532)
+  // Sombra de profundidade que o tecido projeta sobre a mesa de madeira
+  tableClothArt.fillStyle(0x060303, 0.75).fillRoundedRect(16, 247, 928, 287, 14);
+
+  // Corpo do tecido de veludo roxo místico
+  tableClothArt.fillStyle(0x2d0b3e, 1).fillRoundedRect(16, 244, 928, 287, 14);
+  // Camada suave com tom aveludado mais rico
+  tableClothArt.fillStyle(0x3e1055, 0.82).fillRoundedRect(18, 246, 924, 283, 12);
+  tableClothArt.fillStyle(0x4f156d, 0.45).fillRoundedRect(22, 250, 916, 275, 10);
+
+  // Efeito de caimento e brilho sedoso de veludo nas dobras verticais
+  for (let vx = 50; vx < 920; vx += 90) {
+    tableClothArt.fillStyle(0x6a1f91, 0.16).fillRoundedRect(vx, 252, 42, 270, 6);
+  }
+
+  // C) DETALHES E ENTALHES EM DOURADO (BORDAS, CORDÃO TRANÇADO & ARABESCOS)
+  // Filete dourado duplo de contorno bordado (Entalhes e filigranas de ouro)
+  tableClothArt.lineStyle(2.5, 0xc5a059, 0.95).strokeRoundedRect(23, 251, 914, 273, 10);
+  tableClothArt.lineStyle(1.2, 0xffd700, 0.8).strokeRoundedRect(27, 255, 906, 265, 8);
+
+  // Pesponto / cordão dourado trançado (pontos alternados reluzentes ao redor da borda)
+  for (let px = 38; px < 920; px += 18) {
+    tableClothArt.fillStyle(0xffecb3, 0.9).fillCircle(px, 255, 1.2).fillCircle(px, 520, 1.2);
+  }
+  for (let py = 265; py < 515; py += 18) {
+    tableClothArt.fillStyle(0xffecb3, 0.9).fillCircle(27, py, 1.2).fillCircle(933, py, 1.2);
+  }
+
+  // Arabescos ornamentais dourados nos 4 cantos do tecido roxo
+  const drawCornerArabesque = (ox, oy, flipX = 1, flipY = 1) => {
+    tableClothArt.lineStyle(2, 0xffca28, 0.95);
+    tableClothArt.lineBetween(ox, oy, ox + 22 * flipX, oy);
+    tableClothArt.lineBetween(ox, oy, ox, oy + 22 * flipY);
+    tableClothArt.lineBetween(ox + 4 * flipX, oy + 4 * flipY, ox + 18 * flipX, oy + 4 * flipY);
+    tableClothArt.lineBetween(ox + 4 * flipX, oy + 4 * flipY, ox + 4 * flipX, oy + 18 * flipY);
+    tableClothArt.fillStyle(0xffd700, 1).fillCircle(ox + 9 * flipX, oy + 9 * flipY, 3);
+    tableClothArt.fillStyle(0xffffff, 0.9).fillCircle(ox + 9 * flipX, oy + 9 * flipY, 1.2);
+  };
+  drawCornerArabesque(33, 261, 1, 1);
+  drawCornerArabesque(927, 261, -1, 1);
+  drawCornerArabesque(33, 514, 1, -1);
+  drawCornerArabesque(927, 514, -1, -1);
+
+  // Divisores decorativos verticais em ouro entre as 4 baias de cartas (x: 245, 475, 705)
+  [245, 475, 705].forEach(divX => {
+    tableClothArt.lineStyle(1.5, 0xc5a059, 0.45).lineBetween(divX, 262, divX, 515);
+    // Arabesco central estilizado
+    tableClothArt.fillStyle(0xffca28, 0.85).fillCircle(divX, 388, 3.5);
+    tableClothArt.fillStyle(0xffd700, 1).fillCircle(divX, 388, 1.8);
+    tableClothArt.lineStyle(1.5, 0xffca28, 0.8).lineBetween(divX - 6, 388, divX + 6, 388);
+  });
+
+  // Alvéolos / Esteiras acolchoadas sob cada uma das 4 cartas
+  const cardW = 210;
+  const cardH = 266;
+  const startY = 250;
+  const cardLefts = [30, 260, 490, 720];
+
+  cardLefts.forEach(cLeft => {
+    // Sombra suave sob a carta
+    tableClothArt.fillStyle(0x0e0414, 0.8).fillRoundedRect(cLeft - 3, startY + 6, cardW + 6, cardH - 4, 10);
+    // Borda de esteira dourada no tecido
+    tableClothArt.lineStyle(1.5, 0xc5a059, 0.55).strokeRoundedRect(cLeft - 3, startY + 5, cardW + 6, cardH - 4, 10);
+    // Cantoneiras douradas que sustentam a carta no tecido
+    const cCorners = [
+      [cLeft - 1, startY + 7],
+      [cLeft + cardW + 1, startY + 7],
+      [cLeft - 1, startY + cardH + 1],
+      [cLeft + cardW + 1, startY + cardH + 1]
+    ];
+    cCorners.forEach(([cxp, cyp]) => {
+      tableClothArt.fillStyle(0xffca28, 0.95).fillCircle(cxp, cyp, 3);
+      tableClothArt.fillStyle(0xffffff, 0.8).fillCircle(cxp, cyp, 1.2);
+    });
+  });
+
+  // Itens decorativos repousando sobre o tecido roxo (Imagem 2)
+  // Pilha de moedas de ouro e gemas brilhantes no canto inferior esquerdo
+  tableClothArt.fillStyle(0xffd700, 1).fillCircle(38, 514, 4.5).fillCircle(45, 517, 4).fillCircle(42, 511, 4.5);
+  tableClothArt.lineStyle(1, 0xc5a059).strokeCircle(38, 514, 4.5).strokeCircle(45, 517, 4).strokeCircle(42, 511, 4.5);
+  tableClothArt.fillStyle(0x00e5ff, 1).fillTriangle(52, 519, 57, 511, 62, 519); // gema safira azul
+  tableClothArt.fillStyle(0xffffff, 0.8).fillRect(56, 513, 2, 2);
+
+  // Cristal de ametista brilhando no canto inferior direito
+  tableClothArt.fillStyle(0xba68c8, 1).fillTriangle(912, 519, 917, 508, 922, 519);
+  tableClothArt.fillStyle(0xe1bee7, 0.8).fillTriangle(915, 519, 917, 508, 919, 519);
+
+  // ---------------------------------------------------------------------------
+  // 5. PLACA DE MADEIRA PENDURADA NO TOPO (TÍTULO DO SANTUÁRIO)
+  // ---------------------------------------------------------------------------
   const signGfx = scene.add.graphics();
   signGfx.lineStyle(2, 0x7c4dff, 0.8);
   signGfx.lineBetween(380, 0, 380, 24);
@@ -1117,7 +1397,9 @@ function showMageShopMenu(scene) {
     ...textStyle('#e1bee7', 15), fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
 
-  // 5. ABAS DE NAVEGAÇÃO ENTRE LOJAS NO TOPO ESQUERDO
+  // ---------------------------------------------------------------------------
+  // 6. ABAS DE NAVEGAÇÃO ENTRE LOJAS NO TOPO ESQUERDO
+  // ---------------------------------------------------------------------------
   const forgeTabBtn = scene.add.rectangle(85, 28, 110, 28, 0x3d2215)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
@@ -1140,14 +1422,15 @@ function showMageShopMenu(scene) {
     .setStrokeStyle(1.5, 0xffca28);
   const mageTabTxt = scene.add.text(205, 28, '🔮 SANTUÁRIO', textStyle('#ffffff', 10.5)).setOrigin(0.5);
 
-  // 6. PAINEL DE OURO DO JOGADOR NO TOPO DIREITO
+  // ---------------------------------------------------------------------------
+  // 7. PAINEL DE OURO DO JOGADOR NO TOPO DIREITO & BOTÃO SAIR
+  // ---------------------------------------------------------------------------
   const goldPouchGfx = scene.add.graphics();
   goldPouchGfx.fillStyle(0x1e150f, 0.96).fillRoundedRect(720, 16, 130, 32, 6);
   goldPouchGfx.lineStyle(2, 0xffca28).strokeRoundedRect(720, 16, 130, 32, 6);
   const coinSprite = scene.add.sprite(738, 32, 'gold_coin').play('gold_coin').setScale(1.2);
   const goldValTxt = scene.add.text(758, 32, `${getGold()}G`, textStyle('#ffd740', 13)).setOrigin(0, 0.5);
 
-  // Botão Sair [ESC]
   const closeQuickBtn = scene.add.rectangle(905, 32, 70, 30, 0x5c241b)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
@@ -1157,14 +1440,17 @@ function showMageShopMenu(scene) {
   closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
 
   menuContainer.add([
-    sanctumArt, mageSprite, speechBubble, mageTitleTxt, mageSpeechTxt,
-    counterArt, signGfx, signTitle,
+    sanctumArt, mageSprite, counterArt, tableClothArt,
+    speechBubble, mageTitleTxt, mageSpeechTxt,
+    signGfx, signTitle,
     forgeTabBtn, forgeTabTxt, mageTabBtn, mageTabTxt,
     goldPouchGfx, coinSprite, goldValTxt,
     closeQuickBtn, closeQuickTxt
   ]);
 
-  // 7. SHOWCASE DOS 4 STATUS: CARTAS DE PERGAMINHO MÍSTICO (x: 30, 260, 490, 720)
+  // ---------------------------------------------------------------------------
+  // 8. SHOWCASE DOS 4 STATUS: CARTAS CENTRALIZADAS SOBRE O TECIDO ROXO DOURADO
+  // ---------------------------------------------------------------------------
   const statusUpgrades = getStatusUpgrades();
   const statusKeys = ['maxHp', 'moveSpeed', 'magnet', 'wisdom'];
   const currentGold = getGold();
@@ -1175,11 +1461,6 @@ function showMageShopMenu(scene) {
     magnet: '“O Fluido Magnético Arcano! Atrai as moedas de prata e relíquias distantes diretamente até você.”',
     wisdom: '“A Essência da Sabedoria Ancestral! Amplia seu aprendizado acelerando a obtenção de novos níveis!”'
   };
-
-  const cardW = 210;
-  const cardH = 266;
-  const startY = 250;
-  const cardLefts = [30, 260, 490, 720];
 
   statusKeys.forEach((key, idx) => {
     const cfg = STATUS_CATALOG[key];
@@ -1195,18 +1476,18 @@ function showMageShopMenu(scene) {
     const drawCard = (hover = false) => {
       cardGfx.clear();
       // Selo de cera arcano no topo da carta
-      cardGfx.fillStyle(0x000000, 0.4).fillCircle(cx, startY + 5, 5);
+      cardGfx.fillStyle(0x000000, 0.45).fillCircle(cx, startY + 5, 5);
       cardGfx.fillStyle(isMax ? 0xffca28 : 0x7c4dff, 1).fillCircle(cx, startY + 4, 3.5);
-      cardGfx.fillStyle(0xffffff, 0.8).fillCircle(cx, startY + 4, 1.2);
+      cardGfx.fillStyle(0xffffff, 0.85).fillCircle(cx, startY + 4, 1.2);
 
-      // Corpo de pergaminho da carta
-      cardGfx.fillStyle(hover ? 0xfff8e7 : (isMax ? 0xfff3cf : 0xf2e4c9), 0.98)
+      // Corpo de pergaminho da carta (pergaminho claro nobre com alto contraste)
+      cardGfx.fillStyle(hover ? 0xfffcf2 : (isMax ? 0xfff6dd : 0xf8efe0), 0.99)
         .fillRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
       // Moldura externa mística
       cardGfx.lineStyle(2, hover ? 0xffca28 : (isMax ? 0xffc107 : 0x6a1b9a))
         .strokeRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
       // Filete interno decorativo
-      cardGfx.lineStyle(1, hover ? 0xffd54f : (isMax ? 0xffca28 : 0xba68c8), 0.6)
+      cardGfx.lineStyle(1, hover ? 0xffd54f : (isMax ? 0xffca28 : 0xba68c8), 0.65)
         .strokeRoundedRect(left + 3, startY + 11, cardW - 6, cardH - 14, 6);
 
       // Rebites nos 4 cantos da carta
@@ -1217,7 +1498,7 @@ function showMageShopMenu(scene) {
         [left + cardW - 8, startY + cardH - 8]
       ];
       corners.forEach(([rx, ry]) => {
-        cardGfx.fillStyle(0x7c4dff, 0.8).fillCircle(rx, ry, 1.8);
+        cardGfx.fillStyle(0x7c4dff, 0.85).fillCircle(rx, ry, 1.8);
       });
 
       // Alvéolo circular da Poção Mística
@@ -1234,14 +1515,16 @@ function showMageShopMenu(scene) {
       cardGfx.fillRect(cx - 29, socketY - 1.5, 4, 3);
       cardGfx.fillRect(cx + 25, socketY - 1.5, 4, 3);
 
-      // Gemas / Pips de Nível (1 a 5)
-      const pipsW = maxLvl * 16;
-      const pipsStartX = cx - pipsW / 2 + 4;
+      // Gemas / Pips de Nível (1 a 5) — CENTRALIZADOS COM PRECISÃO
+      const pipW = 11;
+      const pipGap = 5;
+      const totalPipsW = maxLvl * pipW + (maxLvl - 1) * pipGap;
+      const pipsStartX = cx - totalPipsW / 2;
       for (let p = 0; p < maxLvl; p++) {
-        const px = pipsStartX + p * 16;
+        const px = pipsStartX + p * (pipW + pipGap);
         const activePip = p < lvl;
-        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 114, 11, 8);
-        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 114, 11, 8);
+        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 114, pipW, 8);
+        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 114, pipW, 8);
       }
     };
     drawCard(false);
@@ -1249,38 +1532,45 @@ function showMageShopMenu(scene) {
     // Ícone da Poção
     const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
 
-    // Nome do Status
+    // Nome do Status — 100% CENTRALIZADO
     const nameTxt = scene.add.text(cx, startY + 92, cfg.name, {
-      ...textStyle(isMax ? '#794b02' : '#2c1b10', 12),
-      fontFamily: 'Georgia, serif'
+      ...textStyle(isMax ? '#794b02' : '#2c1b10', 11.5),
+      fontFamily: 'Georgia, serif',
+      align: 'center'
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 16, 18, 9.5);
+    fitTextToBox(nameTxt, cardW - 16, 18, 9);
 
-    // Nível Textual
-    const lvlBadgeTxt = scene.add.text(cx, startY + 132, isMax ? 'PODER MÁXIMO ★' : `NÍVEL ${lvl} / ${maxLvl}`, textStyle(isMax ? '#e65100' : '#4a148c', 9.5)).setOrigin(0.5);
+    // Badge / Nível Textual — 100% CENTRALIZADO COM FUNDO ARREDONDADO
+    const lvlBadgeBg = scene.add.rectangle(cx, startY + 132, cardW - 38, 18, isMax ? 0xfff3e0 : 0xf3e5f5)
+      .setStrokeStyle(1, isMax ? 0xffb74d : 0xce93d8);
+    const lvlBadgeTxt = scene.add.text(cx, startY + 132, isMax ? '★ PODER MÁXIMO ★' : `NÍVEL ${lvl} / ${maxLvl}`, {
+      ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9.5, 'bold'),
+      align: 'center'
+    }).setOrigin(0.5);
 
-    // Descrições de Nível
+    // Descrições de Nível — FONTE ARREDONDADA & 100% CENTRALIZADA
     const levelDescs = cfg.levels || [];
     const descStr = isMax
-      ? `★ Efeito Completo:
-${levelDescs[lvl - 1] || ''}`
-      : `Atual: ${levelDescs[lvl - 1] || ''}
-Próximo: ${levelDescs[lvl] || ''}`;
-    const descTxt = scene.add.text(cx, startY + 172, descStr, {
-      ...textStyle('#3d2817', 9.5, 'normal'),
+      ? `★ Efeito Completo ★\n${levelDescs[lvl - 1] || ''}`
+      : `Atual: ${levelDescs[lvl - 1] || ''}\nPróximo: ${levelDescs[lvl] || ''}`;
+    const descTxt = scene.add.text(cx, startY + 174, descStr, {
+      ...roundedTextStyle('#2e1a10', 10, 'normal'),
       align: 'center',
-      lineSpacing: 3,
+      lineSpacing: 3.5,
       wordWrap: { width: cardW - 20, useAdvancedWrap: true }
     }).setOrigin(0.5);
     fitTextToBox(descTxt, cardW - 18, 64, 8.5);
 
-    // Botão de Ação no Rodapé
+    // Botão de Ação no Rodapé — 100% CENTRALIZADO
     const btnX = cx, btnY = startY + cardH - 26, btnW = cardW - 24, btnH = 34;
     let actionBtn, actionTxt;
 
     if (isMax) {
       actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2314).setStrokeStyle(1.5, 0xffca28);
-      actionTxt = scene.add.text(btnX, btnY, 'COMPLETO ★', textStyle('#ffd740', 10.5)).setOrigin(0.5);
+      actionTxt = scene.add.text(btnX, btnY, 'COMPLETO ★', {
+        ...roundedTextStyle('#ffd740', 11, 'bold'),
+        align: 'center'
+      }).setOrigin(0.5);
     } else {
       const cost = cfg.costs ? (cfg.costs[lvl - 1] || 15) : 15;
       const canAfford = currentGold >= cost;
@@ -1288,7 +1578,10 @@ Próximo: ${levelDescs[lvl] || ''}`;
       actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x4a148c : 0x2e1c3b)
         .setStrokeStyle(2, canAfford ? 0xba68c8 : 0x4a2e5c)
         .setInteractive({ useHandCursor: true });
-      actionTxt = scene.add.text(btnX, btnY, `AUMENTAR (${cost}G)`, textStyle(canAfford ? '#ffffff' : '#8c7b6b', 10.5)).setOrigin(0.5);
+      actionTxt = scene.add.text(btnX, btnY, `AUMENTAR (${cost}G)`, {
+        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 11, 'bold'),
+        align: 'center'
+      }).setOrigin(0.5);
       fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
 
       actionBtn.on('pointerdown', () => {
@@ -1320,10 +1613,10 @@ Próximo: ${levelDescs[lvl] || ''}`;
       mageSpeechTxt.setText('“Beba dos meus elixires e seu poder ecoará em cada batalha!”');
     });
 
-    menuContainer.add([cardGfx, icon, nameTxt, lvlBadgeTxt, descTxt, actionBtn, actionTxt, cardHit]);
+    menuContainer.add([cardGfx, icon, nameTxt, lvlBadgeBg, lvlBadgeTxt, descTxt, actionBtn, actionTxt, cardHit]);
   });
 
-  // 8. TECLA DE ATALHO ESC & TAB
+  // 9. TECLA DE ATALHO ESC & TAB
   const onEsc = (e) => {
     if (e.key === 'Escape') {
       scene.input.keyboard.off('keydown', onEsc);
@@ -1337,3 +1630,4 @@ Próximo: ${levelDescs[lvl] || ''}`;
   scene.input.keyboard.on('keydown', onEsc);
   menuContainer.on('destroy', () => scene.input.keyboard.off('keydown', onEsc));
 }
+

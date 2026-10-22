@@ -362,7 +362,7 @@ function openLevelUpDraft(scene) {
     fitTextToBox(badgeTxt, cardW - 44, 20, 9);
 
     const descTxt = scene.add.text(cx, top + 246, card.desc, {
-      ...textStyle('#e8dcbe', 11, 'normal'),
+      ...roundedTextStyle('#f5ecd0', 11.5, 'normal'),
       align: 'center',
 
       lineSpacing: 4,

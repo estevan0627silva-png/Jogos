@@ -2,13 +2,25 @@
 // INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS (16:9 WIDESCREEN)
 // DESIGN: DARK FANTASY MEDIEVAL RPG UI KIT (INSPIRADO EM PERGAMINHO, FERRO & OURO NOBRE)
 // =============================================================================
+const ROUNDED_FONT = '"Nunito", "Quicksand", "Segoe UI", "Trebuchet MS", "Arial Rounded MT Bold", sans-serif';
+const SERIF_TITLE_FONT = '"Cinzel", "Georgia", "Palatino Linotype", serif';
+
 const textStyle = (color, size = 17, weight = 'bold') => ({
   fontSize: size + 'px',
   fontStyle: weight,
   color,
-  fontFamily: '"Cinzel", "Georgia", "Palatino Linotype", serif',
+  fontFamily: SERIF_TITLE_FONT,
   stroke: '#0e0b08',
   strokeThickness: Math.max(2, Math.round(size * 0.16))
+});
+
+const roundedTextStyle = (color, size = 12, weight = 'normal', strokeColor = null, strokeThickness = 0) => ({
+  fontSize: size + 'px',
+  fontStyle: weight,
+  color,
+  fontFamily: ROUNDED_FONT,
+  stroke: strokeColor || 'transparent',
+  strokeThickness: strokeThickness
 });
 
 function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {
