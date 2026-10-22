@@ -1,12 +1,12 @@
-// ARTE: FERRAMENTAS DE PIXEL ART
-// Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
-// carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
-// Utilitários de desenho: r.dither (xadrez sub-pixel), r.shine (especular) e r.bevel (3D).
+// ARTE: FERRAMENTAS DE PIXEL ART & RENDERIZAÇÃO 64-BIT
+// Cada "pixel" lógico opera em grade 2x2 com contornos com iluminação direcional (Luz zenital no topo/esquerda e oclusão de contato na base/direita).
+// Utilitários de desenho: r.dither (gradiente sub-pixel), r.shine (especular), r.rim (luz de borda) e r.bevel (volume 3D).
 // =============================================================================
 function drawPixels(g, ox, oy, draw, frame = 0) {
-  const pass = (dx, dy, outline) => {
+  const pass = (dx, dy, outline, isLightEdge = false) => {
+    const outlineColor = isLightEdge ? (C.outlineSoft || 0x2e241c) : (C.outline || 0x16100c);
     const r = (color, x, y, w = 1, h = 1) => {
-      g.fillStyle(outline ? C.outline : color).fillRect(
+      g.fillStyle(outline ? outlineColor : color).fillRect(
         ox + x * 2 + dx,
         oy + y * 2 + dy,
         w * 2,
@@ -14,10 +14,10 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
       );
     };
 
-    // Dithering 16-bit: padrão xadrez 1x1 sub-pixel para gradientes suaves de metal/tecido/terreno
+    // Dithering 64-bit: padrão xadrez 1x1 sub-pixel para gradientes suaves de metal/tecido/terreno
     r.dither = (colorA, colorB, x, y, w = 1, h = 1, invert = false) => {
       if (outline) {
-        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+        g.fillStyle(outlineColor).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
       } else {
         for (let lx = 0; lx < w; lx++) {
           for (let ly = 0; ly < h; ly++) {
@@ -40,10 +40,17 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
       }
     };
 
+    // Luz de borda / Rim light volumétrica de alta nitidez
+    r.rim = (x, y, w = 1, h = 1, color = C.white) => {
+      if (!outline) {
+        g.fillStyle(color).fillRect(ox + x * 2, oy + y * 2, w * 2, 1);
+      }
+    };
+
     // Borda chanfrada 3D para moedas, botões e medalhões
     r.bevel = (highlightColor, shadowColor, x, y, w, h) => {
       if (outline) {
-        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+        g.fillStyle(outlineColor).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
       } else {
         g.fillStyle(highlightColor)
           .fillRect(ox + x * 2, oy + y * 2, w * 2, 2)
@@ -57,11 +64,13 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
     draw(r, frame, r);
   };
 
-  pass(-1, 0, true);
-  pass(1, 0, true);
-  pass(0, -1, true);
-  pass(0, 1, true); // contorno escuro 4-pass
-  pass(0, 0, false); // cores e detalhes
+  // Contorno Direcional 64-bit (Luz ambiente e Oclusão de Contato):
+  // Topo e Esquerda recebem iluminação da copa (outlineSoft); Base e Direita recebem sombra de contato (outline)
+  pass(-1, 0, true, true);  // Esquerda: luz suave
+  pass(0, -1, true, true);  // Topo: luz suave
+  pass(1, 0, true, false);  // Direita: sombra de contato
+  pass(0, 1, true, false);  // Base: sombra de contato profunda
+  pass(0, 0, false, false); // Cores e detalhes em alta nitidez
 }
 
 // Gera uma folha de sprites (quadros lado a lado) e registra cada quadro

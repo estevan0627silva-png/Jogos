@@ -3,9 +3,10 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.0.0';
-const VERSION_TITLE = 'A Lâmina Vorpal & O Rastreador da Floresta (The Vorpal Blade & Forest Scout Update)';
-const VERSION_DESC = 'Reformulação do combate da Espada Vorpal (lâmina única persistente, corte procedural aerodinâmico em 5 camadas e slashes múltiplos em leque 180°), correção raiz de congelamento de animações (boot, hitstops e draft de level-up), introdução do Goblin Rastreador veloz com zigue-zague vetorial, layout vertical do resumo pós-derrota e rebalanceamento da densidade de ondas desde os primeiros segundos.';
+const GAME_VERSION = 'v2.4.0';
+const VERSION_TITLE = 'Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (2 por Run)';
+const VERSION_DESC = 'Expansão do limite máximo de pergaminhos arcanos escolhidos por partida de 1 para 2. Os jogadores agora podem selecionar e combinar dois pergaminhos distintos (ex: Disparo Múltiplo + Crescimento de Área ou Velocidade de Ataque) com aplicação simultânea de bônus cumulativos, HUD com slots duplos de nível e sinalização tática nas cartas de evolução.';
+const MAX_CHOSEN_SCROLLS = 2;
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -29,12 +30,12 @@ const ENEMIES = {                                    // vida, velocidade relativ
   elf:        { hp: 1, speed: 0.84, w: 16, h: 24, xp: 3 },
   dark_mage:  { hp: 2, speed: 0.76, w: 18, h: 26, xp: 5 },  // dispara 3 orbes sombrios em leque
   mini_golem: { hp: 1, speed: 0.42, w: 18, h: 20, xp: 2 },   // lento, perseguição contínua
-  boss_golem: { hp: 50, speed: 0.35, w: 60, h: 72, xp: 50 }
+  boss_golem: { hp: 120, speed: 0.35, w: 60, h: 72, xp: 60 }
 };
 const BOSS_TRIGGER_TIME = 60;                        // Boss Fight: Golem de Pedra desperta exatamente aos 60s!
-const BOSS_MAX_HP = 50;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
+const BOSS_MAX_HP = 120;                              // HP calibrado para a janela dinâmica de 60s (24-32s de luta justa)
 const MAX_ENEMY_SPEED = 365;                         // teto máximo justo de velocidade
-const MIN_SPAWN_DELAY = 450;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
+const MIN_SPAWN_DELAY = 180;                         // intervalo mínimo de spawn entre pulsos do Director (ms)
 const MAX_WEAPON_LEVEL = Infinity;                   // Progressão infinita de armas dentro da partida (via XP)
 const STORAGE_KEY = 'knight_quest_highscores';
 const STORAGE_GOLD_KEY = 'knight_quest_gold_v1';
@@ -107,6 +108,7 @@ const C = {
   rubyBase: 0xd83a3a,
   rubyShadow: 0x8e1b1b,
   rubyDeep: 0x4a0e0e,
+  deepBlood: 0x4a0e0e,
 
   // --- AZUL REAL & HERÁLDICA ---
   blueLight: 0x5b93f0,
@@ -216,82 +218,87 @@ const C = {
 const WEAPON_CATALOG = {
   bow: {
     name: 'ARCO REAL',
+    category: 'DISPARO REAL',
     icon: 'item_bow',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
-    forgeLore: 'Arco de teixo real. Projétil veloz com cadência escalável a cada nível.',
+    maxLevel: Infinity,
+    forgeLore: 'Arco nobre de teixo. Dispara flechas precisas com cadência exponencial acelerada.',
     levels: [
-      'Nv.1 (Base): 1 flecha precisa (500ms, 1 dano, 0 knockback).',
-      'Nv.2: Corda Tensionada — Cadência aprimorada (410ms, 1 dano).',
-      'Nv.3: Fôlego Ágil — Cadência veloz (330ms, 1 dano).',
-      'Nv.4: Disparo Rápido — Cadência fulminante (260ms, 1 dano).',
-      'Nv.5 (MÁX): Tempestade de Flechas — Cadência máxima a cada 200ms (1 dano)!'
+      { badge: 'DISPARO CERTEIRO', desc: 'Flechas velozes e perfurantes disparadas com ritmo cadenciado contra o avanço dos monstros.', toString() { return this.desc; } },
+      { badge: 'CORDA TENSIONADA', desc: 'Reduz notavelmente o intervalo entre disparos, lançando flechas em sucessão rápida.', toString() { return this.desc; } },
+      { badge: 'SARAIVADA VELOZ', desc: 'Disparos contínuos e ágeis que suprimem a vanguarda inimiga sem dar tempo de reação.', toString() { return this.desc; } },
+      { badge: 'FUSILAMENTO REAL', desc: 'Cadência quase instantânea: rajadas de flechas de alta frequência cravam o campo sem cessar.', toString() { return this.desc; } },
+      { badge: 'TEMPESTADE DE FLECHAS ★', desc: 'Cadência máxima supersônica! Uma torrente ininterrupta de flechas perfura as linhas inimigas!', toString() { return this.desc; } }
     ]
   },
   sword: {
     name: 'ESPADA VORPAL',
+    category: 'HERANÇA DE AÇO',
     icon: 'item_sword',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
-    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área crescente.',
+    maxLevel: Infinity,
+    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área cortante colossal.',
     levels: [
-      'Nv.1 (Base): Corte inicial equilibrado (área 1.00x, 1 dano, 480ms, knockback ativo).',
-      'Nv.2: Fio Expandido — Área 1.24x (+24% de raio e alcance do corte).',
-      'Nv.3: Lâmina Ampla — Área 1.48x (+48% de cobertura de corte frontal).',
-      'Nv.4: Fúria Vorpal — Área 1.72x (+72% de área cortante).',
-      'Nv.5 (MÁX): Colosso Vorpal — Área 1.96x (+96% de varredura colossal)!'
+      { badge: 'CORTE NOBRE', desc: 'Desfere golpes precisos de aço temperado com área de impacto equilibrada e repulsão frontal ativa.', toString() { return this.desc; } },
+      { badge: 'FIO EXPANDIDO', desc: 'Amplia a lâmina com alcance acelerado, ceifando a primeira linha de monstros com facilidade.', toString() { return this.desc; } },
+      { badge: 'CORTE COLOSSAL', desc: 'Golpes de enorme envergadura frontal que varrem formações inimigas inteiras em arco cortante.', toString() { return this.desc; } },
+      { badge: 'FÚRIA VORPAL', desc: 'Lâmina descomunal que rasga o ar em semicírculo devastador, desestabilizando qualquer avanço.', toString() { return this.desc; } },
+      { badge: 'COLOSSO SUPREMO ★', desc: 'Varredura colossal lendária! Uma muralha de lâmina titânica que aniquila todo o campo frontal!', toString() { return this.desc; } }
     ]
   },
   shield: {
     name: 'ESCUDO SAGRADO',
+    category: 'BALUARTE SAGRADO',
     icon: 'item_shield',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
-    forgeLore: 'Égide abençoada. Reflete flechas mantendo o aspecto normal e explode ao bloquear golpes.',
+    maxLevel: Infinity,
+    forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
     levels: [
-      'Nv.1 (Base): Dura 4.8s, reflete 1 flecha simples (1 dano) e onda curta.',
-      'Nv.2: Borda Reforçada — Dura 6.2s, reflete 1 flecha veloz e onda média.',
-      'Nv.3: Espelho Duplo — Dura 7.6s, reflete 2 flechas em V e onda forte.',
-      'Nv.4: Baluarte Real — Dura 9.2s, reflete 3 flechas perfurantes (2 dano).',
-      'Nv.5 (MÁX): Égide Divina — Dura 11.5s, reflete 5 flechas perfurantes + Onda Titânica!'
+      { badge: 'ÉGIDE BÁSICA', desc: 'Envolve o herói em aura celestial por tempo equilibrado, refletindo flechas e detonando em choque se atingido.', toString() { return this.desc; } },
+      { badge: 'ÉGIDE REFORÇADA', desc: 'Aumenta substancialmente o tempo de proteção ativa, mantendo a imunidade reativa por muito mais tempo.', toString() { return this.desc; } },
+      { badge: 'ESPELHO DIVINO', desc: 'Duração prolongada vigorosa: reflete flechas em ângulos duplos e garante proteção duradoura na batalha.', toString() { return this.desc; } },
+      { badge: 'BALUARTE REAL', desc: 'Fortaleza celestial duradoura, suportando a pressão do combate e detonando em choque sagrado ampliado.', toString() { return this.desc; } },
+      { badge: 'ÉGIDE ETERNA ★', desc: 'Proteção celestial de duração colossal! O herói combate imperturbável envolto em graça divina suprema!', toString() { return this.desc; } }
     ]
   },
   axe: {
     name: 'MACHADO BUMERANGUE',
+    category: 'FORÇA RÚNICA',
     icon: 'item_axe',
     unlockedDefault: false,
     unlockCost: 25,
-    maxLevel: 5,
-    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com knockback repulsor escalável.',
+    maxLevel: Infinity,
+    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
     levels: [
-      'Nv.1 (Base): 1 machado bumerangue (1 dano, 560ms, knockback base 28px).',
-      'Nv.2: Impacto Pesado — Knockback 44px (+16px de força de empurrão).',
-      'Nv.3: Golpe Sísmico — Knockback 62px (+34px de força de empurrão).',
-      'Nv.4: Repulsão Rúnica — Knockback 82px (+54px de força de empurrão).',
-      'Nv.5 (MÁX): Fúria dos Titãs — Knockback 105px (arremesso massivo de inimigos)!'
+      { badge: 'GOLPE RÚNICO', desc: 'Lança machado duplo em arco circular de retorno, desferindo golpes de impacto na ida e na volta.', toString() { return this.desc; } },
+      { badge: 'IMPACTO PESADO', desc: 'Aumenta consideravelmente a força de choque, arremessando monstros para trás na rota do bumerangue.', toString() { return this.desc; } },
+      { badge: 'REPULSÃO SÍSMICA', desc: 'Ondas sísmicas violentas que estilhaçam o avanço inimigo e lançam tropas para a retaguarda.', toString() { return this.desc; } },
+      { badge: 'CHOQUE ESMAGADOR', desc: 'Impacto rúnico massivo capaz de arremessar pelotões inteiros de volta para a floresta.', toString() { return this.desc; } },
+      { badge: 'FÚRIA DOS TITÃS ★', desc: 'Força de repulsão titânica colossal! Monstros atingidos voam pelos ares com violência descomunal!', toString() { return this.desc; } }
     ]
   },
   firestaff: {
     name: 'CAJADO DE FOGO',
+    category: 'CANALIZAÇÃO SOLAR',
     icon: 'item_firestaff',
     unlockedDefault: false,
     unlockCost: 45,
-    maxLevel: 5,
-    forgeLore: 'Cetro ardente. Lança orbes solares que explodem e deixam poças de fogo que danificam apenas monstros.',
+    maxLevel: Infinity,
+    forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
     levels: [
-      'Nv.1 (Base): Orbe solar com explosão e poça de fogo (raio 45px, 1 dano, 600ms, 0 knockback).',
-      'Nv.2: Brasa Alastrada — Raio 62px de explosão e poça ardente no chão.',
-      'Nv.3: Labareda Intensa — Raio 80px de explosão e poça de fogo contínua.',
-      'Nv.4: Inferno Crescente — Raio 100px de explosão e poça de fogo massiva.',
-      'Nv.5 (MÁX): Cataclismo Solar — Raio 125px de explosão devastadora e mar de chamas no solo!'
+      { badge: 'ORBE SOLAR', desc: 'Dispara esfera ígnea concentrada que explode no impacto e cria uma poça de chamas ardentes no chão.', toString() { return this.desc; } },
+      { badge: 'BRASA VIVA', desc: 'Amplia a área da explosão e o raio das chamas no solo, consumindo monstros com fogo contínuo.', toString() { return this.desc; } },
+      { badge: 'LABAREDA INTENSA', desc: 'Detonação de fogo de grande alcance que queima ondas inteiras em uma barreira incandescente.', toString() { return this.desc; } },
+      { badge: 'INFERNO VORAZ', desc: 'Explosão expansiva massiva que incendeia metade da estrada com chamas impiedosas.', toString() { return this.desc; } },
+      { badge: 'CATACLISMO SOLAR ★', desc: 'Erupção solar titânica! O campo explode em um mar colossal de fogo e cinzas ardentes!', toString() { return this.desc; } }
     ]
   }
 };
 
-// Catálogo do Sistema de Pergaminhos Arcanos (Escolha Única por partida, até Nível 5)
+// Catálogo do Sistema de Pergaminhos Arcanos (Até 2 Escolhas por partida, até Nível 5 cada)
 const SCROLL_CATALOG = {
   multishot: {
     id: 'multishot',
@@ -300,11 +307,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_multishot',
     maxLevel: 5,
     levels: [
-      'Nv.1: +1 Projétil / Onda de Vento cortante em todos os ataques.',
-      'Nv.2: +2 Projéteis / Ondas cortantes adicionais.',
-      'Nv.3: +3 Projéteis / Ondas cortantes em leque.',
-      'Nv.4: +4 Projéteis / Saraivada cortante contínua.',
-      'Nv.5 (MÁX): +5 Projéteis / Chuva maciça de projéteis e cortes!'
+      { badge: 'DISPARO DUPLO', desc: 'Adiciona uma lâmina de corte frontal e um projétil adicional a todas as armas empunhadas.', toString() { return this.desc; } },
+      { badge: 'LEQUE DE DISPAROS', desc: 'Expande ainda mais o leque frontal, liberando ondas e projéteis extras em arco.', toString() { return this.desc; } },
+      { badge: 'SARAIVADA ARCANA', desc: 'Dispara uma salva volumosa em leque que satura o corredor de combate com múltiplos golpes.', toString() { return this.desc; } },
+      { badge: 'CHUVA DE ATAQUES', desc: 'Múltiplos disparos simultâneos que cobrem toda a área frontal com dano implacável.', toString() { return this.desc; } },
+      { badge: 'ONIPRESENÇA MÁXIMA ★', desc: 'O poder supremo do Disparo Múltiplo! Uma avalanche de lâminas e disparos varre tudo à frente!', toString() { return this.desc; } }
     ]
   },
   growth: {
@@ -314,11 +321,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_growth',
     maxLevel: 5,
     levels: [
-      'Nv.1: +20% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.2: +40% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.3: +65% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.4: +90% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.5 (MÁX): +120% de tamanho/área titânica em todos os ataques!'
+      { badge: 'EXPANSÃO MÍSTICA', desc: 'Amplia a área de impacto de todos os cortes, projéteis e poças de fogo ardentes no solo.', toString() { return this.desc; } },
+      { badge: 'ALCANCE AMPLIADO', desc: 'Aumenta expressivamente o tamanho dos ataques, atingindo inimigos mais distantes com segurança.', toString() { return this.desc; } },
+      { badge: 'ÁURA GIGANTE', desc: 'Golpes e chamas ganham dimensões formidáveis, devorando o espaço dos monstros na estrada.', toString() { return this.desc; } },
+      { badge: 'MAGNITUDE TITÂNICA', desc: 'Tamanho monumental em cada arma, tornando impossível qualquer inimigo avançar ileso.', toString() { return this.desc; } },
+      { badge: 'DIMENSÃO SUPREMA ★', desc: 'Crescimento absoluto! Todas as armas e chamas operam em escala colossal titânica!', toString() { return this.desc; } }
     ]
   },
   attackspeed: {
@@ -328,11 +335,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_speed',
     maxLevel: 5,
     levels: [
-      'Nv.1: +15% de velocidade de ataque (cadência mais rápida).',
-      'Nv.2: +30% de velocidade de ataque em todas as armas.',
-      'Nv.3: +45% de velocidade de ataque em todas as armas.',
-      'Nv.4: +60% de velocidade de ataque em todas as armas.',
-      'Nv.5 (MÁX): +80% de velocidade de ataque frenética!'
+      { badge: 'FÔLEGO ÁGIL', desc: 'Acelera a cadência de manuseio e ataque de todas as armas ativas na jornada.', toString() { return this.desc; } },
+      { badge: 'CADÊNCIA FULMINANTE', desc: 'Golpes e disparos se sucedem com rapidez impressionante, pressionando as defesas inimigas.', toString() { return this.desc; } },
+      { badge: 'REFLEXOS AURAIS', desc: 'Ritmo frenético de ataque que suprime hordas velozes sem dar espaço para aproximação.', toString() { return this.desc; } },
+      { badge: 'VELOCIDADE FRENÉTICA', desc: 'Ataques desferidos em sucessão avassaladora com intervalo mínimo entre ativações.', toString() { return this.desc; } },
+      { badge: 'TEMPESTADE TEMPORAL ★', desc: 'Velocidade de ataque suprema! O herói maneja suas relíquias em uma velocidade sobrenatural!', toString() { return this.desc; } }
     ]
   }
 };
@@ -561,7 +568,7 @@ const events = new GameEventBus();
 // ESTADO (Inclui Estado de XP e Níveis Isolados por Partida)
 // =============================================================================
 let player, shieldSprite, shieldAura, swordBlade, cursors, keys;
-let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars;
+let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, debrisFx, holyFx, emberFx, playerBuffBar, enemyHpBars, vignetteOverlay, sunRays, ambientMotes;
 let enemies, obstacles, items, playerArrows, enemyArrows, slashes, xpOrbs;
 let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudHornIcon, hudFullscreenIcon;
@@ -573,11 +580,14 @@ let playerHp = 1, playerMaxHp = 1, playerInvulnerable = false, isHitstopping = f
 let runXp = 0, runLevel = 1, xpToNextLevel = 6, pendingLevelUps = 0;
 let runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
 let runBonusDuration = 0;
+let chosenScrolls = [];
 let chosenScroll = null;
 let scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
 let activeFirePools = [];
+let hudScrollBadges = [], hudScrollTexts = [];
 let hudScrollBadge = null, hudScrollText = null;
 let enemySpeed, spawnDelay, worldSpeed = 117, buff, slashCounter = 0, entityIdCounter = 0;
+let nextHordeTime = 45, hordeCycleCount = 0;
 if (typeof window !== 'undefined') window.worldSpeed = 117;
 let virtualJoystick = null;
 
@@ -2038,15 +2048,15 @@ if (typeof window !== 'undefined') {
 
 
 // --- BUNDLE FILE: JS_Teste/src/art/drawHelpers.js ---
-// ARTE: FERRAMENTAS DE PIXEL ART
-// Cada "pixel" lógico vira um bloco 2x2. Antes das cores, o desenho é
-// carimbado 4 vezes deslocado em cor escura — isso cria o contorno de 1px.
-// Utilitários de desenho: r.dither (xadrez sub-pixel), r.shine (especular) e r.bevel (3D).
+// ARTE: FERRAMENTAS DE PIXEL ART & RENDERIZAÇÃO 64-BIT
+// Cada "pixel" lógico opera em grade 2x2 com contornos com iluminação direcional (Luz zenital no topo/esquerda e oclusão de contato na base/direita).
+// Utilitários de desenho: r.dither (gradiente sub-pixel), r.shine (especular), r.rim (luz de borda) e r.bevel (volume 3D).
 // =============================================================================
 function drawPixels(g, ox, oy, draw, frame = 0) {
-  const pass = (dx, dy, outline) => {
+  const pass = (dx, dy, outline, isLightEdge = false) => {
+    const outlineColor = isLightEdge ? (C.outlineSoft || 0x2e241c) : (C.outline || 0x16100c);
     const r = (color, x, y, w = 1, h = 1) => {
-      g.fillStyle(outline ? C.outline : color).fillRect(
+      g.fillStyle(outline ? outlineColor : color).fillRect(
         ox + x * 2 + dx,
         oy + y * 2 + dy,
         w * 2,
@@ -2054,10 +2064,10 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
       );
     };
 
-    // Dithering 16-bit: padrão xadrez 1x1 sub-pixel para gradientes suaves de metal/tecido/terreno
+    // Dithering 64-bit: padrão xadrez 1x1 sub-pixel para gradientes suaves de metal/tecido/terreno
     r.dither = (colorA, colorB, x, y, w = 1, h = 1, invert = false) => {
       if (outline) {
-        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+        g.fillStyle(outlineColor).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
       } else {
         for (let lx = 0; lx < w; lx++) {
           for (let ly = 0; ly < h; ly++) {
@@ -2080,10 +2090,17 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
       }
     };
 
+    // Luz de borda / Rim light volumétrica de alta nitidez
+    r.rim = (x, y, w = 1, h = 1, color = C.white) => {
+      if (!outline) {
+        g.fillStyle(color).fillRect(ox + x * 2, oy + y * 2, w * 2, 1);
+      }
+    };
+
     // Borda chanfrada 3D para moedas, botões e medalhões
     r.bevel = (highlightColor, shadowColor, x, y, w, h) => {
       if (outline) {
-        g.fillStyle(C.outline).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
+        g.fillStyle(outlineColor).fillRect(ox + x * 2 + dx, oy + y * 2 + dy, w * 2, h * 2);
       } else {
         g.fillStyle(highlightColor)
           .fillRect(ox + x * 2, oy + y * 2, w * 2, 2)
@@ -2097,11 +2114,13 @@ function drawPixels(g, ox, oy, draw, frame = 0) {
     draw(r, frame, r);
   };
 
-  pass(-1, 0, true);
-  pass(1, 0, true);
-  pass(0, -1, true);
-  pass(0, 1, true); // contorno escuro 4-pass
-  pass(0, 0, false); // cores e detalhes
+  // Contorno Direcional 64-bit (Luz ambiente e Oclusão de Contato):
+  // Topo e Esquerda recebem iluminação da copa (outlineSoft); Base e Direita recebem sombra de contato (outline)
+  pass(-1, 0, true, true);  // Esquerda: luz suave
+  pass(0, -1, true, true);  // Topo: luz suave
+  pass(1, 0, true, false);  // Direita: sombra de contato
+  pass(0, 1, true, false);  // Base: sombra de contato profunda
+  pass(0, 0, false, false); // Cores e detalhes em alta nitidez
 }
 
 // Gera uma folha de sprites (quadros lado a lado) e registra cada quadro
@@ -3777,6 +3796,36 @@ function makeWorldTextures(scene) {
   g.fillRect(9, 37, 2, 2).fillRect(37, 37, 2, 2);
   g.generateTexture('shield_aura', 48, 48);
 
+  // 64-BIT: Vinheta Cinematográfica de Alta Nitidez (800x600)
+  if (!scene.textures.exists('vignette_64bit')) {
+    const vCanvas = scene.textures.createCanvas('vignette_64bit', 800, 600);
+    const vCtx = vCanvas.context;
+    const vGrad = vCtx.createRadialGradient(400, 300, 220, 400, 300, 520);
+    vGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vGrad.addColorStop(0.55, 'rgba(10, 7, 5, 0.08)');
+    vGrad.addColorStop(0.85, 'rgba(8, 5, 4, 0.28)');
+    vGrad.addColorStop(1, 'rgba(5, 3, 2, 0.58)');
+    vCtx.fillStyle = vGrad;
+    vCtx.fillRect(0, 0, 800, 600);
+    vCanvas.refresh();
+  }
+
+  // 64-BIT: Feixes de Luz Solar Volumétrica / Komorebi (400x260)
+  if (!scene.textures.exists('sunbeam_rays')) {
+    const sCanvas = scene.textures.createCanvas('sunbeam_rays', 400, 260);
+    const sCtx = sCanvas.context;
+    const sGrad = sCtx.createLinearGradient(0, 0, 160, 260);
+    sGrad.addColorStop(0, 'rgba(255, 240, 190, 0.16)');
+    sGrad.addColorStop(0.4, 'rgba(255, 220, 140, 0.07)');
+    sGrad.addColorStop(1, 'rgba(255, 200, 100, 0)');
+    sCtx.fillStyle = sGrad;
+    sCtx.beginPath();
+    sCtx.moveTo(30, 0); sCtx.lineTo(120, 0); sCtx.lineTo(240, 260); sCtx.lineTo(140, 260); sCtx.closePath(); sCtx.fill();
+    sCtx.beginPath();
+    sCtx.moveTo(210, 0); sCtx.lineTo(290, 0); sCtx.lineTo(390, 260); sCtx.lineTo(300, 260); sCtx.closePath(); sCtx.fill();
+    sCanvas.refresh();
+  }
+
   g.destroy();
 }
 
@@ -4035,10 +4084,6 @@ function drawGateTower(r) {
 
 // --- BUNDLE FILE: JS_Teste/src/combat/weapons.js ---
 // =============================================================================
-// SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
-// Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
-// permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
-// =============================================================================
 
 // Schema Unificado de Status de Armas:
 // damage, area, attackRate, knockback, projectiles
@@ -4090,25 +4135,37 @@ function getWeaponStats(type, lvl = 1) {
     projectiles: base.projectiles
   };
 
-  // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
+  const effectiveLvl = Math.max(1, lvl);
+  const generalMult = 1 + (effectiveLvl - 1) * 0.22;
+  stats.damage = Math.max(1, Math.round(base.damage * generalMult));
+
+  // 1. Progressão Contínua e Infinita com Atributos Fortes e Guardrails de Engine
   if (type === 'sword') {
-    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível (+24% por nível)
-    stats.area = 1.0 + (lvl - 1) * 0.24;
+    // ATRIBUTO FORTE: Área / Tamanho (+26% por nível) e Dano (+22% geral)
+    stats.area = Math.min(4.2, 1.0 + (effectiveLvl - 1) * 0.26);
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'bow') {
-    // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
-    stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
+    // ATRIBUTO FORTE: Cadência (-14% delay por nível com piso seguro de 90ms a 60 FPS)
+    stats.attackRate = Math.max(90, Math.round(500 * Math.pow(0.86, effectiveLvl - 1)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   } else if (type === 'axe') {
-    // Machado: Aumenta SOMENTE o Knockback por nível
-    stats.knockback = 28 + (lvl - 1) * 19;
+    // ATRIBUTO FORTE: Knockback (+35% de repulsão por nível até teto de 240px)
+    stats.knockback = Math.min(240, Math.round(30 * (1 + (effectiveLvl - 1) * 0.35)));
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'firestaff') {
-    // Cajado de Fogo: Aumenta SOMENTE o Tamanho da Explosão e Poça por nível
-    stats.area = 45 + (lvl - 1) * 20;
+    // ATRIBUTO FORTE: Raio de Explosão e Poça (+22% no raio por nível até teto de 180px)
+    stats.area = Math.min(180, Math.round(45 * (1 + (effectiveLvl - 1) * 0.22)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
+  } else if (type === 'shield') {
+    stats.area = 1.0 + (effectiveLvl - 1) * 0.15;
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   }
 
-  // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
-  const msLvl = (chosenScroll === 'multishot') ? (scrollLevels.multishot || 0) : 0;
-  const grLvl = (chosenScroll === 'growth') ? (scrollLevels.growth || 0) : 0;
-  const asLvl = (chosenScroll === 'attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
+  // 2. Sistema de Pergaminhos: Aplica bônus de até 2 pergaminhos arcanos escolhidos por partida
+  const hasScroll = (key) => (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls.includes(key) : (chosenScroll === key);
+  const msLvl = hasScroll('multishot') ? (scrollLevels.multishot || 0) : 0;
+  const grLvl = hasScroll('growth') ? (scrollLevels.growth || 0) : 0;
+  const asLvl = hasScroll('attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
 
   if (msLvl > 0) {
     stats.projectiles += msLvl;
@@ -4120,9 +4177,9 @@ function getWeaponStats(type, lvl = 1) {
   }
 
   if (asLvl > 0) {
-    const asMult = 1.0 + asLvl * 0.16;
+    const asMult = 1.0 + asLvl * 0.18;
     if (stats.attackRate > 0) {
-      stats.attackRate = Math.max(80, Math.round(stats.attackRate / asMult));
+      stats.attackRate = Math.max(90, Math.round(stats.attackRate / asMult));
     }
   }
 
@@ -4135,7 +4192,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.bow,
     baseDuration: BUFF_TIME.bow,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('bow', lvl).attackRate;
@@ -4182,7 +4241,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.sword,
     baseDuration: BUFF_TIME.sword,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('sword', lvl).attackRate;
@@ -4309,7 +4370,11 @@ const WeaponStrategies = {
     name: BUFF_NAMES.shield,
     baseDuration: BUFF_TIME.shield,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 1.50 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = (l <= 5)
+        ? 4.8 * Math.pow(1.35, l - 1)
+        : Math.min(24.0, 4.8 * Math.pow(1.35, 4) + (l - 5) * 1.5);
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate() { return 0; },
     attack() { /* O escudo é defensivo/reativo a impactos */ },
@@ -4333,7 +4398,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.axe,
     baseDuration: BUFF_TIME.axe,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('axe', lvl).attackRate;
@@ -4377,7 +4444,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.firestaff,
     baseDuration: BUFF_TIME.firestaff,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('firestaff', lvl).attackRate;
@@ -4665,6 +4734,13 @@ function triggerPlayerAction(scene) {
 // GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
 // =============================================================================
 // COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
+
+
+// --- BUNDLE FILE: JS_Teste/src/combat/combatManager.js ---
+// =============================================================================
+// GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
+// =============================================================================
+// COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
 // =============================================================================
 function removeEntity(obj) {
   if (!obj || !obj.active) return;
@@ -4794,10 +4870,13 @@ function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
     enemy.setVelocityX(0);
   }
 
+  // Interpolação suave e orgânica que adapta o tempo à magnitude do impacto
+  const safeDuration = (duration && duration !== 130) ? duration : Math.min(190, 115 + Math.round(distance * 0.35));
+
   scene.tweens.add({
     targets: enemy,
     x: targetX,
-    duration: duration,
+    duration: safeDuration,
     ease: 'Cubic.easeOut',
     onUpdate: () => {
       if (enemy && enemy.active && enemy.body) {
@@ -4858,10 +4937,12 @@ function setupDecoupledEventListeners(scene) {
 
   // 4. SISTEMA DE LOOT & RECOMPENSAS
   events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
-    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, goblin: 0.38, mini_golem: 0.32 };
-    const chance = dropRates[enemyType] ?? 0.40;
+    const dropRates = { dark_mage: 0.32, warrior: 0.25, elf: 0.18, goblin: 0.12, goblin_scout: 0.14, mini_golem: 0.08 };
+    const chance = dropRates[enemyType] ?? 0.12;
 
-    spawnXpOrb(scene, x - 6, y, xpValue);
+    if (Math.random() < 0.75) {
+      spawnXpOrb(scene, x - 6, y, xpValue);
+    }
 
     if (Math.random() < chance) {
       const count = (enemyType === 'dark_mage' || enemyType === 'warrior') && Math.random() < 0.42 ? 2 : 1;
@@ -5266,13 +5347,17 @@ function startGameplay(scene) {
   xpToNextLevel = getXpRequiredForLevel(1);
   pendingLevelUps = 0;
   runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
+  chosenScrolls = [];
   chosenScroll = null;
   scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
+  if (typeof updateScrollHUD === 'function') updateScrollHUD();
   clearFirePools();
   enemySpeed = 195;
   worldSpeed = enemySpeed * 0.6;
   if (typeof window !== 'undefined') window.worldSpeed = worldSpeed;
-  spawnDelay = 900; // Início engajador e ativo (+40% de densidade inicial)
+  spawnDelay = 1150; // Início suave e cadenciado para acumular XP e upgrades
+  nextHordeTime = 45;
+  hordeCycleCount = 0;
   runBonusDuration = 0;
   lastRunSummary = null;
   playerMaxHp = getPlayerMaxHp();
@@ -5326,7 +5411,12 @@ function startGameplay(scene) {
     if (survivalTime > getBestScore() && hudBestText) {
       hudBestText.setText(`${survivalTime}s`);
     }
-    if (survivalTime === 35 && !bossSpawned) {
+    if (survivalTime >= nextHordeTime && (!activeBoss || !activeBoss.active)) {
+      hordeCycleCount++;
+      nextHordeTime = survivalTime + 30;
+      triggerSpecialHorde(scene, hordeCycleCount);
+    }
+    if (survivalTime === 52 && !bossSpawned) {
       floatText(scene, 400, 132, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
     }
     if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
@@ -5335,9 +5425,18 @@ function startGameplay(scene) {
   });
 
   // Director Dinâmico: ajusta velocidade e intervalo progressivamente ao longo da Run
-  every(4500, () => {
-    enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
-    spawnDelay = Math.max(380, spawnDelay - 45);
+  every(4000, () => {
+    if (survivalTime < 20) {
+      enemySpeed = Math.min(205, enemySpeed + 2);
+      spawnDelay = Math.max(950, spawnDelay - 30);
+    } else if (survivalTime < 45) {
+      enemySpeed = Math.min(265, enemySpeed + 8);
+      spawnDelay = Math.max(650, spawnDelay - 45);
+    } else {
+      enemySpeed = Math.min(MAX_ENEMY_SPEED, enemySpeed + 12);
+      spawnDelay = Math.max(220, spawnDelay - 40);
+    }
+
     enemies.getChildren().forEach(e => {
       if (e.active && !e.isBoss && e.enemyType && ENEMIES[e.enemyType]) {
         e.setVelocityX(-enemySpeed * ENEMIES[e.enemyType].speed);
@@ -5378,7 +5477,7 @@ function spawnDirectorWave(scene) {
   }
 
   // Cap dinâmico de segurança de inimigos simultâneos na tela (preserva 60 FPS estáveis)
-  const maxEnemiesOnScreen = Math.min(28, 12 + Math.floor(survivalTime / 12));
+  const maxEnemiesOnScreen = survivalTime < 20 ? 10 : (survivalTime < 45 ? 22 : Math.min(55, 24 + Math.floor(survivalTime / 5)));
   const currentActiveEnemies = enemies.getChildren().filter(e => e.active && !e.isBoss).length;
   if (currentActiveEnemies >= maxEnemiesOnScreen) {
     return;
@@ -5387,20 +5486,16 @@ function spawnDirectorWave(scene) {
   let waveCount = 1;
   const r = Math.random();
   if (bossDefeated || survivalTime >= 100) {
-    // Pós-Boss / Fim de Jogo: hordas épicas em grupos de 3 a 5 monstros
-    waveCount = r < 0.40 ? 5 : (r < 0.80 ? 4 : 3);
+    waveCount = r < 0.45 ? 6 : (r < 0.80 ? 5 : 4);
   } else if (survivalTime >= 70) {
-    // Fases avançadas pós-60s
-    waveCount = r < 0.45 ? 4 : (r < 0.80 ? 3 : 5);
-  } else if (survivalTime >= 40) {
-    // Fase pré-boss com Rastreadores rápidos e bandos de 2 a 4
-    waveCount = r < 0.35 ? 3 : (r < 0.75 ? 2 : 4);
+    waveCount = r < 0.45 ? 5 : (r < 0.80 ? 4 : 3);
+  } else if (survivalTime >= 45) {
+    waveCount = r < 0.50 ? 3 : 2;
   } else if (survivalTime >= 20) {
-    // Intermediário (20s - 40s): bandos de 2 a 3
-    waveCount = r < 0.50 ? 2 : (r < 0.85 ? 3 : 1);
+    waveCount = r < 0.65 ? 2 : 1;
   } else {
-    // Início ativo (0 - 20s): bandos frequentes de 1 a 2 (+40% densidade)
-    waveCount = r < 0.45 ? 2 : 1;
+    // Comeco calmo e focado em farm de XP (0 - 20s): estritamente 1 monstro por vez!
+    waveCount = 1;
   }
 
   for (let i = 0; i < waveCount; i++) {
@@ -5448,6 +5543,51 @@ function spawnItem(scene) {
 }
 
 
+// =============================================================================
+// EVENTOS RÃTMICOS DE HORDAS ESPECIAIS (45s+, A CADA 30 SEGUNDOS)
+// =============================================================================
+function triggerSpecialHorde(scene, cycle) {
+  if (gameState !== 'PLAYING') return;
+
+  const isDenseGoblin = (cycle % 2 === 1);
+  sound.playEarthSmash();
+  scene.cameras.main.shake(260, 0.008);
+
+  if (isDenseGoblin) {
+    // Ciclo Ãmpar (1, 3, 5...): Horda Densa de Goblins simples
+    const count = 9 + Math.floor((cycle - 1) * 2.5);
+    floatText(scene, 400, 130, 'HORDA DENSA DE GOBLINS (' + count + ')!', '#ff5252');
+
+    for (let i = 0; i < count; i++) {
+      scene.time.delayedCall(i * 125, () => {
+        if (gameState === 'PLAYING') {
+          const spreadY = 135 + ((i * 47) % 375);
+          spawnEnemy(scene, 'goblin', spreadY);
+        }
+      });
+    }
+  } else {
+    // Ciclo Par (2, 4, 6...): Horda de Goblins Zigue-zague (Scouts) com Guerreiros Blindados
+    const scoutCount = 5 + Math.floor(cycle * 1.5);
+    const warriorCount = 3 + Math.floor(cycle * 1.0);
+    const total = scoutCount + warriorCount;
+    floatText(scene, 400, 130, 'HORDA: RASTREADORES E GUERREIROS (' + total + ')!', '#ffca28');
+
+    const hordeList = [];
+    for (let i = 0; i < scoutCount; i++) hordeList.push('goblin_scout');
+    for (let i = 0; i < warriorCount; i++) hordeList.push('warrior');
+    Phaser.Utils.Array.Shuffle(hordeList);
+
+    hordeList.forEach((eType, i) => {
+      scene.time.delayedCall(i * 135, () => {
+        if (gameState === 'PLAYING') {
+          const spreadY = 135 + ((i * 53) % 375);
+          spawnEnemy(scene, eType, spreadY);
+        }
+      });
+    });
+  }
+}
 
 // --- BUNDLE FILE: JS_Teste/src/world/enemies.js ---
 // =============================================================================
@@ -5462,16 +5602,16 @@ function spawnEnemy(scene, forcedType, customY) {
       type = 'mini_golem';
     } else if (bossDefeated) {
       // Pós-Boss: O Mago aparece com taxa rara (8%), Rastreador Ágil (20%), Goblins, Guerreiros e Elfos
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.28 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.78 ? 'warrior' : 'elf')));
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.36 ? 'goblin_scout' : (roll < 0.62 ? 'goblin' : (roll < 0.86 ? 'warrior' : 'elf')));
     } else if (survivalTime >= 40) {
       // Fase pré-boss avançada: Goblins Rastreadores ágeis (28%), Goblins comuns, guerreiros e elfos (SEM MAGO)
-      type = roll < 0.28 ? 'goblin_scout' : (roll < 0.56 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
+      type = roll < 0.35 ? 'goblin_scout' : (roll < 0.70 ? 'goblin' : (roll < 0.90 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 20) {
       // Fase pré-boss intermediária (20s - 40s): Introduz Rastreadores ágeis (16%)
-      type = roll < 0.16 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
+      type = roll < 0.55 ? 'goblin' : (roll < 0.80 ? 'goblin_scout' : (roll < 0.95 ? 'warrior' : 'elf'));
     } else {
       // Curva inicial: predominantemente goblins simples e guerreiros
-      type = roll < 0.76 ? 'goblin' : 'warrior';
+      type = roll < 0.90 ? 'goblin' : 'warrior';
     }
   }
   const cfg = ENEMIES[type] || ENEMIES.goblin;
@@ -5761,18 +5901,18 @@ function ejectMiniGolemsFromBoss(scene, boss) {
   if (!boss || !boss.active || gameState !== 'PLAYING') return;
 
   const currentMiniGolems = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
-  if (currentMiniGolems >= 5) return;
+  if (currentMiniGolems >= 10) return;
 
   const hpRatio = (boss.hp ?? BOSS_MAX_HP) / (boss.maxHp || BOSS_MAX_HP);
-  let count = 1;
+  let count = 2;
   if (hpRatio <= 0.35) {
-    count = Phaser.Math.Between(2, 3);
+    count = Phaser.Math.Between(3, 5);
   } else if (hpRatio <= 0.70) {
-    count = Phaser.Math.Between(1, 2);
+    count = Phaser.Math.Between(2, 4);
   } else {
     count = 1;
   }
-  count = Math.min(count, 5 - currentMiniGolems);
+  count = Math.min(count, 10 - currentMiniGolems);
   if (count <= 0) return;
 
   sound.playEarthSmash();
@@ -5791,7 +5931,7 @@ function ejectMiniGolemsFromBoss(scene, boss) {
     scene.time.delayedCall(i * 180, () => {
       if (!boss || !boss.active || gameState !== 'PLAYING') return;
       const activeCount = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
-      if (activeCount >= 5) return;
+      if (activeCount >= 10) return;
 
       const originX = boss.x - 22;
       const originY = boss.y - 8;
@@ -5817,8 +5957,8 @@ function ejectMiniGolemsFromBoss(scene, boss) {
       }
       golem.setVelocity(0, 0);
 
-      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(75, 170), 160, 680);
-      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-85, 85), 140, 505);
+      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(65, 260), 135, 690);
+      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-130, 130), 135, 515);
 
       // Trajetória em arco parabólico simulando desprendimento do corpo do Boss
       scene.tweens.add({
@@ -5894,6 +6034,7 @@ function ejectMiniGolemsFromBoss(scene, boss) {
                     golem.golemState = 'ACTIVE';
                     golem.setFrame(0);
                     golem.play('mini_golem');
+                    if (golem.body) { golem.body.pushable = true; golem.body.setBounce(0.35); }
                     if (debrisFx) debrisFx.explode(8, golem.x, golem.y);
                     if (dustFx) dustFx.explode(6, golem.x, golem.y + 10);
                     sound.playFireStaff();
@@ -6194,7 +6335,9 @@ const textStyle = (color, size = 17, weight = 'bold') => ({
   fontSize: size + 'px',
   fontStyle: weight,
   color,
-  fontFamily: 'Courier New, monospace'
+  fontFamily: '"Cinzel", "Georgia", "Palatino Linotype", serif',
+  stroke: '#0e0b08',
+  strokeThickness: Math.max(2, Math.round(size * 0.16))
 });
 
 function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {
@@ -6296,10 +6439,16 @@ function createHUD(scene) {
   hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
   hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(460, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
-  hudScrollBadge = scene.add.image(495, 28, 'scroll_multishot').setScale(0.95).setVisible(false);
-  hudScrollText = scene.add.text(495, 43, '', textStyle('#b388ff', 9)).setOrigin(0.5, 0.5).setVisible(false);
-  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, hudScrollBadge, hudScrollText]);
+  hudItemTime = scene.add.text(450, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
+  const badge1 = scene.add.image(478, 27, 'scroll_multishot').setScale(0.85).setVisible(false);
+  const txt1 = scene.add.text(478, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  const badge2 = scene.add.image(501, 27, 'scroll_growth').setScale(0.85).setVisible(false);
+  const txt2 = scene.add.text(501, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  hudScrollBadges = [badge1, badge2];
+  hudScrollTexts = [txt1, txt2];
+  hudScrollBadge = badge1;
+  hudScrollText = txt1;
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
 
   // 4. PAINEL DE RECORDE DO REINO (x: 520..628)
   const bestBg = scene.add.graphics();
@@ -6470,7 +6619,7 @@ function updateItemHUD() {
 
   const maxTime = buff.maxTime || BUFF_TIME[buff.type] || 6;
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
-  const barW = 114;
+  const barW = 100;
   const barH = 7;
   const barX = 330;
   const barY = 32;
@@ -6510,17 +6659,41 @@ function updateItemHUD() {
 
 
 function updateScrollHUD() {
-  if (!hudScrollBadge || !hudScrollText) return;
-  if (!chosenScroll) {
-    hudScrollBadge.setVisible(false);
-    hudScrollText.setVisible(false);
-    return;
+  if (!hudScrollBadges || hudScrollBadges.length === 0) return;
+  const activeScrolls = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls))
+    ? chosenScrolls
+    : (chosenScroll ? [chosenScroll] : []);
+
+  for (let i = 0; i < 2; i++) {
+    const badge = hudScrollBadges[i];
+    const txt = hudScrollTexts[i];
+    if (!badge || !txt) continue;
+
+    const sKey = activeScrolls[i];
+    if (sKey && SCROLL_CATALOG[sKey]) {
+      const sCfg = SCROLL_CATALOG[sKey];
+      const lvl = scrollLevels[sKey] || 1;
+      badge.setTexture(sCfg.icon).setVisible(true);
+      txt.setText(`NV.${lvl}`).setVisible(true);
+    } else {
+      badge.setVisible(false);
+      txt.setVisible(false);
+    }
   }
-  const sCfg = SCROLL_CATALOG[chosenScroll];
-  const lvl = scrollLevels[chosenScroll] || 1;
-  if (sCfg) {
-    hudScrollBadge.setTexture(sCfg.icon).setVisible(true);
-    hudScrollText.setText(`NV.${lvl}`).setVisible(true);
+
+  // Se possuir exatamente 1 pergaminho, centraliza o badge (x: 495)
+  if (activeScrolls.length === 1 && hudScrollBadges[0] && hudScrollTexts[0]) {
+    hudScrollBadges[0].setX(495);
+    hudScrollTexts[0].setX(495);
+  } else if (activeScrolls.length >= 2) {
+    if (hudScrollBadges[0] && hudScrollTexts[0]) {
+      hudScrollBadges[0].setX(478);
+      hudScrollTexts[0].setX(478);
+    }
+    if (hudScrollBadges[1] && hudScrollTexts[1]) {
+      hudScrollBadges[1].setX(501);
+      hudScrollTexts[1].setX(501);
+    }
   }
 }
 
@@ -6541,55 +6714,81 @@ function rollLevelUpCards() {
     if (cfg) {
       const nextLvl = currLvl + 1;
       const isHeld = buff && buff.type === key;
-      const lvlDesc = (cfg.levels && cfg.levels[nextLvl - 1])
-        ? cfg.levels[nextLvl - 1]
-        : `✦ PODER TRANSCENDENTAL (NV. ${nextLvl})!\n+15% Cadência de disparo, +Dano e escala contínua de combate.`;
+      const mult = (1 + (nextLvl - 1) * 0.22).toFixed(2);
+      const pct = Math.round((nextLvl - 1) * 22);
 
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
-        category: isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA',
+        category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-        badgeColor: nextLvl >= 5 ? '#ffca28' : '#7fe7ff',
-        borderColor: nextLvl >= 5 ? 0xffca28 : 0x7fe7ff,
+        badge: `Nv. ${currLvl} ➔ Nv. ${nextLvl}`,
+        badgeColor: '#ffd740',
+        borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `${lvlDesc}\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n✦ MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n✦ Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
           equipWeaponBuff(scene, key, false);
-          floatText(scene, player.x, player.y - 28, `${cfg.name} NV.${nextLvl}!`, '#ffca28');
+          floatText(scene, player.x, player.y - 28, `${cfg.name} Nv. ${nextLvl}!`, '#ffca28');
         }
       });
     }
   });
 
-  // Cartas de Pergaminhos Arcanos (Regra: apenas 1 pergaminho por partida, até Nv. 5)
+  // Cartas de Pergaminhos Arcanos (Regra: até 2 pergaminhos por partida, até Nv. 5 cada)
   const scrollCards = [];
   const scrollKeys = ['multishot', 'growth', 'attackspeed'];
+  const maxChosenScrolls = 2;
+  const activeChosen = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls : (chosenScroll ? [chosenScroll] : []);
+  const currentChosenCount = activeChosen.length;
+
   scrollKeys.forEach(sKey => {
-    if (chosenScroll !== null && chosenScroll !== sKey) return;
+    const isAlreadyChosen = activeChosen.includes(sKey);
+    // Se o jogador já possui 2 pergaminhos distintos e este não é um deles, não oferece
+    if (!isAlreadyChosen && currentChosenCount >= maxChosenScrolls) return;
+
     const currLvl = scrollLevels[sKey] || 0;
     if (currLvl >= 5) return;
     const nextLvl = currLvl + 1;
     const sCfg = SCROLL_CATALOG[sKey];
     if (!sCfg) return;
-    const lvlDesc = sCfg.levels[nextLvl - 1] || `+Poder arcano NV. ${nextLvl}`;
+    const lvlData = (sCfg.levels && sCfg.levels[nextLvl - 1]) ? sCfg.levels[nextLvl - 1] : null;
+    const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ★';
+    const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
+
+    const slotLabel = isAlreadyChosen
+      ? 'PERGAMINHO EXCLUSIVO'
+      : (currentChosenCount === 0 ? 'PERGAMINHO ARCANO (1/2)' : 'PERGAMINHO ARCANO (2/2)');
+
+    const promptExtra = isAlreadyChosen
+      ? '✦ Refina este pergaminho exclusivo nesta partida!'
+      : (currentChosenCount === 0
+          ? '✦ ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
+          : '✦ ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
+
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
-      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO ARCANO',
+      category: slotLabel,
       title: sCfg.name,
-      badge: currLvl === 0 ? 'NOVO! NV. 1' : `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-      badgeColor: '#b388ff',
-      borderColor: 0xb388ff,
+      badge: badge,
+      badgeColor: nextLvl >= 5 ? '#ffd740' : '#b388ff',
+      borderColor: nextLvl >= 5 ? 0xffca28 : 0xb388ff,
       icon: sCfg.icon,
-      desc: `${lvlDesc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida (Nv. Máx 5)!' : 'Aprimora seu pergaminho exclusivo nesta partida!'}`,
-      weight: chosenScroll === sKey ? 3 : 2,
+      desc: `${desc}\n\n${promptExtra}`,
+      weight: isAlreadyChosen ? 3 : 2,
       apply: (scene) => {
-        chosenScroll = sKey;
+        if (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) {
+          if (!chosenScrolls.includes(sKey)) {
+            chosenScrolls.push(sKey);
+          }
+          chosenScroll = chosenScrolls[0] || null;
+        } else {
+          chosenScroll = sKey;
+        }
         scrollLevels[sKey] = nextLvl;
         sound.playLevelUp();
-        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} NV.${nextLvl}!`, '#b388ff');
+        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} ARCANO!`, '#b388ff');
         updateScrollHUD();
       }
     });
@@ -6601,11 +6800,11 @@ function rollLevelUpCards() {
       id: 'item_duration_boost',
       category: 'RELÍQUIA TEMPORAL',
       title: 'AMPULHETA REAL',
-      badge: '+1.2s DURAÇÃO',
+      badge: 'EXTENSÃO TEMPORAL',
       badgeColor: '#ffca28',
       borderColor: 0xc5a059,
       icon: 'hud_hourglass',
-      desc: 'Aumenta em +1.2s a duração de todas as armas nesta partida e recarrega sua arma ativa!',
+      desc: 'Amplia substancialmente o tempo de atividade das relíquias em combate e recarrega sua arma ativa!',
       apply: (scene) => {
         runBonusDuration += 1.2;
         if (buff.type) {
@@ -6614,18 +6813,18 @@ function rollLevelUpCards() {
           const randW = Phaser.Utils.Array.GetRandom(unlockedKeys);
           equipWeaponBuff(scene, randW, false);
         }
-        floatText(scene, player.x, player.y - 28, '+1.2s DURAÇÃO DE ARMAS!', '#ffca28');
+        floatText(scene, player.x, player.y - 28, 'DURAÇÃO AMPLIADA!', '#ffca28');
       }
     },
     {
       id: 'item_random_relic',
       category: 'BAÚ DE ARMAS',
       title: 'ARSENAL DO REI',
-      badge: 'ARMA + 4 PRATAS',
+      badge: 'ARSENAL REAL',
       badgeColor: '#e0f7fa',
       borderColor: 0x80deea,
       icon: 'silver_coin',
-      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate com +3s extras e concede +4 Moedas de Prata!',
+      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate sobrecarregada com moedas de prata!',
       apply: (scene) => {
         const chosen = Phaser.Utils.Array.GetRandom(unlockedKeys);
         equipWeaponBuff(scene, chosen, false);
@@ -6640,16 +6839,16 @@ function rollLevelUpCards() {
       id: 'item_holy_chalice',
       category: 'ITEM SAGRADO',
       title: 'BÊNÇÃO DO ESCUDO',
-      badge: playerHp < playerMaxHp ? '+1 CORAÇÃO + ONDA' : 'ONDA + ESCUDO',
+      badge: playerHp < playerMaxHp ? 'RESTAURAÇÃO VITAL' : 'BÊNÇÃO DE PRATA',
       badgeColor: '#ff8a80',
       borderColor: 0xff5252,
       icon: 'stat_health',
-      desc: 'Restaura 1 Coração de Vida (ou concede +5 Pratas se cheio) e libera uma Onda Sagrada ao redor do herói!',
+      desc: 'Restaura a força vital do Cavaleiro e conjura uma expansão sagrada de repulsão!',
       apply: (scene) => {
         if (playerHp < playerMaxHp) {
           playerHp = Math.min(playerMaxHp, playerHp + 1);
           updateHeartsHUD();
-          floatText(scene, player.x, player.y - 28, '+1 CORAÇÃO RESTAURADO!', '#ff5252');
+          floatText(scene, player.x, player.y - 28, 'VIDA RESTAURADA!', '#ff5252');
         } else {
           runSilver += 5;
           if (hudSilverText && hudSilverText.active) hudSilverText.setText(`${runSilver}`);
@@ -6660,19 +6859,19 @@ function rollLevelUpCards() {
     }
   ];
 
-  // Se o jogador já maximizou várias armas, adiciona cartas de Mestria para as armas Nv. 5
+  // Se o jogador já avançou as armas para níveis altos, adiciona cartas de Mestria Suprema
   unlockedKeys.forEach(key => {
-    if (getWeaponLevel(key) >= MAX_WEAPON_LEVEL) {
+    if (getWeaponLevel(key) >= 5) {
       const cfg = WEAPON_CATALOG[key];
       itemCards.push({
         id: `mastery_${key}`,
-        category: 'MESTRIA MÁXIMA',
+        category: 'MESTRIA LENDÁRIA',
         title: `${cfg.name} SUPREMO`,
-        badge: 'EQUIPAR NV. 5 ★',
+        badge: 'TRANSCENDÊNCIA ★',
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `Equipa imediatamente ${cfg.name} no Nível 5 Máximo com +4s de duração bônus!`,
+        desc: `Equipa imediatamente ${cfg.name} em seu grau máximo de mestria com bônus de duração estendida!`,
         apply: (scene) => {
           equipWeaponBuff(scene, key, false);
           buff.timeLeft += 4.0;
@@ -6707,6 +6906,14 @@ function rollLevelUpCards() {
   });
 
   shuffledItems.forEach(card => {
+    if (selected.length < 3 && !usedIds.has(card.id)) {
+      selected.push(card);
+      usedIds.add(card.id);
+    }
+  });
+
+  // Caso armas e itens tenham esgotado opções válidas, preenche com pergaminhos restantes
+  shuffledScrolls.forEach(card => {
     if (selected.length < 3 && !usedIds.has(card.id)) {
       selected.push(card);
       usedIds.add(card.id);
@@ -8799,8 +9006,11 @@ function create(data) {
   ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
   road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
   forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
+  sunRays = scene.add.tileSprite(400, 130, 800, 260, 'sunbeam_rays').setDepth(-4).setAlpha(0.06).setBlendMode(Phaser.BlendModes.ADD);
+  scene.tweens.add({ targets: sunRays, alpha: { from: 0.04, to: 0.08 }, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   shadows = scene.add.graphics().setDepth(-2);
   forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
+  vignetteOverlay = scene.add.image(400, 300, 'vignette_64bit').setDepth(1590).setScrollFactor(0);
   bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
 
   // Grupos físicos
@@ -8916,6 +9126,15 @@ function create(data) {
   scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
   scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
   scene.physics.add.overlap(player, xpOrbs, (p, orb) => collectXpOrb(scene, orb));
+
+  // Separação física entre Mini-Golems despertos (evita que se sobreponham na arena)
+  scene.physics.add.collider(enemies, enemies, null, (e1, e2) => {
+    return Boolean(
+      e1 && e2 && e1.active && e2.active &&
+      e1.enemyType === 'mini_golem' && e2.enemyType === 'mini_golem' &&
+      e1.golemState === 'ACTIVE' && e2.golemState === 'ACTIVE'
+    );
+  });
 
   // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
@@ -9056,6 +9275,7 @@ function updateMenuBackground(dt) {
   road.tilePositionX += scrollSpeed * dt;
   forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
   forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
+  if (sunRays) sunRays.tilePositionX += scrollSpeed * 0.45 * dt;
   obstacles.setVelocityX(-scrollSpeed);
 }
 
@@ -9067,6 +9287,7 @@ function updateGameplay(scene, time, dt) {
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
   forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
+  if (sunRays) sunRays.tilePositionX += worldSpeed * 0.5 * dt;
   obstacles.setVelocityX(-worldSpeed);
   villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
@@ -9141,33 +9362,27 @@ function updateGameplay(scene, time, dt) {
       }
       if (e.enemyType === 'goblin_scout') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Movimentação em zigue-zague dinâmico relativo ao vetor do jogador:
-        // V_final = V_forward * speed + V_perpendicular * (sin(time * omega) * A)
-        let fwdX = -1, fwdY = 0;
-        let perpX = 0, perpY = 1;
-        if (player && player.active) {
-          const dx = player.x - e.x;
-          const dy = player.y - e.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 1) {
-            fwdX = dx / dist;
-            fwdY = dy / dist;
-            perpX = -fwdY;
-            perpY = fwdX;
-          }
-        }
+        // Goblin Rastreador: avanco continuo para a esquerda em alta velocidade com perseguicao senoidal no eixo Y
         const scoutSpeed = (enemySpeed || 195) * (ENEMIES.goblin_scout ? ENEMIES.goblin_scout.speed : 1.48);
-        const osc = Math.sin(time * 0.0065 + e.phase) * 80;
-        e.setVelocity(fwdX * scoutSpeed + perpX * osc, fwdY * scoutSpeed + perpY * osc);
-        e.y = Phaser.Math.Clamp(e.y, 125, 525);
-        if (e.body) e.body.updateFromGameObject();
+        let trackVy = 0;
+        if (player && player.active) {
+          const dy = player.y - e.y;
+          trackVy = Phaser.Math.Clamp(dy * 1.6, -110, 110);
+        }
+        const osc = Math.sin(time * 0.008 + e.phase) * 80;
+        e.setVelocityX(-scoutSpeed);
+        e.setVelocityY(trackVy + osc);
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(e.body.velocity.y));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(e.body.velocity.y));
       } else if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
+        // Goblin Comum: marcha continua para a esquerda com oscilacao senoidal em Y
+        const gobSpeed = (enemySpeed || 195) * (ENEMIES.goblin ? ENEMIES.goblin.speed : 1.12);
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
+        e.setVelocityX(-gobSpeed);
         e.setVelocityY(zigZagSpeed);
-        e.y = Phaser.Math.Clamp(e.y, 130, 520);
-        if (e.body) e.body.updateFromGameObject();
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(zigZagSpeed));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(zigZagSpeed));
       } else if (e.enemyType === 'mini_golem') {
         // Máquina de Estados Estrita do Mini-Golem: EJECTING, DORMANT, AWAKENING, ACTIVE
         if (e.golemState === 'EJECTING') {
@@ -9353,10 +9568,21 @@ function sortAndShade() {
     }
 
     const sx = Math.round(s.x);
-    // 1. Penumbra suave externa (dissipa suavemente no solo)
-    shadows.fillStyle(0x161009, pAlpha).fillEllipse(sx, groundY, pw, ph);
-    // 2. Núcleo escuro de contato (assenta os pés firmemente na terra)
-    shadows.fillStyle(0x0a0604, cAlpha).fillEllipse(sx, groundY, cw, ch);
+    const altitude = Math.max(0, groundY - Math.round(s.y + (s.displayHeight ? s.displayHeight / 2 : 14)));
+    const altFactor = Math.max(0.40, 1.0 - altitude * 0.015);
+    const curPw = Math.round(pw * altFactor);
+    const curPh = Math.round(ph * altFactor);
+    const curCw = Math.round(cw * altFactor);
+    const curCh = Math.round(ch * altFactor);
+
+    // 1. Halo difuso ambiente 64-bit
+    shadows.fillStyle(0x1e150c, pAlpha * 0.45 * altFactor).fillEllipse(sx, groundY, Math.round(curPw * 1.35), Math.round(curPh * 1.35));
+    // 2. Penumbra suave intermediaria
+    shadows.fillStyle(0x120c08, pAlpha * altFactor).fillEllipse(sx, groundY, curPw, curPh);
+    // 3. Oclusao nitida de contato com o solo
+    if (altitude < 16) {
+      shadows.fillStyle(0x050302, cAlpha * 1.15).fillEllipse(sx, groundY, curCw, Math.max(2, Math.round(curCh * 0.85)));
+    }
   };
 
   obstacles.getChildren().forEach(o => {

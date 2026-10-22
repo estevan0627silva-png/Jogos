@@ -58,6 +58,7 @@ const C = {
   rubyBase: 0xd83a3a,
   rubyShadow: 0x8e1b1b,
   rubyDeep: 0x4a0e0e,
+  deepBlood: 0x4a0e0e,
 
   // --- AZUL REAL & HERÁLDICA ---
   blueLight: 0x5b93f0,

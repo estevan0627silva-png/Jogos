@@ -369,6 +369,36 @@ function makeWorldTextures(scene) {
   g.fillRect(9, 37, 2, 2).fillRect(37, 37, 2, 2);
   g.generateTexture('shield_aura', 48, 48);
 
+  // 64-BIT: Vinheta Cinematográfica de Alta Nitidez (800x600)
+  if (!scene.textures.exists('vignette_64bit')) {
+    const vCanvas = scene.textures.createCanvas('vignette_64bit', 800, 600);
+    const vCtx = vCanvas.context;
+    const vGrad = vCtx.createRadialGradient(400, 300, 220, 400, 300, 520);
+    vGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vGrad.addColorStop(0.55, 'rgba(10, 7, 5, 0.08)');
+    vGrad.addColorStop(0.85, 'rgba(8, 5, 4, 0.28)');
+    vGrad.addColorStop(1, 'rgba(5, 3, 2, 0.58)');
+    vCtx.fillStyle = vGrad;
+    vCtx.fillRect(0, 0, 800, 600);
+    vCanvas.refresh();
+  }
+
+  // 64-BIT: Feixes de Luz Solar Volumétrica / Komorebi (400x260)
+  if (!scene.textures.exists('sunbeam_rays')) {
+    const sCanvas = scene.textures.createCanvas('sunbeam_rays', 400, 260);
+    const sCtx = sCanvas.context;
+    const sGrad = sCtx.createLinearGradient(0, 0, 160, 260);
+    sGrad.addColorStop(0, 'rgba(255, 240, 190, 0.16)');
+    sGrad.addColorStop(0.4, 'rgba(255, 220, 140, 0.07)');
+    sGrad.addColorStop(1, 'rgba(255, 200, 100, 0)');
+    sCtx.fillStyle = sGrad;
+    sCtx.beginPath();
+    sCtx.moveTo(30, 0); sCtx.lineTo(120, 0); sCtx.lineTo(240, 260); sCtx.lineTo(140, 260); sCtx.closePath(); sCtx.fill();
+    sCtx.beginPath();
+    sCtx.moveTo(210, 0); sCtx.lineTo(290, 0); sCtx.lineTo(390, 260); sCtx.lineTo(300, 260); sCtx.closePath(); sCtx.fill();
+    sCanvas.refresh();
+  }
+
   g.destroy();
 }
 

@@ -10,6 +10,7 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: #0c0907;
+  font-family: "Cinzel", "Georgia", "Palatino Linotype", serif;
   overflow: hidden;
   touch-action: none;
   -webkit-touch-callout: none;

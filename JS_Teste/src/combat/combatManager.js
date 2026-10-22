@@ -131,10 +131,13 @@ function applySmoothKnockback(scene, enemy, distance = 22, duration = 130) {
     enemy.setVelocityX(0);
   }
 
+  // Interpolação suave e orgânica que adapta o tempo à magnitude do impacto
+  const safeDuration = (duration && duration !== 130) ? duration : Math.min(190, 115 + Math.round(distance * 0.35));
+
   scene.tweens.add({
     targets: enemy,
     x: targetX,
-    duration: duration,
+    duration: safeDuration,
     ease: 'Cubic.easeOut',
     onUpdate: () => {
       if (enemy && enemy.active && enemy.body) {
@@ -195,10 +198,12 @@ function setupDecoupledEventListeners(scene) {
 
   // 4. SISTEMA DE LOOT & RECOMPENSAS
   events.on(GameEvents.ENEMY_KILLED, ({ scene, enemyType, x, y, xpValue }) => {
-    const dropRates = { dark_mage: 0.72, warrior: 0.62, elf: 0.48, goblin: 0.38, mini_golem: 0.32 };
-    const chance = dropRates[enemyType] ?? 0.40;
+    const dropRates = { dark_mage: 0.32, warrior: 0.25, elf: 0.18, goblin: 0.12, goblin_scout: 0.14, mini_golem: 0.08 };
+    const chance = dropRates[enemyType] ?? 0.12;
 
-    spawnXpOrb(scene, x - 6, y, xpValue);
+    if (Math.random() < 0.75) {
+      spawnXpOrb(scene, x - 6, y, xpValue);
+    }
 
     if (Math.random() < chance) {
       const count = (enemyType === 'dark_mage' || enemyType === 'warrior') && Math.random() < 0.42 ? 2 : 1;

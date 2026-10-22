@@ -2,6 +2,93 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.4.0] — 2026-10-20
+### 📜 Título da Versão: **Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (Slot Duplo por Partida)**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Expansão do limite máximo de pergaminhos arcanos escolhidos por partida de 1 para 2. Os jogadores agora podem selecionar e combinar dois pergaminhos distintos (ex: Disparo Múltiplo + Crescimento de Área ou Velocidade de Ataque) com aplicação simultânea de bônus cumulativos, HUD com slots duplos de nível e sinalização tática nas cartas de evolução.
+
+### 🚀 O que mudou:
+- **📜 Expansão do Teto de Pergaminhos (1 ➔ 2 por Run):**
+  - O herói agora pode escolher e empunhar **até 2 Pergaminhos Arcanos distintos** em uma mesma partida.
+  - Cada um dos dois pergaminhos continua evoluindo de forma independente até o Nível 5 máximo (com badges de maestria de nível 1 ao 5).
+  - Uma vez escolhidos 2 pergaminhos, o terceiro pergaminho restante é automaticamente excluído do catálogo daquela partida, mantendo as escolhas táticas exclusivas.
+- **⚡ Sinergia Total de Atributos em Combate:**
+  - Em `weapons.js`, todos os pergaminhos equipados aplicam seus bônus simultaneamente em todas as armas ativas:
+    - *Disparo Múltiplo:* +1 a +5 projéteis/cortes extras.
+    - *Crescimento:* +22% a +110% de área de impacto em todos os ataques e poças de fogo.
+    - *Velocidade de Ataque:* +18% a +90% de aceleração de cadência.
+  - Combinações poderosas como Disparo Múltiplo + Crescimento geram leques colossais de dano, enquanto Disparo Múltiplo + Velocidade criam rajadas contínuas de ataque.
+- **🛡️ HUD com Suporte a Slots Duplos:**
+  - O painel superior de relíquias (`hud.js`) foi reformulado para suportar slots visuais duplos:
+    - Com **1 pergaminho:** O ícone e o texto `NV.X` permanecem centralizados no espaço de relíquias (`x: 495`).
+    - Com **2 pergaminhos:** A interface transiciona suavemente posicionando o 1º ícone em `x: 478` e o 2º ícone em `x: 501`, ambos com seu respectivo nível visível e legível.
+- **🃏 Sinalização Tática no Draft de Level Up:**
+  - O modal de evolução identifica visualmente o progresso da cota de pergaminhos:
+    - `PERGAMINHO ARCANO (1/2)` quando o jogador ainda não escolheu nenhum.
+    - `PERGAMINHO ARCANO (2/2)` ao oferecer o segundo e último pergaminho permitido.
+    - `PERGAMINHO EXCLUSIVO` para evoluções de pergaminhos já vinculados.
+- **🔄 Reset Limpo de Partida:**
+  - Ao reiniciar (`director.js`), o array `chosenScrolls` é esvaziado, `chosenScroll` volta a ser `null`, todos os níveis arcanos voltam a 0 e o HUD oculta instantaneamente ambos os slots.
+
+---
+
+## [v2.3.0] — 2026-10-20
+### 🎨 Título da Versão: **Remasterização Visual 64-Bit (Fidelidade Gráfica, Oclusão Volumétrica & Nitidez Consolidada)**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Evolução gráfica completa dos 16-bit para 64-bit mantendo 100% da integridade física e alinhamento dos sprites: contorno inteligente sensível à luz (chanfro direcional/rim-light), sistema volumétrico de sombras de contato em 3 camadas com atenuação por altitude, vinheta atmosférica de alta definição, feixes solares volumétricos (Godrays) com blend aditivo e tipografia clássica nítida (Cinzel Serif) com contraste aprimorado.
+
+### 🚀 O que mudou:
+- **💎 Sombreador Procedural com Luz Direcional (Rim Light & Bevel 64-bit):**
+  - O motor de rasterização procedural `drawPixels` foi reestruturado com lógica de luz ambiente incidente no quadrante superior-esquerdo.
+  - Arestas externas superiores e esquerdas agora recebem chanfro suave luminoso (`C.outlineSoft`), enquanto as arestas inferiores e direitas recebem oclusão profunda (`C.outline`).
+  - Adicionado helper utilitário de rim-light (`r.rim`) para realces volumétricos reflexivos.
+  - **Zero Quebra de Malha:** Preservação estrita das dimensões (32x32, 48x48, 88x88), contagens de quadros de animação e pontos de ancoragem da lâmina da espada, escudo e projéteis.
+- **🌑 Oclusão Volumétrica de Solo em 3 Camadas com Altura Dinâmica:**
+  - O sistema de sombreamento sob entidades (`sortAndShade`) evoluiu de uma simples elipse dupla plana para um modelo físico de 3 camadas:
+    1. *Halo Difuso Ambiente 64-bit:* Projeção ampla e suave que integra a criatura ao bioma.
+    2. *Penumbra Suave Intermediária:* Zona de transição que confere peso gravitacional ao corpo.
+    3. *Oclusão Nítida de Contato (Ambiente Occlusion):* Núcleo escuro assentando solas, patas e cascos firmemente na grama/terra.
+  - Entidades no ar (como Mini-Golems ejetados em arco parabólico) agora escalam a dispersão e atenuação da sombra proporcionalmente à altitude (`altFactor`).
+- **☀️ Feixes Solares Volumétricos (Godrays) & Atmosfera Viva:**
+  - Geração procedural de texturas de raios solares angulares (`sunbeam_rays`) no dossel da floresta.
+  - Renderizados com modo de mesclagem aditiva (`Phaser.BlendModes.ADD`), respiração senoidal de pulso suave e deslocamento por paralaxe relativo à câmera.
+- **🌌 Vinheta Suave de Borda HD (Vignette 64-bit):**
+  - Nova textura procedural de 800x600 (`vignette_64bit`) com 12 camadas de decaimento radial suave.
+  - Fixada na câmera sobrepondo o cenário com blend sutil, concentrando o foco do jogador na arena central e eliminando bordas duras na tela.
+- **📜 Tipografia Fantasia Crisp & Alto Contraste:**
+  - Padronização de todas as fontes da interface, HUD, popups de dano e cartas de upgrade na família tipográfica clássica *Cinzel / Georgia Serif*.
+  - Traçado de contorno protetor escuro (`#0e0b08`) com espessura calibrada para garantir legibilidade instantânea contra qualquer fundo de bioma.
+  - Inclusão dos links de pré-carregamento Google Fonts com fallbacks locais 100% funcionais offline.
+
+---
+
+## [v2.2.0] — 2026-10-20
+### ⚔️ Título da Versão: **Curva Exponencial Suave & Sistema Rítmico de Hordas Especiais**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Calibração da curva inicial (0-20s suave com 1 monstro por vez, foco em farm de XP e zero arqueiros), aceleração exponencial progressiva, e sistema cíclico de Hordas Especiais a partir dos 45s (alternando entre Horda Densa de Goblins e Horda de Rastreadores com Guerreiros a cada 30 segundos com escalonamento dinâmico).
+
+### 🚀 O que mudou:
+- **🌱 Início Suave e Cadenciado (0 a 20s):**
+  - **1 Monstro por Onda:** O início agora gera estritamente 1 inimigo por pulso (`waveCount = 1`), eliminando a sobrecarga de spawns nos primeiros segundos.
+  - **Spawn Delay Calibrado:** `spawnDelay` inicial reajustado para 1150ms (em vez de 450ms).
+  - **Zero Arqueiros na Largada:** Apenas Goblins normais (90%) e Guerreiros blindados ocasionais (10%) aparecem nos primeiros 20 segundos. Nenhum Elfo ou Mago atira projéteis no início.
+  - **Cap Inicial de Tela:** Limitado a 10 inimigos simultâneos durante os primeiros 20 segundos.
+- **📈 Progressão Exponencial em 3 Fases:**
+  - **Fase 1 (0-20s):** Curva suave com foco no farm de gemas de XP e aquisição dos primeiros upgrades.
+  - **Fase 2 (20-45s):** Transição com aceleração gradual, introdução dos Goblins Rastreadores e raros Elfos (5%).
+  - **Fase 3 (45s+):** Escalação exponencial plena com ondas de 3 a 6 monstros e cap de até 55 monstros em tela.
+- **🚨 Sistema Rítmico de Hordas Especiais (45s+, a cada 30 segundos):**
+  - **Ativação Pontual:** O primeiro evento de horda inicia aos 45 segundos e repete a cada 30 segundos (45s, 75s, 105s, etc.), pausando durante o Boss Golem caso a batalha esteja ativa.
+  - **Ciclo Alternado:**
+    - **Ciclo Ímpar (45s, 105s...):** *Horda Densa de Goblins* (9 a 19+ Goblins disparados em rápida sucessão por toda a largura do caminho).
+    - **Ciclo Par (75s, 135s...):** *Horda de Rastreadores Zigue-zague & Guerreiros Blindados* (mistura balanceada de velocidade e escudo).
+  - **Avisos Táticos & Screenshake:** Anúncios visuais (`floatText`) no topo da tela com tremor de câmera e estrondo de terra na chegada de cada horda.
+
+---
+
 ## [v1.8.0] — 2026-10-19
 ### 🛡️ Título da Versão: **Eliminação de Quadrados Pretos, Barreira Arcana Calibrada (1s/2s), Golpe Melee Penetrante & Mini-Golems Invulneráveis Inconscientes**
 

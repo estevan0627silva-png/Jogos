@@ -1,8 +1,4 @@
 // =============================================================================
-// SISTEMA MODULAR DE ARMAS (Open-Closed Principle / Strategy Pattern)
-// Cada arma encapsula suas taxas de disparo, duração e comportamento de ataque,
-// permitindo ajustar ou adicionar novas armas sem modificar o loop central do jogo.
-// =============================================================================
 
 // Schema Unificado de Status de Armas:
 // damage, area, attackRate, knockback, projectiles
@@ -54,25 +50,37 @@ function getWeaponStats(type, lvl = 1) {
     projectiles: base.projectiles
   };
 
-  // 1. Progressão de Nível: Status Fixos + Apenas UM Atributo Escalável por Arma
+  const effectiveLvl = Math.max(1, lvl);
+  const generalMult = 1 + (effectiveLvl - 1) * 0.22;
+  stats.damage = Math.max(1, Math.round(base.damage * generalMult));
+
+  // 1. Progressão Contínua e Infinita com Atributos Fortes e Guardrails de Engine
   if (type === 'sword') {
-    // Espada: Aumenta SOMENTE o Tamanho/Área do ataque por nível (+24% por nível)
-    stats.area = 1.0 + (lvl - 1) * 0.24;
+    // ATRIBUTO FORTE: Área / Tamanho (+26% por nível) e Dano (+22% geral)
+    stats.area = Math.min(4.2, 1.0 + (effectiveLvl - 1) * 0.26);
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'bow') {
-    // Arco: Aumenta SOMENTE a Velocidade de Ataque por nível (intervalo diminui)
-    stats.attackRate = Math.max(180, Math.round(500 - (lvl - 1) * 75));
+    // ATRIBUTO FORTE: Cadência (-14% delay por nível com piso seguro de 90ms a 60 FPS)
+    stats.attackRate = Math.max(90, Math.round(500 * Math.pow(0.86, effectiveLvl - 1)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   } else if (type === 'axe') {
-    // Machado: Aumenta SOMENTE o Knockback por nível
-    stats.knockback = 28 + (lvl - 1) * 19;
+    // ATRIBUTO FORTE: Knockback (+35% de repulsão por nível até teto de 240px)
+    stats.knockback = Math.min(240, Math.round(30 * (1 + (effectiveLvl - 1) * 0.35)));
+    stats.damage = Math.max(2, Math.round(2 * generalMult));
   } else if (type === 'firestaff') {
-    // Cajado de Fogo: Aumenta SOMENTE o Tamanho da Explosão e Poça por nível
-    stats.area = 45 + (lvl - 1) * 20;
+    // ATRIBUTO FORTE: Raio de Explosão e Poça (+22% no raio por nível até teto de 180px)
+    stats.area = Math.min(180, Math.round(45 * (1 + (effectiveLvl - 1) * 0.22)));
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
+  } else if (type === 'shield') {
+    stats.area = 1.0 + (effectiveLvl - 1) * 0.15;
+    stats.damage = Math.max(1, Math.round(1 * generalMult));
   }
 
-  // 2. Sistema de Pergaminhos: Aplica bônus do pergaminho exclusivo escolhido
-  const msLvl = (chosenScroll === 'multishot') ? (scrollLevels.multishot || 0) : 0;
-  const grLvl = (chosenScroll === 'growth') ? (scrollLevels.growth || 0) : 0;
-  const asLvl = (chosenScroll === 'attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
+  // 2. Sistema de Pergaminhos: Aplica bônus de até 2 pergaminhos arcanos escolhidos por partida
+  const hasScroll = (key) => (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls.includes(key) : (chosenScroll === key);
+  const msLvl = hasScroll('multishot') ? (scrollLevels.multishot || 0) : 0;
+  const grLvl = hasScroll('growth') ? (scrollLevels.growth || 0) : 0;
+  const asLvl = hasScroll('attackspeed') ? (scrollLevels.attackspeed || 0) : 0;
 
   if (msLvl > 0) {
     stats.projectiles += msLvl;
@@ -84,9 +92,9 @@ function getWeaponStats(type, lvl = 1) {
   }
 
   if (asLvl > 0) {
-    const asMult = 1.0 + asLvl * 0.16;
+    const asMult = 1.0 + asLvl * 0.18;
     if (stats.attackRate > 0) {
-      stats.attackRate = Math.max(80, Math.round(stats.attackRate / asMult));
+      stats.attackRate = Math.max(90, Math.round(stats.attackRate / asMult));
     }
   }
 
@@ -99,7 +107,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.bow,
     baseDuration: BUFF_TIME.bow,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('bow', lvl).attackRate;
@@ -146,7 +156,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.sword,
     baseDuration: BUFF_TIME.sword,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('sword', lvl).attackRate;
@@ -273,7 +285,11 @@ const WeaponStrategies = {
     name: BUFF_NAMES.shield,
     baseDuration: BUFF_TIME.shield,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 1.50 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = (l <= 5)
+        ? 4.8 * Math.pow(1.35, l - 1)
+        : Math.min(24.0, 4.8 * Math.pow(1.35, 4) + (l - 5) * 1.5);
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate() { return 0; },
     attack() { /* O escudo é defensivo/reativo a impactos */ },
@@ -297,7 +313,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.axe,
     baseDuration: BUFF_TIME.axe,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('axe', lvl).attackRate;
@@ -341,7 +359,9 @@ const WeaponStrategies = {
     name: BUFF_NAMES.firestaff,
     baseDuration: BUFF_TIME.firestaff,
     getDuration(lvl, bonusDur, wisdomDur) {
-      return this.baseDuration + (lvl - 1) * 0.75 + wisdomDur + bonusDur;
+      const l = Math.max(1, lvl);
+      const baseDur = Math.min(28.0, this.baseDuration * (1 + (l - 1) * 0.12));
+      return Number(baseDur.toFixed(1)) + wisdomDur + bonusDur;
     },
     getAttackRate(lvl) {
       return getWeaponStats('firestaff', lvl).attackRate;
@@ -622,3 +642,10 @@ function triggerPlayerAction(scene) {
     });
   }
 }
+
+
+// --- BUNDLE FILE: JS_Teste/src/combat/combatManager.js ---
+// =============================================================================
+// GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
+// =============================================================================
+// COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)

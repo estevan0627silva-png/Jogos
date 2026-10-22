@@ -13,55 +13,81 @@ function rollLevelUpCards() {
     if (cfg) {
       const nextLvl = currLvl + 1;
       const isHeld = buff && buff.type === key;
-      const lvlDesc = (cfg.levels && cfg.levels[nextLvl - 1])
-        ? cfg.levels[nextLvl - 1]
-        : `✦ PODER TRANSCENDENTAL (NV. ${nextLvl})!\n+15% Cadência de disparo, +Dano e escala contínua de combate.`;
+      const mult = (1 + (nextLvl - 1) * 0.22).toFixed(2);
+      const pct = Math.round((nextLvl - 1) * 22);
 
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
-        category: isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA',
+        category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-        badgeColor: nextLvl >= 5 ? '#ffca28' : '#7fe7ff',
-        borderColor: nextLvl >= 5 ? 0xffca28 : 0x7fe7ff,
+        badge: `Nv. ${currLvl} ➔ Nv. ${nextLvl}`,
+        badgeColor: '#ffd740',
+        borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `${lvlDesc}\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n✦ MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n✦ Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
           equipWeaponBuff(scene, key, false);
-          floatText(scene, player.x, player.y - 28, `${cfg.name} NV.${nextLvl}!`, '#ffca28');
+          floatText(scene, player.x, player.y - 28, `${cfg.name} Nv. ${nextLvl}!`, '#ffca28');
         }
       });
     }
   });
 
-  // Cartas de Pergaminhos Arcanos (Regra: apenas 1 pergaminho por partida, até Nv. 5)
+  // Cartas de Pergaminhos Arcanos (Regra: até 2 pergaminhos por partida, até Nv. 5 cada)
   const scrollCards = [];
   const scrollKeys = ['multishot', 'growth', 'attackspeed'];
+  const maxChosenScrolls = 2;
+  const activeChosen = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls : (chosenScroll ? [chosenScroll] : []);
+  const currentChosenCount = activeChosen.length;
+
   scrollKeys.forEach(sKey => {
-    if (chosenScroll !== null && chosenScroll !== sKey) return;
+    const isAlreadyChosen = activeChosen.includes(sKey);
+    // Se o jogador já possui 2 pergaminhos distintos e este não é um deles, não oferece
+    if (!isAlreadyChosen && currentChosenCount >= maxChosenScrolls) return;
+
     const currLvl = scrollLevels[sKey] || 0;
     if (currLvl >= 5) return;
     const nextLvl = currLvl + 1;
     const sCfg = SCROLL_CATALOG[sKey];
     if (!sCfg) return;
-    const lvlDesc = sCfg.levels[nextLvl - 1] || `+Poder arcano NV. ${nextLvl}`;
+    const lvlData = (sCfg.levels && sCfg.levels[nextLvl - 1]) ? sCfg.levels[nextLvl - 1] : null;
+    const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ★';
+    const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
+
+    const slotLabel = isAlreadyChosen
+      ? 'PERGAMINHO EXCLUSIVO'
+      : (currentChosenCount === 0 ? 'PERGAMINHO ARCANO (1/2)' : 'PERGAMINHO ARCANO (2/2)');
+
+    const promptExtra = isAlreadyChosen
+      ? '✦ Refina este pergaminho exclusivo nesta partida!'
+      : (currentChosenCount === 0
+          ? '✦ ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
+          : '✦ ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
+
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
-      category: chosenScroll === sKey ? 'PERGAMINHO ATIVO' : 'PERGAMINHO ARCANO',
+      category: slotLabel,
       title: sCfg.name,
-      badge: currLvl === 0 ? 'NOVO! NV. 1' : `NV. ${currLvl} ➔ NV. ${nextLvl}`,
-      badgeColor: '#b388ff',
-      borderColor: 0xb388ff,
+      badge: badge,
+      badgeColor: nextLvl >= 5 ? '#ffd740' : '#b388ff',
+      borderColor: nextLvl >= 5 ? 0xffca28 : 0xb388ff,
       icon: sCfg.icon,
-      desc: `${lvlDesc}\n\n✦ ${chosenScroll === null ? 'ESCOLHA EXCLUSIVA: Trava este pergaminho para toda a partida (Nv. Máx 5)!' : 'Aprimora seu pergaminho exclusivo nesta partida!'}`,
-      weight: chosenScroll === sKey ? 3 : 2,
+      desc: `${desc}\n\n${promptExtra}`,
+      weight: isAlreadyChosen ? 3 : 2,
       apply: (scene) => {
-        chosenScroll = sKey;
+        if (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) {
+          if (!chosenScrolls.includes(sKey)) {
+            chosenScrolls.push(sKey);
+          }
+          chosenScroll = chosenScrolls[0] || null;
+        } else {
+          chosenScroll = sKey;
+        }
         scrollLevels[sKey] = nextLvl;
         sound.playLevelUp();
-        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} NV.${nextLvl}!`, '#b388ff');
+        floatText(scene, player.x, player.y - 32, `${sCfg.shortName} ARCANO!`, '#b388ff');
         updateScrollHUD();
       }
     });
@@ -73,11 +99,11 @@ function rollLevelUpCards() {
       id: 'item_duration_boost',
       category: 'RELÍQUIA TEMPORAL',
       title: 'AMPULHETA REAL',
-      badge: '+1.2s DURAÇÃO',
+      badge: 'EXTENSÃO TEMPORAL',
       badgeColor: '#ffca28',
       borderColor: 0xc5a059,
       icon: 'hud_hourglass',
-      desc: 'Aumenta em +1.2s a duração de todas as armas nesta partida e recarrega sua arma ativa!',
+      desc: 'Amplia substancialmente o tempo de atividade das relíquias em combate e recarrega sua arma ativa!',
       apply: (scene) => {
         runBonusDuration += 1.2;
         if (buff.type) {
@@ -86,18 +112,18 @@ function rollLevelUpCards() {
           const randW = Phaser.Utils.Array.GetRandom(unlockedKeys);
           equipWeaponBuff(scene, randW, false);
         }
-        floatText(scene, player.x, player.y - 28, '+1.2s DURAÇÃO DE ARMAS!', '#ffca28');
+        floatText(scene, player.x, player.y - 28, 'DURAÇÃO AMPLIADA!', '#ffca28');
       }
     },
     {
       id: 'item_random_relic',
       category: 'BAÚ DE ARMAS',
       title: 'ARSENAL DO REI',
-      badge: 'ARMA + 4 PRATAS',
+      badge: 'ARSENAL REAL',
       badgeColor: '#e0f7fa',
       borderColor: 0x80deea,
       icon: 'silver_coin',
-      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate com +3s extras e concede +4 Moedas de Prata!',
+      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate sobrecarregada com moedas de prata!',
       apply: (scene) => {
         const chosen = Phaser.Utils.Array.GetRandom(unlockedKeys);
         equipWeaponBuff(scene, chosen, false);
@@ -112,16 +138,16 @@ function rollLevelUpCards() {
       id: 'item_holy_chalice',
       category: 'ITEM SAGRADO',
       title: 'BÊNÇÃO DO ESCUDO',
-      badge: playerHp < playerMaxHp ? '+1 CORAÇÃO + ONDA' : 'ONDA + ESCUDO',
+      badge: playerHp < playerMaxHp ? 'RESTAURAÇÃO VITAL' : 'BÊNÇÃO DE PRATA',
       badgeColor: '#ff8a80',
       borderColor: 0xff5252,
       icon: 'stat_health',
-      desc: 'Restaura 1 Coração de Vida (ou concede +5 Pratas se cheio) e libera uma Onda Sagrada ao redor do herói!',
+      desc: 'Restaura a força vital do Cavaleiro e conjura uma expansão sagrada de repulsão!',
       apply: (scene) => {
         if (playerHp < playerMaxHp) {
           playerHp = Math.min(playerMaxHp, playerHp + 1);
           updateHeartsHUD();
-          floatText(scene, player.x, player.y - 28, '+1 CORAÇÃO RESTAURADO!', '#ff5252');
+          floatText(scene, player.x, player.y - 28, 'VIDA RESTAURADA!', '#ff5252');
         } else {
           runSilver += 5;
           if (hudSilverText && hudSilverText.active) hudSilverText.setText(`${runSilver}`);
@@ -132,19 +158,19 @@ function rollLevelUpCards() {
     }
   ];
 
-  // Se o jogador já maximizou várias armas, adiciona cartas de Mestria para as armas Nv. 5
+  // Se o jogador já avançou as armas para níveis altos, adiciona cartas de Mestria Suprema
   unlockedKeys.forEach(key => {
-    if (getWeaponLevel(key) >= MAX_WEAPON_LEVEL) {
+    if (getWeaponLevel(key) >= 5) {
       const cfg = WEAPON_CATALOG[key];
       itemCards.push({
         id: `mastery_${key}`,
-        category: 'MESTRIA MÁXIMA',
+        category: 'MESTRIA LENDÁRIA',
         title: `${cfg.name} SUPREMO`,
-        badge: 'EQUIPAR NV. 5 ★',
+        badge: 'TRANSCENDÊNCIA ★',
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `Equipa imediatamente ${cfg.name} no Nível 5 Máximo com +4s de duração bônus!`,
+        desc: `Equipa imediatamente ${cfg.name} em seu grau máximo de mestria com bônus de duração estendida!`,
         apply: (scene) => {
           equipWeaponBuff(scene, key, false);
           buff.timeLeft += 4.0;
@@ -179,6 +205,14 @@ function rollLevelUpCards() {
   });
 
   shuffledItems.forEach(card => {
+    if (selected.length < 3 && !usedIds.has(card.id)) {
+      selected.push(card);
+      usedIds.add(card.id);
+    }
+  });
+
+  // Caso armas e itens tenham esgotado opções válidas, preenche com pergaminhos restantes
+  shuffledScrolls.forEach(card => {
     if (selected.length < 3 && !usedIds.has(card.id)) {
       selected.push(card);
       usedIds.add(card.id);

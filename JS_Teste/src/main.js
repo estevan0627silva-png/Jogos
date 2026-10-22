@@ -167,8 +167,11 @@ function create(data) {
   ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
   road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
   forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
+  sunRays = scene.add.tileSprite(400, 130, 800, 260, 'sunbeam_rays').setDepth(-4).setAlpha(0.06).setBlendMode(Phaser.BlendModes.ADD);
+  scene.tweens.add({ targets: sunRays, alpha: { from: 0.04, to: 0.08 }, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   shadows = scene.add.graphics().setDepth(-2);
   forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
+  vignetteOverlay = scene.add.image(400, 300, 'vignette_64bit').setDepth(1590).setScrollFactor(0);
   bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
 
   // Grupos físicos
@@ -284,6 +287,15 @@ function create(data) {
   scene.physics.add.overlap(player, items, (p, i) => collectItem(scene, i));
   scene.physics.add.overlap(player, coins, (p, c) => collectCoin(scene, c));
   scene.physics.add.overlap(player, xpOrbs, (p, orb) => collectXpOrb(scene, orb));
+
+  // Separação física entre Mini-Golems despertos (evita que se sobreponham na arena)
+  scene.physics.add.collider(enemies, enemies, null, (e1, e2) => {
+    return Boolean(
+      e1 && e2 && e1.active && e2.active &&
+      e1.enemyType === 'mini_golem' && e2.enemyType === 'mini_golem' &&
+      e1.golemState === 'ACTIVE' && e2.golemState === 'ACTIVE'
+    );
+  });
 
   // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
@@ -424,6 +436,7 @@ function updateMenuBackground(dt) {
   road.tilePositionX += scrollSpeed * dt;
   forestTop.tilePositionX += scrollSpeed * 0.85 * dt;
   forestBottom.tilePositionX += scrollSpeed * 1.25 * dt;
+  if (sunRays) sunRays.tilePositionX += scrollSpeed * 0.45 * dt;
   obstacles.setVelocityX(-scrollSpeed);
 }
 
@@ -435,6 +448,7 @@ function updateGameplay(scene, time, dt) {
   road.tilePositionX += worldSpeed * dt;
   forestTop.tilePositionX += worldSpeed * 0.9 * dt;    // fundo: um pouco mais lento
   forestBottom.tilePositionX += worldSpeed * 1.3 * dt; // frente: mais rápido (parallax)
+  if (sunRays) sunRays.tilePositionX += worldSpeed * 0.5 * dt;
   obstacles.setVelocityX(-worldSpeed);
   villageDecor.setVelocityX(-worldSpeed);
   items.setVelocityX(-worldSpeed);
@@ -509,33 +523,27 @@ function updateGameplay(scene, time, dt) {
       }
       if (e.enemyType === 'goblin_scout') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Movimentação em zigue-zague dinâmico relativo ao vetor do jogador:
-        // V_final = V_forward * speed + V_perpendicular * (sin(time * omega) * A)
-        let fwdX = -1, fwdY = 0;
-        let perpX = 0, perpY = 1;
-        if (player && player.active) {
-          const dx = player.x - e.x;
-          const dy = player.y - e.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist > 1) {
-            fwdX = dx / dist;
-            fwdY = dy / dist;
-            perpX = -fwdY;
-            perpY = fwdX;
-          }
-        }
+        // Goblin Rastreador: avanco continuo para a esquerda em alta velocidade com perseguicao senoidal no eixo Y
         const scoutSpeed = (enemySpeed || 195) * (ENEMIES.goblin_scout ? ENEMIES.goblin_scout.speed : 1.48);
-        const osc = Math.sin(time * 0.0065 + e.phase) * 80;
-        e.setVelocity(fwdX * scoutSpeed + perpX * osc, fwdY * scoutSpeed + perpY * osc);
-        e.y = Phaser.Math.Clamp(e.y, 125, 525);
-        if (e.body) e.body.updateFromGameObject();
+        let trackVy = 0;
+        if (player && player.active) {
+          const dy = player.y - e.y;
+          trackVy = Phaser.Math.Clamp(dy * 1.6, -110, 110);
+        }
+        const osc = Math.sin(time * 0.008 + e.phase) * 80;
+        e.setVelocityX(-scoutSpeed);
+        e.setVelocityY(trackVy + osc);
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(e.body.velocity.y));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(e.body.velocity.y));
       } else if (e.enemyType === 'goblin') {
         if (e.phase === undefined) e.phase = Math.random() * 6.28;
-        // Regra 11: Trajetória em zigue-zague ao perseguir o jogador
+        // Goblin Comum: marcha continua para a esquerda com oscilacao senoidal em Y
+        const gobSpeed = (enemySpeed || 195) * (ENEMIES.goblin ? ENEMIES.goblin.speed : 1.12);
         const zigZagSpeed = Math.sin(time * 0.007 + e.phase) * 75;
+        e.setVelocityX(-gobSpeed);
         e.setVelocityY(zigZagSpeed);
-        e.y = Phaser.Math.Clamp(e.y, 130, 520);
-        if (e.body) e.body.updateFromGameObject();
+        if (e.y < 135 && e.body && e.body.velocity.y < 0) e.setVelocityY(Math.abs(zigZagSpeed));
+        else if (e.y > 515 && e.body && e.body.velocity.y > 0) e.setVelocityY(-Math.abs(zigZagSpeed));
       } else if (e.enemyType === 'mini_golem') {
         // Máquina de Estados Estrita do Mini-Golem: EJECTING, DORMANT, AWAKENING, ACTIVE
         if (e.golemState === 'EJECTING') {
@@ -721,10 +729,21 @@ function sortAndShade() {
     }
 
     const sx = Math.round(s.x);
-    // 1. Penumbra suave externa (dissipa suavemente no solo)
-    shadows.fillStyle(0x161009, pAlpha).fillEllipse(sx, groundY, pw, ph);
-    // 2. Núcleo escuro de contato (assenta os pés firmemente na terra)
-    shadows.fillStyle(0x0a0604, cAlpha).fillEllipse(sx, groundY, cw, ch);
+    const altitude = Math.max(0, groundY - Math.round(s.y + (s.displayHeight ? s.displayHeight / 2 : 14)));
+    const altFactor = Math.max(0.40, 1.0 - altitude * 0.015);
+    const curPw = Math.round(pw * altFactor);
+    const curPh = Math.round(ph * altFactor);
+    const curCw = Math.round(cw * altFactor);
+    const curCh = Math.round(ch * altFactor);
+
+    // 1. Halo difuso ambiente 64-bit
+    shadows.fillStyle(0x1e150c, pAlpha * 0.45 * altFactor).fillEllipse(sx, groundY, Math.round(curPw * 1.35), Math.round(curPh * 1.35));
+    // 2. Penumbra suave intermediaria
+    shadows.fillStyle(0x120c08, pAlpha * altFactor).fillEllipse(sx, groundY, curPw, curPh);
+    // 3. Oclusao nitida de contato com o solo
+    if (altitude < 16) {
+      shadows.fillStyle(0x050302, cAlpha * 1.15).fillEllipse(sx, groundY, curCw, Math.max(2, Math.round(curCh * 0.85)));
+    }
   };
 
   obstacles.getChildren().forEach(o => {

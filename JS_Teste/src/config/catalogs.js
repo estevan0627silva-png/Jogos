@@ -4,82 +4,87 @@
 const WEAPON_CATALOG = {
   bow: {
     name: 'ARCO REAL',
+    category: 'DISPARO REAL',
     icon: 'item_bow',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
-    forgeLore: 'Arco de teixo real. Projétil veloz com cadência escalável a cada nível.',
+    maxLevel: Infinity,
+    forgeLore: 'Arco nobre de teixo. Dispara flechas precisas com cadência exponencial acelerada.',
     levels: [
-      'Nv.1 (Base): 1 flecha precisa (500ms, 1 dano, 0 knockback).',
-      'Nv.2: Corda Tensionada — Cadência aprimorada (410ms, 1 dano).',
-      'Nv.3: Fôlego Ágil — Cadência veloz (330ms, 1 dano).',
-      'Nv.4: Disparo Rápido — Cadência fulminante (260ms, 1 dano).',
-      'Nv.5 (MÁX): Tempestade de Flechas — Cadência máxima a cada 200ms (1 dano)!'
+      { badge: 'DISPARO CERTEIRO', desc: 'Flechas velozes e perfurantes disparadas com ritmo cadenciado contra o avanço dos monstros.', toString() { return this.desc; } },
+      { badge: 'CORDA TENSIONADA', desc: 'Reduz notavelmente o intervalo entre disparos, lançando flechas em sucessão rápida.', toString() { return this.desc; } },
+      { badge: 'SARAIVADA VELOZ', desc: 'Disparos contínuos e ágeis que suprimem a vanguarda inimiga sem dar tempo de reação.', toString() { return this.desc; } },
+      { badge: 'FUSILAMENTO REAL', desc: 'Cadência quase instantânea: rajadas de flechas de alta frequência cravam o campo sem cessar.', toString() { return this.desc; } },
+      { badge: 'TEMPESTADE DE FLECHAS ★', desc: 'Cadência máxima supersônica! Uma torrente ininterrupta de flechas perfura as linhas inimigas!', toString() { return this.desc; } }
     ]
   },
   sword: {
     name: 'ESPADA VORPAL',
+    category: 'HERANÇA DE AÇO',
     icon: 'item_sword',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
-    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área crescente.',
+    maxLevel: Infinity,
+    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área cortante colossal.',
     levels: [
-      'Nv.1 (Base): Corte inicial equilibrado (área 1.00x, 1 dano, 480ms, knockback ativo).',
-      'Nv.2: Fio Expandido — Área 1.24x (+24% de raio e alcance do corte).',
-      'Nv.3: Lâmina Ampla — Área 1.48x (+48% de cobertura de corte frontal).',
-      'Nv.4: Fúria Vorpal — Área 1.72x (+72% de área cortante).',
-      'Nv.5 (MÁX): Colosso Vorpal — Área 1.96x (+96% de varredura colossal)!'
+      { badge: 'CORTE NOBRE', desc: 'Desfere golpes precisos de aço temperado com área de impacto equilibrada e repulsão frontal ativa.', toString() { return this.desc; } },
+      { badge: 'FIO EXPANDIDO', desc: 'Amplia a lâmina com alcance acelerado, ceifando a primeira linha de monstros com facilidade.', toString() { return this.desc; } },
+      { badge: 'CORTE COLOSSAL', desc: 'Golpes de enorme envergadura frontal que varrem formações inimigas inteiras em arco cortante.', toString() { return this.desc; } },
+      { badge: 'FÚRIA VORPAL', desc: 'Lâmina descomunal que rasga o ar em semicírculo devastador, desestabilizando qualquer avanço.', toString() { return this.desc; } },
+      { badge: 'COLOSSO SUPREMO ★', desc: 'Varredura colossal lendária! Uma muralha de lâmina titânica que aniquila todo o campo frontal!', toString() { return this.desc; } }
     ]
   },
   shield: {
     name: 'ESCUDO SAGRADO',
+    category: 'BALUARTE SAGRADO',
     icon: 'item_shield',
     unlockedDefault: true,
     unlockCost: 0,
-    maxLevel: 5,
-    forgeLore: 'Égide abençoada. Reflete flechas mantendo o aspecto normal e explode ao bloquear golpes.',
+    maxLevel: Infinity,
+    forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
     levels: [
-      'Nv.1 (Base): Dura 4.8s, reflete 1 flecha simples (1 dano) e onda curta.',
-      'Nv.2: Borda Reforçada — Dura 6.2s, reflete 1 flecha veloz e onda média.',
-      'Nv.3: Espelho Duplo — Dura 7.6s, reflete 2 flechas em V e onda forte.',
-      'Nv.4: Baluarte Real — Dura 9.2s, reflete 3 flechas perfurantes (2 dano).',
-      'Nv.5 (MÁX): Égide Divina — Dura 11.5s, reflete 5 flechas perfurantes + Onda Titânica!'
+      { badge: 'ÉGIDE BÁSICA', desc: 'Envolve o herói em aura celestial por tempo equilibrado, refletindo flechas e detonando em choque se atingido.', toString() { return this.desc; } },
+      { badge: 'ÉGIDE REFORÇADA', desc: 'Aumenta substancialmente o tempo de proteção ativa, mantendo a imunidade reativa por muito mais tempo.', toString() { return this.desc; } },
+      { badge: 'ESPELHO DIVINO', desc: 'Duração prolongada vigorosa: reflete flechas em ângulos duplos e garante proteção duradoura na batalha.', toString() { return this.desc; } },
+      { badge: 'BALUARTE REAL', desc: 'Fortaleza celestial duradoura, suportando a pressão do combate e detonando em choque sagrado ampliado.', toString() { return this.desc; } },
+      { badge: 'ÉGIDE ETERNA ★', desc: 'Proteção celestial de duração colossal! O herói combate imperturbável envolto em graça divina suprema!', toString() { return this.desc; } }
     ]
   },
   axe: {
     name: 'MACHADO BUMERANGUE',
+    category: 'FORÇA RÚNICA',
     icon: 'item_axe',
     unlockedDefault: false,
     unlockCost: 25,
-    maxLevel: 5,
-    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com knockback repulsor escalável.',
+    maxLevel: Infinity,
+    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
     levels: [
-      'Nv.1 (Base): 1 machado bumerangue (1 dano, 560ms, knockback base 28px).',
-      'Nv.2: Impacto Pesado — Knockback 44px (+16px de força de empurrão).',
-      'Nv.3: Golpe Sísmico — Knockback 62px (+34px de força de empurrão).',
-      'Nv.4: Repulsão Rúnica — Knockback 82px (+54px de força de empurrão).',
-      'Nv.5 (MÁX): Fúria dos Titãs — Knockback 105px (arremesso massivo de inimigos)!'
+      { badge: 'GOLPE RÚNICO', desc: 'Lança machado duplo em arco circular de retorno, desferindo golpes de impacto na ida e na volta.', toString() { return this.desc; } },
+      { badge: 'IMPACTO PESADO', desc: 'Aumenta consideravelmente a força de choque, arremessando monstros para trás na rota do bumerangue.', toString() { return this.desc; } },
+      { badge: 'REPULSÃO SÍSMICA', desc: 'Ondas sísmicas violentas que estilhaçam o avanço inimigo e lançam tropas para a retaguarda.', toString() { return this.desc; } },
+      { badge: 'CHOQUE ESMAGADOR', desc: 'Impacto rúnico massivo capaz de arremessar pelotões inteiros de volta para a floresta.', toString() { return this.desc; } },
+      { badge: 'FÚRIA DOS TITÃS ★', desc: 'Força de repulsão titânica colossal! Monstros atingidos voam pelos ares com violência descomunal!', toString() { return this.desc; } }
     ]
   },
   firestaff: {
     name: 'CAJADO DE FOGO',
+    category: 'CANALIZAÇÃO SOLAR',
     icon: 'item_firestaff',
     unlockedDefault: false,
     unlockCost: 45,
-    maxLevel: 5,
-    forgeLore: 'Cetro ardente. Lança orbes solares que explodem e deixam poças de fogo que danificam apenas monstros.',
+    maxLevel: Infinity,
+    forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
     levels: [
-      'Nv.1 (Base): Orbe solar com explosão e poça de fogo (raio 45px, 1 dano, 600ms, 0 knockback).',
-      'Nv.2: Brasa Alastrada — Raio 62px de explosão e poça ardente no chão.',
-      'Nv.3: Labareda Intensa — Raio 80px de explosão e poça de fogo contínua.',
-      'Nv.4: Inferno Crescente — Raio 100px de explosão e poça de fogo massiva.',
-      'Nv.5 (MÁX): Cataclismo Solar — Raio 125px de explosão devastadora e mar de chamas no solo!'
+      { badge: 'ORBE SOLAR', desc: 'Dispara esfera ígnea concentrada que explode no impacto e cria uma poça de chamas ardentes no chão.', toString() { return this.desc; } },
+      { badge: 'BRASA VIVA', desc: 'Amplia a área da explosão e o raio das chamas no solo, consumindo monstros com fogo contínuo.', toString() { return this.desc; } },
+      { badge: 'LABAREDA INTENSA', desc: 'Detonação de fogo de grande alcance que queima ondas inteiras em uma barreira incandescente.', toString() { return this.desc; } },
+      { badge: 'INFERNO VORAZ', desc: 'Explosão expansiva massiva que incendeia metade da estrada com chamas impiedosas.', toString() { return this.desc; } },
+      { badge: 'CATACLISMO SOLAR ★', desc: 'Erupção solar titânica! O campo explode em um mar colossal de fogo e cinzas ardentes!', toString() { return this.desc; } }
     ]
   }
 };
 
-// Catálogo do Sistema de Pergaminhos Arcanos (Escolha Única por partida, até Nível 5)
+// Catálogo do Sistema de Pergaminhos Arcanos (Até 2 Escolhas por partida, até Nível 5 cada)
 const SCROLL_CATALOG = {
   multishot: {
     id: 'multishot',
@@ -88,11 +93,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_multishot',
     maxLevel: 5,
     levels: [
-      'Nv.1: +1 Projétil / Onda de Vento cortante em todos os ataques.',
-      'Nv.2: +2 Projéteis / Ondas cortantes adicionais.',
-      'Nv.3: +3 Projéteis / Ondas cortantes em leque.',
-      'Nv.4: +4 Projéteis / Saraivada cortante contínua.',
-      'Nv.5 (MÁX): +5 Projéteis / Chuva maciça de projéteis e cortes!'
+      { badge: 'DISPARO DUPLO', desc: 'Adiciona uma lâmina de corte frontal e um projétil adicional a todas as armas empunhadas.', toString() { return this.desc; } },
+      { badge: 'LEQUE DE DISPAROS', desc: 'Expande ainda mais o leque frontal, liberando ondas e projéteis extras em arco.', toString() { return this.desc; } },
+      { badge: 'SARAIVADA ARCANA', desc: 'Dispara uma salva volumosa em leque que satura o corredor de combate com múltiplos golpes.', toString() { return this.desc; } },
+      { badge: 'CHUVA DE ATAQUES', desc: 'Múltiplos disparos simultâneos que cobrem toda a área frontal com dano implacável.', toString() { return this.desc; } },
+      { badge: 'ONIPRESENÇA MÁXIMA ★', desc: 'O poder supremo do Disparo Múltiplo! Uma avalanche de lâminas e disparos varre tudo à frente!', toString() { return this.desc; } }
     ]
   },
   growth: {
@@ -102,11 +107,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_growth',
     maxLevel: 5,
     levels: [
-      'Nv.1: +20% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.2: +40% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.3: +65% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.4: +90% de tamanho/área em todos os ataques e poças de fogo.',
-      'Nv.5 (MÁX): +120% de tamanho/área titânica em todos os ataques!'
+      { badge: 'EXPANSÃO MÍSTICA', desc: 'Amplia a área de impacto de todos os cortes, projéteis e poças de fogo ardentes no solo.', toString() { return this.desc; } },
+      { badge: 'ALCANCE AMPLIADO', desc: 'Aumenta expressivamente o tamanho dos ataques, atingindo inimigos mais distantes com segurança.', toString() { return this.desc; } },
+      { badge: 'ÁURA GIGANTE', desc: 'Golpes e chamas ganham dimensões formidáveis, devorando o espaço dos monstros na estrada.', toString() { return this.desc; } },
+      { badge: 'MAGNITUDE TITÂNICA', desc: 'Tamanho monumental em cada arma, tornando impossível qualquer inimigo avançar ileso.', toString() { return this.desc; } },
+      { badge: 'DIMENSÃO SUPREMA ★', desc: 'Crescimento absoluto! Todas as armas e chamas operam em escala colossal titânica!', toString() { return this.desc; } }
     ]
   },
   attackspeed: {
@@ -116,11 +121,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_speed',
     maxLevel: 5,
     levels: [
-      'Nv.1: +15% de velocidade de ataque (cadência mais rápida).',
-      'Nv.2: +30% de velocidade de ataque em todas as armas.',
-      'Nv.3: +45% de velocidade de ataque em todas as armas.',
-      'Nv.4: +60% de velocidade de ataque em todas as armas.',
-      'Nv.5 (MÁX): +80% de velocidade de ataque frenética!'
+      { badge: 'FÔLEGO ÁGIL', desc: 'Acelera a cadência de manuseio e ataque de todas as armas ativas na jornada.', toString() { return this.desc; } },
+      { badge: 'CADÊNCIA FULMINANTE', desc: 'Golpes e disparos se sucedem com rapidez impressionante, pressionando as defesas inimigas.', toString() { return this.desc; } },
+      { badge: 'REFLEXOS AURAIS', desc: 'Ritmo frenético de ataque que suprime hordas velozes sem dar espaço para aproximação.', toString() { return this.desc; } },
+      { badge: 'VELOCIDADE FRENÉTICA', desc: 'Ataques desferidos em sucessão avassaladora com intervalo mínimo entre ativações.', toString() { return this.desc; } },
+      { badge: 'TEMPESTADE TEMPORAL ★', desc: 'Velocidade de ataque suprema! O herói maneja suas relíquias em uma velocidade sobrenatural!', toString() { return this.desc; } }
     ]
   }
 };

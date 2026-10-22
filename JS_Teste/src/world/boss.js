@@ -87,18 +87,18 @@ function ejectMiniGolemsFromBoss(scene, boss) {
   if (!boss || !boss.active || gameState !== 'PLAYING') return;
 
   const currentMiniGolems = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
-  if (currentMiniGolems >= 5) return;
+  if (currentMiniGolems >= 10) return;
 
   const hpRatio = (boss.hp ?? BOSS_MAX_HP) / (boss.maxHp || BOSS_MAX_HP);
-  let count = 1;
+  let count = 2;
   if (hpRatio <= 0.35) {
-    count = Phaser.Math.Between(2, 3);
+    count = Phaser.Math.Between(3, 5);
   } else if (hpRatio <= 0.70) {
-    count = Phaser.Math.Between(1, 2);
+    count = Phaser.Math.Between(2, 4);
   } else {
     count = 1;
   }
-  count = Math.min(count, 5 - currentMiniGolems);
+  count = Math.min(count, 10 - currentMiniGolems);
   if (count <= 0) return;
 
   sound.playEarthSmash();
@@ -117,7 +117,7 @@ function ejectMiniGolemsFromBoss(scene, boss) {
     scene.time.delayedCall(i * 180, () => {
       if (!boss || !boss.active || gameState !== 'PLAYING') return;
       const activeCount = enemies.getChildren().filter(e => e.active && e.enemyType === 'mini_golem').length;
-      if (activeCount >= 5) return;
+      if (activeCount >= 10) return;
 
       const originX = boss.x - 22;
       const originY = boss.y - 8;
@@ -143,8 +143,8 @@ function ejectMiniGolemsFromBoss(scene, boss) {
       }
       golem.setVelocity(0, 0);
 
-      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(75, 170), 160, 680);
-      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-85, 85), 140, 505);
+      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(65, 260), 135, 690);
+      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-130, 130), 135, 515);
 
       // Trajetória em arco parabólico simulando desprendimento do corpo do Boss
       scene.tweens.add({
@@ -220,6 +220,7 @@ function ejectMiniGolemsFromBoss(scene, boss) {
                     golem.golemState = 'ACTIVE';
                     golem.setFrame(0);
                     golem.play('mini_golem');
+                    if (golem.body) { golem.body.pushable = true; golem.body.setBounce(0.35); }
                     if (debrisFx) debrisFx.explode(8, golem.x, golem.y);
                     if (dustFx) dustFx.explode(6, golem.x, golem.y + 10);
                     sound.playFireStaff();

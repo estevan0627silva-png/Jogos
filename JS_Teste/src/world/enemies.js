@@ -10,16 +10,16 @@ function spawnEnemy(scene, forcedType, customY) {
       type = 'mini_golem';
     } else if (bossDefeated) {
       // Pós-Boss: O Mago aparece com taxa rara (8%), Rastreador Ágil (20%), Goblins, Guerreiros e Elfos
-      type = roll < 0.08 ? 'dark_mage' : (roll < 0.28 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.78 ? 'warrior' : 'elf')));
+      type = roll < 0.08 ? 'dark_mage' : (roll < 0.36 ? 'goblin_scout' : (roll < 0.62 ? 'goblin' : (roll < 0.86 ? 'warrior' : 'elf')));
     } else if (survivalTime >= 40) {
       // Fase pré-boss avançada: Goblins Rastreadores ágeis (28%), Goblins comuns, guerreiros e elfos (SEM MAGO)
-      type = roll < 0.28 ? 'goblin_scout' : (roll < 0.56 ? 'goblin' : (roll < 0.80 ? 'warrior' : 'elf'));
+      type = roll < 0.35 ? 'goblin_scout' : (roll < 0.70 ? 'goblin' : (roll < 0.90 ? 'warrior' : 'elf'));
     } else if (survivalTime >= 20) {
       // Fase pré-boss intermediária (20s - 40s): Introduz Rastreadores ágeis (16%)
-      type = roll < 0.16 ? 'goblin_scout' : (roll < 0.54 ? 'goblin' : (roll < 0.82 ? 'warrior' : 'elf'));
+      type = roll < 0.55 ? 'goblin' : (roll < 0.80 ? 'goblin_scout' : (roll < 0.95 ? 'warrior' : 'elf'));
     } else {
       // Curva inicial: predominantemente goblins simples e guerreiros
-      type = roll < 0.76 ? 'goblin' : 'warrior';
+      type = roll < 0.90 ? 'goblin' : 'warrior';
     }
   }
   const cfg = ENEMIES[type] || ENEMIES.goblin;
