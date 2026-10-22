@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.6.0';
-const VERSION_TITLE = 'Visão Panorâmica: Arquitetura Nativa 16:9 (1920x1080 Fullscreen)';
-const VERSION_DESC = 'Transição completa da resolução para 16:9 (960x540 base com escala inteira 2x para 1920x1080 em tela cheia). Centralização de menus, HUD, modais e botões, expansão de cenário e calibração de spawns de inimigos, limites de colisão e culling adaptativo.';
+const GAME_VERSION = 'v2.7.0';
+const VERSION_TITLE = 'Ateliê do Reino: Interface Medieval Nobre, Cenários de Lojas Imersivas e Balcões dos Mestres';
+const VERSION_DESC = 'Reformulação visual e estética completa da interface in-game, telas de menu e lojas temáticas com coesão artística dark fantasy inspirada nos kits medievais de pergaminho, ferro forjado e filigranas douradas. A Forja do Ferreiro e o Santuário do Mago agora contam com cenários imersivos completos de oficina e laboratório com balcões rústicos, vendedores animados atrás dos balcões e mostruário de armas e poções em cartas de pergaminho interativas.';
 const MAX_CHOSEN_SCROLLS = 2;
 
 const GAME_WIDTH = 960;

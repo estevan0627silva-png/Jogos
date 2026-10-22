@@ -426,14 +426,19 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
   const cy = GAME_HEIGHT / 2;
   const left = cx - width / 2;
   const top = cy - height / 2;
-  const overlay = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.74);
+  const overlay = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.76);
 
   const frame = scene.add.graphics();
-  frame.fillStyle(0x16120e, 0.97).fillRoundedRect(left, top, width, height, 14);
-  frame.lineStyle(3, 0x8d5524).strokeRoundedRect(left, top, width, height, 14);
-  frame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(left + 4, top + 4, width - 8, height - 8, 11);
+  // Fundo em couro / madeira nobre
+  frame.fillStyle(0x14100c, 0.98).fillRoundedRect(left, top, width, height, 12);
+  // Moldura externa em ferro forjado
+  frame.lineStyle(3, 0x3d2b1f).strokeRoundedRect(left, top, width, height, 12);
+  // Moldura secundária em ouro nobre
+  frame.lineStyle(1.5, 0xc5a059, 0.9).strokeRoundedRect(left + 4, top + 4, width - 8, height - 8, 9);
+  // Filete interno delicado
+  frame.lineStyle(1, 0x8d5524, 0.5).strokeRoundedRect(left + 8, top + 8, width - 16, height - 16, 7);
 
-  // Rebites ornamentais nos 4 cantos
+  // Rebites de ouro com sombra nos 4 cantos (Image 1 UI Kit)
   const rOff = 14;
   [
     [left + rOff, top + rOff],
@@ -442,24 +447,35 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     [left + width - rOff, top + height - rOff]
   ].forEach(([rx, ry]) => {
     frame.fillStyle(0xc5a059, 1).fillCircle(rx, ry, 3.5);
-    frame.fillStyle(0x3a2818, 1).fillCircle(rx, ry, 1.5);
+    frame.fillStyle(0x2a1a0e, 1).fillCircle(rx, ry, 1.5);
   });
 
-  const titleShadow = scene.add.text(cx + 2, top + 30, titleText, { ...textStyle('#080604', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const title = scene.add.text(cx, top + 28, titleText, { ...textStyle('#ffca28', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  // Brasão ornamental / floreio central no topo (Inspirado nas Imagens 1 e 3)
+  frame.fillStyle(0xc5a059, 1);
+  frame.fillTriangle(cx, top - 8, cx - 18, top + 4, cx + 18, top + 4);
+  frame.fillCircle(cx, top - 8, 3.5);
+  frame.fillStyle(0x14100c, 1);
+  frame.fillCircle(cx, top - 8, 1.5);
+  // Asas / floreios laterais do brasão
+  frame.lineStyle(2, 0xc5a059, 0.9);
+  frame.lineBetween(cx - 22, top + 3, cx - 48, top + 3);
+  frame.lineBetween(cx + 22, top + 3, cx + 48, top + 3);
+  frame.fillStyle(0xc5a059, 1).fillCircle(cx - 48, top + 3, 2.5).fillCircle(cx + 48, top + 3, 2.5);
+
+  const titleShadow = scene.add.text(cx + 2, top + 32, titleText, { ...textStyle('#080604', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const title = scene.add.text(cx, top + 30, titleText, { ...textStyle('#ffca28', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
   fitTextToBox(title, width - 80, 32, 14);
   titleShadow.setFontSize(title.style.fontSize);
 
   const children = [overlay, frame, titleShadow, title];
   if (subtitleText) {
-    const sub = scene.add.text(cx, top + 54, subtitleText, {
+    const sub = scene.add.text(cx, top + 56, subtitleText, {
       ...textStyle('#c5a059', 11),
       align: 'center',
-
       wordWrap: { width: width - 60, useAdvancedWrap: true }
     }).setOrigin(0.5);
     fitTextToBox(sub, width - 60, 26, 9);
-    frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 68, left + width - 40, top + 68);
+    frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 70, left + width - 40, top + 70);
     children.push(sub);
   }
 
@@ -470,7 +486,6 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
   });
   return container;
 }
-
 
 // SISTEMA DE PAUSA (TECLA P & BOTÃO DO HUD)
 // -----------------------------------------------------------------------------
