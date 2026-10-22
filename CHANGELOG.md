@@ -2,6 +2,34 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.5.0] — 2026-10-22
+### ⚔️ Título da Versão: **Dança das Lâminas: Cortes Alternados e Escalonamento Físico Dinâmico**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Reformulação visual e mecânica do ataque da espada com animação em pixel art de 9 quadros baseada em spritesheet dedicada, sistema de cortes alternados (esquerda para a direita descendente e direita para a esquerda ascendente), combos sucessivos de Disparo Múltiplo a cada 80ms, alinhamento físico milimétrico 1:1 da hitbox Arcade sem elongação quadrática e avanço frontal com cone fechado (3.5°) prevenindo sobreposição nas costas do cavaleiro.
+
+### 🚀 O que mudou:
+- **🗡️ Folha de Sprites Pixel Art 9 Quadros (64x47):**
+  - Implementação das folhas `slash_lr` (descendente) e `slash_rl` (ascendente) com textura de 576x47 pixels.
+  - Animação completa em 9 fases: glint inicial, corte em expansão, flash branco puro de impacto e rastro de dissipação.
+  - Carregamento 100% síncrono via descompactador RLE direto no Canvas do Phaser (zero dependência de rede, imune a CORS offline).
+- **🔄 Sistema de Cortes Alternados (Esquerda &rarr; Direita e Direita &rarr; Esquerda):**
+  - **Ataque Básico (1x):** O herói alterna continuamente entre o golpe descendente (`slash_lr`) e o golpe ascendente (`slash_rl`) a cada swing.
+  - **Movimento da Lâmina:** A espada empunhada pelo cavaleiro oscila em pêndulo contínuo (-65° &rarr; 125° e 125° &rarr; -65°), eliminando resets abruptos de rotação.
+- **⚡ Disparo Múltiplo Ritmado (Combos a 80ms):**
+  - Quando evoluído o Pergaminho Multi-Shot (`stats.projectiles > 1`), os cortes não disparam mais instantaneamente em leque estático.
+  - Os golpes são executados sucessivamente a cada 80ms, alternando esquerda e direita de forma fluida.
+  - Cada golpe do combo possui `swingId` monotônico único (`nextProjId()`), permitindo dano e knockback individual por acerto.
+- **🎯 Calibração Milimétrica de Hitbox Arcade 1:1:**
+  - Correção da escala quadrática no Phaser Arcade: `body.setSize(48, 34)` e `body.setOffset(8, 2)` operam em espaço base de textura, eliminando o esticamento e elongação excessiva do colisor.
+  - A hitbox e a animação do corte aumentam em perfeita sincronia com o atributo de tamanho da espada (`stats.area`).
+- **🛡️ Ancoragem Frontal e Prevenção de Sobreposição (Anti-Abraço):**
+  - Ancoragem configurada em `setOrigin(0.15, 0.5)` e avanço frontal para `offX = 38px`.
+  - Todo o crescimento da lâmina projeta-se exclusivamente para a frente (+X), evitando cobrir o corpo ou as costas do herói.
+  - O cone de abertura em combos foi reduzido para 3.5°, mantendo cortes focados diretamente contra os inimigos.
+
+---
+
 ## [v2.4.0] — 2026-10-20
 ### 📜 Título da Versão: **Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (Slot Duplo por Partida)**
 

@@ -163,6 +163,18 @@ function create(data) {
     scene.anims.create({ key: 'knight_run', frameRate: 12, repeat: -1, frames });
   }
 
+  // Animações dos cortes de espada (9 quadros baseados na spritesheet enviada)
+  if (!scene.anims.exists('slash_anim_lr')) {
+    const frames = [];
+    for (let i = 0; i < 9; i++) frames.push({ key: 'slash_lr', frame: i });
+    scene.anims.create({ key: 'slash_anim_lr', frameRate: 48, repeat: 0, frames });
+  }
+  if (!scene.anims.exists('slash_anim_rl')) {
+    const frames = [];
+    for (let i = 0; i < 9; i++) frames.push({ key: 'slash_rl', frame: i });
+    scene.anims.create({ key: 'slash_anim_rl', frameRate: 48, repeat: 0, frames });
+  }
+
   // Camadas do cenário, de trás para frente
   ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
   road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
@@ -876,7 +888,8 @@ function sortAndShade() {
         swordBlade.setVisible(true);
         swordBlade.setPosition(Math.round(player.x + 10), Math.round(player.y + 2)).setDepth(player.depth + 2);
         const swordLvl = (typeof getWeaponLevel === 'function') ? getWeaponLevel('sword') : 1;
-        const bladeScale = Phaser.Math.Clamp(1.0 + (swordLvl - 1) * 0.05, 1.0, 1.25);
+        const swordStats = (typeof getWeaponStats === 'function') ? getWeaponStats('sword', swordLvl) : { area: 1.0 };
+        const bladeScale = Phaser.Math.Clamp(1.0 * (swordStats.area || 1.0), 1.0, 2.5);
         swordBlade.setScale(bladeScale);
         if (swordBlade.scene && !swordBlade.scene.tweens.isTweening(swordBlade)) {
           swordBlade.setAngle(25);
@@ -889,7 +902,7 @@ function sortAndShade() {
     swordBlade.setVisible(false);
   }
   slashes.getChildren().forEach(s => {
-    s.setPosition(Math.round(player.x + (s.offsetX || 30)), Math.round(player.y + (s.offsetY || 0))).setDepth(player.depth + 3);
+    s.setPosition(Math.round(player.x + (s.offsetX || 38)), Math.round(player.y + (s.offsetY || 0))).setDepth(player.depth + 3);
   });
 }
 

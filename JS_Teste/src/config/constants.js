@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.4.0';
-const VERSION_TITLE = 'Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (2 por Run)';
-const VERSION_DESC = 'Expansão do limite máximo de pergaminhos arcanos escolhidos por partida de 1 para 2. Os jogadores agora podem selecionar e combinar dois pergaminhos distintos (ex: Disparo Múltiplo + Crescimento de Área ou Velocidade de Ataque) com aplicação simultânea de bônus cumulativos, HUD com slots duplos de nível e sinalização tática nas cartas de evolução.';
+const GAME_VERSION = 'v2.5.0';
+const VERSION_TITLE = 'Dança das Lâminas: Cortes Alternados e Escalonamento Físico Dinâmico';
+const VERSION_DESC = 'Reformulação visual e mecânica do ataque da espada com animação em pixel art de 9 quadros baseada em spritesheet dedicada, sistema de cortes alternados (esquerda para a direita descendente e direita para a esquerda ascendente), combos sucessivos de Disparo Múltiplo a cada 80ms, alinhamento físico milimétrico 1:1 da hitbox Arcade sem elongação quadrática e avanço frontal com cone fechado (3.5°) prevenindo sobreposição nas costas do cavaleiro.';
 const MAX_CHOSEN_SCROLLS = 2;
 
 const GAME_WIDTH = 800;

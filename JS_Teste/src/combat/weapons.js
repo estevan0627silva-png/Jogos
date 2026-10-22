@@ -175,108 +175,143 @@ const WeaponStrategies = {
       }
     },
     attack({ scene, player, arrows, slashes, fx, nextProjId }) {
+      if (!player || !player.active) return;
       slashes.getChildren().slice().forEach(old => old.destroy());
-      sound.playSword();
+
       const lvl = getWeaponLevel('sword');
       const stats = getWeaponStats('sword', lvl);
 
-      // 1. Swing da lâmina única e persistente empunhada pelo cavaleiro (elimina duplicatas visuais)
-      if (swordBlade && swordBlade.active) {
-        scene.tweens.killTweensOf(swordBlade);
-        swordBlade.setAngle(-65);
-        scene.tweens.add({
-          targets: swordBlade,
-          angle: 125,
-          duration: 150,
-          ease: 'Cubic.easeOut',
-          onComplete: () => {
-            if (swordBlade && swordBlade.active && buff && buff.type === 'sword') {
-              swordBlade.setAngle(25);
-            }
-          }
-        });
-      }
-
-      // SOMENTE Tamanho/Área escala com nível da espada (+ bônus de Crescimento)
-      const scale = 0.80 * stats.area;
+      // O tamanho/escala do corte e da lâmina escalam diretamente com o atributo de tamanho (stats.area)
+      const baseScale = 1.25;
+      const scale = baseScale * stats.area;
       const dmg = stats.damage;
       const knockback = stats.knockback;
-      const swingId = nextProjId();
 
-      // Multiplicação de Slashes pelo Pergaminho Multi-Shot (180° Frontal Escalável)
+      // Multiplicação de Slashes pelo Pergaminho Multi-Shot
       const numSlashes = Math.max(1, stats.projectiles || 1);
-      let slashConfigs = [];
 
-      if (numSlashes === 1) {
-        slashConfigs = [{ deg: 0, offX: 32, offY: 0 }];
-      } else if (numSlashes === 2) {
-        slashConfigs = [
-          { deg: -16, offX: 32, offY: -16 },
-          { deg: 16, offX: 32, offY: 16 }
-        ];
-      } else if (numSlashes === 3) {
-        slashConfigs = [
-          { deg: 0, offX: 34, offY: 0 },
-          { deg: -26, offX: 30, offY: -26 },
-          { deg: 26, offX: 30, offY: 26 }
-        ];
-      } else if (numSlashes === 4) {
-        slashConfigs = [
-          { deg: -34, offX: 28, offY: -32 },
-          { deg: -12, offX: 34, offY: -12 },
-          { deg: 12, offX: 34, offY: 12 },
-          { deg: 34, offX: 28, offY: 32 }
-        ];
-      } else {
-        const maxAngle = 72;
-        const step = (maxAngle * 2) / (numSlashes - 1);
-        for (let i = 0; i < numSlashes; i++) {
-          const deg = -maxAngle + i * step;
-          const progress = (i / (numSlashes - 1)) * 2 - 1;
-          const offY = Math.round(progress * 36);
-          const offX = Math.round(34 - Math.abs(progress) * 8);
-          slashConfigs.push({ deg, offX, offY });
-        }
+      // Alternância contínua entre golpes para ataques normais (esquerdo <-> direito)
+      if (typeof scene._lastSwordSwingSide === 'undefined') {
+        scene._lastSwordSwingSide = 'rl';
       }
 
-      // Trava rígida de 180° frontal: estritamente [-90°, +90°], proibido qualquer golpe nas costas
-      slashConfigs.forEach(cfg => {
-        cfg.deg = Phaser.Math.Clamp(cfg.deg, -90, 90);
-        cfg.offX = Math.max(12, cfg.offX);
-      });
+      // Execução de cada corte sucessivo
+      const executeSlash = (index, side, delay, isLast) => {
+        scene.time.delayedCall(delay, () => {
+          if (!player || !player.active || (typeof gameState !== 'undefined' && gameState !== 'PLAYING')) return;
+          if (!buff || buff.type !== 'sword') return;
 
-      slashConfigs.forEach(cfg => {
-        const ang = Phaser.Math.DegToRad(cfg.deg);
-        const posX = player.x + cfg.offX;
-        const posY = player.y + cfg.offY;
+          sound.playSword();
 
-        const slash = slashes.create(posX, posY, 'slash_arc');
-        slash.setScale(scale);
-        slash.rotation = ang;
-        slash.offsetX = cfg.offX;
-        slash.offsetY = cfg.offY;
-        slash.body.setSize(Math.round(52 * scale), Math.round(76 * scale));
-        slash.body.setOffset(Math.round(6 * scale), Math.round(6 * scale));
-        slash.slashId = swingId;
-        slash.dmg = dmg;
-        slash.knockback = knockback;
+          const swingId = nextProjId();
+          const isLR = (side === 'lr');
+          const texKey = isLR ? 'slash_lr' : 'slash_rl';
+          const animKey = isLR ? 'slash_anim_lr' : 'slash_anim_rl';
 
-        scene.tweens.add({
-          targets: slash,
-          scaleX: scale * 1.15,
-          alpha: { from: 1.0, to: 0.0 },
-          duration: 160,
-          ease: 'Quad.easeOut',
-          onComplete: () => {
+          // Animação da lâmina persistente empunhada pelo cavaleiro:
+          // Corte esquerdo->direito: swing descendente (-65° para 125°)
+          // Corte direito->esquerdo: swing ascendente (125° para -65°)
+          if (swordBlade && swordBlade.active) {
+            scene.tweens.killTweensOf(swordBlade);
+            if (isLR) {
+              swordBlade.setAngle(-65);
+              scene.tweens.add({
+                targets: swordBlade,
+                angle: 125,
+                duration: 120,
+                ease: 'Cubic.easeOut',
+                onComplete: () => {
+                  if (isLast && swordBlade && swordBlade.active && buff && buff.type === 'sword') {
+                    scene.tweens.add({ targets: swordBlade, angle: 25, duration: 90, ease: 'Cubic.easeOut' });
+                  }
+                }
+              });
+            } else {
+              swordBlade.setAngle(125);
+              scene.tweens.add({
+                targets: swordBlade,
+                angle: -65,
+                duration: 120,
+                ease: 'Cubic.easeOut',
+                onComplete: () => {
+                  if (isLast && swordBlade && swordBlade.active && buff && buff.type === 'sword') {
+                    scene.tweens.add({ targets: swordBlade, angle: 25, duration: 90, ease: 'Cubic.easeOut' });
+                  }
+                }
+              });
+            }
+          }
+
+          // Posicionamento e angulação do corte:
+          // 1. Avança a animação à frente do cavaleiro e ancora na base da lâmina (origin 0.15, 0.5)
+          // 2. Mantém o cone estritamente fechado (máximo 3.5° no combo) para não abraçar o jogador
+          let offX = 38;
+          let offY = 0;
+          let deg = 0;
+
+          if (numSlashes > 1) {
+            // Em combos multi-shot, inclinação sutil de 3.5° para corte cruzado sem projetar as pontas para trás
+            if (isLR) {
+              offY = -4;
+              deg = -3.5;
+            } else {
+              offY = 4;
+              deg = 3.5;
+            }
+          }
+
+          const posX = player.x + offX;
+          const posY = player.y + offY;
+
+          const slash = slashes.create(posX, posY, texKey);
+          slash.setOrigin(0.15, 0.5);
+          slash.setScale(scale);
+          slash.rotation = Phaser.Math.DegToRad(deg);
+          slash.offsetX = offX;
+          slash.offsetY = offY;
+
+          // A hitbox física (Arcade Physics Body):
+          // No Phaser 3, setSize e setOffset operam em coordenadas base da textura;
+          // o motor Arcade multiplica automaticamente sourceWidth/Height e offset por scaleX/scaleY.
+          // Com base na lâmina ativa (48x34 em offset 8, 2), a colisão casa 1:1 com o sprite em qualquer nível!
+          slash.body.setSize(48, 34);
+          slash.body.setOffset(8, 2);
+
+          slash.slashId = swingId;
+          slash.dmg = dmg;
+          slash.knockback = knockback;
+
+          slash.play(animKey);
+
+          slash.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
             if (slash && slash.active) slash.destroy();
+          });
+
+          scene.time.delayedCall(220, () => {
+            if (slash && slash.active) slash.destroy();
+          });
+
+          fx.sparks.explode(4, posX, posY);
+
+          if (numSlashes > 1 && isLast) {
+            fx.holy.explode(6, player.x + 32, player.y);
           }
         });
+      };
 
-        fx.sparks.explode(4, posX, posY);
-      });
-
-      if (numSlashes > 1) {
-        fx.holy.explode(6, player.x + 28, player.y);
+      if (numSlashes === 1) {
+        // Golpe único: alterna entre golpe esquerdo e direito a cada ataque
+        scene._lastSwordSwingSide = (scene._lastSwordSwingSide === 'lr') ? 'rl' : 'lr';
+        executeSlash(0, scene._lastSwordSwingSide, 0, true);
+      } else {
+        // Multi-Shot: executa sucessão ritmada alternando esquerdo e direito com curto período de delay
+        const delayStep = 80;
+        for (let i = 0; i < numSlashes; i++) {
+          const side = (i % 2 === 0) ? 'lr' : 'rl';
+          const delay = i * delayStep;
+          const isLast = (i === numSlashes - 1);
+          executeSlash(i, side, delay, isLast);
+        }
       }
     }
   },
