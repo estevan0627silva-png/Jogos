@@ -7,11 +7,11 @@ class VirtualJoystick {
     this.scene = scene;
     this.touchId = null;
 
-    // Posição padrão fixa e ancorada na interface (canto inferior esquerdo)
+    // Posição padrão fixa e ancorada na interface em 16:9 (canto inferior esquerdo)
     this.baseX = 110;
-    this.baseY = 485;
+    this.baseY = 445;
     this.knobX = 110;
-    this.knobY = 485;
+    this.knobY = 445;
 
     this.maxRadius = 54;
     this.deadzone = 6;

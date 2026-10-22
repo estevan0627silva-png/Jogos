@@ -1,13 +1,13 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.4.0';
-const VERSION_TITLE = 'Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (2 por Run)';
-const VERSION_DESC = 'Expansão do limite máximo de pergaminhos arcanos escolhidos por partida de 1 para 2. Os jogadores agora podem selecionar e combinar dois pergaminhos distintos (ex: Disparo Múltiplo + Crescimento de Área ou Velocidade de Ataque) com aplicação simultânea de bônus cumulativos, HUD com slots duplos de nível e sinalização tática nas cartas de evolução.';
+const GAME_VERSION = 'v2.7.0';
+const VERSION_TITLE = 'Ateliê do Reino: Interface Medieval Nobre, Cenários de Lojas Imersivas e Balcões dos Mestres';
+const VERSION_DESC = 'Reformulação visual e estética completa da interface in-game, telas de menu e lojas temáticas com coesão artística dark fantasy inspirada nos kits medievais de pergaminho, ferro forjado e filigranas douradas. A Forja do Ferreiro e o Santuário do Mago agora contam com cenários imersivos completos de oficina e laboratório com balcões rústicos, vendedores animados atrás dos balcões e mostruário de armas e poções em cartas de pergaminho interativas.';
 const MAX_CHOSEN_SCROLLS = 2;
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
+const GAME_WIDTH = 960;
+const GAME_HEIGHT = 540;
 
 // AJUSTES DO JOGO (Rebalanceamento v1.6.0: Progressão Infinita e Curva Suave)
 // =============================================================================

@@ -6,51 +6,51 @@
 function spawnStartingVillage(scene) {
   if (villageDecor) villageDecor.clear(true, true);
 
-  // 1. Pátio Calçado Unificado da Vila (Conecta Ferreiro, Estábulo, Chalés, Caminho e Portão)
-  const plaza = villageDecor.create(235, 325, 'village_plaza');
-  plaza.lockedY = 325;
+  // 1. Pátio Calçado Unificado da Vila (Conecta Ferreiro, Estábulo, Chalés, Caminho e Portão em 16:9)
+  const plaza = villageDecor.create(235, 285, 'village_plaza');
+  plaza.lockedY = 285;
   plaza.isGroundPlaza = true;
   plaza.setDepth(-8.5);
 
   // 2. Ala Norte da Vila: Chalés + Casa do Ferreiro (Forja Acesa, Bigorna e Armas)
-  const hNorth1 = villageDecor.create(62, 168, 'village_house');
-  hNorth1.lockedY = 168; hNorth1.groundY = 198;
+  const hNorth1 = villageDecor.create(62, 140, 'village_house');
+  hNorth1.lockedY = 140; hNorth1.groundY = 170;
 
-  const blacksmith = villageDecor.create(186, 174, 'village_blacksmith');
-  blacksmith.lockedY = 174; blacksmith.groundY = 214;
+  const blacksmith = villageDecor.create(186, 146, 'village_blacksmith');
+  blacksmith.lockedY = 146; blacksmith.groundY = 186;
 
-  const hNorth2 = villageDecor.create(306, 168, 'village_house');
-  hNorth2.lockedY = 168; hNorth2.groundY = 198;
+  const hNorth2 = villageDecor.create(306, 140, 'village_house');
+  hNorth2.lockedY = 140; hNorth2.groundY = 170;
 
   // 3. Ala Sul da Vila: Chalés + Casa do Cuidador de Cavalos / Estábulo (com Cavalo e Feno)
-  const hSouth1 = villageDecor.create(68, 482, 'village_house');
-  hSouth1.lockedY = 482; hSouth1.groundY = 512;
+  const hSouth1 = villageDecor.create(68, 430, 'village_house');
+  hSouth1.lockedY = 430; hSouth1.groundY = 460;
 
-  const stable = villageDecor.create(200, 480, 'village_stable');
-  stable.lockedY = 480; stable.groundY = 520;
+  const stable = villageDecor.create(200, 428, 'village_stable');
+  stable.lockedY = 428; stable.groundY = 468;
 
-  const hSouth2 = villageDecor.create(316, 482, 'village_house');
-  hSouth2.lockedY = 482; hSouth2.groundY = 512;
+  const hSouth2 = villageDecor.create(316, 430, 'village_house');
+  hSouth2.lockedY = 430; hSouth2.groundY = 460;
 
   // 4. Muralha de Paliçada Contínua + O Grande Portão de Saída da Vila (x = 415)
-  const wallTop = villageDecor.create(415, 148, 'village_wall_v');
-  wallTop.lockedY = 148; wallTop.groundY = 196;
+  const wallTop = villageDecor.create(415, 120, 'village_wall_v');
+  wallTop.lockedY = 120; wallTop.groundY = 168;
 
-  const gateTop = villageDecor.create(415, 224, 'village_gate_tower');
-  gateTop.lockedY = 224; gateTop.groundY = 270;
+  const gateTop = villageDecor.create(415, 195, 'village_gate_tower');
+  gateTop.lockedY = 195; gateTop.groundY = 241;
 
-  const gateBottom = villageDecor.create(415, 428, 'village_gate_tower');
-  gateBottom.lockedY = 428; gateBottom.groundY = 474;
+  const gateBottom = villageDecor.create(415, 375, 'village_gate_tower');
+  gateBottom.lockedY = 375; gateBottom.groundY = 421;
 
-  const wallBottom = villageDecor.create(415, 504, 'village_wall_v');
-  wallBottom.lockedY = 504; wallBottom.groundY = 552;
+  const wallBottom = villageDecor.create(415, 450, 'village_wall_v');
+  wallBottom.lockedY = 450; wallBottom.groundY = 498;
 
   // 5. Moradores (NPCs) paradinhos na beira do caminho dando tchau e desejando boa sorte!
   const npcSpecs = [
-    { x: 186, y: 248, tint: 0xffd8b0, msg: 'Boa sorte!' },
-    { x: 345, y: 252, tint: 0xb3e5fc, msg: 'Força, Herói!' },
-    { x: 202, y: 412, tint: 0xc8e6c9, msg: 'Proteja o Reino!' },
-    { x: 345, y: 408, tint: 0xfff59d, msg: 'Vá com luz!' }
+    { x: 186, y: 215, tint: 0xffd8b0, msg: 'Boa sorte!' },
+    { x: 345, y: 218, tint: 0xb3e5fc, msg: 'Força, Herói!' },
+    { x: 202, y: 355, tint: 0xc8e6c9, msg: 'Proteja o Reino!' },
+    { x: 345, y: 352, tint: 0xfff59d, msg: 'Vá com luz!' }
   ];
   npcSpecs.forEach(spec => {
     const npc = villageDecor.create(spec.x, spec.y, 'village_npc');
@@ -66,7 +66,7 @@ function spawnStartingVillage(scene) {
   });
 
   // Anúncio nobre de partida da jornada
-  floatText(scene, 400, 150, '★ SAINDO DA VILA DE VALE DOURADO ★', '#ffca28');
+  floatText(scene, GAME_WIDTH / 2, 130, '★ SAINDO DA VILA DE VALE DOURADO ★', '#ffca28');
 }
 
 function startGameplay(scene) {
@@ -112,7 +112,7 @@ function startGameplay(scene) {
 
   if (player) {
     scene.tweens.killTweensOf(player);
-    player.setPosition(160, 330).setFlipX(false).setAngle(0).setAlpha(1).clearTint().setVisible(true);
+    player.setPosition(180, 285).setFlipX(false).setAngle(0).setAlpha(1).clearTint().setVisible(true);
     if (player.anims) player.anims.isPaused = false;
     player.play({ key: 'knight', repeat: -1 });
   }
@@ -133,9 +133,9 @@ function startGameplay(scene) {
   // Se o jogador selecionou uma Relíquia Favorita na Forja do Ferreiro, ela aguarda no portão!
   const up = getUpgrades();
   if (up.starterWeapon && up[up.starterWeapon]?.unlocked) {
-    const starter = items.create(475, 330, 'item_' + up.starterWeapon);
+    const starter = items.create(475, 285, 'item_' + up.starterWeapon);
     starter.lootType = up.starterWeapon;
-    starter.groundY = 348;
+    starter.groundY = 303;
   }
 
   const every = (delay, fn) => scene.time.addEvent({ delay, loop: true, callback: () => gameState === 'PLAYING' && fn() });
@@ -151,7 +151,7 @@ function startGameplay(scene) {
       triggerSpecialHorde(scene, hordeCycleCount);
     }
     if (survivalTime === 52 && !bossSpawned) {
-      floatText(scene, 400, 132, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
+      floatText(scene, GAME_WIDTH / 2, 120, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
     }
     if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
       startBossFight(scene);
@@ -196,7 +196,7 @@ function startGameplay(scene) {
   // O jogador atravessa os portões da vila primeiro (3.5 segundos de largada antes dos monstros surgirem)
   scene.time.delayedCall(3500, () => {
     if (gameState === 'PLAYING' || gameState === 'LEVEL_UP' || gameState === 'PAUSED') {
-      floatText(scene, 400, 130, 'ADENTRANDO A FLORESTA PROIBIDA...', '#7fe7ff');
+      floatText(scene, GAME_WIDTH / 2, 120, 'ADENTRANDO A FLORESTA PROIBIDA...', '#7fe7ff');
       nextDirectorWave();
     }
   });
@@ -244,10 +244,10 @@ function spawnDirectorWave(scene) {
 }
 
 
-function spawnTree(x = 880) {
+function spawnTree(x = GAME_WIDTH + 80) {
   for (let i = 0; i < 6; i++) {
-    const y = Phaser.Math.Between(150, 510);
-    const onRoad = y > 265 && y < 395;
+    const y = Phaser.Math.Between(115, 455);
+    const onRoad = y > 235 && y < 335;
     const crowded = obstacles.getChildren().some(o => Math.abs(o.x - x) < 110 && Math.abs(o.y - y) < 90);
     if (onRoad || crowded) continue;
     const tree = obstacles.create(x, y, 'tree');
@@ -263,13 +263,14 @@ function spawnTree(x = 880) {
 function spawnItem(scene) {
   const pool = getUnlockedWeaponPool();
   const type = Phaser.Utils.Array.GetRandom(pool);
-  let y = Phaser.Math.Between(140, 510);
+  let y = Phaser.Math.Between(120, 450);
+  const spawnX = GAME_WIDTH + 60;
   for (let i = 0; i < 6; i++) {
-    const candidate = Phaser.Math.Between(140, 510);
-    const nearObstacle = obstacles.getChildren().some(o => Math.abs(o.x - 860) < 90 && Math.abs(o.y - candidate) < 42);
+    const candidate = Phaser.Math.Between(120, 450);
+    const nearObstacle = obstacles.getChildren().some(o => Math.abs(o.x - spawnX) < 90 && Math.abs(o.y - candidate) < 42);
     if (!nearObstacle) { y = candidate; break; }
   }
-  const item = items.create(860, y, 'item_' + type);
+  const item = items.create(spawnX, y, 'item_' + type);
   item.lootType = type;
   item.groundY = y + 18;
   scene.tweens.add({ targets: item, y: y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -290,12 +291,12 @@ function triggerSpecialHorde(scene, cycle) {
   if (isDenseGoblin) {
     // Ciclo Ãmpar (1, 3, 5...): Horda Densa de Goblins simples
     const count = 9 + Math.floor((cycle - 1) * 2.5);
-    floatText(scene, 400, 130, 'HORDA DENSA DE GOBLINS (' + count + ')!', '#ff5252');
+    floatText(scene, GAME_WIDTH / 2, 120, 'HORDA DENSA DE GOBLINS (' + count + ')!', '#ff5252');
 
     for (let i = 0; i < count; i++) {
       scene.time.delayedCall(i * 125, () => {
         if (gameState === 'PLAYING') {
-          const spreadY = 135 + ((i * 47) % 375);
+          const spreadY = 120 + ((i * 43) % 330);
           spawnEnemy(scene, 'goblin', spreadY);
         }
       });
@@ -305,7 +306,7 @@ function triggerSpecialHorde(scene, cycle) {
     const scoutCount = 5 + Math.floor(cycle * 1.5);
     const warriorCount = 3 + Math.floor(cycle * 1.0);
     const total = scoutCount + warriorCount;
-    floatText(scene, 400, 130, 'HORDA: RASTREADORES E GUERREIROS (' + total + ')!', '#ffca28');
+    floatText(scene, GAME_WIDTH / 2, 120, 'HORDA: RASTREADORES E GUERREIROS (' + total + ')!', '#ffca28');
 
     const hordeList = [];
     for (let i = 0; i < scoutCount; i++) hordeList.push('goblin_scout');
@@ -315,7 +316,7 @@ function triggerSpecialHorde(scene, cycle) {
     hordeList.forEach((eType, i) => {
       scene.time.delayedCall(i * 135, () => {
         if (gameState === 'PLAYING') {
-          const spreadY = 135 + ((i * 53) % 375);
+          const spreadY = 120 + ((i * 47) % 330);
           spawnEnemy(scene, eType, spreadY);
         }
       });

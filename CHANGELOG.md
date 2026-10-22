@@ -2,6 +2,126 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.7.0] — 2026-10-22
+### 🎨 Título da Versão: **Ateliê do Reino: Interface Medieval Nobre, Cenários de Lojas Imersivas e Balcões dos Mestres**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Reformulação gráfica e visual de alto nível da Interface de Usuário (HUD), Menu Principal e Cenários de Lojas (Forja do Ferreiro e Santuário do Mago), inspirada em UI Kits de Dark Fantasy Medieval, lojas temáticas com balcão (estilo Cuphead e Witch Shop) e molduras com floreios vitorianos. Ambientes de loja imersivos com vendedores caracterizados atrás de balcões maciços de carvalho e mogno, placas entalhadas, balões de fala em pergaminho reativos, vitrines de itens pregadas ao balcão com alvéolos circulares ornamentais, medalhões dourados e zero alterações nas regras ou mecânicas funcionais existentes.
+
+### 🚀 O que mudou:
+- **⚒️ A Forja do Ferreiro Real (Cenário Imersivo & Balcão de Carvalho):**
+  - Cenário de fundo temático completo com parede de cantaria, lareira de pedra com fornalha em brasa ardente (`#d84315`, `#ff6d00`), chaminé de ferro e racks com suportes de armas (espadas, machados e escudo viking pendurados).
+  - Mestre Ferreiro Anvilgar posicionado e animado com sprite em escala 2.2x **atrás do balcão**, executando sutil ciclo de forja e respiração.
+  - Balcão de carvalho maciço atravessando horizontalmente todo o cenário com veios de madeira, rebites, bigorna de ferro forjado com lâmina em brasa incandescente e pilha de moedas sobre veludo.
+  - Placa entalhada de madeira suspensa por correntes no teto: `[ ⚔ A FORJA REAL ⚔ ]`.
+  - Balão de diálogo em pergaminho nobre com rabo apontado para o ferreiro, exibindo dinamicamente a lore tática e o arquétipo de cada arma ao passar o mouse.
+  - Abas de navegação no topo com alternância rápida entre a Forja Real e o Santuário Alquimista (suporta clique e tecla `[TAB]`).
+  - Vitrine das 5 armas (Arco, Espada, Escudo, Machado e Cajado) redesenhada como 5 cartas de pergaminho pregadas à face frontal do balcão com pregos de ferro, alvéolos circulares ornamentais com 4 entalhes (UI Kit Dark Fantasy), badges de arquétipo de combate, lore detalhada e botões de aquisição/seleção inicial (`★ EM USO`, `EQUIPAR`, `FORJAR`).
+- **🔮 O Santuário do Mago Alquimista (Cenário Místico & Balcão de Mogno):**
+  - Parede de pedra obsidiana com runas arcanas entalhadas emitindo luminescência mística em ciano e violeta (`#7c4dff`, `#00e5ff`).
+  - Prateleiras de boticário com frascos de elixires coloridos (rubi, esmeralda, safira), grimórios encadernados e esferas de mana flutuantes no ar.
+  - Arquimago Alquimista posicionado e animado **atrás do balcão** de mogno escuro polido.
+  - Balcão místico decorado com o Grande Grimório Aberto com runas arcanas gravadas em folhas envelhecidas (referência direta à Witch Shop), frasco de ensaio com elixires borbulhantes e almofariz com ervas místicas trituradas.
+  - Placa mística entalhada: `[ 🔮 SANTUÁRIO ALQUIMISTA 🔮 ]`.
+  - Balão de fala de pergaminho místico reativo que descreve a alquimia e os benefícios permanentes de cada poção ao passar o cursor.
+  - Vitrine dos 4 atributos permanentes (Vitalidade do Titã, Agilidade do Vento, Fluido Magnético e Sabedoria Ancestral) apresentada como 4 cartas de pergaminho pregadas com selos de cera arcanos, alvéolos circulares com aura colorida de poção, medidor de 5 gemas/cristais de nível lapidados e botões de infusão com moedas (`AUMENTAR`, `COMPLETO ★`).
+- **👑 Menu Principal Panorâmico 16:9 & Brasão de Título Vitoriano:**
+  - Céu crepuscular expandido para 960px com estrelas pixel art, constelações conectadas e lua cheia iluminando as montanhas.
+  - Cordilheira com a silhueta do Castelo Real no horizonte com bandeiras e janelas douradas iluminadas.
+  - Estrada de pedra dourada sinuosa descendo pelas colinas até a vila de Vale Dourado.
+  - Pedestal rochoso com o Cavaleiro Heróico animado em pose nobre no primeiro plano esquerdo.
+  - Brasão de Título nobre no topo inspirado em floreios de acanto vitorianos e ribbon real: bordas de ferro forjado, moldura de ouro antigo, rebites com relevo e tipografia serifada reluzente `A JORNADA DO CAVALEIRO`.
+  - Painel de Ações da Corte / Tábula de Missões à direita com indicadores de Recorde (`🏆`) e Tesouro de Ouro (`💰`), divisores com diamantes dourados e botões bevelados de carvalho e ouro para Iniciar Jornada, Forja, Santuário, Conquistas, Recordes e Ajustes.
+  - Botões rápidos de Som `[M]` e Tela Cheia `[F]` com moldura dourada e status ativo no topo direito.
+- **🛡️ Interface de Jogo (HUD) Dark Fantasy UI Kit:**
+  - Painéis superiores (Glória & Vida, Prata da Partida, Relíquia Ativa e Recorde) renovados com molduras duplas de ferro envelhecido e ouro, preenchimento em tom de couro curtido escuro e rebites de ouro nos 4 cantos.
+  - Alvéolo circular de relíquia ativa com entalhes ornamentais nas bordas.
+  - Barra de Experiência (XP) nobre com cantoneiras metálicas nas extremidades, medalhão de orbe de XP, canaleta com marcas métricas de segmento a cada 20% e preenchimento em degradê esmeralda/ciano místico.
+  - Barra de Vida do Chefão com brasão gótico de ferro e espinhos laterais com rubi sangrento.
+  - Toasts de Conquista animados estilizados como faixas de pergaminho real com rebites e coroa dourada.
+- **📜 Modais e Botões Nobres Unificados:**
+  - `createModal`: Fábrica de modais atualizada com brasão ornamental central no topo, asas de acanto, bordas chanfradas e rebites dourados.
+  - `createButton`: Botões bevelados em madeira nobre e ouro com resposta visual de brilho âmbar ao passar o cursor e clique sonoro tátil.
+  - Modularização limpa e restauração das funções `showSettingsMenu` e `showRecordsMenu` em `menus.js`.
+
+---
+
+## [v2.6.0] — 2026-10-22
+### 🖥️ Título da Versão: **Visão Panorâmica: Arquitetura Nativa 16:9 (1920x1080 Fullscreen)**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Transição completa da resolução para proporção 16:9 nativa (canvas base de 960x540 com escala inteira exata 2.0x para 1920x1080 em tela cheia). Adaptação e centralização milimétrica de todos os menus, botões, modais e elementos de HUD; expansão horizontal do campo de visão do cenário, calibração reativa de limites de colisão Arcade, posicionamento estratégico da arena do Golem de Pedra e renovação das zonas de spawn de inimigos e culling adaptativo.
+
+### 🚀 O que mudou:
+- **📐 Arquitetura Nativa 16:9 & Resolução 1080p Integer-Scaled:**
+  - Migração da resolução base do jogo de 800x600 (4:3) para 960x540 (16:9 widescreen).
+  - Em monitores Full HD (1920x1080) em tela cheia (`fullscreenTarget: 'game-container'`), a escala é matematicamente exata (960x2 = 1920 e 540x2 = 1080), preservando a nitidez cristalina do pixel art sem distorções, faixas pretas laterais ou subpixel shimmering.
+- **🎨 Cenário Panorâmico & Parallax Vertical Rebalanceado:**
+  - `ground`: Redimensionado para 960x540 com centro exato em `(480, 270)`.
+  - `road`: Rebalanceada para `y = 285` com altura de 84px, conectando harmonicamente o pátio da vila de Vale Dourado.
+  - `forestTop` (`y = 48`, altura 96px) e `forestBottom` (`y = 505`, altura 70px): Parallax frontal e traseiro ajustado para cobrir perfeitamente as extremidades superior e inferior.
+  - `vignette_64bit`: Textura procedural de vinheta cinematográfica gerada dinamicamente na proporção 960x540 com degradê radial ajustado para tela ampla.
+- **🏰 Vila Inicial de Vale Dourado & Área Jogável:**
+  - Pátio (`village_plaza`) ancorado em `y = 285`.
+  - Casas norte (`y = 140`), Ferreiro (`y = 146`), Chalés sul e Estábulo (`y = 430`, `428`).
+  - O Grande Portão e Torres da Muralha (`x = 415`) alinhados perfeitamente à estrada: torre superior em `y = 195` e torre inferior em `y = 375`.
+  - Limite de colisão do mundo Arcade ajustado para `setBounds(0, 85, 960, 390)`, mantendo o cavaleiro na área transitável entre as florestas.
+  - Posição inicial do herói ajustada para `(180, 285)`.
+- **⚔️ Spawn de Inimigos, Obstáculos e Descarte Culling:**
+  - Inimigos e árvores passam a surgir além da borda direita expandida (`x = GAME_WIDTH + 60` a `GAME_WIDTH + 80`, ~1020px-1040px), evitando que apareçam abruptamente na visão do jogador.
+  - Faixa vertical de geração de monstros calibrada para `y = Between(115, 455)`.
+  - Culling de projéteis e descartes de entidades estendido para cobrir a largura panorâmica `GAME_WIDTH + 40`.
+- **🗿 Arena e Ataques do Chefão (Golem de Pedra):**
+  - Entrada do Golem Ancestral estabilizada na borda direita em `x = 820` (anteriormente 685), com patrulha vertical entre `y = 150` e `y = 430`.
+  - O ataque **Soco Colossal** tem sua telegrafia e alcance estendidos dinamicamente de `120px` até a posição do boss (`laneW = boss.x - 120`), cobrindo toda a faixa da arena com fidelidade visual.
+  - Ejeção de Mini-Golems e arremesso de pedras recalibrados para as novas dimensões de campo.
+- **👑 HUD Superior & Barra de Experiência Panorâmica:**
+  - Botões superiores de ação ancorados à direita: Tela Cheia [F] em `x: 902..950`, Som [M] em `x: 844..892` e Pausa [ESC] em `x: 786..834`.
+  - Barra de Experiência (XP) estendida em faixa horizontal de 932px (`x: 14..946, y: 61`), com preenchimento gráfico de 730px e texto de XP alinhado na extremidade direita (`x: 936`).
+  - Barra de Vida do Chefão centralizada em `cx = 480` com largura de 360px (`x: 300..660`).
+  - Toasts de Conquista centralizados em `cx = 480`.
+- **📜 Menu Principal, Modais & Menus Secundários Centralizados:**
+  - Menu Principal: Céu crepuscular, cordilheira, castelo e caminhos gerados em 960px com banner de título centralizado (`cx = 480`) e painel de ações posicionado à direita em `x: 560..910`.
+  - Todos os submenus (Forja do Ferreiro, Santuário do Mago, Tábula de Conquistas, Recordes e Configurações) reformatados para altura de 470px a 490px com largura ampla de 820px, garantindo que caibam inteiramente na tela de 540p com margens elegantes e botões de fechamento acessíveis.
+  - Modal de Level Up com as 3 cartas de evolução distribuídas harmoniosamente em `[220, 480, 740]` com 230px de largura cada.
+  - Telas de Pausa, Fim de Jogo (Iniciais) e Tábula dos Campeões centralizadas em `cx = 480` com dimensionamento dinâmico.
+- **🕹️ Joystick Virtual Mobile:**
+  - Posição fixa de ancoragem recalculada para `baseX = 110` e `baseY = 445` (anteriormente 485), garantindo posicionamento perfeito no canto inferior esquerdo sem sobrepor o rodapé nem colidir com a floresta inferior.
+
+---
+
+# 📋 Histórico de Versões (Changelog)
+
+Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
+
+## [v2.5.0] — 2026-10-22
+### ⚔️ Título da Versão: **Dança das Lâminas: Cortes Alternados e Escalonamento Físico Dinâmico**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Reformulação visual e mecânica do ataque da espada com animação em pixel art de 9 quadros baseada em spritesheet dedicada, sistema de cortes alternados (esquerda para a direita descendente e direita para a esquerda ascendente), combos sucessivos de Disparo Múltiplo a cada 80ms, alinhamento físico milimétrico 1:1 da hitbox Arcade sem elongação quadrática e avanço frontal com cone fechado (3.5°) prevenindo sobreposição nas costas do cavaleiro.
+
+### 🚀 O que mudou:
+- **🗡️ Folha de Sprites Pixel Art 9 Quadros (64x47):**
+  - Implementação das folhas `slash_lr` (descendente) e `slash_rl` (ascendente) com textura de 576x47 pixels.
+  - Animação completa em 9 fases: glint inicial, corte em expansão, flash branco puro de impacto e rastro de dissipação.
+  - Carregamento 100% síncrono via descompactador RLE direto no Canvas do Phaser (zero dependência de rede, imune a CORS offline).
+- **🔄 Sistema de Cortes Alternados (Esquerda &rarr; Direita e Direita &rarr; Esquerda):**
+  - **Ataque Básico (1x):** O herói alterna continuamente entre o golpe descendente (`slash_lr`) e o golpe ascendente (`slash_rl`) a cada swing.
+  - **Movimento da Lâmina:** A espada empunhada pelo cavaleiro oscila em pêndulo contínuo (-65° &rarr; 125° e 125° &rarr; -65°), eliminando resets abruptos de rotação.
+- **⚡ Disparo Múltiplo Ritmado (Combos a 80ms):**
+  - Quando evoluído o Pergaminho Multi-Shot (`stats.projectiles > 1`), os cortes não disparam mais instantaneamente em leque estático.
+  - Os golpes são executados sucessivamente a cada 80ms, alternando esquerda e direita de forma fluida.
+  - Cada golpe do combo possui `swingId` monotônico único (`nextProjId()`), permitindo dano e knockback individual por acerto.
+- **🎯 Calibração Milimétrica de Hitbox Arcade 1:1:**
+  - Correção da escala quadrática no Phaser Arcade: `body.setSize(48, 34)` e `body.setOffset(8, 2)` operam em espaço base de textura, eliminando o esticamento e elongação excessiva do colisor.
+  - A hitbox e a animação do corte aumentam em perfeita sincronia com o atributo de tamanho da espada (`stats.area`).
+- **🛡️ Ancoragem Frontal e Prevenção de Sobreposição (Anti-Abraço):**
+  - Ancoragem configurada em `setOrigin(0.15, 0.5)` e avanço frontal para `offX = 38px`.
+  - Todo o crescimento da lâmina projeta-se exclusivamente para a frente (+X), evitando cobrir o corpo ou as costas do herói.
+  - O cone de abertura em combos foi reduzido para 3.5°, mantendo cortes focados diretamente contra os inimigos.
+
+---
+
 ## [v2.4.0] — 2026-10-20
 ### 📜 Título da Versão: **Expansão Arcana: Sistema Duplo de Pergaminhos Arcanos (Slot Duplo por Partida)**
 

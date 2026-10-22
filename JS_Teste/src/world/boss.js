@@ -33,9 +33,9 @@ function startBossFight(scene) {
   forestTop.setTint(0x9e8278);
   forestBottom.setTint(0x9e8278);
 
-  floatText(scene, 400, 134, '⚠ CHEFÃO: GOLEM ANCESTRAL DE PEDRA! ⚠', '#ff5252');
+  floatText(scene, GAME_WIDTH / 2, 134, '⚠ CHEFÃO: GOLEM ANCESTRAL DE PEDRA! ⚠', '#ff5252');
 
-  const boss = enemies.create(875, 325, 'boss_golem', 0);
+  const boss = enemies.create(GAME_WIDTH + 80, 285, 'boss_golem', 0);
   boss.play('boss_golem').setFlipX(true);
   boss.body.setSize(62, 74).setOffset(13, 8);
   boss.setImmovable(true);
@@ -143,8 +143,8 @@ function ejectMiniGolemsFromBoss(scene, boss) {
       }
       golem.setVelocity(0, 0);
 
-      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(65, 260), 135, 690);
-      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-130, 130), 135, 515);
+      const targetX = Phaser.Math.Clamp(boss.x - Phaser.Math.Between(70, 320), 160, GAME_WIDTH - 120);
+      const targetY = Phaser.Math.Clamp(boss.y + Phaser.Math.Between(-120, 120), 125, 455);
 
       // Trajetória em arco parabólico simulando desprendimento do corpo do Boss
       scene.tweens.add({
@@ -337,8 +337,8 @@ function bossColossalPunch(scene, boss) {
 
   const laneY = boss.y;
   const laneH = 76;
-  const laneW = 560;
-  const laneCenterX = 390;
+  const laneW = boss.x - 120;
+  const laneCenterX = (boss.x + 120) / 2;
 
   const warnZone = registerBossTelegraph(
     boss,
@@ -449,7 +449,7 @@ function updateBossHUD() {
   const maxHp = activeBoss.maxHp || BOSS_MAX_HP;
   const pct = Phaser.Math.Clamp(hp / maxHp, 0, 1);
 
-  const bx = 252, by = 96, bw = 296, bh = 9;
+  const bx = 316, by = 96, bw = 328, bh = 9;
   bossHpBar.fillStyle(0x0c0907, 1).fillRect(bx, by, bw, bh);
   bossHpBar.lineStyle(1, 0x5c3a21).strokeRect(bx, by, bw, bh);
 
@@ -501,7 +501,7 @@ function defeatBoss(scene, boss) {
   forestBottom.clearTint();
   sound.startBGM('normal');
 
-  floatText(scene, 400, 150, '★ GOLEM DERROTADO! CHUVA DE PRATA & XP! ★', '#ffca28');
+  floatText(scene, GAME_WIDTH / 2, 150, '★ GOLEM DERROTADO! CHUVA DE PRATA & XP! ★', '#ffca28');
   for (let i = 0; i < 10; i++) {
     spawnCoinDrop(scene, bx + Phaser.Math.Between(-52, 52), by + Phaser.Math.Between(-36, 36), 2);
     spawnXpOrb(scene, bx + Phaser.Math.Between(-56, 56), by + Phaser.Math.Between(-40, 40), 4);

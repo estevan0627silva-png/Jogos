@@ -369,17 +369,17 @@ function makeWorldTextures(scene) {
   g.fillRect(9, 37, 2, 2).fillRect(37, 37, 2, 2);
   g.generateTexture('shield_aura', 48, 48);
 
-  // 64-BIT: Vinheta Cinematográfica de Alta Nitidez (800x600)
+  // 64-BIT: Vinheta Cinematográfica de Alta Nitidez (16:9 GAME_WIDTH x GAME_HEIGHT)
   if (!scene.textures.exists('vignette_64bit')) {
-    const vCanvas = scene.textures.createCanvas('vignette_64bit', 800, 600);
+    const vCanvas = scene.textures.createCanvas('vignette_64bit', GAME_WIDTH, GAME_HEIGHT);
     const vCtx = vCanvas.context;
-    const vGrad = vCtx.createRadialGradient(400, 300, 220, 400, 300, 520);
+    const vGrad = vCtx.createRadialGradient(GAME_WIDTH / 2, GAME_HEIGHT / 2, 260, GAME_WIDTH / 2, GAME_HEIGHT / 2, 580);
     vGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
     vGrad.addColorStop(0.55, 'rgba(10, 7, 5, 0.08)');
     vGrad.addColorStop(0.85, 'rgba(8, 5, 4, 0.28)');
     vGrad.addColorStop(1, 'rgba(5, 3, 2, 0.58)');
     vCtx.fillStyle = vGrad;
-    vCtx.fillRect(0, 0, 800, 600);
+    vCtx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     vCanvas.refresh();
   }
 

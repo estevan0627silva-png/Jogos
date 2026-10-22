@@ -1,7 +1,6 @@
 // =============================================================================
-// INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS
-// =============================================================================
-// INTERFACE (HUD COM BARRA DE XP, DRAFT DE LEVEL UP, FERREIRO, MAGO & CONQUISTAS)
+// INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS (16:9 WIDESCREEN)
+// DESIGN: DARK FANTASY MEDIEVAL RPG UI KIT (INSPIRADO EM PERGAMINHO, FERRO & OURO NOBRE)
 // =============================================================================
 const textStyle = (color, size = 17, weight = 'bold') => ({
   fontSize: size + 'px',
@@ -28,16 +27,66 @@ function floatText(scene, x, y, msg, color) {
   scene.tweens.add({ targets: t, y: y - 40, alpha: 0, duration: 900, onComplete: () => t.destroy() });
 }
 
+// -----------------------------------------------------------------------------
+// AUXILIARES DE RENDERIZAÇÃO: MOLDURAS E BOTÕES MEDIEVAIS NOBRES (UI KIT)
+// -----------------------------------------------------------------------------
+function drawMedievalHudFrame(gfx, x, y, w, h, isHover = false) {
+  gfx.clear();
+  // Fundo em tom de couro curtido / pergaminho escuro
+  gfx.fillStyle(isHover ? 0x221a14 : 0x14100c, 0.96).fillRoundedRect(x, y, w, h, 6);
+  // Borda externa de ferro envelhecido
+  gfx.lineStyle(2, isHover ? 0xffca28 : 0x3d2b1f).strokeRoundedRect(x, y, w, h, 6);
+  // Filete interno de ouro antigo
+  gfx.lineStyle(1, isHover ? 0xffeb3b : 0xc5a059, 0.85).strokeRoundedRect(x + 2, y + 2, w - 4, h - 4, 4);
+
+  // Rebites de ouro com sombra nos 4 cantos
+  const rOff = 5;
+  const corners = [
+    [x + rOff, y + rOff],
+    [x + w - rOff, y + rOff],
+    [x + rOff, y + h - rOff],
+    [x + w - rOff, y + h - rOff]
+  ];
+  corners.forEach(([cx, cy]) => {
+    gfx.fillStyle(0xc5a059, 1).fillCircle(cx, cy, 2);
+    gfx.fillStyle(0x2a1a0e, 1).fillCircle(cx, cy, 0.9);
+  });
+}
+
+function drawMedievalHudButton(gfx, x, y, w, h, isHover = false) {
+  gfx.clear();
+  // Ficha metálica chanfrada com acabamento em bronze e ouro
+  gfx.fillStyle(isHover ? 0x36271c : 0x18120e, 0.96).fillRoundedRect(x, y, w, h, 7);
+  gfx.lineStyle(2, isHover ? 0xffca28 : 0x8d5524).strokeRoundedRect(x, y, w, h, 7);
+  gfx.lineStyle(1, isHover ? 0xfff59d : 0xc5a059, 0.85).strokeRoundedRect(x + 2, y + 2, w - 4, h - 4, 5);
+
+  const corners = [
+    [x + 5, y + 5],
+    [x + w - 5, y + 5],
+    [x + 5, y + h - 5],
+    [x + w - 5, y + h - 5]
+  ];
+  corners.forEach(([cx, cy]) => {
+    gfx.fillStyle(0xc5a059, 1).fillCircle(cx, cy, 2);
+  });
+}
+
 // Toast animado de Conquista Desbloqueada em tempo real no topo da tela
 function showAchievementToast(scene, ach) {
   if (!scene || !ach) return;
   sound.playAchievement();
 
-  const toast = scene.add.container(400, -50).setDepth(3600).setScrollFactor(0);
+  const toast = scene.add.container(GAME_WIDTH / 2, -50).setDepth(3600).setScrollFactor(0);
   const bg = scene.add.graphics();
+  // Moldura de pergaminho real com detalhes dourados e rebites
   bg.fillStyle(0x16120e, 0.96).fillRoundedRect(-210, -24, 420, 48, 8);
   bg.lineStyle(2.5, 0xffca28).strokeRoundedRect(-210, -24, 420, 48, 8);
   bg.lineStyle(1, 0x8d5524).strokeRoundedRect(-206, -20, 412, 40, 6);
+
+  // Rebites nos cantos do toast
+  [[-202, -16], [202, -16], [-202, 16], [202, 16]].forEach(([rx, ry]) => {
+    bg.fillStyle(0xc5a059, 1).fillCircle(rx, ry, 2.5);
+  });
 
   const crown = scene.add.image(-180, 0, 'hud_crown').setScale(1.1);
   const title = scene.add.text(-156, -13, `🏆 CONQUISTA: ${ach.title}`, textStyle('#ffca28', 12));
@@ -68,15 +117,14 @@ function showAchievementToast(scene, ach) {
 }
 
 // -----------------------------------------------------------------------------
-// HUD MEDIEVAL EM PIXEL ART (INCLUI BARRA DE XP IN-GAME, CORAÇÕES, PRATA E RELÍQUIA)
+// HUD MEDIEVAL EM PIXEL ART 16:9 (BARRA DE XP, CORAÇÕES, PRATA, RELÍQUIA & CHEFÃO)
 // -----------------------------------------------------------------------------
 function createHUD(scene) {
   hudContainer = scene.add.container(0, 0).setDepth(2000).setScrollFactor(0).setVisible(false);
 
   // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 10..164)
   const gloryBg = scene.add.graphics();
-  gloryBg.fillStyle(0x16120e, 0.94).fillRoundedRect(10, 10, 154, 48, 6);
-  gloryBg.lineStyle(2, 0xc5a059).strokeRoundedRect(10, 10, 154, 48, 6);
+  drawMedievalHudFrame(gloryBg, 10, 10, 154, 48, false);
   const hourglass = scene.add.image(24, 34, 'hud_hourglass');
   const gloryLabel = scene.add.text(38, 14, 'GLÓRIA & VIDA', textStyle('#a89260', 9));
   hudGloryText = scene.add.text(38, 25, '0s', textStyle('#f5e6c8', 14));
@@ -92,8 +140,7 @@ function createHUD(scene) {
 
   // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 170..274)
   const silverBg = scene.add.graphics();
-  silverBg.fillStyle(0x16120e, 0.94).fillRoundedRect(170, 10, 104, 48, 6);
-  silverBg.lineStyle(2, 0xc5a059).strokeRoundedRect(170, 10, 104, 48, 6);
+  drawMedievalHudFrame(silverBg, 170, 10, 104, 48, false);
   const silverIcon = scene.add.image(188, 34, 'silver_coin', 0).setScale(1.2);
   const silverLabel = scene.add.text(202, 16, 'PRATA', textStyle('#b0bec5', 10));
   hudSilverText = scene.add.text(202, 28, '0', textStyle('#e0f7fa', 18));
@@ -101,12 +148,13 @@ function createHUD(scene) {
 
   // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 280..514)
   const itemBg = scene.add.graphics();
-  itemBg.fillStyle(0x16120e, 0.94).fillRoundedRect(280, 10, 234, 48, 6);
-  itemBg.lineStyle(2, 0xc5a059).strokeRoundedRect(280, 10, 234, 48, 6);
+  drawMedievalHudFrame(itemBg, 280, 10, 234, 48, false);
 
+  // Alvéolo circular / medalhão medieval de relíquia (UI Kit)
   const slotFrame = scene.add.graphics();
-  slotFrame.fillStyle(0x221a14, 1).fillRoundedRect(288, 16, 36, 36, 4);
-  slotFrame.lineStyle(1, 0x8d5524).strokeRoundedRect(288, 16, 36, 36, 4);
+  slotFrame.fillStyle(0x120d0a, 1).fillRoundedRect(288, 16, 36, 36, 6);
+  slotFrame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(288, 16, 36, 36, 6);
+  slotFrame.fillStyle(0xc5a059, 1).fillCircle(291, 19, 1.5).fillCircle(321, 19, 1.5).fillCircle(291, 49, 1.5).fillCircle(321, 49, 1.5);
 
   hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
   hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
@@ -124,24 +172,19 @@ function createHUD(scene) {
 
   // 4. PAINEL DE RECORDE DO REINO (x: 520..628)
   const bestBg = scene.add.graphics();
-  bestBg.fillStyle(0x16120e, 0.94).fillRoundedRect(520, 10, 108, 48, 6);
-  bestBg.lineStyle(2, 0xc5a059).strokeRoundedRect(520, 10, 108, 48, 6);
+  drawMedievalHudFrame(bestBg, 520, 10, 108, 48, false);
   const crown = scene.add.image(536, 34, 'hud_crown');
   const bestLabel = scene.add.text(552, 16, 'RECORDE', textStyle('#a89260', 10));
   hudBestText = scene.add.text(552, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
 
-  // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 688..736)
+  // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 844..892 em 16:9)
   const soundBtnBg = scene.add.graphics();
-  const drawSoundBtn = (hover = false) => {
-    soundBtnBg.clear();
-    soundBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(688, 10, 48, 48, 6);
-    soundBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(688, 10, 48, 48, 6);
-  };
+  const drawSoundBtn = (hover = false) => drawMedievalHudButton(soundBtnBg, 844, 10, 48, 48, hover);
   drawSoundBtn(false);
 
-  hudHornIcon = scene.add.image(712, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
-  const soundHitArea = scene.add.rectangle(712, 34, 48, 48, 0x000000, 0)
+  hudHornIcon = scene.add.image(868, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
+  const soundHitArea = scene.add.rectangle(868, 34, 48, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
 
   const toggleAudio = () => {
@@ -163,17 +206,13 @@ function createHUD(scene) {
     if (menuContainer && menuContainer.updateMenuHorn) menuContainer.updateMenuHorn();
   });
 
-  // 6. BOTÃO DE TELA CHEIA RÁPIDO [F] — Extremo Superior Direito (x: 742..790)
+  // 6. BOTÃO DE TELA CHEIA RÁPIDO [F] — Extremo Superior Direito (x: 902..950 em 16:9)
   const fsBtnBg = scene.add.graphics();
-  const drawFsBtn = (hover = false) => {
-    fsBtnBg.clear();
-    fsBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(742, 10, 48, 48, 6);
-    fsBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(742, 10, 48, 48, 6);
-  };
+  const drawFsBtn = (hover = false) => drawMedievalHudButton(fsBtnBg, 902, 10, 48, 48, hover);
   drawFsBtn(false);
 
-  hudFullscreenIcon = scene.add.image(766, 34, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
-  const fsHitArea = scene.add.rectangle(766, 34, 48, 48, 0x000000, 0)
+  hudFullscreenIcon = scene.add.image(926, 34, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
+  const fsHitArea = scene.add.rectangle(926, 34, 48, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
 
   fsHitArea.on('pointerover', () => drawFsBtn(true));
@@ -183,19 +222,17 @@ function createHUD(scene) {
     toggleFullscreen(scene);
   });
 
-  // 6. BOTÃO DE PAUSA RÁPIDO [ESC] — (x: 634..682) — Essencial para Mobile & Atalho de PC
+  // 7. BOTÃO DE PAUSA RÁPIDO [ESC] — (x: 786..834 em 16:9)
   const pauseBtnBg = scene.add.graphics();
   const drawPauseBtn = (hover = false) => {
-    pauseBtnBg.clear();
-    pauseBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(634, 10, 48, 48, 6);
-    pauseBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(634, 10, 48, 48, 6);
-    pauseBtnBg.fillStyle(hover ? 0xffe082 : 0xc5a059, 1);
-    pauseBtnBg.fillRect(651, 22, 4, 24);
-    pauseBtnBg.fillRect(661, 22, 4, 24);
+    drawMedievalHudButton(pauseBtnBg, 786, 10, 48, 48, hover);
+    pauseBtnBg.fillStyle(hover ? 0xffeb3b : 0xc5a059, 1);
+    pauseBtnBg.fillRect(803, 22, 4, 24);
+    pauseBtnBg.fillRect(813, 22, 4, 24);
   };
   drawPauseBtn(false);
 
-  const pauseHitArea = scene.add.rectangle(658, 34, 48, 48, 0x000000, 0)
+  const pauseHitArea = scene.add.rectangle(810, 34, 48, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
   pauseHitArea.on('pointerover', () => drawPauseBtn(true));
   pauseHitArea.on('pointerout', () => drawPauseBtn(false));
@@ -208,24 +245,39 @@ function createHUD(scene) {
 
   hudContainer.add([pauseBtnBg, pauseHitArea, soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
 
-  // 7. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre (x: 10..790, y: 61..77)
+  // 8. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre 16:9 (x: 14..946, y: 61..77)
   const xpFrame = scene.add.graphics();
-  xpFrame.fillStyle(0x120e0b, 0.94).fillRoundedRect(10, 61, 780, 16, 4);
-  xpFrame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(10, 61, 780, 16, 4);
+  // Fundo e borda externa em ferro nobre
+  xpFrame.fillStyle(0x120e0b, 0.95).fillRoundedRect(14, 61, 932, 16, 5);
+  xpFrame.lineStyle(2, 0x3d2b1f).strokeRoundedRect(14, 61, 932, 16, 5);
+  xpFrame.lineStyle(1, 0xc5a059, 0.85).strokeRoundedRect(16, 62, 928, 14, 4);
+
+  // Cantoneiras ornamentais de metal nas extremidades da barra de XP (Image 1 UI Kit)
+  [14, 938].forEach(ex => {
+    xpFrame.fillStyle(0xc5a059, 1).fillRect(ex, 61, 8, 16);
+    xpFrame.fillStyle(0x2a1a0e, 1).fillRect(ex + 2, 63, 4, 12);
+  });
+
   hudXpBar = scene.add.graphics();
-  const xpGemIcon = scene.add.image(22, 69, 'xp_orb', 0).setScale(0.95);
-  hudLevelText = scene.add.text(34, 69, 'NÍVEL 1', textStyle('#ffca28', 10)).setOrigin(0, 0.5);
-  hudXpText = scene.add.text(780, 69, 'XP: 0 / 6', textStyle('#7fe7ff', 10)).setOrigin(1, 0.5);
+  const xpGemIcon = scene.add.image(28, 69, 'xp_orb', 0).setScale(1.05);
+  hudLevelText = scene.add.text(42, 69, 'NÍVEL 1', textStyle('#ffca28', 10.5)).setOrigin(0, 0.5);
+  hudXpText = scene.add.text(932, 69, 'XP: 0 / 6', textStyle('#7fe7ff', 10.5)).setOrigin(1, 0.5);
   hudContainer.add([xpFrame, hudXpBar, xpGemIcon, hudLevelText, hudXpText]);
   updateXpHUD();
 
-  // 8. BARRA DE VIDA DO CHEFÃO (Oculta até os 120s da Boss Fight; posicionada abaixo da Barra de XP)
+  // 9. BARRA DE VIDA DO CHEFÃO (Gothic Iron Crest com Rubis Sangrentos)
   bossHudContainer = scene.add.container(0, 0).setVisible(false);
   const bossBg = scene.add.graphics();
-  bossBg.fillStyle(0x160d0b, 0.94).fillRoundedRect(236, 80, 328, 30, 5);
-  bossBg.lineStyle(2, 0xd83a3a).strokeRoundedRect(236, 80, 328, 30, 5);
-  const bossTitle = scene.add.text(252, 83, 'GOLEM ANCESTRAL DE PEDRA', textStyle('#ff8a80', 10));
-  bossHpText = scene.add.text(548, 83, `${BOSS_MAX_HP}/${BOSS_MAX_HP}`, textStyle('#ffca28', 10)).setOrigin(1, 0);
+  bossBg.fillStyle(0x160d0b, 0.96).fillRoundedRect(290, 80, 380, 32, 6);
+  bossBg.lineStyle(2.5, 0xd83a3a).strokeRoundedRect(290, 80, 380, 32, 6);
+  bossBg.lineStyle(1, 0xff8a80, 0.7).strokeRoundedRect(293, 83, 374, 26, 4);
+
+  // Spikes ornamentais góticos nas bordas da barra do Boss
+  bossBg.fillStyle(0xd83a3a, 1).fillTriangle(290, 96, 282, 96, 290, 88);
+  bossBg.fillStyle(0xd83a3a, 1).fillTriangle(670, 96, 678, 96, 670, 88);
+
+  const bossTitle = scene.add.text(310, 84, 'GOLEM ANCESTRAL DE PEDRA', textStyle('#ff8a80', 10.5));
+  bossHpText = scene.add.text(654, 84, `${BOSS_MAX_HP}/${BOSS_MAX_HP}`, textStyle('#ffca28', 10.5)).setOrigin(1, 0);
   bossHpBar = scene.add.graphics();
   bossHudContainer.add([bossBg, bossTitle, bossHpBar, bossHpText]);
   hudContainer.add(bossHudContainer);
@@ -234,19 +286,28 @@ function createHUD(scene) {
 function updateXpHUD() {
   if (!hudXpBar || !hudLevelText || !hudXpText) return;
   hudXpBar.clear();
-  const barX = 110;
+  const barX = 114;
   const barY = 64;
-  const barW = 575;
+  const barW = 724;
   const barH = 10;
 
+  // Canaleta escura da barra
   hudXpBar.fillStyle(0x090705, 1).fillRect(barX, barY, barW, barH);
   hudXpBar.lineStyle(1, 0x3a2e21).strokeRect(barX, barY, barW, barH);
+
+  // Marcas de segmento / entalhes métricos sutis a cada 20%
+  for (let s = 1; s <= 4; s++) {
+    const sx = Math.round(barX + (barW * s) / 5);
+    hudXpBar.fillStyle(0x221a14, 0.8).fillRect(sx, barY, 1, barH);
+  }
 
   const pct = Phaser.Math.Clamp(xpToNextLevel > 0 ? runXp / xpToNextLevel : 0, 0, 1);
   const fillW = Math.max(0, Math.round((barW - 2) * pct));
   if (fillW > 0) {
+    // Gradiente esmeralda com brilho de ciano místico (UI Kit)
     hudXpBar.fillStyle(0x00c853, 1).fillRect(barX + 1, barY + 1, fillW, barH - 2);
-    hudXpBar.fillStyle(0x7fe7ff, 0.7).fillRect(barX + 1, barY + 1, fillW, 3);
+    hudXpBar.fillStyle(0x69f0ae, 0.85).fillRect(barX + 1, barY + 1, fillW, 2);
+    hudXpBar.fillStyle(0x00e5ff, 0.6).fillRect(barX + fillW - 2, barY + 1, 2, barH - 2);
   }
 
   hudLevelText.setText(`NÍVEL ${runLevel}`);
@@ -327,8 +388,6 @@ function updateItemHUD() {
     playerBuffBar.fillStyle(overheadColor, 1).fillRect(pX, pY, fillW, pH);
   }
 }
-
-
 
 function updateScrollHUD() {
   if (!hudScrollBadges || hudScrollBadges.length === 0) return;

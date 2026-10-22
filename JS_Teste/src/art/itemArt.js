@@ -446,63 +446,174 @@ function drawScrollSpeedIcon(r) {
   r(C.goldLight, 4, 7, 2, 2);
 }
 
-// Procedural Slash Arc Texture (Crescente Tapered Aerodinâmico em 5 Camadas)
+// =============================================================================
+// FOLHAS DE SPRITES DE CORTE DE ESPADA (PIXEL ART - 9 QUADROS 64x47)
+// Baseado na animação clássica de slash arc (glint -> ascensão -> flash branco -> rastro)
+// slash_lr: golpe da esquerda para a direita (descendente)
+// slash_rl: golpe da direita para a esquerda (ascendente invertido)
+// =============================================================================
+// RLE dos 9 quadros de corte (64x47 cada) em faixa horizontal (576x47)
+const SLASH_STRIP_RLE = [
+  663, 0, 14, 1, 50, 0, 14, 1, 50, 0, 5, 2, 3, 0, 6, 2, 51, 0, 2, 1,
+  6, 0, 5, 1, 365, 0, 24, 1, 40, 0, 24, 1, 40, 0, 2, 2, 3, 0, 4, 2,
+  5, 0, 10, 2, 40, 0, 1, 1, 3, 0, 2, 1, 11, 0, 2, 1, 1, 0, 2, 1,
+  1, 0, 1, 1, 59, 0, 5, 1, 293, 0, 29, 1, 35, 0, 30, 1, 34, 0, 30, 2,
+  38, 0, 2, 1, 10, 0, 3, 1, 2, 0, 2, 1, 1, 0, 2, 1, 1, 0, 3, 1,
+  58, 0, 6, 1, 223, 0, 1, 1, 63, 0, 31, 1, 33, 0, 36, 1, 33, 0, 8, 2,
+  1, 0, 22, 2, 28, 0, 1, 1, 9, 0, 1, 1, 6, 0, 2, 1, 5, 0, 3, 1,
+  2, 0, 7, 1, 56, 0, 8, 1, 218, 0, 3, 1, 61, 0, 32, 1, 32, 0, 40, 1,
+  24, 0, 1, 2, 1, 0, 10, 2, 4, 0, 24, 2, 25, 0, 1, 1, 4, 0, 1, 1,
+  6, 0, 13, 1, 4, 0, 1, 1, 2, 0, 7, 1, 56, 0, 8, 1, 215, 0, 2, 1,
+  62, 0, 32, 1, 32, 0, 42, 1, 22, 0, 11, 2, 4, 0, 27, 2, 23, 0, 1, 1,
+  4, 0, 6, 1, 14, 0, 16, 1, 48, 0, 4, 1, 5, 0, 7, 1, 212, 0, 3, 1,
+  61, 0, 7, 1, 20, 0, 5, 1, 32, 0, 7, 1, 20, 0, 19, 1, 18, 0, 2, 2,
+  4, 0, 1, 2, 20, 0, 19, 2, 20, 0, 1, 1, 2, 0, 2, 1, 23, 0, 2, 1,
+  1, 0, 13, 1, 49, 0, 4, 1, 4, 0, 6, 1, 210, 0, 2, 1, 62, 0, 5, 1,
+  59, 0, 5, 1, 26, 0, 17, 1, 16, 0, 2, 2, 1, 0, 2, 2, 26, 0, 17, 2,
+  20, 0, 1, 1, 30, 0, 13, 1, 50, 0, 5, 1, 3, 0, 5, 1, 208, 0, 1, 1,
+  63, 0, 3, 1, 61, 0, 3, 1, 31, 0, 16, 1, 48, 0, 16, 2, 48, 0, 16, 1,
+  50, 0, 6, 1, 2, 0, 4, 1, 1, 0, 1, 1, 205, 0, 1, 1, 63, 0, 3, 1,
+  61, 0, 3, 1, 33, 0, 16, 1, 13, 0, 2, 2, 33, 0, 16, 2, 14, 0, 1, 1,
+  33, 0, 16, 1, 51, 0, 5, 1, 3, 0, 3, 1, 63, 0, 1, 1, 141, 0, 1, 1,
+  63, 0, 2, 1, 62, 0, 2, 1, 37, 0, 15, 1, 10, 0, 2, 2, 37, 0, 15, 2,
+  49, 0, 15, 1, 52, 0, 5, 1, 2, 0, 2, 1, 2, 0, 1, 1, 59, 0, 2, 1,
+  2, 0, 1, 1, 306, 0, 15, 1, 49, 0, 15, 2, 49, 0, 15, 1, 52, 0, 2, 1,
+  1, 0, 2, 1, 1, 0, 3, 1, 2, 0, 1, 1, 53, 0, 1, 1, 4, 0, 3, 1,
+  2, 0, 1, 1, 306, 0, 14, 1, 50, 0, 14, 2, 50, 0, 14, 1, 53, 0, 2, 1,
+  1, 0, 2, 1, 1, 0, 2, 1, 2, 0, 1, 1, 53, 0, 2, 1, 4, 0, 2, 1,
+  2, 0, 1, 1, 306, 0, 15, 1, 49, 0, 15, 2, 49, 0, 15, 1, 53, 0, 2, 1,
+  1, 0, 5, 1, 1, 0, 2, 1, 53, 0, 2, 1, 3, 0, 3, 1, 1, 0, 2, 1,
+  306, 0, 14, 1, 50, 0, 14, 2, 50, 0, 14, 1, 54, 0, 1, 1, 1, 0, 6, 1,
+  1, 0, 1, 1, 54, 0, 1, 1, 2, 0, 4, 1, 2, 0, 1, 1, 306, 0, 15, 1,
+  49, 0, 15, 2, 49, 0, 15, 1, 54, 0, 1, 1, 1, 0, 5, 1, 1, 0, 2, 1,
+  54, 0, 1, 1, 1, 0, 5, 1, 1, 0, 2, 1, 306, 0, 14, 1, 50, 0, 14, 2,
+  50, 0, 14, 1, 54, 0, 1, 1, 1, 0, 5, 1, 1, 0, 2, 1, 54, 0, 1, 1,
+  2, 0, 4, 1, 1, 0, 2, 1, 306, 0, 14, 1, 50, 0, 14, 2, 50, 0, 14, 1,
+  54, 0, 2, 1, 1, 0, 7, 1, 54, 0, 2, 1, 1, 0, 4, 1, 1, 0, 2, 1,
+  57, 0, 1, 1, 248, 0, 14, 1, 50, 0, 14, 2, 50, 0, 14, 1, 55, 0, 1, 1,
+  1, 0, 7, 1, 55, 0, 1, 1, 1, 0, 4, 1, 1, 0, 2, 1, 55, 0, 1, 1,
+  1, 0, 1, 1, 248, 0, 14, 1, 50, 0, 14, 2, 50, 0, 14, 1, 55, 0, 9, 1,
+  55, 0, 1, 1, 1, 0, 4, 1, 1, 0, 2, 1, 55, 0, 1, 1, 1, 0, 1, 1,
+  248, 0, 14, 1, 50, 0, 14, 2, 50, 0, 14, 1, 55, 0, 9, 1, 55, 0, 1, 1,
+  1, 0, 4, 1, 1, 0, 2, 1, 55, 0, 1, 1, 250, 0, 14, 1, 49, 0, 15, 2,
+  49, 0, 15, 1, 55, 0, 9, 1, 55, 0, 1, 1, 1, 0, 3, 1, 2, 0, 2, 1,
+  55, 0, 1, 1, 250, 0, 13, 1, 50, 0, 14, 2, 50, 0, 14, 1, 56, 0, 8, 1,
+  56, 0, 1, 1, 1, 0, 3, 1, 1, 0, 2, 1, 56, 0, 1, 1, 6, 0, 1, 1,
+  245, 0, 11, 1, 49, 0, 15, 2, 49, 0, 15, 1, 55, 0, 9, 1, 55, 0, 6, 1,
+  1, 0, 2, 1, 55, 0, 1, 1, 6, 0, 2, 1, 247, 0, 9, 1, 49, 0, 15, 2,
+  49, 0, 15, 1, 55, 0, 9, 1, 55, 0, 5, 1, 1, 0, 3, 1, 55, 0, 1, 1,
+  5, 0, 3, 1, 248, 0, 7, 1, 49, 0, 15, 2, 49, 0, 15, 1, 56, 0, 8, 1,
+  56, 0, 4, 1, 1, 0, 3, 1, 56, 0, 1, 1, 4, 0, 3, 1, 251, 0, 4, 1,
+  49, 0, 15, 2, 49, 0, 15, 1, 56, 0, 8, 1, 56, 0, 4, 1, 1, 0, 3, 1,
+  56, 0, 1, 1, 4, 0, 3, 1, 267, 0, 1, 2, 35, 0, 16, 2, 12, 0, 1, 1,
+  35, 0, 16, 1, 12, 0, 1, 1, 43, 0, 8, 1, 12, 0, 1, 1, 43, 0, 8, 1,
+  12, 0, 1, 1, 43, 0, 2, 1, 2, 0, 4, 1, 12, 0, 1, 1, 256, 0, 3, 2,
+  31, 0, 17, 2, 13, 0, 3, 1, 31, 0, 17, 1, 13, 0, 3, 1, 39, 0, 9, 1,
+  13, 0, 3, 1, 39, 0, 9, 1, 13, 0, 3, 1, 39, 0, 2, 1, 2, 0, 5, 1,
+  13, 0, 3, 1, 256, 0, 5, 2, 24, 0, 18, 2, 17, 0, 5, 1, 24, 0, 18, 1,
+  17, 0, 5, 1, 33, 0, 9, 1, 17, 0, 2, 1, 36, 0, 9, 1, 17, 0, 2, 1,
+  36, 0, 2, 1, 3, 0, 4, 1, 17, 0, 2, 1, 256, 0, 6, 2, 18, 0, 20, 2,
+  20, 0, 6, 1, 18, 0, 20, 1, 20, 0, 6, 1, 29, 0, 9, 1, 20, 0, 3, 1,
+  32, 0, 9, 1, 20, 0, 3, 1, 32, 0, 1, 1, 4, 0, 4, 1, 20, 0, 3, 1,
+  256, 0, 40, 2, 24, 0, 40, 1, 24, 0, 5, 1, 24, 0, 11, 1, 24, 0, 5, 1,
+  24, 0, 11, 1, 24, 0, 5, 1, 24, 0, 2, 1, 3, 0, 6, 1, 24, 0, 5, 1,
+  255, 0, 35, 2, 29, 0, 35, 1, 29, 0, 13, 1, 10, 0, 12, 1, 29, 0, 6, 1,
+  17, 0, 12, 1, 29, 0, 6, 1, 17, 0, 3, 1, 2, 0, 7, 1, 29, 0, 6, 1,
+  254, 0, 28, 2, 36, 0, 28, 1, 36, 0, 28, 1, 36, 0, 28, 1, 36, 0, 20, 1,
+  2, 0, 6, 1, 36, 0, 8, 1, 251, 0, 22, 2, 42, 0, 22, 1, 42, 0, 22, 1,
+  42, 0, 22, 1, 42, 0, 22, 1, 42, 0, 11, 1, 248, 0, 16, 2, 48, 0, 16, 1,
+  48, 0, 16, 1, 48, 0, 16, 1, 48, 0, 16, 1, 48, 0, 13, 1, 247, 0, 8, 2,
+  56, 0, 8, 1, 56, 0, 8, 1, 56, 0, 8, 1, 56, 0, 8, 1, 56, 0, 8, 1,
+  5209, 0
+];
+
+function makeSlashTextures(scene) {
+  ['slash_lr', 'slash_rl', 'slash_arc'].forEach(key => {
+    if (scene.textures.exists(key)) scene.textures.remove(key);
+  });
+
+  const fw = 64;
+  const fh = 47;
+  const numFrames = 9;
+  const totalW = fw * numFrames; // 576
+
+  // 1. Textura de 9 quadros: slash_lr (Golpe da esquerda para a direita / Descendente)
+  const canvasLR = scene.textures.createCanvas('slash_lr', totalW, fh);
+  const ctxLR = canvasLR.context;
+  const imgData = ctxLR.createImageData(totalW, fh);
+  const data = imgData.data;
+
+  let ptr = 0;
+  for (let i = 0; i < SLASH_STRIP_RLE.length; i += 2) {
+    const count = SLASH_STRIP_RLE[i];
+    const sym = SLASH_STRIP_RLE[i + 1];
+    if (sym === 0) {
+      ptr += count * 4;
+    } else if (sym === 1) {
+      // Tom azul/aço metálico característico (#c0cbdc)
+      for (let k = 0; k < count; k++) {
+        data[ptr++] = 192;
+        data[ptr++] = 203;
+        data[ptr++] = 220;
+        data[ptr++] = 255;
+      }
+    } else {
+      // Branco puro incandescente do ápice de corte (#ffffff)
+      for (let k = 0; k < count; k++) {
+        data[ptr++] = 255;
+        data[ptr++] = 255;
+        data[ptr++] = 255;
+        data[ptr++] = 255;
+      }
+    }
+  }
+  ctxLR.putImageData(imgData, 0, 0);
+  canvasLR.refresh();
+
+  // Registra cada quadro na textura slash_lr
+  for (let f = 0; f < numFrames; f++) {
+    canvasLR.add(f, 0, f * fw, 0, fw, fh);
+  }
+
+  // 2. Textura de 9 quadros: slash_rl (Golpe da direita para a esquerda / Ascendente Invertido)
+  // Inversão vertical direta por buffer em memória: elimina bugs de translação do canvas e garante quadros 100% perfeitos
+  const canvasRL = scene.textures.createCanvas('slash_rl', totalW, fh);
+  const ctxRL = canvasRL.context;
+  const imgDataRL = ctxRL.createImageData(totalW, fh);
+  const dataRL = imgDataRL.data;
+
+  for (let f = 0; f < numFrames; f++) {
+    for (let y = 0; y < fh; y++) {
+      const srcY = fh - 1 - y;
+      for (let x = 0; x < fw; x++) {
+        const srcIdx = (srcY * totalW + (f * fw + x)) * 4;
+        const dstIdx = (y * totalW + (f * fw + x)) * 4;
+        dataRL[dstIdx] = data[srcIdx];
+        dataRL[dstIdx + 1] = data[srcIdx + 1];
+        dataRL[dstIdx + 2] = data[srcIdx + 2];
+        dataRL[dstIdx + 3] = data[srcIdx + 3];
+      }
+    }
+  }
+  ctxRL.putImageData(imgDataRL, 0, 0);
+  canvasRL.refresh();
+
+  // Registra cada quadro na textura slash_rl
+  for (let f = 0; f < numFrames; f++) {
+    canvasRL.add(f, 0, f * fw, 0, fw, fh);
+  }
+
+  // 3. Fallback/Alias retrocompatível: slash_arc (aponta para o frame 3 de pico de corte)
+  const canvasArc = scene.textures.createCanvas('slash_arc', fw, fh);
+  canvasArc.context.drawImage(canvasLR.canvas, 3 * fw, 0, fw, fh, 0, 0, fw, fh);
+  canvasArc.refresh();
+
+  // Garante filtro NEAREST cristalino em todas as texturas
+  [canvasLR, canvasRL, canvasArc].forEach(tex => {
+    if (tex && tex.setFilter) tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+  });
+}
+
 function makeSlashTexture(scene) {
-  if (scene.textures.exists('slash_arc')) {
-    scene.textures.remove('slash_arc');
-  }
-
-  const canvasTex = scene.textures.createCanvas('slash_arc', 64, 88);
-  const ctx = canvasTex.context;
-
-  ctx.clearRect(0, 0, 64, 88);
-
-  const drawCrescent = (startX, startY, tipY, outerCpX, innerCpX, fillStyle, strokeStyle = null, lineWidth = 1) => {
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    const midY = (startY + tipY) / 2;
-    ctx.quadraticCurveTo(outerCpX, midY, startX, tipY);
-    ctx.quadraticCurveTo(innerCpX, midY, startX, startY);
-    ctx.closePath();
-
-    if (fillStyle) {
-      ctx.fillStyle = fillStyle;
-      ctx.fill();
-    }
-    if (strokeStyle) {
-      ctx.strokeStyle = strokeStyle;
-      ctx.lineWidth = lineWidth;
-      ctx.stroke();
-    }
-    ctx.restore();
-  };
-
-  // Camada 1: Halo etéreo externo profundo (azul arcano translúcido)
-  drawCrescent(10, 2, 86, 75, 20, 'rgba(0, 119, 182, 0.28)');
-
-  // Camada 2: Halo de aço ciano vibrante (brilho mágico cortante)
-  drawCrescent(12, 3, 85, 73, 22, 'rgba(77, 208, 225, 0.65)');
-
-  // Camada 3: Lâmina cristalina de energia (ciano claro)
-  drawCrescent(14, 4, 84, 70, 25, 'rgba(128, 222, 234, 0.90)');
-
-  // Camada 4: Núcleo puro branco incandescente (potência do golpe)
-  drawCrescent(18, 10, 78, 65, 30, 'rgba(255, 255, 255, 1.0)');
-
-  // Camada 5: Gume cortante de navalha na borda externa (fio afiado)
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(14, 4);
-  ctx.quadraticCurveTo(70, 44, 14, 84);
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1.8;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-  ctx.restore();
-
-  canvasTex.refresh();
-  if (canvasTex.setFilter) {
-    canvasTex.setFilter(Phaser.Textures.FilterMode.NEAREST);
-  }
+  makeSlashTextures(scene);
 }

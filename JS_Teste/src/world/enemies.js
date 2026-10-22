@@ -24,17 +24,17 @@ function spawnEnemy(scene, forcedType, customY) {
   }
   const cfg = ENEMIES[type] || ENEMIES.goblin;
 
-  // Evita nascer exatamente em cima de outro inimigo recém-gerado
-  let y = customY ?? Phaser.Math.Between(130, 520);
+  // Evita nascer exatamente em cima de outro inimigo recém-gerado (calibrado para 16:9)
+  let y = customY ?? Phaser.Math.Between(115, 455);
   if (customY === undefined) {
     for (let i = 0; i < 6; i++) {
-      const candidate = Phaser.Math.Between(130, 520);
-      const stacked = enemies.getChildren().some(e => !e.isBoss && e.x > 760 && Math.abs(e.y - candidate) < 36);
+      const candidate = Phaser.Math.Between(115, 455);
+      const stacked = enemies.getChildren().some(e => !e.isBoss && e.x > (GAME_WIDTH - 40) && Math.abs(e.y - candidate) < 36);
       if (!stacked) { y = candidate; break; }
     }
   }
 
-  const enemy = enemies.create(860, y, type, 0);
+  const enemy = enemies.create(GAME_WIDTH + 60, y, type, 0);
   enemy.play({ key: type, repeat: -1, startFrame: Phaser.Math.Between(0, 1) }).setFlipX(true);
   enemy.body.setSize(cfg.w, cfg.h);
   enemy.setVelocityX(-enemySpeed * cfg.speed);
@@ -89,7 +89,7 @@ function spawnEnemy(scene, forcedType, customY) {
 
 function elfShoot(scene, elf) {
   if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
-  if (elf.x > 790 || elf.x < player.x + 25) return;
+  if (elf.x > (GAME_WIDTH - 10) || elf.x < player.x + 25) return;
 
   elf.setTint(0xa7ffeb);
   if (sparksFx) sparksFx.explode(4, elf.x - 10, elf.y);
@@ -106,7 +106,7 @@ function elfShoot(scene, elf) {
 
 function mageShoot(scene, mage) {
   if (!mage.active || !player || !player.active || gameState !== 'PLAYING') return;
-  if (mage.x > 790 || mage.x < player.x + 20) return;
+  if (mage.x > (GAME_WIDTH - 10) || mage.x < player.x + 20) return;
 
   mage.setTint(0x7fe7ff);
   if (holyFx) holyFx.explode(6, mage.x - 10, mage.y - 4);
