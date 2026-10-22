@@ -33,7 +33,7 @@ function showAchievementToast(scene, ach) {
   if (!scene || !ach) return;
   sound.playAchievement();
 
-  const toast = scene.add.container(400, -50).setDepth(3600).setScrollFactor(0);
+  const toast = scene.add.container(GAME_WIDTH / 2, -50).setDepth(3600).setScrollFactor(0);
   const bg = scene.add.graphics();
   bg.fillStyle(0x16120e, 0.96).fillRoundedRect(-210, -24, 420, 48, 8);
   bg.lineStyle(2.5, 0xffca28).strokeRoundedRect(-210, -24, 420, 48, 8);
@@ -131,17 +131,17 @@ function createHUD(scene) {
   hudBestText = scene.add.text(552, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
 
-  // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 688..736)
+  // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 844..892 em 16:9)
   const soundBtnBg = scene.add.graphics();
   const drawSoundBtn = (hover = false) => {
     soundBtnBg.clear();
-    soundBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(688, 10, 48, 48, 6);
-    soundBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(688, 10, 48, 48, 6);
+    soundBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(844, 10, 48, 48, 6);
+    soundBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(844, 10, 48, 48, 6);
   };
   drawSoundBtn(false);
 
-  hudHornIcon = scene.add.image(712, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
-  const soundHitArea = scene.add.rectangle(712, 34, 48, 48, 0x000000, 0)
+  hudHornIcon = scene.add.image(868, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
+  const soundHitArea = scene.add.rectangle(868, 34, 48, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
 
   const toggleAudio = () => {
@@ -163,17 +163,17 @@ function createHUD(scene) {
     if (menuContainer && menuContainer.updateMenuHorn) menuContainer.updateMenuHorn();
   });
 
-  // 6. BOTÃO DE TELA CHEIA RÁPIDO [F] — Extremo Superior Direito (x: 742..790)
+  // 6. BOTÃO DE TELA CHEIA RÁPIDO [F] — Extremo Superior Direito (x: 902..950 em 16:9)
   const fsBtnBg = scene.add.graphics();
   const drawFsBtn = (hover = false) => {
     fsBtnBg.clear();
-    fsBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(742, 10, 48, 48, 6);
-    fsBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(742, 10, 48, 48, 6);
+    fsBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(902, 10, 48, 48, 6);
+    fsBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(902, 10, 48, 48, 6);
   };
   drawFsBtn(false);
 
-  hudFullscreenIcon = scene.add.image(766, 34, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
-  const fsHitArea = scene.add.rectangle(766, 34, 48, 48, 0x000000, 0)
+  hudFullscreenIcon = scene.add.image(926, 34, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
+  const fsHitArea = scene.add.rectangle(926, 34, 48, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
 
   fsHitArea.on('pointerover', () => drawFsBtn(true));
@@ -183,19 +183,19 @@ function createHUD(scene) {
     toggleFullscreen(scene);
   });
 
-  // 6. BOTÃO DE PAUSA RÁPIDO [ESC] — (x: 634..682) — Essencial para Mobile & Atalho de PC
+  // 6. BOTÃO DE PAUSA RÁPIDO [ESC] — (x: 786..834 em 16:9) — Essencial para Mobile & Atalho de PC
   const pauseBtnBg = scene.add.graphics();
   const drawPauseBtn = (hover = false) => {
     pauseBtnBg.clear();
-    pauseBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(634, 10, 48, 48, 6);
-    pauseBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(634, 10, 48, 48, 6);
+    pauseBtnBg.fillStyle(hover ? 0x2e241c : 0x16120e, 0.94).fillRoundedRect(786, 10, 48, 48, 6);
+    pauseBtnBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(786, 10, 48, 48, 6);
     pauseBtnBg.fillStyle(hover ? 0xffe082 : 0xc5a059, 1);
-    pauseBtnBg.fillRect(651, 22, 4, 24);
-    pauseBtnBg.fillRect(661, 22, 4, 24);
+    pauseBtnBg.fillRect(803, 22, 4, 24);
+    pauseBtnBg.fillRect(813, 22, 4, 24);
   };
   drawPauseBtn(false);
 
-  const pauseHitArea = scene.add.rectangle(658, 34, 48, 48, 0x000000, 0)
+  const pauseHitArea = scene.add.rectangle(810, 34, 48, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
   pauseHitArea.on('pointerover', () => drawPauseBtn(true));
   pauseHitArea.on('pointerout', () => drawPauseBtn(false));
@@ -208,24 +208,24 @@ function createHUD(scene) {
 
   hudContainer.add([pauseBtnBg, pauseHitArea, soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
 
-  // 7. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre (x: 10..790, y: 61..77)
+  // 7. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre 16:9 (x: 14..946, y: 61..77)
   const xpFrame = scene.add.graphics();
-  xpFrame.fillStyle(0x120e0b, 0.94).fillRoundedRect(10, 61, 780, 16, 4);
-  xpFrame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(10, 61, 780, 16, 4);
+  xpFrame.fillStyle(0x120e0b, 0.94).fillRoundedRect(14, 61, 932, 16, 4);
+  xpFrame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(14, 61, 932, 16, 4);
   hudXpBar = scene.add.graphics();
-  const xpGemIcon = scene.add.image(22, 69, 'xp_orb', 0).setScale(0.95);
-  hudLevelText = scene.add.text(34, 69, 'NÍVEL 1', textStyle('#ffca28', 10)).setOrigin(0, 0.5);
-  hudXpText = scene.add.text(780, 69, 'XP: 0 / 6', textStyle('#7fe7ff', 10)).setOrigin(1, 0.5);
+  const xpGemIcon = scene.add.image(26, 69, 'xp_orb', 0).setScale(0.95);
+  hudLevelText = scene.add.text(38, 69, 'NÍVEL 1', textStyle('#ffca28', 10)).setOrigin(0, 0.5);
+  hudXpText = scene.add.text(936, 69, 'XP: 0 / 6', textStyle('#7fe7ff', 10)).setOrigin(1, 0.5);
   hudContainer.add([xpFrame, hudXpBar, xpGemIcon, hudLevelText, hudXpText]);
   updateXpHUD();
 
-  // 8. BARRA DE VIDA DO CHEFÃO (Oculta até os 120s da Boss Fight; posicionada abaixo da Barra de XP)
+  // 8. BARRA DE VIDA DO CHEFÃO (Centralizada em 16:9, posicionada abaixo da Barra de XP)
   bossHudContainer = scene.add.container(0, 0).setVisible(false);
   const bossBg = scene.add.graphics();
-  bossBg.fillStyle(0x160d0b, 0.94).fillRoundedRect(236, 80, 328, 30, 5);
-  bossBg.lineStyle(2, 0xd83a3a).strokeRoundedRect(236, 80, 328, 30, 5);
-  const bossTitle = scene.add.text(252, 83, 'GOLEM ANCESTRAL DE PEDRA', textStyle('#ff8a80', 10));
-  bossHpText = scene.add.text(548, 83, `${BOSS_MAX_HP}/${BOSS_MAX_HP}`, textStyle('#ffca28', 10)).setOrigin(1, 0);
+  bossBg.fillStyle(0x160d0b, 0.94).fillRoundedRect(300, 80, 360, 30, 5);
+  bossBg.lineStyle(2, 0xd83a3a).strokeRoundedRect(300, 80, 360, 30, 5);
+  const bossTitle = scene.add.text(316, 83, 'GOLEM ANCESTRAL DE PEDRA', textStyle('#ff8a80', 10));
+  bossHpText = scene.add.text(644, 83, `${BOSS_MAX_HP}/${BOSS_MAX_HP}`, textStyle('#ffca28', 10)).setOrigin(1, 0);
   bossHpBar = scene.add.graphics();
   bossHudContainer.add([bossBg, bossTitle, bossHpBar, bossHpText]);
   hudContainer.add(bossHudContainer);
@@ -236,7 +236,7 @@ function updateXpHUD() {
   hudXpBar.clear();
   const barX = 110;
   const barY = 64;
-  const barW = 575;
+  const barW = 730;
   const barH = 10;
 
   hudXpBar.fillStyle(0x090705, 1).fillRect(barX, barY, barW, barH);

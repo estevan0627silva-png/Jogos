@@ -2,6 +2,54 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.6.0] — 2026-10-22
+### 🖥️ Título da Versão: **Visão Panorâmica: Arquitetura Nativa 16:9 (1920x1080 Fullscreen)**
+
+### 📝 Descrição (GitHub Release & Commit):
+> Transição completa da resolução para proporção 16:9 nativa (canvas base de 960x540 com escala inteira exata 2.0x para 1920x1080 em tela cheia). Adaptação e centralização milimétrica de todos os menus, botões, modais e elementos de HUD; expansão horizontal do campo de visão do cenário, calibração reativa de limites de colisão Arcade, posicionamento estratégico da arena do Golem de Pedra e renovação das zonas de spawn de inimigos e culling adaptativo.
+
+### 🚀 O que mudou:
+- **📐 Arquitetura Nativa 16:9 & Resolução 1080p Integer-Scaled:**
+  - Migração da resolução base do jogo de 800x600 (4:3) para 960x540 (16:9 widescreen).
+  - Em monitores Full HD (1920x1080) em tela cheia (`fullscreenTarget: 'game-container'`), a escala é matematicamente exata (960x2 = 1920 e 540x2 = 1080), preservando a nitidez cristalina do pixel art sem distorções, faixas pretas laterais ou subpixel shimmering.
+- **🎨 Cenário Panorâmico & Parallax Vertical Rebalanceado:**
+  - `ground`: Redimensionado para 960x540 com centro exato em `(480, 270)`.
+  - `road`: Rebalanceada para `y = 285` com altura de 84px, conectando harmonicamente o pátio da vila de Vale Dourado.
+  - `forestTop` (`y = 48`, altura 96px) e `forestBottom` (`y = 505`, altura 70px): Parallax frontal e traseiro ajustado para cobrir perfeitamente as extremidades superior e inferior.
+  - `vignette_64bit`: Textura procedural de vinheta cinematográfica gerada dinamicamente na proporção 960x540 com degradê radial ajustado para tela ampla.
+- **🏰 Vila Inicial de Vale Dourado & Área Jogável:**
+  - Pátio (`village_plaza`) ancorado em `y = 285`.
+  - Casas norte (`y = 140`), Ferreiro (`y = 146`), Chalés sul e Estábulo (`y = 430`, `428`).
+  - O Grande Portão e Torres da Muralha (`x = 415`) alinhados perfeitamente à estrada: torre superior em `y = 195` e torre inferior em `y = 375`.
+  - Limite de colisão do mundo Arcade ajustado para `setBounds(0, 85, 960, 390)`, mantendo o cavaleiro na área transitável entre as florestas.
+  - Posição inicial do herói ajustada para `(180, 285)`.
+- **⚔️ Spawn de Inimigos, Obstáculos e Descarte Culling:**
+  - Inimigos e árvores passam a surgir além da borda direita expandida (`x = GAME_WIDTH + 60` a `GAME_WIDTH + 80`, ~1020px-1040px), evitando que apareçam abruptamente na visão do jogador.
+  - Faixa vertical de geração de monstros calibrada para `y = Between(115, 455)`.
+  - Culling de projéteis e descartes de entidades estendido para cobrir a largura panorâmica `GAME_WIDTH + 40`.
+- **🗿 Arena e Ataques do Chefão (Golem de Pedra):**
+  - Entrada do Golem Ancestral estabilizada na borda direita em `x = 820` (anteriormente 685), com patrulha vertical entre `y = 150` e `y = 430`.
+  - O ataque **Soco Colossal** tem sua telegrafia e alcance estendidos dinamicamente de `120px` até a posição do boss (`laneW = boss.x - 120`), cobrindo toda a faixa da arena com fidelidade visual.
+  - Ejeção de Mini-Golems e arremesso de pedras recalibrados para as novas dimensões de campo.
+- **👑 HUD Superior & Barra de Experiência Panorâmica:**
+  - Botões superiores de ação ancorados à direita: Tela Cheia [F] em `x: 902..950`, Som [M] em `x: 844..892` e Pausa [ESC] em `x: 786..834`.
+  - Barra de Experiência (XP) estendida em faixa horizontal de 932px (`x: 14..946, y: 61`), com preenchimento gráfico de 730px e texto de XP alinhado na extremidade direita (`x: 936`).
+  - Barra de Vida do Chefão centralizada em `cx = 480` com largura de 360px (`x: 300..660`).
+  - Toasts de Conquista centralizados em `cx = 480`.
+- **📜 Menu Principal, Modais & Menus Secundários Centralizados:**
+  - Menu Principal: Céu crepuscular, cordilheira, castelo e caminhos gerados em 960px com banner de título centralizado (`cx = 480`) e painel de ações posicionado à direita em `x: 560..910`.
+  - Todos os submenus (Forja do Ferreiro, Santuário do Mago, Tábula de Conquistas, Recordes e Configurações) reformatados para altura de 470px a 490px com largura ampla de 820px, garantindo que caibam inteiramente na tela de 540p com margens elegantes e botões de fechamento acessíveis.
+  - Modal de Level Up com as 3 cartas de evolução distribuídas harmoniosamente em `[220, 480, 740]` com 230px de largura cada.
+  - Telas de Pausa, Fim de Jogo (Iniciais) e Tábula dos Campeões centralizadas em `cx = 480` com dimensionamento dinâmico.
+- **🕹️ Joystick Virtual Mobile:**
+  - Posição fixa de ancoragem recalculada para `baseX = 110` e `baseY = 445` (anteriormente 485), garantindo posicionamento perfeito no canto inferior esquerdo sem sobrepor o rodapé nem colidir com a floresta inferior.
+
+---
+
+# 📋 Histórico de Versões (Changelog)
+
+Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
+
 ## [v2.5.0] — 2026-10-22
 ### ⚔️ Título da Versão: **Dança das Lâminas: Cortes Alternados e Escalonamento Físico Dinâmico**
 

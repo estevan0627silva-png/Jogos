@@ -1,13 +1,13 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.5.0';
-const VERSION_TITLE = 'Dança das Lâminas: Cortes Alternados e Escalonamento Físico Dinâmico';
-const VERSION_DESC = 'Reformulação visual e mecânica do ataque da espada com animação em pixel art de 9 quadros baseada em spritesheet dedicada, sistema de cortes alternados (esquerda para a direita descendente e direita para a esquerda ascendente), combos sucessivos de Disparo Múltiplo a cada 80ms, alinhamento físico milimétrico 1:1 da hitbox Arcade sem elongação quadrática e avanço frontal com cone fechado (3.5°) prevenindo sobreposição nas costas do cavaleiro.';
+const GAME_VERSION = 'v2.6.0';
+const VERSION_TITLE = 'Visão Panorâmica: Arquitetura Nativa 16:9 (1920x1080 Fullscreen)';
+const VERSION_DESC = 'Transição completa da resolução para 16:9 (960x540 base com escala inteira 2x para 1920x1080 em tela cheia). Centralização de menus, HUD, modais e botões, expansão de cenário e calibração de spawns de inimigos, limites de colisão e culling adaptativo.';
 const MAX_CHOSEN_SCROLLS = 2;
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
+const GAME_WIDTH = 960;
+const GAME_HEIGHT = 540;
 
 // AJUSTES DO JOGO (Rebalanceamento v1.6.0: Progressão Infinita e Curva Suave)
 // =============================================================================

@@ -175,16 +175,16 @@ function create(data) {
     scene.anims.create({ key: 'slash_anim_rl', frameRate: 48, repeat: 0, frames });
   }
 
-  // Camadas do cenário, de trás para frente
-  ground = scene.add.tileSprite(400, 300, 800, 600, 'ground').setDepth(-10);
-  road = scene.add.tileSprite(400, 330, 800, 80, 'road').setDepth(-9);
-  forestTop = scene.add.tileSprite(400, 55, 800, 110, 'forest_top').setDepth(-5);
-  sunRays = scene.add.tileSprite(400, 130, 800, 260, 'sunbeam_rays').setDepth(-4).setAlpha(0.06).setBlendMode(Phaser.BlendModes.ADD);
+  // Camadas do cenário, de trás para frente (Proporção 16:9 Nativa 960x540)
+  ground = scene.add.tileSprite(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 'ground').setDepth(-10);
+  road = scene.add.tileSprite(GAME_WIDTH / 2, 285, GAME_WIDTH, 84, 'road').setDepth(-9);
+  forestTop = scene.add.tileSprite(GAME_WIDTH / 2, 48, GAME_WIDTH, 96, 'forest_top').setDepth(-5);
+  sunRays = scene.add.tileSprite(GAME_WIDTH / 2, 130, GAME_WIDTH, 260, 'sunbeam_rays').setDepth(-4).setAlpha(0.06).setBlendMode(Phaser.BlendModes.ADD);
   scene.tweens.add({ targets: sunRays, alpha: { from: 0.04, to: 0.08 }, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   shadows = scene.add.graphics().setDepth(-2);
-  forestBottom = scene.add.tileSprite(400, 560, 800, 80, 'forest_bottom').setDepth(1000);
-  vignetteOverlay = scene.add.image(400, 300, 'vignette_64bit').setDepth(1590).setScrollFactor(0);
-  bossFilterOverlay = scene.add.rectangle(400, 300, 800, 600, 0x240b06, 0).setDepth(1800);
+  forestBottom = scene.add.tileSprite(GAME_WIDTH / 2, 505, GAME_WIDTH, 70, 'forest_bottom').setDepth(1000);
+  vignetteOverlay = scene.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'vignette_64bit').setDepth(1590).setScrollFactor(0);
+  bossFilterOverlay = scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x240b06, 0).setDepth(1800);
 
   // Grupos físicos
   villageDecor = scene.physics.add.group({ immovable: true });
@@ -197,12 +197,12 @@ function create(data) {
   enemyArrows = scene.physics.add.group();
   slashes = scene.physics.add.group();
 
-  // Árvores nas bordas a partir de além dos portões da vila
-  for (let x = 620; x <= 980; x += 120) spawnTree(x);
+  // Árvores nas bordas a partir de além dos portões da vila (expandido para 16:9)
+  for (let x = 620; x <= 1180; x += 120) spawnTree(x);
 
-  // Jogador (limitado à área entre as florestas)
-  scene.physics.world.setBounds(0, 95, 800, 455);
-  player = scene.physics.add.sprite(160, 330, 'knight', 0);
+  // Jogador (limitado à área entre as florestas na proporção 16:9)
+  scene.physics.world.setBounds(0, 85, GAME_WIDTH, 390);
+  player = scene.physics.add.sprite(180, 285, 'knight', 0);
   player.body.setSize(16, 22).setOffset(8, 8);
   player.setCollideWorldBounds(true);
   player.setVisible(false); // Oculto enquanto estiver nos menus
@@ -311,7 +311,7 @@ function create(data) {
 
   // Combate: suporta flechas, machados bumerangue perfurantes e bolas de fogo explosivas
   scene.physics.add.overlap(playerArrows, enemies, (a, e) => {
-    if (e.x >= 800 || !a.active || !e.active) return;
+    if (e.x >= GAME_WIDTH || !a.active || !e.active) return;
 
     // Identificador único da entidade para rastreamento seguro de hits por projétil
     if (!e.entityId) e.entityId = ++entityIdCounter;
@@ -366,7 +366,7 @@ function create(data) {
   });
   scene.physics.add.overlap(slashes, enemies, (s, e) => {
     // Trava monotônica (< s.slashId) evita que dois golpes simultâneos alternem dano a cada frame!
-    if (e.x < 800 && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
+    if (e.x < GAME_WIDTH && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, s.dmg || 1);
       // Regra 22: Espada aplica empurrão suave (knockback) exclusivo se o inimigo sobreviver
@@ -403,7 +403,7 @@ function create(data) {
       explodeFireball(scene, fx, fy, rad, dmg);
       return;
     }
-    if (arrow.x > 0 && arrow.x < 800 && obs.x < 810) {
+    if (arrow.x > 0 && arrow.x < GAME_WIDTH && obs.x < GAME_WIDTH + 10) {
       if (obs.obstacleType === 'rock') {
         sound.playShieldBlock();
         sparksFx.explode(6, arrow.x, arrow.y);
@@ -613,17 +613,17 @@ function updateGameplay(scene, time, dt) {
     if (!activeBoss.isLunging) {
       activeBoss.setAngle(0);
       if (activeBoss.entering) {
-        if (activeBoss.x <= 685) {
-          activeBoss.x = 685;
+        if (activeBoss.x <= 820) {
+          activeBoss.x = 820;
           activeBoss.setVelocityX(0);
           activeBoss.entering = false;
           activeBoss.setVelocityY(68);
         }
       } else {
-        activeBoss.x = 685;
+        activeBoss.x = 820;
         activeBoss.setVelocityX(0);
-        if (activeBoss.y <= 170) activeBoss.setVelocityY(72);
-        else if (activeBoss.y >= 480) activeBoss.setVelocityY(-72);
+        if (activeBoss.y <= 150) activeBoss.setVelocityY(72);
+        else if (activeBoss.y >= 430) activeBoss.setVelocityY(-72);
       }
     }
   }
@@ -641,8 +641,8 @@ function updateGameplay(scene, time, dt) {
   cull(items, s => s.x < -60);
   cull(coins, s => s.x < -60);
   cull(xpOrbs, s => s.x < -60);
-  cull(playerArrows, s => s.x < -40 || s.x > 830 || s.y < 0 || s.y > 620);
-  cull(enemyArrows, s => s.x < -40 || s.x > 840 || s.y < 0 || s.y > 620);
+  cull(playerArrows, s => s.x < -40 || s.x > GAME_WIDTH + 40 || s.y < 0 || s.y > GAME_HEIGHT + 20);
+  cull(enemyArrows, s => s.x < -40 || s.x > GAME_WIDTH + 40 || s.y < 0 || s.y > GAME_HEIGHT + 20);
 }
 
 // Impede o jogador de atravessar obstáculos e resolve prensamento de forma suave (sem trancos ou cuspidas)

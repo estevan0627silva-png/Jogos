@@ -250,18 +250,20 @@ function openLevelUpDraft(scene) {
   const cards = rollLevelUpCards();
   draftModal = scene.add.container(0, 0).setDepth(3300).setScrollFactor(0);
 
-  const overlay = scene.add.rectangle(400, 300, 800, 600, 0x06040a, 0.80);
+  const overlay = scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x06040a, 0.80);
   const bannerBg = scene.add.graphics();
-  bannerBg.fillStyle(0x16110c, 0.98).fillRoundedRect(120, 28, 560, 74, 10);
-  bannerBg.lineStyle(3, 0xffca28).strokeRoundedRect(120, 28, 560, 74, 10);
-  bannerBg.lineStyle(1, 0x8d5524).strokeRoundedRect(125, 33, 550, 64, 8);
+  const bannerW = 640, bannerH = 68;
+  const bannerLeft = GAME_WIDTH / 2 - bannerW / 2;
+  bannerBg.fillStyle(0x16110c, 0.98).fillRoundedRect(bannerLeft, 16, bannerW, bannerH, 10);
+  bannerBg.lineStyle(3, 0xffca28).strokeRoundedRect(bannerLeft, 16, bannerW, bannerH, 10);
+  bannerBg.lineStyle(1, 0x8d5524).strokeRoundedRect(bannerLeft + 5, 21, bannerW - 10, bannerH - 10, 8);
 
-  const titleTxt = scene.add.text(400, 52, `✦ SUBIU PARA O NÍVEL ${runLevel}! ✦`, {
+  const titleTxt = scene.add.text(GAME_WIDTH / 2, 38, `✦ SUBIU PARA O NÍVEL ${runLevel}! ✦`, {
     ...textStyle('#ffca28', 22),
     fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
-  const subTxt = scene.add.text(400, 80, 'ESCOLHA 1 CARTA DE UPGRADE DE ARMA OU ITEM (CLIQUE OU TECLAS [1] [2] [3])', textStyle('#7fe7ff', 11)).setOrigin(0.5);
-  fitTextToBox(subTxt, 520, 20, 9);
+  const subTxt = scene.add.text(GAME_WIDTH / 2, 64, 'ESCOLHA 1 CARTA DE UPGRADE DE ARMA OU ITEM (CLIQUE OU TECLAS [1] [2] [3])', textStyle('#7fe7ff', 11)).setOrigin(0.5);
+  fitTextToBox(subTxt, 600, 20, 9);
 
   draftModal.add([overlay, bannerBg, titleTxt, subTxt]);
 
@@ -324,10 +326,10 @@ function openLevelUpDraft(scene) {
   scene.input.keyboard.once('keydown-TWO', onKey2);
   scene.input.keyboard.once('keydown-THREE', onKey3);
 
-  const cardPositions = [155, 400, 645];
-  const cardW = 224;
-  const cardH = 380;
-  const cardY = 315;
+  const cardPositions = [220, 480, 740];
+  const cardW = 230;
+  const cardH = 390;
+  const cardY = 308;
 
   cards.forEach((card, idx) => {
     const cx = cardPositions[idx];
@@ -538,27 +540,28 @@ function resumeGame(scene) {
 function showPauseModal(scene) {
   if (pauseModal) pauseModal.destroy();
 
-  const height = 470;
+  const height = 430;
   const top = (GAME_HEIGHT - height) / 2;
+  const cx = GAME_WIDTH / 2;
   pauseModal = createModal(scene, 'JOGO PAUSADO', height, '★ JORNADA EM ESPERA ★', 480);
 
   // Status de sobrevivência, prata e relíquia
   const statsBox = scene.add.graphics();
-  statsBox.fillStyle(0x221a13, 0.92).fillRoundedRect(190, top + 84, 420, 62, 6);
-  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(190, top + 84, 420, 62, 6);
+  statsBox.fillStyle(0x221a13, 0.92).fillRoundedRect(cx - 210, top + 74, 420, 58, 6);
+  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 210, top + 74, 420, 58, 6);
 
-  const timeTxt = scene.add.text(208, top + 98, `TEMPO: ${survivalTime}s  |  PRATA: ${runSilver}  |  OURO: ${getGold()}`, textStyle('#ffca28', 12));
+  const timeTxt = scene.add.text(cx - 192, top + 88, `TEMPO: ${survivalTime}s  |  PRATA: ${runSilver}  |  OURO: ${getGold()}`, textStyle('#ffca28', 12));
   fitTextToBox(timeTxt, 384, 22, 10);
   const relicName = buff.type ? `${BUFF_NAMES[buff.type]} NV.${getWeaponLevel(buff.type)} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
   const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
-  const relicTxt = scene.add.text(208, top + 122, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
+  const relicTxt = scene.add.text(cx - 192, top + 110, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
   fitTextToBox(relicTxt, 384, 22, 10);
 
-  const continueBtn = createButton(scene, 400, top + 174, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), 290, 38);
+  const continueBtn = createButton(scene, cx, top + 154, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), 290, 36);
 
-  const audioBtn = scene.add.rectangle(400, top + 220, 290, 38, sound.isMuted() ? 0x8e1b1b : 0x247a46)
+  const audioBtn = scene.add.rectangle(cx, top + 196, 290, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioTxt = scene.add.text(400, top + 220, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
+  const audioTxt = scene.add.text(cx, top + 196, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
     .setOrigin(0.5);
 
   const updateAudioUI = () => {
@@ -574,9 +577,9 @@ function showPauseModal(scene) {
     updateAudioUI();
   });
 
-  const fsBtn = scene.add.rectangle(400, top + 266, 290, 38, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
+  const fsBtn = scene.add.rectangle(cx, top + 238, 290, 36, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
     .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const fsTxt = scene.add.text(400, top + 266, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
+  const fsTxt = scene.add.text(cx, top + 238, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
     .setOrigin(0.5);
 
   const updateFsUI = () => {
@@ -595,9 +598,9 @@ function showPauseModal(scene) {
   pauseModal.updateAudio = updateAudioUI;
   pauseModal.updateFullscreen = updateFsUI;
 
-  const restartBtn = createButton(scene, 400, top + 312, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 38);
-  const menuBtn = createButton(scene, 400, top + 358, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 38);
-  const footerHint = scene.add.text(400, top + 412, 'Pausar / Retornar: Tecla P', textStyle('#a8987b', 11)).setOrigin(0.5);
+  const restartBtn = createButton(scene, cx, top + 280, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 36);
+  const menuBtn = createButton(scene, cx, top + 322, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 36);
+  const footerHint = scene.add.text(cx, top + 368, 'Pausar / Retornar: Tecla P', textStyle('#a8987b', 11)).setOrigin(0.5);
 
   pauseModal.add([
     statsBox, timeTxt, relicTxt,
@@ -615,8 +618,8 @@ function showPauseModal(scene) {
 // -----------------------------------------------------------------------------
 function showInitials(scene) {
   let name = '', done = false;
-  const modalW = 540;
-  const modalH = 510;
+  const modalW = 560;
+  const modalH = 480;
   const cx = GAME_WIDTH / 2;
   const top = (GAME_HEIGHT - modalH) / 2;
   const boxW = modalW - 56;
@@ -769,8 +772,8 @@ function showInitials(scene) {
 }
 
 function showLeaderboard(scene, topScores, currentName) {
-  const modalW = 580;
-  const modalH = 520;
+  const modalW = 600;
+  const modalH = 485;
   const cx = GAME_WIDTH / 2;
   const top = (GAME_HEIGHT - modalH) / 2;
 
@@ -784,7 +787,7 @@ function showLeaderboard(scene, topScores, currentName) {
     const isMine = !marked && entry.name === currentName && entry.score === survivalTime;
     if (isMine) marked = true;
     const rankLabel = ['1º', '2º', '3º', '4º', '5º'][i];
-    const rowY = top + 98 + i * 36;
+    const rowY = top + 88 + i * 32;
 
     const rowBg = scene.add.graphics();
     rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 14, 460, 28, 4);
@@ -804,7 +807,7 @@ function showLeaderboard(scene, topScores, currentName) {
 
   if (hasRewardButton) {
     let rewardedUsed = false;
-    const doubleGoldBtn = createButton(scene, cx, top + 296, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
+    const doubleGoldBtn = createButton(scene, cx, top + 266, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
       if (rewardedUsed) return;
       sound.playButtonClick();
       if (typeof PlatformBridge !== 'undefined') {
@@ -849,10 +852,10 @@ function showLeaderboard(scene, topScores, currentName) {
     finishAndRestart(true, false);
   };
 
-  // Layout Vertical Stack dinâmico e sem sobreposição
-  const actionRow1Y = hasRewardButton ? (top + 352) : (top + 316);
-  const actionRow2Y = hasRewardButton ? (top + 402) : (top + 368);
-  const hintY = hasRewardButton ? (top + 452) : (top + 422);
+  // Layout Vertical Stack dinâmico e sem sobreposição em 16:9
+  const actionRow1Y = hasRewardButton ? (top + 318) : (top + 276);
+  const actionRow2Y = hasRewardButton ? (top + 364) : (top + 322);
+  const hintY = hasRewardButton ? (top + 410) : (top + 368);
 
   const newRunBtn = createButton(scene, cx - 138, actionRow1Y, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 38);
   const forgeBtn = createButton(scene, cx + 138, actionRow1Y, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 38);
