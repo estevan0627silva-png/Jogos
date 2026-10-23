@@ -2,6 +2,55 @@
 
 Todas as alterações deste projeto estão documentadas aqui seguindo o padrão de Versionamento Semântico.
 
+## [v2.7.2] — 2026-10-23
+### Título da Versão: **Caligrafia de Pergaminho: Títulos Diretos dos Itens e Balões de Fala Cristalinos**
+
+### Descrição (GitHub Release & Commit):
+> Aplicação da renderização pura de pergaminho (`parchmentTitleStyle` e `parchmentBodyStyle`) nos títulos das cartas e balões de diálogo dos mestres na Forja do Ferreiro e no Santuário do Mago, removendo sombras que poluíam o fundo claro. Simplificação dos títulos das cartas da loja do mago para apresentar diretamente o nome do item (Elixir de Vida, Poção de Velocidade, Ímã Arcano e Sabedoria Arcana) com fonte ampliada e centralização perfeita.
+
+### O que mudou:
+- **Títulos Diretos dos Itens na Loja do Mago:**
+  - Substituição dos nomes longos anteriores por títulos objetivos e impactantes no topo de cada carta:
+    - `maxHp`: **ELIXIR DE VIDA**
+    - `moveSpeed`: **POÇÃO DE VELOCIDADE**
+    - `magnet`: **ÍMÃ ARCANO**
+    - `wisdom`: **SABEDORIA ARCANA**
+  - Tipografia ampliada para 13px bold em tonalidade escura profunda (`#221226` / `#8c4e03`), perfeitamente centralizada acima do alvéolo das poções.
+- **Caligrafia Cristalina em Fundo Claro (Pergaminho):**
+  - Implementação e aplicação dos estilos dedicados `parchmentTitleStyle` e `parchmentBodyStyle` em todos os elementos de pergaminho:
+    - **Títulos das Cartas da Forja do Ferreiro:** renderizados com caligrafia nítida sem sombra preta borrada ou bordas recortadas.
+    - **Títulos das Cartas do Santuário do Mago:** renderizados sem contornos artificiais, simulando tinta nobre sobre pergaminho.
+    - **Balões de Fala dos Mestres (Ferreiro Anvilgar e Arquimago Alquimista):** títulos (`parchmentTitleStyle`, 12px bold) e falas (`parchmentBodyStyle`, 11px) com quebra de linha harmoniosa e máxima legibilidade.
+- **Consistência Visual e Polimento Geral:**
+  - Zero resquícios de traços pesados (`strokeThickness`) sobre papéis claros.
+  - Zero alteração na jogabilidade, lógica de combate, status ou economia do jogo.
+
+---
+
+## [v2.7.1] — 2026-10-23
+### Título da Versão: **Tipografia Cristalina: Refinamento de Bordas de Texto, Botões Nobres e Remoção Total de Emojis**
+
+### Descrição (GitHub Release & Commit):
+> Eliminação completa dos traços esfarelados e bordas fragmentadas de textos, títulos, subtítulos e botões por meio de renderização limpa com sombras sólidas de 1px/2px. Padronização de bordas de botões com espessuras inteiras uniformes e remoção estrita de todos os emojis e glifos decorativos do jogo.
+
+### O que mudou:
+- **Refinamento Tipográfico e Fim das Bordas Fragmentadas:**
+  - Reformulação do gerador global de estilos `textStyle` para utilizar por padrão `strokeThickness: 0` e sombras projetadas sólidas (`shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 0, fill: true }`), eliminando os artefatos de serrilhado e quebra de contornos decorrentes do filtro pixelado do canvas.
+  - Criação de helpers tipográficos dedicados: `buttonTextStyle` (letras nítidas para botões), `titleTextStyle` (títulos sem duplicidade de traço e com sombra sólida de 2px) e `subtitleTextStyle` (subtítulos perfeitamente legíveis sem espessuras borradas).
+  - Remoção de duplicidades de textos sobrepostos que causavam choques de traçado nos títulos modais e do menu principal.
+  - Limpeza dos avisos flutuantes (`floatText`), erradicando o antigo traço grosso de 4px em favor de renderização cristalina com sombra de alto contraste.
+- **Acabamento e Bordas Uniformes nos Botões:**
+  - Substituição de espessuras fracionárias (`1.5`) por traços inteiros sólidos (`2px`) em todos os botões do jogo (`createButton`, botões de alternância de áudio, tela cheia, joystick, abas da loja e botões de ação de compra/equipamento).
+  - As bordas retangulares e chanfradas agora mantêm preenchimento e contorno consistentes sem falhas de interpolação subpixel.
+- **Remoção Estrita de Todos os Emojis e Símbolos Decorativos:**
+  - Varredura e erradicação de 100% dos emojis e caracteres gráficos no código de interface e gameplay:
+    - Espadas (`⚔`), picaretas/martelos (`⚒`), bolas de cristal (`🔮`), troféus (`🏆`), coroas (`👑`), sacos de moedas (`💰`).
+    - Estrelas decorativas (`★`), faíscas (`✦`), setas gráficas (`➔`), símbolos de checagem (`✓`), triângulos de perigo (`⚠`) e cruzes (`✕`).
+    - Símbolos de graus (`°`) nos textos de combate substituídos por grafia por extenso (`360 graus`).
+  - Nomes de botões e abas ajustados para tipografia clássica nobre: `COMEÇAR JORNADA`, `FORJA DO FERREIRO`, `SANTUÁRIO DO MAGO`, `CONQUISTAS DO REINO`, `A FORJA REAL`, `SANTUÁRIO ALQUIMISTA`, `SAIR`, `EM USO`, `CONCLUÍDO`, etc.
+
+---
+
 ## [v2.7.0] — 2026-10-22
 ### 🎨 Título da Versão: **Ateliê do Reino: Interface Medieval Nobre, Cenários de Lojas Imersivas e Balcões dos Mestres**
 

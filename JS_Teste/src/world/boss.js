@@ -33,7 +33,7 @@ function startBossFight(scene) {
   forestTop.setTint(0x9e8278);
   forestBottom.setTint(0x9e8278);
 
-  floatText(scene, GAME_WIDTH / 2, 134, '⚠ CHEFÃO: GOLEM ANCESTRAL DE PEDRA! ⚠', '#ff5252');
+  floatText(scene, GAME_WIDTH / 2, 134, 'CHEFÃO: GOLEM ANCESTRAL DE PEDRA!', '#ff5252');
 
   const boss = enemies.create(GAME_WIDTH + 80, 285, 'boss_golem', 0);
   boss.play('boss_golem').setFlipX(true);
@@ -501,7 +501,7 @@ function defeatBoss(scene, boss) {
   forestBottom.clearTint();
   sound.startBGM('normal');
 
-  floatText(scene, GAME_WIDTH / 2, 150, '★ GOLEM DERROTADO! CHUVA DE PRATA & XP! ★', '#ffca28');
+  floatText(scene, GAME_WIDTH / 2, 150, 'GOLEM DERROTADO! CHUVA DE PRATA & XP!', '#ffca28');
   for (let i = 0; i < 10; i++) {
     spawnCoinDrop(scene, bx + Phaser.Math.Between(-52, 52), by + Phaser.Math.Between(-36, 36), 2);
     spawnXpOrb(scene, bx + Phaser.Math.Between(-56, 56), by + Phaser.Math.Between(-40, 40), 4);

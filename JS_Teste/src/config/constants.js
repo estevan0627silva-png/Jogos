@@ -1,9 +1,9 @@
 // =============================================================================
 // CONTROLE DE VERSÃO & CONSTANTES GLOBAIS
 // =============================================================================
-const GAME_VERSION = 'v2.7.0';
-const VERSION_TITLE = 'Ateliê do Reino: Interface Medieval Nobre, Cenários de Lojas Imersivas e Balcões dos Mestres';
-const VERSION_DESC = 'Reformulação visual e estética completa da interface in-game, telas de menu e lojas temáticas com coesão artística dark fantasy inspirada nos kits medievais de pergaminho, ferro forjado e filigranas douradas. A Forja do Ferreiro e o Santuário do Mago agora contam com cenários imersivos completos de oficina e laboratório com balcões rústicos, vendedores animados atrás dos balcões e mostruário de armas e poções em cartas de pergaminho interativas.';
+const GAME_VERSION = 'v2.7.2';
+const VERSION_TITLE = 'Caligrafia de Pergaminho: Títulos Diretos dos Itens e Balões de Fala Cristalinos';
+const VERSION_DESC = 'Aplicação da renderização pura de pergaminho (parchmentTitleStyle e parchmentBodyStyle) nos títulos das cartas e balões de diálogo dos mestres na Forja do Ferreiro e no Santuário do Mago, removendo sombras que poluíam o fundo claro. Simplificação dos títulos das cartas da loja do mago para apresentar diretamente o nome do item (Elixir de Vida, Poção de Velocidade, Ímã Arcano e Sabedoria Arcana) com fonte ampliada e centralização perfeita.';
 const MAX_CHOSEN_SCROLLS = 2;
 
 const GAME_WIDTH = 960;

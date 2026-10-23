@@ -5,13 +5,92 @@
 const ROUNDED_FONT = '"Nunito", "Quicksand", "Segoe UI", "Trebuchet MS", "Arial Rounded MT Bold", sans-serif';
 const SERIF_TITLE_FONT = '"Cinzel", "Georgia", "Palatino Linotype", serif';
 
-const textStyle = (color, size = 17, weight = 'bold') => ({
+const textStyle = (color, size = 17, weight = 'bold', strokeThickness = 0, strokeColor = '#000000') => ({
   fontSize: size + 'px',
   fontStyle: weight,
   color,
   fontFamily: SERIF_TITLE_FONT,
-  stroke: '#0e0b08',
-  strokeThickness: Math.max(2, Math.round(size * 0.16))
+  stroke: strokeThickness > 0 ? strokeColor : 'transparent',
+  strokeThickness: strokeThickness,
+  shadow: {
+    offsetX: 1,
+    offsetY: 1,
+    color: '#000000',
+    blur: 0,
+    stroke: false,
+    fill: true
+  }
+});
+
+const buttonTextStyle = (color = '#ffffff', size = 13, weight = 'bold') => ({
+  fontSize: size + 'px',
+  fontStyle: weight,
+  color,
+  fontFamily: SERIF_TITLE_FONT,
+  stroke: 'transparent',
+  strokeThickness: 0,
+  shadow: {
+    offsetX: 1,
+    offsetY: 1,
+    color: '#000000',
+    blur: 0,
+    stroke: false,
+    fill: true
+  }
+});
+
+const titleTextStyle = (color = '#ffca28', size = 22) => ({
+  fontSize: size + 'px',
+  fontStyle: 'bold',
+  color,
+  fontFamily: SERIF_TITLE_FONT,
+  stroke: 'transparent',
+  strokeThickness: 0,
+  shadow: {
+    offsetX: 1,
+    offsetY: 2,
+    color: '#050302',
+    blur: 0,
+    stroke: false,
+    fill: true
+  }
+});
+
+const subtitleTextStyle = (color = '#d6c8aa', size = 11.5) => ({
+  fontSize: size + 'px',
+  fontStyle: 'normal',
+  color,
+  fontFamily: SERIF_TITLE_FONT,
+  stroke: 'transparent',
+  strokeThickness: 0,
+  shadow: {
+    offsetX: 1,
+    offsetY: 1,
+    color: '#000000',
+    blur: 0,
+    stroke: false,
+    fill: true
+  }
+});
+
+const parchmentTitleStyle = (color = '#2c1b10', size = 12.5, weight = 'bold') => ({
+  fontSize: size + 'px',
+  fontStyle: weight,
+  color,
+  fontFamily: SERIF_TITLE_FONT,
+  stroke: 'transparent',
+  strokeThickness: 0,
+  shadow: null
+});
+
+const parchmentBodyStyle = (color = '#1f130b', size = 11, weight = 'normal') => ({
+  fontSize: size + 'px',
+  fontStyle: weight,
+  color,
+  fontFamily: ROUNDED_FONT,
+  stroke: 'transparent',
+  strokeThickness: 0,
+  shadow: null
 });
 
 const roundedTextStyle = (color, size = 12, weight = 'normal', strokeColor = null, strokeThickness = 0) => ({
@@ -34,7 +113,7 @@ function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {
 }
 
 function floatText(scene, x, y, msg, color) {
-  const t = scene.add.text(Math.round(x), Math.round(y), msg, { ...textStyle(color, 15), stroke: '#000000', strokeThickness: 4 })
+  const t = scene.add.text(Math.round(x), Math.round(y), msg, { fontSize: '15px', fontStyle: 'bold', color, fontFamily: SERIF_TITLE_FONT, stroke: 'transparent', strokeThickness: 0, shadow: { offsetX: 1, offsetY: 2, color: '#000000', blur: 0, fill: true } })
     .setOrigin(0.5).setDepth(1500);
   scene.tweens.add({ targets: t, y: y - 40, alpha: 0, duration: 900, onComplete: () => t.destroy() });
 }
@@ -101,7 +180,7 @@ function showAchievementToast(scene, ach) {
   });
 
   const crown = scene.add.image(-180, 0, 'hud_crown').setScale(1.1);
-  const title = scene.add.text(-156, -13, `🏆 CONQUISTA: ${ach.title}`, textStyle('#ffca28', 12));
+  const title = scene.add.text(-156, -13, `CONQUISTA: ${ach.title}`, textStyle('#ffca28', 12));
   const sub = scene.add.text(-156, 4, `${ach.desc} (+${ach.rewardGold} OURO!)`, textStyle('#7fe7ff', 10));
   fitTextToBox(title, 345, 18, 9);
   fitTextToBox(sub, 345, 16, 8);

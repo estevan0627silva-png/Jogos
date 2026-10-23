@@ -20,11 +20,11 @@ function rollLevelUpCards() {
         id: `upg_${key}_${nextLvl}`,
         category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: `Nv. ${currLvl} ➔ Nv. ${nextLvl}`,
+        badge: `Nv. ${currLvl} -> Nv. ${nextLvl}`,
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n✦ MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n✦ Equipa esta arma imediatamente!`,
+        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n Equipa esta arma imediatamente!`,
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
@@ -53,7 +53,7 @@ function rollLevelUpCards() {
     const sCfg = SCROLL_CATALOG[sKey];
     if (!sCfg) return;
     const lvlData = (sCfg.levels && sCfg.levels[nextLvl - 1]) ? sCfg.levels[nextLvl - 1] : null;
-    const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ★';
+    const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ';
     const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
 
     const slotLabel = isAlreadyChosen
@@ -61,10 +61,10 @@ function rollLevelUpCards() {
       : (currentChosenCount === 0 ? 'PERGAMINHO ARCANO (1/2)' : 'PERGAMINHO ARCANO (2/2)');
 
     const promptExtra = isAlreadyChosen
-      ? '✦ Refina este pergaminho exclusivo nesta partida!'
+      ? ' Refina este pergaminho exclusivo nesta partida!'
       : (currentChosenCount === 0
-          ? '✦ ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
-          : '✦ ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
+          ? ' ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
+          : ' ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
 
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
@@ -166,7 +166,7 @@ function rollLevelUpCards() {
         id: `mastery_${key}`,
         category: 'MESTRIA LENDÁRIA',
         title: `${cfg.name} SUPREMO`,
-        badge: 'TRANSCENDÊNCIA ★',
+        badge: 'TRANSCENDÊNCIA ',
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
@@ -258,11 +258,11 @@ function openLevelUpDraft(scene) {
   bannerBg.lineStyle(3, 0xffca28).strokeRoundedRect(bannerLeft, 16, bannerW, bannerH, 10);
   bannerBg.lineStyle(1, 0x8d5524).strokeRoundedRect(bannerLeft + 5, 21, bannerW - 10, bannerH - 10, 8);
 
-  const titleTxt = scene.add.text(GAME_WIDTH / 2, 38, `✦ SUBIU PARA O NÍVEL ${runLevel}! ✦`, {
+  const titleTxt = scene.add.text(GAME_WIDTH / 2, 38, `SUBIU PARA O NÍVEL ${runLevel}!`, {
     ...textStyle('#ffca28', 22),
     fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
-  const subTxt = scene.add.text(GAME_WIDTH / 2, 64, 'ESCOLHA 1 CARTA DE UPGRADE DE ARMA OU ITEM (CLIQUE OU TECLAS [1] [2] [3])', textStyle('#7fe7ff', 11)).setOrigin(0.5);
+  const subTxt = scene.add.text(GAME_WIDTH / 2, 64, 'ESCOLHA 1 CARTA DE UPGRADE DE ARMA OU ITEM (CLIQUE OU TECLAS [1] [2] [3])', subtitleTextStyle('#7fe7ff', 11)).setOrigin(0.5);
   fitTextToBox(subTxt, 600, 20, 9);
 
   draftModal.add([overlay, bannerBg, titleTxt, subTxt]);
@@ -372,7 +372,7 @@ function openLevelUpDraft(scene) {
 
     const pickBtn = scene.add.rectangle(cx, top + cardH - 34, cardW - 32, 36, 0x246b3d)
       .setStrokeStyle(2, 0xffca28);
-    const pickTxt = scene.add.text(cx, top + cardH - 34, `ESCOLHER [${idx + 1}]`, textStyle('#ffffff', 12)).setOrigin(0.5);
+    const pickTxt = scene.add.text(cx, top + cardH - 34, `ESCOLHER [${idx + 1}]`, buttonTextStyle('#ffffff', 12)).setOrigin(0.5);
 
     const hitZone = scene.add.rectangle(cx, cardY, cardW, cardH, 0x000000, 0)
       .setInteractive({ useHandCursor: true });
@@ -398,7 +398,7 @@ function openLevelUpDraft(scene) {
 // -----------------------------------------------------------------------------
 function createButton(scene, x, y, label, onClick, w = 260, h = 46) {
   const btn = scene.add.rectangle(x, y, w, h, 0x6e3d1b).setStrokeStyle(2, 0xc5a059).setInteractive({ useHandCursor: true });
-  const txt = scene.add.text(x, y, label, { ...textStyle('#ffffff', 14), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  const txt = scene.add.text(x, y, label, buttonTextStyle('#ffffff', 13.5)).setOrigin(0.5);
   fitTextToBox(txt, w - 16, h - 8, 10);
 
   btn.on('pointerover', () => {
@@ -431,14 +431,14 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
   const frame = scene.add.graphics();
   // Fundo em couro / madeira nobre
   frame.fillStyle(0x14100c, 0.98).fillRoundedRect(left, top, width, height, 12);
-  // Moldura externa em ferro forjado
-  frame.lineStyle(3, 0x3d2b1f).strokeRoundedRect(left, top, width, height, 12);
+  // Moldura externa em ferro forjado com espessura uniforme
+  frame.lineStyle(2, 0x3d2b1f).strokeRoundedRect(left, top, width, height, 12);
   // Moldura secundária em ouro nobre
-  frame.lineStyle(1.5, 0xc5a059, 0.9).strokeRoundedRect(left + 4, top + 4, width - 8, height - 8, 9);
-  // Filete interno delicado
-  frame.lineStyle(1, 0x8d5524, 0.5).strokeRoundedRect(left + 8, top + 8, width - 16, height - 16, 7);
+  frame.lineStyle(1, 0xc5a059, 0.9).strokeRoundedRect(left + 3, top + 3, width - 6, height - 6, 10);
+  // Filete interno sutil
+  frame.lineStyle(1, 0x8d5524, 0.4).strokeRoundedRect(left + 6, top + 6, width - 12, height - 12, 8);
 
-  // Rebites de ouro com sombra nos 4 cantos (Image 1 UI Kit)
+  // Rebites de ouro com sombra nos 4 cantos
   const rOff = 14;
   [
     [left + rOff, top + rOff],
@@ -450,27 +450,25 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
     frame.fillStyle(0x2a1a0e, 1).fillCircle(rx, ry, 1.5);
   });
 
-  // Brasão ornamental / floreio central no topo (Inspirado nas Imagens 1 e 3)
+  // Brasão ornamental central no topo
   frame.fillStyle(0xc5a059, 1);
   frame.fillTriangle(cx, top - 8, cx - 18, top + 4, cx + 18, top + 4);
   frame.fillCircle(cx, top - 8, 3.5);
   frame.fillStyle(0x14100c, 1);
   frame.fillCircle(cx, top - 8, 1.5);
-  // Asas / floreios laterais do brasão
   frame.lineStyle(2, 0xc5a059, 0.9);
   frame.lineBetween(cx - 22, top + 3, cx - 48, top + 3);
   frame.lineBetween(cx + 22, top + 3, cx + 48, top + 3);
   frame.fillStyle(0xc5a059, 1).fillCircle(cx - 48, top + 3, 2.5).fillCircle(cx + 48, top + 3, 2.5);
 
-  const titleShadow = scene.add.text(cx + 2, top + 32, titleText, { ...textStyle('#080604', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
-  const title = scene.add.text(cx, top + 30, titleText, { ...textStyle('#ffca28', 22), fontFamily: 'Georgia, serif' }).setOrigin(0.5);
+  // Título e Subtítulo limpos com sombra sólida de 1px/2px (SEM borda esfarelada)
+  const title = scene.add.text(cx, top + 30, titleText, titleTextStyle('#ffca28', 22)).setOrigin(0.5);
   fitTextToBox(title, width - 80, 32, 14);
-  titleShadow.setFontSize(title.style.fontSize);
 
-  const children = [overlay, frame, titleShadow, title];
+  const children = [overlay, frame, title];
   if (subtitleText) {
     const sub = scene.add.text(cx, top + 56, subtitleText, {
-      ...textStyle('#c5a059', 11),
+      ...subtitleTextStyle('#c5a059', 11),
       align: 'center',
       wordWrap: { width: width - 60, useAdvancedWrap: true }
     }).setOrigin(0.5);
@@ -558,7 +556,7 @@ function showPauseModal(scene) {
   const height = 430;
   const top = (GAME_HEIGHT - height) / 2;
   const cx = GAME_WIDTH / 2;
-  pauseModal = createModal(scene, 'JOGO PAUSADO', height, '★ JORNADA EM ESPERA ★', 480);
+  pauseModal = createModal(scene, 'JOGO PAUSADO', height, 'JORNADA EM ESPERA', 480);
 
   // Status de sobrevivência, prata e relíquia
   const statsBox = scene.add.graphics();
@@ -575,7 +573,7 @@ function showPauseModal(scene) {
   const continueBtn = createButton(scene, cx, top + 154, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), 290, 36);
 
   const audioBtn = scene.add.rectangle(cx, top + 196, 290, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
-    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
+    .setStrokeStyle(2, 0xc5a059).setInteractive({ useHandCursor: true });
   const audioTxt = scene.add.text(cx, top + 196, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
     .setOrigin(0.5);
 
@@ -649,7 +647,7 @@ function showInitials(scene) {
     newTotalGold: getGold()
   };
 
-  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', modalH, '★ CONSOLIDAÇÃO DE FIM DE JORNADA ★', modalW);
+  const modal = createModal(scene, 'O CAVALEIRO TOMBOU', modalH, 'CONSOLIDAÇÃO DE FIM DE JORNADA', modalW);
 
   // Bounding Box interna com limites estritos para o resumo e conversão Prata -> Ouro
   const summaryBox = scene.add.graphics();
@@ -664,14 +662,14 @@ function showInitials(scene) {
   }).setOrigin(0.5);
   fitTextToBox(braveryTxt, boxW - 28, 26, 11);
 
-  // Linha visual de Conversão: Moedas de Prata ➔ Moedas de Ouro
+  // Linha visual de Conversão: Moedas de Prata -> Moedas de Ouro
   const silverSprite = scene.add.sprite(cx - 165, top + 138, 'silver_coin').play('silver_coin').setScale(1.3);
   const goldSprite = scene.add.sprite(cx + 28, top + 138, 'gold_coin').play('gold_coin').setScale(1.3);
 
   const conversionLine = scene.add.text(
     cx - 148,
     top + 138,
-    `${summary.silverCollected ?? summary.runSilver ?? 0} Pratas   ➔`,
+    `${summary.silverCollected ?? summary.runSilver ?? 0} Pratas   ->`,
     textStyle('#e0f7fa', 14)
   ).setOrigin(0, 0.5);
 
@@ -793,7 +791,7 @@ function showLeaderboard(scene, topScores, currentName) {
   const top = (GAME_HEIGHT - modalH) / 2;
 
   const summary = lastRunSummary || { silverCollected: runSilver, totalGoldEarned: runGold };
-  const subtitle = `Prata Convertida: ${summary.silverCollected ?? summary.runSilver ?? 0} ➔ +${summary.totalGoldEarned ?? summary.earnedGold ?? 0} Ouro  |  Cofre Total: ${getGold()} Ouro`;
+  const subtitle = `Prata Convertida: ${summary.silverCollected ?? summary.runSilver ?? 0} -> +${summary.totalGoldEarned ?? summary.earnedGold ?? 0} Ouro  |  Cofre Total: ${getGold()} Ouro`;
 
   const modal = createModal(scene, 'CAMPEÕES DO REINO', modalH, subtitle, modalW);
   let marked = false;
@@ -822,7 +820,7 @@ function showLeaderboard(scene, topScores, currentName) {
 
   if (hasRewardButton) {
     let rewardedUsed = false;
-    const doubleGoldBtn = createButton(scene, cx, top + 266, `✦ DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G) ✦`, () => {
+    const doubleGoldBtn = createButton(scene, cx, top + 266, `DOBRAR OURO DA EXPEDIÇÃO (+${goldToDouble}G)`, () => {
       if (rewardedUsed) return;
       sound.playButtonClick();
       if (typeof PlatformBridge !== 'undefined') {
@@ -831,7 +829,7 @@ function showLeaderboard(scene, topScores, currentName) {
             rewardedUsed = true;
             addGold(goldToDouble);
             sound.playAchievement();
-            doubleGoldBtn[1].setText(`✓ OURO DOBRADO COM SUCESSO! (+${goldToDouble}G)`);
+            doubleGoldBtn[1].setText(`OURO DOBRADO COM SUCESSO! (+${goldToDouble}G)`);
             doubleGoldBtn[0].setFillStyle(0x233e18);
             doubleGoldBtn[0].setStrokeStyle(2, 0x81c784);
             doubleGoldBtn[1].setColor('#a5d6a7');
@@ -872,7 +870,7 @@ function showLeaderboard(scene, topScores, currentName) {
   const actionRow2Y = hasRewardButton ? (top + 364) : (top + 322);
   const hintY = hasRewardButton ? (top + 410) : (top + 368);
 
-  const newRunBtn = createButton(scene, cx - 138, actionRow1Y, '⚔ NOVA JORNADA', () => finishAndRestart(true, false), 254, 38);
+  const newRunBtn = createButton(scene, cx - 138, actionRow1Y, 'NOVA JORNADA', () => finishAndRestart(true, false), 254, 38);
   const forgeBtn = createButton(scene, cx + 138, actionRow1Y, 'FORJA DO FERREIRO', () => finishAndRestart(false, true, 'blacksmith'), 254, 38);
   const mageBtn = createButton(scene, cx - 138, actionRow2Y, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 38);
   const menuBtn = createButton(scene, cx + 138, actionRow2Y, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 38);

@@ -226,14 +226,7 @@ function create(data) {
     virtualJoystick = new VirtualJoystick(scene);
   }
 
-  // Tecla ESPAÇO para Golpe/Ação manual imediata no Desktop
-  scene.input.keyboard.on('keydown-SPACE', () => {
-    if (gameState === 'PLAYING' && !pauseModal && !draftModal) {
-      if (typeof triggerPlayerAction === 'function') {
-        triggerPlayerAction(scene);
-      }
-    }
-  });
+ 
 
   pauseModal = null;
   enemyHpBars = scene.add.graphics().setDepth(2400);

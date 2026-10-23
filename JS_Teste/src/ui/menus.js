@@ -160,11 +160,11 @@ function showAchievementsMenu(scene) {
   );
   menuContainer.isMainMenu = false;
 
-  // Botão Rápido "✕ SAIR [ESC]" no canto superior direito do modal
+  // Botão Rápido " SAIR [ESC]" no canto superior direito do modal
   const closeQuickBtn = scene.add.rectangle(850, 48, 78, 28, 0x5c241b)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(850, 48, '✕ SAIR', textStyle('#ffeb3b', 11)).setOrigin(0.5);
+  const closeQuickTxt = scene.add.text(850, 48, 'SAIR', textStyle('#ffeb3b', 11)).setOrigin(0.5);
   closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
   closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
   closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
@@ -240,7 +240,7 @@ function showAchievementsMenu(scene) {
 
     const rewardBadge = scene.add.rectangle(cardLeft + cardW - 36, barY + barH / 2, 62, 20, isDone ? 0x246b3d : 0x261d14)
       .setStrokeStyle(1, isDone ? 0xffca28 : 0x6e5846);
-    const rewardTxt = scene.add.text(cardLeft + cardW - 36, barY + barH / 2, isDone ? '★ CONCLUÍDO' : `+${ach.rewardGold}G`, textStyle(isDone ? '#ffeb3b' : '#ffd740', 8.5)).setOrigin(0.5);
+    const rewardTxt = scene.add.text(cardLeft + cardW - 36, barY + barH / 2, isDone ? 'CONCLUÍDO' : `+${ach.rewardGold}G`, textStyle(isDone ? '#ffeb3b' : '#ffd740', 8.5)).setOrigin(0.5);
     fitTextToBox(rewardTxt, 58, 16, 8);
 
     menuContainer.add([cardBg, iconSlot, icon, titleTxt, descTxt, progBar, countTxt, rewardBadge, rewardTxt]);
@@ -433,13 +433,8 @@ function showMainMenu(scene) {
     headerBanner.fillStyle(0x2a1a0e, 1).fillCircle(rx, ry, 1.5);
   });
 
-  const titleShadow = scene.add.text(482, 44, 'A JORNADA DO CAVALEIRO', {
-    ...textStyle('#060403', 28), fontFamily: 'Georgia, serif'
-  }).setOrigin(0.5);
-  const titleMain = scene.add.text(480, 42, 'A JORNADA DO CAVALEIRO', {
-    ...textStyle('#ffca28', 28), fontFamily: 'Georgia, serif'
-  }).setOrigin(0.5);
-  const subtitleTxt = scene.add.text(480, 75, '★ CRÔNICAS DE ELDÓRIA • ROGUELITE DE AÇÃO ★', textStyle('#e0c088', 11.5)).setOrigin(0.5);
+  const titleMain = scene.add.text(480, 43, 'A JORNADA DO CAVALEIRO', titleTextStyle('#ffca28', 28)).setOrigin(0.5);
+  const subtitleTxt = scene.add.text(480, 74, 'CRÔNICAS DE ELDÓRIA - ROGUELITE DE AÇÃO', subtitleTextStyle('#e0c088', 11.5)).setOrigin(0.5);
 
   // Botões Rápidos no Canto Superior Direito: Áudio [M] e Tela Cheia [F]
   const menuSoundBg = scene.add.graphics();
@@ -518,20 +513,20 @@ function showMainMenu(scene) {
   };
 
   // Botões do Painel de Ações
-  const startBtn = createButton(scene, 720, 206, '⚔ COMEÇAR JORNADA', launchGame, 330, 42);
-  const blacksmithBtn = createButton(scene, 720, 256, '⚒ FORJA DO FERREIRO', () => {
+  const startBtn = createButton(scene, 720, 206, 'COMEÇAR JORNADA', launchGame, 330, 42);
+  const blacksmithBtn = createButton(scene, 720, 256, 'FORJA DO FERREIRO', () => {
     clearMenuKeys();
     sound.ensureContext();
     sound.startMenuBGM();
     showBlacksmithMenu(scene);
   }, 330, 38);
-  const mageBtn = createButton(scene, 720, 304, '🔮 SANTUÁRIO DO MAGO', () => {
+  const mageBtn = createButton(scene, 720, 304, 'SANTUÁRIO DO MAGO', () => {
     clearMenuKeys();
     sound.ensureContext();
     sound.startMenuBGM();
     showMageShopMenu(scene);
   }, 330, 38);
-  const achBtn = createButton(scene, 720, 352, '🏆 CONQUISTAS DO REINO', () => {
+  const achBtn = createButton(scene, 720, 352, 'CONQUISTAS DO REINO', () => {
     clearMenuKeys();
     sound.ensureContext();
     sound.startMenuBGM();
@@ -562,7 +557,7 @@ function showMainMenu(scene) {
   menuContainer.add([
     treeFar, menuHouse, menuBlacksmith, menuGateTower,
     treeLeft, heroSprite,
-    headerBanner, titleShadow, titleMain, subtitleTxt,
+    headerBanner, titleMain, subtitleTxt,
     menuSoundBg, menuHorn, menuSoundHit,
     menuFsBg, menuFsIcon, menuFsHit,
     menuPanel, crownIcon, bestBannerTxt, menuCoinIcon, menuGoldTxt,
@@ -993,9 +988,9 @@ function showBlacksmithMenu(scene) {
   };
   drawSpeechBubble();
 
-  const smithTitleTxt = scene.add.text(332, 90, 'MESTRE ANVILGAR (FERREIRO REAL)', textStyle('#5c3722', 11.5, 'bold'));
+  const smithTitleTxt = scene.add.text(332, 90, 'MESTRE ANVILGAR (FERREIRO REAL)', parchmentTitleStyle('#4e2814', 12, 'bold'));
   const smithSpeechTxt = scene.add.text(332, 110, '“O fogo forja o aço! Escolha seu armamento para a batalha.”', {
-    ...roundedTextStyle('#24150b', 11, 'normal'),
+    ...parchmentBodyStyle('#1f130b', 11, 'normal'),
     lineSpacing: 3.5,
     wordWrap: { width: 290, useAdvancedWrap: true }
   });
@@ -1015,7 +1010,7 @@ function showBlacksmithMenu(scene) {
   signGfx.fillStyle(0xffca28, 1).fillCircle(352, 24, 2.5).fillCircle(608, 24, 2.5);
   signGfx.fillStyle(0xffca28, 1).fillCircle(352, 48, 2.5).fillCircle(608, 48, 2.5);
 
-  const signTitle = scene.add.text(480, 36, '⚔ A FORJA REAL ⚔', {
+  const signTitle = scene.add.text(480, 36, ' A FORJA REAL ', {
     ...textStyle('#ffd740', 16, 'bold'),
     fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
@@ -1025,12 +1020,12 @@ function showBlacksmithMenu(scene) {
   // ---------------------------------------------------------------------------
   const forgeTabBtn = scene.add.rectangle(85, 28, 110, 28, 0x8d5c38)
     .setStrokeStyle(1.5, 0xffca28);
-  const forgeTabTxt = scene.add.text(85, 28, '⚔ FORJA REAL', textStyle('#ffffff', 10.5, 'bold')).setOrigin(0.5);
+  const forgeTabTxt = scene.add.text(85, 28, 'FORJA REAL', textStyle('#ffffff', 10.5, 'bold')).setOrigin(0.5);
 
   const mageTabBtn = scene.add.rectangle(205, 28, 110, 28, 0x22132e)
-    .setStrokeStyle(1.5, 0x7c4dff)
+    .setStrokeStyle(2, 0x7c4dff)
     .setInteractive({ useHandCursor: true });
-  const mageTabTxt = scene.add.text(205, 28, '🔮 SANTUÁRIO', textStyle('#ce93d8', 10.5)).setOrigin(0.5);
+  const mageTabTxt = scene.add.text(205, 28, 'SANTUÁRIO', buttonTextStyle('#ce93d8', 10.5)).setOrigin(0.5);
 
   mageTabBtn.on('pointerover', () => {
     mageTabBtn.setFillStyle(0x3e1f57);
@@ -1057,7 +1052,7 @@ function showBlacksmithMenu(scene) {
   const closeQuickBtn = scene.add.rectangle(905, 32, 70, 30, 0x5c241b)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(905, 32, '✕ SAIR', textStyle('#ffeb3b', 11, 'bold')).setOrigin(0.5);
+  const closeQuickTxt = scene.add.text(905, 32, 'SAIR', textStyle('#ffeb3b', 11, 'bold')).setOrigin(0.5);
 
   closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
   closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
@@ -1119,14 +1114,14 @@ function showBlacksmithMenu(scene) {
     bow: 'DISPARO LONGO',
     sword: 'CORTE FRONTAL',
     shield: 'DEFESA SAGRADA',
-    axe: 'GIRO 360°',
+    axe: 'GIRO 360 GRAUS',
     firestaff: 'IMPACTO EM ÁREA'
   };
   const weaponStyles = {
     bow: 'Disparos rápidos à distância (ideal para arqueiros e caçadores).',
     sword: 'Corte frontal potente em arco com alto knockback e rastro reluzente.',
     shield: 'Aura defensiva sagrada que bloqueia e reflete projéteis inimigos.',
-    axe: 'Corte giratório duplo devastador que atinge múltiplos inimigos em 360°.',
+    axe: 'Corte giratório duplo devastador que atinge múltiplos inimigos em 360 graus.',
     firestaff: 'Projéteis vulcânicos explosivos com dano em área e alta potência de impacto.'
   };
   const weaponDialogues = {
@@ -1193,8 +1188,7 @@ function showBlacksmithMenu(scene) {
     if (!isUnlocked) icon.setTint(0x555555);
 
     const nameTxt = scene.add.text(cx, startY + 92, cfg.name, {
-      ...textStyle(isStarter ? '#794b02' : (isUnlocked ? '#2c1b10' : '#6b5443'), 12, 'bold'),
-      fontFamily: 'Georgia, serif',
+      ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 12.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 16, 18, 9.5);
@@ -1282,7 +1276,7 @@ function showBlacksmithMenu(scene) {
         .setStrokeStyle(2, isStarter ? 0xffca28 : 0xc5a059)
         .setInteractive({ useHandCursor: true });
 
-      actionTxt = scene.add.text(btnX, btnY, isStarter ? '★ EM USO' : 'EQUIPAR', {
+      actionTxt = scene.add.text(btnX, btnY, isStarter ? ' EM USO' : 'EQUIPAR', {
         ...roundedTextStyle(isStarter ? '#ffd740' : '#ffffff', 11, 'bold'),
         align: 'center'
       }).setOrigin(0.5);
@@ -1588,9 +1582,9 @@ function showMageShopMenu(scene) {
   };
   drawSpeechBubble();
 
-  const mageTitleTxt = scene.add.text(332, 90, 'ARQUIMAGO ALQUIMISTA (MESTRE)', textStyle('#4a148c', 11.5, 'bold'));
+  const mageTitleTxt = scene.add.text(332, 90, 'ARQUIMAGO ALQUIMISTA (MESTRE)', parchmentTitleStyle('#3a115c', 12, 'bold'));
   const mageSpeechTxt = scene.add.text(332, 110, '“Beba dos meus elixires e seu poder ecoará em cada batalha!”', {
-    ...roundedTextStyle('#221226', 11.5, 'normal'),
+    ...parchmentBodyStyle('#180d21', 11, 'normal'),
     lineSpacing: 4,
     wordWrap: { width: 288, useAdvancedWrap: true }
   });
@@ -1708,7 +1702,7 @@ function showMageShopMenu(scene) {
   const forgeTabBtn = scene.add.rectangle(85, 24, 110, 28, 0x3d2215)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
-  const forgeTabTxt = scene.add.text(85, 24, '⚔ FORJA REAL', textStyle('#e0c088', 10.5)).setOrigin(0.5);
+  const forgeTabTxt = scene.add.text(85, 24, 'FORJA REAL', textStyle('#e0c088', 10.5)).setOrigin(0.5);
 
   forgeTabBtn.on('pointerover', () => {
     forgeTabBtn.setFillStyle(0x6e3d1b);
@@ -1725,7 +1719,7 @@ function showMageShopMenu(scene) {
 
   const mageTabBtn = scene.add.rectangle(205, 24, 110, 28, 0x6a1b9a)
     .setStrokeStyle(1.5, 0xffca28);
-  const mageTabTxt = scene.add.text(205, 24, '🔮 SANTUÁRIO', textStyle('#ffffff', 10.5)).setOrigin(0.5);
+  const mageTabTxt = scene.add.text(205, 24, 'SANTUÁRIO', textStyle('#ffffff', 10.5)).setOrigin(0.5);
 
   // Placa central suspensa
   const signGfx = scene.add.graphics();
@@ -1735,7 +1729,7 @@ function showMageShopMenu(scene) {
   signGfx.fillStyle(0x1e0f2b, 0.96).fillRoundedRect(360, 10, 240, 30, 6);
   signGfx.lineStyle(2, 0x6a1b9a).strokeRoundedRect(360, 10, 240, 30, 6);
   signGfx.lineStyle(1, 0xba68c8, 0.6).strokeRoundedRect(363, 13, 234, 24, 5);
-  const signTitle = scene.add.text(480, 25, '🔮 SANTUÁRIO DO ARQUIMAGO 🔮', {
+  const signTitle = scene.add.text(480, 25, ' SANTUÁRIO DO ARQUIMAGO ', {
     ...textStyle('#e1bee7', 12.5), fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
 
@@ -1750,7 +1744,7 @@ function showMageShopMenu(scene) {
   const closeQuickBtn = scene.add.rectangle(895, 25, 64, 28, 0x5c241b)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(895, 25, '✕ SAIR', textStyle('#ffeb3b', 10.5)).setOrigin(0.5);
+  const closeQuickTxt = scene.add.text(895, 25, 'SAIR', textStyle('#ffeb3b', 10.5)).setOrigin(0.5);
   closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
   closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
   closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
@@ -1779,6 +1773,13 @@ function showMageShopMenu(scene) {
     moveSpeed: '“A Poção de Agilidade das Brisas! Seus passos ficarão velozes como o vento entre as árvores.”',
     magnet: '“O Fluido Magnético Arcano! Atrai as moedas de prata e relíquias distantes diretamente até você.”',
     wisdom: '“A Essência da Sabedoria Ancestral! Amplia seu aprendizado acelerando a obtenção de novos níveis!”'
+  };
+
+  const mageItemNames = {
+    maxHp: 'ELIXIR DE VIDA',
+    moveSpeed: 'POÇÃO DE VELOCIDADE',
+    magnet: 'ÍMÃ ARCANO',
+    wisdom: 'SABEDORIA ARCANA'
   };
 
   statusKeys.forEach((key, idx) => {
@@ -1851,10 +1852,10 @@ function showMageShopMenu(scene) {
     // Ícone da Poção
     const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
 
-    // Nome do Status — 100% CENTRALIZADO
-    const nameTxt = scene.add.text(cx, startY + 92, cfg.name, {
-      ...textStyle(isMax ? '#794b02' : '#2c1b10', 11.5),
-      fontFamily: 'Georgia, serif',
+    // Nome do Item — APENAS O NOME DO ITEM (100% CENTRALIZADO E NÍTIDO)
+    const itemTitle = mageItemNames[key] || cfg.shortName || cfg.name;
+    const nameTxt = scene.add.text(cx, startY + 92, itemTitle, {
+      ...parchmentTitleStyle(isMax ? '#8c4e03' : '#221226', 13, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 16, 18, 9);
@@ -1862,7 +1863,7 @@ function showMageShopMenu(scene) {
     // Badge / Nível Textual — 100% CENTRALIZADO COM FUNDO ARREDONDADO
     const lvlBadgeBg = scene.add.rectangle(cx, startY + 132, cardW - 38, 18, isMax ? 0xfff3e0 : 0xf3e5f5)
       .setStrokeStyle(1, isMax ? 0xffb74d : 0xce93d8);
-    const lvlBadgeTxt = scene.add.text(cx, startY + 132, isMax ? '★ PODER MÁXIMO ★' : `NÍVEL ${lvl} / ${maxLvl}`, {
+    const lvlBadgeTxt = scene.add.text(cx, startY + 132, isMax ? 'PODER MÁXIMO' : `NÍVEL ${lvl} / ${maxLvl}`, {
       ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
@@ -1870,7 +1871,7 @@ function showMageShopMenu(scene) {
     // Descrições de Nível — FONTE ARREDONDADA & 100% CENTRALIZADA
     const levelDescs = cfg.levels || [];
     const descStr = isMax
-      ? `★ Efeito Completo ★\n${levelDescs[lvl - 1] || ''}`
+      ? `Efeito Completo:\n${levelDescs[lvl - 1] || ''}`
       : `Atual: ${levelDescs[lvl - 1] || ''}\nPróximo: ${levelDescs[lvl] || ''}`;
     const descTxt = scene.add.text(cx, startY + 172, descStr, {
       ...roundedTextStyle('#2e1a10', 10, 'normal'),
@@ -1905,7 +1906,7 @@ function showMageShopMenu(scene) {
     if (isMax) {
       actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2314)
         .setStrokeStyle(1.5, 0xffca28);
-      actionTxt = scene.add.text(btnX, btnY, 'COMPLETO ★', {
+      actionTxt = scene.add.text(btnX, btnY, 'COMPLETO ', {
         ...roundedTextStyle('#ffd740', 11, 'bold'),
         align: 'center'
       }).setOrigin(0.5);

@@ -66,7 +66,7 @@ function spawnStartingVillage(scene) {
   });
 
   // Anúncio nobre de partida da jornada
-  floatText(scene, GAME_WIDTH / 2, 130, '★ SAINDO DA VILA DE VALE DOURADO ★', '#ffca28');
+  floatText(scene, GAME_WIDTH / 2, 130, 'SAINDO DA VILA DE VALE DOURADO', '#ffca28');
 }
 
 function startGameplay(scene) {
@@ -151,7 +151,7 @@ function startGameplay(scene) {
       triggerSpecialHorde(scene, hordeCycleCount);
     }
     if (survivalTime === 52 && !bossSpawned) {
-      floatText(scene, GAME_WIDTH / 2, 120, '⚔ PREPARE-SE: ESTRONDO NAS PROFUNDEZAS! ⚔', '#ffca28');
+      floatText(scene, GAME_WIDTH / 2, 120, 'PREPARE-SE: ESTRONDO NAS PROFUNDEZAS!', '#ffca28');
     }
     if (survivalTime === BOSS_TRIGGER_TIME && !bossSpawned) {
       startBossFight(scene);

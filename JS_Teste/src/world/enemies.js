@@ -74,7 +74,7 @@ function spawnEnemy(scene, forcedType, customY) {
     });
 
     // Habilidade Periódica: ergue a Barreira Arcana frontal após 1.0s de entrada em campo
-    enemy.shieldCooldownTimer = scene.time.delayedCall(1000, () => {
+    enemy.shieldCooldownTimer = scene.time.delayedCall(350, () => {
       if (!enemy.active || gameState !== 'PLAYING') return;
       activateMageBarrier(scene, enemy);
     });
