@@ -692,70 +692,259 @@ function drawVillageNpc(r, f) {
 }
 
 
+// =============================================================================
+// MESTRE FERREIRO ANVILGAR (48x52 — 4 FRAMES COM ANIMAÇÃO DE GOLPE DE FORJA & FAÍSCAS)
+// INSPIRAÇÃO: CONCEPT 4 (ANÃO FORJANDO NA BIGORNA COM MARTELO, TENAZ E FERRO EM BRASA)
+
+// =============================================================================
+// MESTRE FERREIRO ANVILGAR (48x52 — 4 FRAMES)
+// DESIGN: ANÃO FORTE, CARECA (DOME REDONDO E DEFINIDO) COM BARBA RUIVA TEXTURIZADA
+// POSTURA CARISMÁTICA ATRÁS DO BALCÃO COM MARTELO DE FORJA E AVENTAL DE COURO
+
+// =============================================================================
+// MESTRE FERREIRO ANVILGAR (48x52 — 4 FRAMES)
+// GRID ESTRITO: 24 UNIDADES DE LARGURA (x: 0..23) E 26 UNIDADES DE ALTURA (y: 0..25)
+// CADA UNIDADE É MULTIPLICADA POR 2 EM drawPixels (24 * 2 = 48px, 26 * 2 = 52px).
+// 100% CARECA (DOME REDONDO DEFINIDO), ROSTO SÓLIDO SEM FALHAS, GRANDE BARBÃO RUIVO
+// E BRAÇOS MUSCULOSOS APOIADOS NO BALCÃO COM MUNHEQUEIRAS (ZERO MARTELO FLUTUANDO)
+// =============================================================================
 function drawBlacksmithMaster(r, f) {
-  const bob = f === 0 ? 0 : 1;
-  // Cabeça, bandana de couro e barba espessa de mestre anão/ferreiro
-  r(C.darkRed, 7, 2 + bob, 8, 2);
-  r(C.skin, 7, 4 + bob, 8, 4);
-  r(C.outline, 9, 5 + bob, 1, 1); r(C.outline, 13, 5 + bob, 1, 1);
-  r(C.woodDark, 6, 7 + bob, 10, 5);
-  r(C.wood, 7, 8 + bob, 8, 3);
-  r(C.gold, 10, 9 + bob, 2, 2); // fivela da barba
+  const bob = (f === 1 || f === 2) ? 1 : 0;
+  const glint = (f === 2) ? 1 : 0;
 
-  // Ombros largos, camisa de linho e avental de couro pesado de forja
-  r(C.bone, 4, 11 + bob, 14, 6);
-  r(C.boot, 6, 11 + bob, 10, 9);
-  r(C.wood, 7, 12 + bob, 8, 7);
-  r(C.gold, 6, 15 + bob, 10, 1);
+  // 1. CABEÇA CARECA ROBUSTA (CENTRO EM x: 11.5 — DOME REDONDO, ROSTO SÓLIDO SEM FALHAS)
+  // Contorno superior e curvatura do crânio calvo
+  r(0x663318, 9, 2 + bob, 6, 1);   // x: 9..14, y: 2 (topo do domo calvo)
+  r(0x7a4522, 8, 3 + bob, 8, 1);   // x: 8..15, y: 3 (curvatura da cabeça)
+  r(0x8c5731, 7, 4 + bob, 10, 1);  // x: 7..16, y: 4 (têmporas)
 
-  // Braço esquerdo segurando tenaz com lâmina em brasa
-  r(C.skin, 3, 12 + bob, 2, 4);
-  r(C.ironDark, 2, 15 + bob, 3, 2);
-  r(C.red, 1, 14 + bob, 2, 2); r(C.yellow, 1, 14 + bob, 1, 1);
+  // Preenchimento contínuo e sólido da pele facial (elimina 100% de quaisquer pixels transparentes)
+  r(0xc68b59, 7, 4 + bob, 10, 4);  // x: 7..16, y: 4..7 (base de pele totalmente sólida da cabeça e bochechas)
 
-  // Braço direito erguendo/descendo o Martelo de Forja
-  const hY = f === 0 ? 0 : 3;
-  r(C.skin, 16, 11 + hY, 3, 4);
-  r(C.ironDark, 16, 14 + hY, 3, 2); // munhequeira
-  r(C.woodDark, 18, 6 + hY, 1, 9);  // cabo do martelo
-  r(C.steelDark, 16, 4 + hY, 5, 3); // cabeça do martelo
-  r(C.steelLight, 17, 4 + hY, 3, 1);
+  // Iluminação térmica suave e reflexo especular no topo da careca
+  r(0xf1c27d, 9, 3 + bob, 6, 2);   // luz quente no crânio calvo
+  r(0xffebd2, 11, 3 + bob, 2, 1);  // ponto alto de brilho especular nítido
+
+  // Orelhas de anão nas laterais (y: 5..7)
+  r(0x8c5731, 6, 5 + bob, 1, 3);   // orelha esquerda x: 6
+  r(0xc68b59, 6, 6 + bob, 1, 1);   // relevo interno da orelha esquerda
+  r(0x8c5731, 17, 5 + bob, 1, 3);  // orelha direita x: 17
+  r(0xc68b59, 17, 6 + bob, 1, 1);  // relevo interno da orelha direita
+
+  // Sobrancelhas ruivas grossas e determinadas de ferreiro (y: 5)
+  r(0x6a1a08, 8, 5 + bob, 3, 1);   // sobrancelha esquerda base
+  r(0xa83810, 8, 5 + bob, 2, 1);
+  r(0xc44516, 9, 5 + bob, 1, 1);   // mecha ruiva de destaque
+  r(0x6a1a08, 13, 5 + bob, 3, 1);  // sobrancelha direita base
+  r(0xa83810, 14, 5 + bob, 2, 1);
+  r(0xc44516, 14, 5 + bob, 1, 1);  // mecha ruiva de destaque
+
+  // Olhos expressivos e focados com reflexo vívido (y: 6)
+  r(0x1a1410, 8, 6 + bob, 2, 1);   // olho esquerdo
+  r(0xffffff, 9, 6 + bob, 1, 1);   // brilho branco no olho esquerdo
+  r(0x1a1410, 14, 6 + bob, 2, 1);  // olho direito
+  r(0xffffff, 14, 6 + bob, 1, 1);  // brilho branco no olho direito
+
+  // Nariz largo proeminente e bochechas coradas pelo calor da forja (y: 6..7 — 100% preenchido)
+  r(0xdf845d, 7, 7 + bob, 3, 1);   // bochecha esquerda corada (x: 7..9)
+  r(0xdf845d, 14, 7 + bob, 3, 1);  // bochecha direita corada (x: 14..16)
+  r(0x8c5731, 10, 7 + bob, 1, 1);  // sombreamento da asa nasal esquerda
+  r(0x8c5731, 13, 7 + bob, 1, 1);  // sombreamento da asa nasal direita
+  r(0xc68b59, 11, 6 + bob, 2, 2);  // corpo do nariz largo (x: 11..12, y: 6..7)
+  r(0xf1c27d, 11, 6 + bob, 1, 1);  // brilho na ponta do nariz
+
+  // 2. BIGODE IMPONENTE E CURVADO (x: 6..17, y: 8..9)
+  r(0x521204, 7, 8 + bob, 10, 2);  // base escura do bigode sobre a boca
+  r(0x82260a, 7, 8 + bob, 10, 1);
+  r(0xa83810, 8, 8 + bob, 8, 1);
+  r(0xdf5a1e, 9, 8 + bob, 6, 1);   // mecha central vívida do bigode
+  // Pontas volumosas do bigode curvando para fora nas laterais
+  r(0x82260a, 6, 9 + bob, 2, 1);   // ponta esquerda
+  r(0xa83810, 6, 9 + bob, 1, 1);
+  r(0x82260a, 16, 9 + bob, 2, 1);  // ponta direita
+  r(0xa83810, 17, 9 + bob, 1, 1);
+
+  // 3. O GRANDE "BARBÃO" DE ANÃO (x: 4..19, y: 9..24 — MASSIVO, TEXTURIZADO E ÉPICO)
+  // y = 9: transição da mandíbula para o barbão (x: 6..17)
+  r(0x521204, 6, 9 + bob, 12, 1);
+  r(0x82260a, 7, 9 + bob, 10, 1);
+
+  // y = 10..13: expansão em volume máximo sobre o peito (x: 4..19, largura 16!)
+  r(0x521204, 5, 10 + bob, 14, 1);
+  r(0x82260a, 6, 10 + bob, 12, 1);
+  r(0xa83810, 7, 10 + bob, 10, 1);
+  r(0xc44516, 8, 10 + bob, 8, 1);
+
+  r(0x521204, 4, 11 + bob, 16, 1);
+  r(0x82260a, 5, 11 + bob, 14, 1);
+  r(0xa83810, 6, 11 + bob, 12, 1);
+  r(0xc44516, 7, 11 + bob, 10, 1);
+  r(0xdf5a1e, 9, 11 + bob, 6, 1);   // mecha frontal viva
+
+  r(0x521204, 4, 12 + bob, 16, 1);
+  r(0x82260a, 5, 12 + bob, 14, 1);
+  r(0xa83810, 6, 12 + bob, 12, 1);
+  r(0xc44516, 8, 12 + bob, 8, 1);
+  r(0xfa7a28, 10, 12 + bob, 4, 1);  // brilho do fogo nas mechas da barba
+
+  r(0x521204, 4, 13 + bob, 16, 1);
+  r(0x82260a, 5, 13 + bob, 14, 1);
+  r(0xa83810, 7, 13 + bob, 10, 1);
+  r(0xc44516, 8, 13 + bob, 8, 1);
+
+  // y = 14..15: corpo da barba encorpada (x: 5..18)
+  r(0x521204, 5, 14 + bob, 14, 2);
+  r(0x82260a, 6, 14 + bob, 12, 2);
+  r(0xa83810, 7, 14 + bob, 10, 2);
+  r(0xc44516, 9, 14 + bob, 6, 2);
+
+  // y = 16..17: tranças laterais com anéis dourados rúnicos
+  r(0x521204, 6, 16 + bob, 12, 2);
+  r(0x82260a, 7, 16 + bob, 10, 2);
+  r(0xa83810, 8, 16 + bob, 8, 2);
+  // Anel de ouro na trança esquerda (x: 6..8, y: 16)
+  r(0x785600, 6, 16 + bob, 3, 1);
+  r(0xffd700, 6, 16 + bob, 2, 1);
+  r(0xffeb3b, 7, 16 + bob, 1, 1);
+  // Anel de ouro na trança direita (x: 15..17, y: 16)
+  r(0x785600, 15, 16 + bob, 3, 1);
+  r(0xffd700, 16, 16 + bob, 2, 1);
+  r(0xffeb3b, 16, 16 + bob, 1, 1);
+
+  // y = 18: confluência da barba central (x: 7..16)
+  r(0x521204, 7, 18 + bob, 10, 1);
+  r(0x82260a, 8, 18 + bob, 8, 1);
+  r(0xa83810, 9, 18 + bob, 6, 1);
+  r(0xc44516, 10, 18 + bob, 4, 1);
+
+  // y = 19: GRANDE ANEL DE FORJA DOURADO PRENDENDO O BARBÃO (x: 8..15)
+  r(0x785600, 8, 19 + bob, 8, 1);
+  r(0xffd700, 9, 19 + bob, 6, 1);
+  r(glint ? 0xffffff : 0xffeb3b, 11, 19 + bob, 2, 1); // brilho no fecho dourado
+
+  // y = 20..22: Ponta volumosa do barbão fluindo sob o grande anel (x: 8..15)
+  r(0x521204, 8, 20 + bob, 8, 2);
+  r(0x82260a, 9, 20 + bob, 6, 2);
+  r(0xa83810, 10, 20 + bob, 4, 2);
+  r(0xc44516, 11, 20 + bob, 2, 2);
+
+  // y = 23..24: ponta cônica e majestosa da barba longa (x: 10..13)
+  r(0x521204, 10, 23 + bob, 4, 1);
+  r(0x82260a, 11, 23 + bob, 2, 1);
+  r(0x521204, 11, 24 + bob, 2, 1);
+
+  // 4. OMBROS LARGOS, TÚNICA E AVENTAL DE COURO (ATRÁS DA BARBA)
+  // Ombros e mangas de tecido resistente cinza-escuro
+  r(0x2d3038, 2, 10 + bob, 4, 4);   // ombro esquerdo x: 2..5, y: 10..13
+  r(0x424650, 3, 10 + bob, 3, 3);
+  r(0x2d3038, 18, 10 + bob, 4, 4);  // ombro direito x: 18..21, y: 10..13
+  r(0x424650, 18, 10 + bob, 3, 3);
+
+  // Avental de couro de forja pesado
+  r(0x3e2311, 5, 10 + bob, 14, 11);
+  r(0x5c3a1b, 6, 11 + bob, 12, 10);
+  // Alças reforçadas de couro com fivelas de latão
+  r(0x28160a, 5, 10 + bob, 2, 9);   // alça esquerda
+  r(0x28160a, 17, 10 + bob, 2, 9);  // alça direita
+  r(0xc5a059, 5, 13 + bob, 2, 1);   // fivela esquerda
+  r(0xc5a059, 17, 13 + bob, 2, 1);  // fivela direita
+
+  // Cinto de ferramentas de couro com fivela forjada (y: 21..22)
+  r(0x1e1208, 4, 21 + bob, 16, 2);
+  r(0x785600, 10, 21 + bob, 4, 2);
+  r(0xffd700, 11, 21 + bob, 2, 2);  // fivela dourada
+
+  // 5. BRAÇO ESQUERDO: ANTEBRAÇO MUSCULOSO APOIADO NO BALCÃO COM MUNHEQUEIRA
+  r(0x8c5731, 2, 14 + bob, 3, 4);   // x: 2..4, y: 14..17 antebraço musculoso
+  r(0xc68b59, 2, 15 + bob, 2, 3);
+  r(0xf1c27d, 3, 15 + bob, 1, 2);   // relevo muscular
+  r(0x2b180d, 2, 18 + bob, 3, 2);   // munhequeira de couro escuro
+  r(0xffca28, 3, 18 + bob, 1, 1);   // rebite de latão na munhequeira
+  r(0xc68b59, 2, 20 + bob, 3, 2);   // punho/mão apoiada com firmeza no balcão
+  r(0x8c5731, 2, 20 + bob, 1, 2);
+
+  // 6. BRAÇO DIREITO: ANTEBRAÇO MUSCULOSO APOIADO NO BALCÃO (SIMÉTRICO — ZERO MARTELO FLUTUANDO!)
+  r(0x8c5731, 19, 14 + bob, 3, 4);  // x: 19..21, y: 14..17 antebraço musculoso
+  r(0xc68b59, 20, 15 + bob, 2, 3);
+  r(0xf1c27d, 20, 15 + bob, 1, 2);  // relevo muscular
+  r(0x2b180d, 19, 18 + bob, 3, 2);  // munhequeira de couro escuro
+  r(0xffca28, 20, 18 + bob, 1, 1);  // rebite de latão na munhequeira
+  r(0xc68b59, 19, 20 + bob, 3, 2);  // punho/mão apoiada com firmeza no balcão
+  r(0x8c5731, 21, 20 + bob, 1, 2);
 }
 
-// Mestre Mago Alquimista (44x44 — 2 frames com chapéu místico, poção borbulhante e ervas)
+// Mestre Mago Alquimista (48x52 — 4 frames com manto estelar, barba prateada, olhos arcanos e frasco iluminado)
 function drawMageMaster(r, f) {
-  const bob = f === 0 ? 0 : 1;
-  // Chapéu pontudo místico violeta com aba larga e fivela dourada
-  r(0x4a148c, 9, 1 + bob, 4, 2);
-  r(0x4a148c, 7, 3 + bob, 8, 2);
-  r(0x311b92, 4, 5 + bob, 14, 2);
-  r(C.gold, 8, 4 + bob, 6, 1);
-  r(C.cyan, 10, 4 + bob, 2, 1);
+  const bob = (f === 1 || f === 2) ? 1 : 0;
+  const glint = (f === 2) ? 1 : 0;
 
-  // Rosto sábio, olhos arcanos brilhantes e longa barba prateada
-  r(0x26173e, 7, 7 + bob, 8, 3);
-  r(C.cyan, 8, 8 + bob, 2, 1); r(C.cyan, 12, 8 + bob, 2, 1);
-  r(C.steelLight, 7, 10 + bob, 8, 5);
-  r(C.white, 8, 10 + bob, 6, 3);
-  r(C.steel, 9, 15 + bob, 4, 2);
+  // Chapéu pontudo místico violeta com curvatura suave no topo e fivela dourada
+  r(0x311b92, 14, 0 + bob, 3, 2);
+  r(0x4a148c, 12, 2 + bob, 4, 2);
+  r(0x4a148c, 10, 4 + bob, 6, 2);
+  r(0x311b92, 9, 6 + bob, 8, 2);
+  r(0x4a148c, 8, 8 + bob, 10, 2);
+  r(0x280e54, 7, 10 + bob, 12, 2);
 
-  // Manto estrelado de alquimista
-  r(0x311b92, 4, 12 + bob, 14, 8);
-  r(C.purple, 6, 13 + bob, 10, 7);
-  r(C.gold, 5, 12 + bob, 2, 7); r(C.gold, 15, 12 + bob, 2, 7);
-  r(C.yellow, 8, 17 + bob, 1, 1); r(C.cyan, 13, 16 + bob, 1, 1);
+  // Aba larga do chapéu com borda chanfrada
+  r(0x1e0b3d, 4, 12 + bob, 18, 2);
+  r(0x4a148c, 5, 12 + bob, 16, 1);
 
-  // Mão esquerda segurando ramo de ervas místicas douradas/verdes
-  r(C.skin, 3, 14 + bob, 2, 2);
-  r(C.leaf, 2, 11 + bob, 3, 3);
-  r(C.leafLight, 1, 10 + bob, 2, 2);
-  r(C.yellow, 3, 10 + bob, 1, 1);
+  // Faixa do chapéu em ouro com gema safira/arcana
+  r(C.gold, 7, 11 + bob, 12, 1);
+  r(glint ? 0xffffff : 0x00e5ff, 12, 11 + bob, 2, 1);
 
-  // Mão direita erguendo frasco de poção rubi/ciano borbulhante
-  const pY = f === 0 ? 0 : -1;
-  r(C.skin, 17, 14 + pY, 2, 2);
-  r(C.white, 17, 10 + pY, 4, 4);
-  r(f === 0 ? C.red : C.cyan, 18, 11 + pY, 2, 3);
-  r(C.gold, 18, 9 + pY, 2, 1);
+  // Rosto sábio com PELE ESCURA marcante (tons ricos de ébano e bronze profundo)
+  r(0x3d2110, 8, 13 + bob, 10, 2); // sombra superior sob a aba
+  r(0x5c3619, 9, 14 + bob, 8, 2);  // tez facial escura profunda
+  r(0x7a4823, 10, 14 + bob, 6, 1); // relevo suave nas maçãs do rosto
+
+  // Sobrancelhas espessas prateadas
+  r(C.steelLight, 8, 13 + bob, 3, 1);
+  r(C.steelLight, 15, 13 + bob, 3, 1);
+
+  // Olhos arcanos brilhantes com brilho especular vivo
+  r(C.cyan, 9, 14 + bob, 2, 1);
+  r(C.cyan, 15, 14 + bob, 2, 1);
+  r(C.white, 10, 14 + bob, 1, 1);
+  r(C.white, 16, 14 + bob, 1, 1);
+
+  // Longa e imponente barba prateada com anéis de ouro entrelaçados
+  r(C.steelLight, 7, 16 + bob, 12, 4);
+  r(C.white, 8, 17 + bob, 10, 5);
+  r(C.steelLight, 9, 21 + bob, 8, 3);
+  r(C.white, 10, 23 + bob, 6, 2);
+  // Anéis dourados que prendem as tranças da barba
+  r(C.gold, 10, 21 + bob, 2, 1);
+  r(C.gold, 14, 21 + bob, 2, 1);
+
+  // Manto estelar de veludo violeta e azul meia-noite
+  r(0x311b92, 4, 16 + bob, 4, 9);
+  r(0x311b92, 18, 16 + bob, 4, 9);
+  r(0x4a148c, 5, 17 + bob, 3, 8);
+  r(0x4a148c, 18, 17 + bob, 3, 8);
+  r(C.gold, 7, 18 + bob, 1, 7);
+  r(C.gold, 18, 18 + bob, 1, 7);
+
+  // Detalhes astrais/estrelas douradas na túnica
+  r(C.goldLight, 6, 20 + bob, 1, 1);
+  r(0x00e5ff, 19, 21 + bob, 1, 1);
+
+  // Mão esquerda com pele escura segurando ramo de ervas místicas douradas/verdes
+  r(0x5c3619, 4, 21 + bob, 3, 3);
+  r(0x7a4823, 5, 21 + bob, 1, 1);
+  r(C.gold, 5, 22 + bob, 1, 1); // anel
+  r(C.leaf, 2, 19 + bob, 3, 2);
+  r(C.leafLight, 1, 18 + bob, 2, 2);
+  r(C.gold, 3, 18 + bob, 1, 1);
+
+  // Mão direita com pele escura erguendo frasco de ensaio com poção de mana/rubi
+  const vBob = (f === 1 || f === 3) ? -1 : 0;
+  r(0x5c3619, 19, 19 + vBob, 3, 3);
+  r(0x7a4823, 20, 19 + vBob, 1, 1);
+  r(0xffffff, 20, 15 + vBob, 4, 5); // vidro translúcido
+  r(f % 2 === 0 ? 0xff1744 : 0x00e5ff, 21, 16 + vBob, 2, 4); // líquido rubi/mana ciano brilhante
+  r(C.gold, 21, 14 + vBob, 2, 1); // rolha de ouro/cortiça
+  r(0xffffff, 20, 15 + vBob, 1, 2); // reflexo especular
 }
 

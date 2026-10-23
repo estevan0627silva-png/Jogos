@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // SISTEMA DE CONTROLE POR JOYSTICK VIRTUAL MOBILE (FIXO E ANCORADO NA UI)
 // =============================================================================
 
@@ -42,15 +42,16 @@ class VirtualJoystick {
       if (mode === 'disabled') return false;
     }
 
-    if (typeof window === 'undefined') return false;
-    const hasTouch = (
-      'ontouchstart' in window ||
-      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
-      (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0)
-    );
-    const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    return hasTouch && (isCoarse || isMobileUA || window.innerWidth <= 1024);
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+
+    // Detecção estrita de telefone ou aparelho móvel real (smartphone / tablet)
+    const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+    const isMobileDevice = /android|iphone|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua);
+    const isIPad = /ipad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // No computador (desktop / laptop), o joystick fica SEMPRE desativado por padrão!
+    // Para ativar no computador, o usuário precisa ligar nos ajustes.
+    return Boolean(isMobileDevice || isIPad);
   }
 
   init() {
@@ -72,16 +73,7 @@ class VirtualJoystick {
     // Ouvintes de Toque com suporte a Multi-Touch
     this.setupTouchListeners();
 
-    // Detecção dinâmica de primeiro toque para telas touch híbridas
-    if (typeof window !== 'undefined') {
-      const onFirstTouch = () => {
-        if (typeof getJoystickMode === 'function' && getJoystickMode() !== 'disabled') {
-          this.isMobile = true;
-          this.updateVisibility();
-        }
-      };
-      window.addEventListener('touchstart', onFirstTouch, { once: true, passive: true });
-    }
+
 
     this.updateVisibility();
   }
@@ -186,6 +178,7 @@ class VirtualJoystick {
     const scene = this.scene;
 
     this.onPointerDownHandler = (pointer) => {
+      if (!this.visible) return;
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
       if (typeof pauseModal !== 'undefined' && pauseModal) return;
       if (typeof draftModal !== 'undefined' && draftModal) return;

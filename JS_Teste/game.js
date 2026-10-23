@@ -911,6 +911,11 @@ const getBestScore = () => StorageManager.getBestScore();
 function getGold() { return StorageManager.getGold(); }
 function setGold(total) { return StorageManager.setGold(total); }
 function addGold(amount) { return StorageManager.addGold(amount); }
+function spendGold(amount) {
+  if (getGold() < amount) return false;
+  addGold(-amount);
+  return true;
+}
 function consolidateSilverToGold() { return StorageManager.consolidateSilverToGold(); }
 function getUpgrades() { return StorageManager.getUpgrades(); }
 function saveUpgrades(up) { return StorageManager.saveUpgrades(up); }
@@ -918,6 +923,12 @@ function getWeaponLevel(type) { return StorageManager.getWeaponLevel(type); }
 function getUnlockedWeaponPool() { return StorageManager.getUnlockedWeaponPool(); }
 function getStatusUpgrades() { return StorageManager.getStatusUpgrades(); }
 function saveStatusUpgrades(st) { return StorageManager.saveStatusUpgrades(st); }
+function setStatusUpgradeLevel(key, lvl) {
+  const current = StorageManager.getStatusUpgrades();
+  current[key] = lvl;
+  StorageManager.saveStatusUpgrades(current);
+  return current;
+}
 function getStatusLevel(key) { return StorageManager.getStatusLevel(key); }
 function getMagnetRadius() { return StorageManager.getMagnetRadius(); }
 function getPlayerMaxHp() { return StorageManager.getPlayerMaxHp(); }
@@ -2844,71 +2855,260 @@ function drawVillageNpc(r, f) {
 }
 
 
+// =============================================================================
+// MESTRE FERREIRO ANVILGAR (48x52 — 4 FRAMES COM ANIMAÇÃO DE GOLPE DE FORJA & FAÍSCAS)
+// INSPIRAÇÃO: CONCEPT 4 (ANÃO FORJANDO NA BIGORNA COM MARTELO, TENAZ E FERRO EM BRASA)
+
+// =============================================================================
+// MESTRE FERREIRO ANVILGAR (48x52 — 4 FRAMES)
+// DESIGN: ANÃO FORTE, CARECA (DOME REDONDO E DEFINIDO) COM BARBA RUIVA TEXTURIZADA
+// POSTURA CARISMÁTICA ATRÁS DO BALCÃO COM MARTELO DE FORJA E AVENTAL DE COURO
+
+// =============================================================================
+// MESTRE FERREIRO ANVILGAR (48x52 — 4 FRAMES)
+// GRID ESTRITO: 24 UNIDADES DE LARGURA (x: 0..23) E 26 UNIDADES DE ALTURA (y: 0..25)
+// CADA UNIDADE É MULTIPLICADA POR 2 EM drawPixels (24 * 2 = 48px, 26 * 2 = 52px).
+// 100% CARECA (DOME REDONDO DEFINIDO), ROSTO SÓLIDO SEM FALHAS, GRANDE BARBÃO RUIVO
+// E BRAÇOS MUSCULOSOS APOIADOS NO BALCÃO COM MUNHEQUEIRAS (ZERO MARTELO FLUTUANDO)
+// =============================================================================
 function drawBlacksmithMaster(r, f) {
-  const bob = f === 0 ? 0 : 1;
-  // Cabeça, bandana de couro e barba espessa de mestre anão/ferreiro
-  r(C.darkRed, 7, 2 + bob, 8, 2);
-  r(C.skin, 7, 4 + bob, 8, 4);
-  r(C.outline, 9, 5 + bob, 1, 1); r(C.outline, 13, 5 + bob, 1, 1);
-  r(C.woodDark, 6, 7 + bob, 10, 5);
-  r(C.wood, 7, 8 + bob, 8, 3);
-  r(C.gold, 10, 9 + bob, 2, 2); // fivela da barba
+  const bob = (f === 1 || f === 2) ? 1 : 0;
+  const glint = (f === 2) ? 1 : 0;
 
-  // Ombros largos, camisa de linho e avental de couro pesado de forja
-  r(C.bone, 4, 11 + bob, 14, 6);
-  r(C.boot, 6, 11 + bob, 10, 9);
-  r(C.wood, 7, 12 + bob, 8, 7);
-  r(C.gold, 6, 15 + bob, 10, 1);
+  // 1. CABEÇA CARECA ROBUSTA (CENTRO EM x: 11.5 — DOME REDONDO, ROSTO SÓLIDO SEM FALHAS)
+  // Contorno superior e curvatura do crânio calvo
+  r(0x663318, 9, 2 + bob, 6, 1);   // x: 9..14, y: 2 (topo do domo calvo)
+  r(0x7a4522, 8, 3 + bob, 8, 1);   // x: 8..15, y: 3 (curvatura da cabeça)
+  r(0x8c5731, 7, 4 + bob, 10, 1);  // x: 7..16, y: 4 (têmporas)
 
-  // Braço esquerdo segurando tenaz com lâmina em brasa
-  r(C.skin, 3, 12 + bob, 2, 4);
-  r(C.ironDark, 2, 15 + bob, 3, 2);
-  r(C.red, 1, 14 + bob, 2, 2); r(C.yellow, 1, 14 + bob, 1, 1);
+  // Preenchimento contínuo e sólido da pele facial (elimina 100% de quaisquer pixels transparentes)
+  r(0xc68b59, 7, 4 + bob, 10, 4);  // x: 7..16, y: 4..7 (base de pele totalmente sólida da cabeça e bochechas)
 
-  // Braço direito erguendo/descendo o Martelo de Forja
-  const hY = f === 0 ? 0 : 3;
-  r(C.skin, 16, 11 + hY, 3, 4);
-  r(C.ironDark, 16, 14 + hY, 3, 2); // munhequeira
-  r(C.woodDark, 18, 6 + hY, 1, 9);  // cabo do martelo
-  r(C.steelDark, 16, 4 + hY, 5, 3); // cabeça do martelo
-  r(C.steelLight, 17, 4 + hY, 3, 1);
+  // Iluminação térmica suave e reflexo especular no topo da careca
+  r(0xf1c27d, 9, 3 + bob, 6, 2);   // luz quente no crânio calvo
+  r(0xffebd2, 11, 3 + bob, 2, 1);  // ponto alto de brilho especular nítido
+
+  // Orelhas de anão nas laterais (y: 5..7)
+  r(0x8c5731, 6, 5 + bob, 1, 3);   // orelha esquerda x: 6
+  r(0xc68b59, 6, 6 + bob, 1, 1);   // relevo interno da orelha esquerda
+  r(0x8c5731, 17, 5 + bob, 1, 3);  // orelha direita x: 17
+  r(0xc68b59, 17, 6 + bob, 1, 1);  // relevo interno da orelha direita
+
+  // Sobrancelhas ruivas grossas e determinadas de ferreiro (y: 5)
+  r(0x6a1a08, 8, 5 + bob, 3, 1);   // sobrancelha esquerda base
+  r(0xa83810, 8, 5 + bob, 2, 1);
+  r(0xc44516, 9, 5 + bob, 1, 1);   // mecha ruiva de destaque
+  r(0x6a1a08, 13, 5 + bob, 3, 1);  // sobrancelha direita base
+  r(0xa83810, 14, 5 + bob, 2, 1);
+  r(0xc44516, 14, 5 + bob, 1, 1);  // mecha ruiva de destaque
+
+  // Olhos expressivos e focados com reflexo vívido (y: 6)
+  r(0x1a1410, 8, 6 + bob, 2, 1);   // olho esquerdo
+  r(0xffffff, 9, 6 + bob, 1, 1);   // brilho branco no olho esquerdo
+  r(0x1a1410, 14, 6 + bob, 2, 1);  // olho direito
+  r(0xffffff, 14, 6 + bob, 1, 1);  // brilho branco no olho direito
+
+  // Nariz largo proeminente e bochechas coradas pelo calor da forja (y: 6..7 — 100% preenchido)
+  r(0xdf845d, 7, 7 + bob, 3, 1);   // bochecha esquerda corada (x: 7..9)
+  r(0xdf845d, 14, 7 + bob, 3, 1);  // bochecha direita corada (x: 14..16)
+  r(0x8c5731, 10, 7 + bob, 1, 1);  // sombreamento da asa nasal esquerda
+  r(0x8c5731, 13, 7 + bob, 1, 1);  // sombreamento da asa nasal direita
+  r(0xc68b59, 11, 6 + bob, 2, 2);  // corpo do nariz largo (x: 11..12, y: 6..7)
+  r(0xf1c27d, 11, 6 + bob, 1, 1);  // brilho na ponta do nariz
+
+  // 2. BIGODE IMPONENTE E CURVADO (x: 6..17, y: 8..9)
+  r(0x521204, 7, 8 + bob, 10, 2);  // base escura do bigode sobre a boca
+  r(0x82260a, 7, 8 + bob, 10, 1);
+  r(0xa83810, 8, 8 + bob, 8, 1);
+  r(0xdf5a1e, 9, 8 + bob, 6, 1);   // mecha central vívida do bigode
+  // Pontas volumosas do bigode curvando para fora nas laterais
+  r(0x82260a, 6, 9 + bob, 2, 1);   // ponta esquerda
+  r(0xa83810, 6, 9 + bob, 1, 1);
+  r(0x82260a, 16, 9 + bob, 2, 1);  // ponta direita
+  r(0xa83810, 17, 9 + bob, 1, 1);
+
+  // 3. O GRANDE "BARBÃO" DE ANÃO (x: 4..19, y: 9..24 — MASSIVO, TEXTURIZADO E ÉPICO)
+  // y = 9: transição da mandíbula para o barbão (x: 6..17)
+  r(0x521204, 6, 9 + bob, 12, 1);
+  r(0x82260a, 7, 9 + bob, 10, 1);
+
+  // y = 10..13: expansão em volume máximo sobre o peito (x: 4..19, largura 16!)
+  r(0x521204, 5, 10 + bob, 14, 1);
+  r(0x82260a, 6, 10 + bob, 12, 1);
+  r(0xa83810, 7, 10 + bob, 10, 1);
+  r(0xc44516, 8, 10 + bob, 8, 1);
+
+  r(0x521204, 4, 11 + bob, 16, 1);
+  r(0x82260a, 5, 11 + bob, 14, 1);
+  r(0xa83810, 6, 11 + bob, 12, 1);
+  r(0xc44516, 7, 11 + bob, 10, 1);
+  r(0xdf5a1e, 9, 11 + bob, 6, 1);   // mecha frontal viva
+
+  r(0x521204, 4, 12 + bob, 16, 1);
+  r(0x82260a, 5, 12 + bob, 14, 1);
+  r(0xa83810, 6, 12 + bob, 12, 1);
+  r(0xc44516, 8, 12 + bob, 8, 1);
+  r(0xfa7a28, 10, 12 + bob, 4, 1);  // brilho do fogo nas mechas da barba
+
+  r(0x521204, 4, 13 + bob, 16, 1);
+  r(0x82260a, 5, 13 + bob, 14, 1);
+  r(0xa83810, 7, 13 + bob, 10, 1);
+  r(0xc44516, 8, 13 + bob, 8, 1);
+
+  // y = 14..15: corpo da barba encorpada (x: 5..18)
+  r(0x521204, 5, 14 + bob, 14, 2);
+  r(0x82260a, 6, 14 + bob, 12, 2);
+  r(0xa83810, 7, 14 + bob, 10, 2);
+  r(0xc44516, 9, 14 + bob, 6, 2);
+
+  // y = 16..17: tranças laterais com anéis dourados rúnicos
+  r(0x521204, 6, 16 + bob, 12, 2);
+  r(0x82260a, 7, 16 + bob, 10, 2);
+  r(0xa83810, 8, 16 + bob, 8, 2);
+  // Anel de ouro na trança esquerda (x: 6..8, y: 16)
+  r(0x785600, 6, 16 + bob, 3, 1);
+  r(0xffd700, 6, 16 + bob, 2, 1);
+  r(0xffeb3b, 7, 16 + bob, 1, 1);
+  // Anel de ouro na trança direita (x: 15..17, y: 16)
+  r(0x785600, 15, 16 + bob, 3, 1);
+  r(0xffd700, 16, 16 + bob, 2, 1);
+  r(0xffeb3b, 16, 16 + bob, 1, 1);
+
+  // y = 18: confluência da barba central (x: 7..16)
+  r(0x521204, 7, 18 + bob, 10, 1);
+  r(0x82260a, 8, 18 + bob, 8, 1);
+  r(0xa83810, 9, 18 + bob, 6, 1);
+  r(0xc44516, 10, 18 + bob, 4, 1);
+
+  // y = 19: GRANDE ANEL DE FORJA DOURADO PRENDENDO O BARBÃO (x: 8..15)
+  r(0x785600, 8, 19 + bob, 8, 1);
+  r(0xffd700, 9, 19 + bob, 6, 1);
+  r(glint ? 0xffffff : 0xffeb3b, 11, 19 + bob, 2, 1); // brilho no fecho dourado
+
+  // y = 20..22: Ponta volumosa do barbão fluindo sob o grande anel (x: 8..15)
+  r(0x521204, 8, 20 + bob, 8, 2);
+  r(0x82260a, 9, 20 + bob, 6, 2);
+  r(0xa83810, 10, 20 + bob, 4, 2);
+  r(0xc44516, 11, 20 + bob, 2, 2);
+
+  // y = 23..24: ponta cônica e majestosa da barba longa (x: 10..13)
+  r(0x521204, 10, 23 + bob, 4, 1);
+  r(0x82260a, 11, 23 + bob, 2, 1);
+  r(0x521204, 11, 24 + bob, 2, 1);
+
+  // 4. OMBROS LARGOS, TÚNICA E AVENTAL DE COURO (ATRÁS DA BARBA)
+  // Ombros e mangas de tecido resistente cinza-escuro
+  r(0x2d3038, 2, 10 + bob, 4, 4);   // ombro esquerdo x: 2..5, y: 10..13
+  r(0x424650, 3, 10 + bob, 3, 3);
+  r(0x2d3038, 18, 10 + bob, 4, 4);  // ombro direito x: 18..21, y: 10..13
+  r(0x424650, 18, 10 + bob, 3, 3);
+
+  // Avental de couro de forja pesado
+  r(0x3e2311, 5, 10 + bob, 14, 11);
+  r(0x5c3a1b, 6, 11 + bob, 12, 10);
+  // Alças reforçadas de couro com fivelas de latão
+  r(0x28160a, 5, 10 + bob, 2, 9);   // alça esquerda
+  r(0x28160a, 17, 10 + bob, 2, 9);  // alça direita
+  r(0xc5a059, 5, 13 + bob, 2, 1);   // fivela esquerda
+  r(0xc5a059, 17, 13 + bob, 2, 1);  // fivela direita
+
+  // Cinto de ferramentas de couro com fivela forjada (y: 21..22)
+  r(0x1e1208, 4, 21 + bob, 16, 2);
+  r(0x785600, 10, 21 + bob, 4, 2);
+  r(0xffd700, 11, 21 + bob, 2, 2);  // fivela dourada
+
+  // 5. BRAÇO ESQUERDO: ANTEBRAÇO MUSCULOSO APOIADO NO BALCÃO COM MUNHEQUEIRA
+  r(0x8c5731, 2, 14 + bob, 3, 4);   // x: 2..4, y: 14..17 antebraço musculoso
+  r(0xc68b59, 2, 15 + bob, 2, 3);
+  r(0xf1c27d, 3, 15 + bob, 1, 2);   // relevo muscular
+  r(0x2b180d, 2, 18 + bob, 3, 2);   // munhequeira de couro escuro
+  r(0xffca28, 3, 18 + bob, 1, 1);   // rebite de latão na munhequeira
+  r(0xc68b59, 2, 20 + bob, 3, 2);   // punho/mão apoiada com firmeza no balcão
+  r(0x8c5731, 2, 20 + bob, 1, 2);
+
+  // 6. BRAÇO DIREITO: ANTEBRAÇO MUSCULOSO APOIADO NO BALCÃO (SIMÉTRICO — ZERO MARTELO FLUTUANDO!)
+  r(0x8c5731, 19, 14 + bob, 3, 4);  // x: 19..21, y: 14..17 antebraço musculoso
+  r(0xc68b59, 20, 15 + bob, 2, 3);
+  r(0xf1c27d, 20, 15 + bob, 1, 2);  // relevo muscular
+  r(0x2b180d, 19, 18 + bob, 3, 2);  // munhequeira de couro escuro
+  r(0xffca28, 20, 18 + bob, 1, 1);  // rebite de latão na munhequeira
+  r(0xc68b59, 19, 20 + bob, 3, 2);  // punho/mão apoiada com firmeza no balcão
+  r(0x8c5731, 21, 20 + bob, 1, 2);
 }
 
-// Mestre Mago Alquimista (44x44 — 2 frames com chapéu místico, poção borbulhante e ervas)
+// Mestre Mago Alquimista (48x52 — 4 frames com manto estelar, barba prateada, olhos arcanos e frasco iluminado)
 function drawMageMaster(r, f) {
-  const bob = f === 0 ? 0 : 1;
-  // Chapéu pontudo místico violeta com aba larga e fivela dourada
-  r(0x4a148c, 9, 1 + bob, 4, 2);
-  r(0x4a148c, 7, 3 + bob, 8, 2);
-  r(0x311b92, 4, 5 + bob, 14, 2);
-  r(C.gold, 8, 4 + bob, 6, 1);
-  r(C.cyan, 10, 4 + bob, 2, 1);
+  const bob = (f === 1 || f === 2) ? 1 : 0;
+  const glint = (f === 2) ? 1 : 0;
 
-  // Rosto sábio, olhos arcanos brilhantes e longa barba prateada
-  r(0x26173e, 7, 7 + bob, 8, 3);
-  r(C.cyan, 8, 8 + bob, 2, 1); r(C.cyan, 12, 8 + bob, 2, 1);
-  r(C.steelLight, 7, 10 + bob, 8, 5);
-  r(C.white, 8, 10 + bob, 6, 3);
-  r(C.steel, 9, 15 + bob, 4, 2);
+  // Chapéu pontudo místico violeta com curvatura suave no topo e fivela dourada
+  r(0x311b92, 14, 0 + bob, 3, 2);
+  r(0x4a148c, 12, 2 + bob, 4, 2);
+  r(0x4a148c, 10, 4 + bob, 6, 2);
+  r(0x311b92, 9, 6 + bob, 8, 2);
+  r(0x4a148c, 8, 8 + bob, 10, 2);
+  r(0x280e54, 7, 10 + bob, 12, 2);
 
-  // Manto estrelado de alquimista
-  r(0x311b92, 4, 12 + bob, 14, 8);
-  r(C.purple, 6, 13 + bob, 10, 7);
-  r(C.gold, 5, 12 + bob, 2, 7); r(C.gold, 15, 12 + bob, 2, 7);
-  r(C.yellow, 8, 17 + bob, 1, 1); r(C.cyan, 13, 16 + bob, 1, 1);
+  // Aba larga do chapéu com borda chanfrada
+  r(0x1e0b3d, 4, 12 + bob, 18, 2);
+  r(0x4a148c, 5, 12 + bob, 16, 1);
 
-  // Mão esquerda segurando ramo de ervas místicas douradas/verdes
-  r(C.skin, 3, 14 + bob, 2, 2);
-  r(C.leaf, 2, 11 + bob, 3, 3);
-  r(C.leafLight, 1, 10 + bob, 2, 2);
-  r(C.yellow, 3, 10 + bob, 1, 1);
+  // Faixa do chapéu em ouro com gema safira/arcana
+  r(C.gold, 7, 11 + bob, 12, 1);
+  r(glint ? 0xffffff : 0x00e5ff, 12, 11 + bob, 2, 1);
 
-  // Mão direita erguendo frasco de poção rubi/ciano borbulhante
-  const pY = f === 0 ? 0 : -1;
-  r(C.skin, 17, 14 + pY, 2, 2);
-  r(C.white, 17, 10 + pY, 4, 4);
-  r(f === 0 ? C.red : C.cyan, 18, 11 + pY, 2, 3);
-  r(C.gold, 18, 9 + pY, 2, 1);
+  // Rosto sábio com PELE ESCURA marcante (tons ricos de ébano e bronze profundo)
+  r(0x3d2110, 8, 13 + bob, 10, 2); // sombra superior sob a aba
+  r(0x5c3619, 9, 14 + bob, 8, 2);  // tez facial escura profunda
+  r(0x7a4823, 10, 14 + bob, 6, 1); // relevo suave nas maçãs do rosto
+
+  // Sobrancelhas espessas prateadas
+  r(C.steelLight, 8, 13 + bob, 3, 1);
+  r(C.steelLight, 15, 13 + bob, 3, 1);
+
+  // Olhos arcanos brilhantes com brilho especular vivo
+  r(C.cyan, 9, 14 + bob, 2, 1);
+  r(C.cyan, 15, 14 + bob, 2, 1);
+  r(C.white, 10, 14 + bob, 1, 1);
+  r(C.white, 16, 14 + bob, 1, 1);
+
+  // Longa e imponente barba prateada com anéis de ouro entrelaçados
+  r(C.steelLight, 7, 16 + bob, 12, 4);
+  r(C.white, 8, 17 + bob, 10, 5);
+  r(C.steelLight, 9, 21 + bob, 8, 3);
+  r(C.white, 10, 23 + bob, 6, 2);
+  // Anéis dourados que prendem as tranças da barba
+  r(C.gold, 10, 21 + bob, 2, 1);
+  r(C.gold, 14, 21 + bob, 2, 1);
+
+  // Manto estelar de veludo violeta e azul meia-noite
+  r(0x311b92, 4, 16 + bob, 4, 9);
+  r(0x311b92, 18, 16 + bob, 4, 9);
+  r(0x4a148c, 5, 17 + bob, 3, 8);
+  r(0x4a148c, 18, 17 + bob, 3, 8);
+  r(C.gold, 7, 18 + bob, 1, 7);
+  r(C.gold, 18, 18 + bob, 1, 7);
+
+  // Detalhes astrais/estrelas douradas na túnica
+  r(C.goldLight, 6, 20 + bob, 1, 1);
+  r(0x00e5ff, 19, 21 + bob, 1, 1);
+
+  // Mão esquerda com pele escura segurando ramo de ervas místicas douradas/verdes
+  r(0x5c3619, 4, 21 + bob, 3, 3);
+  r(0x7a4823, 5, 21 + bob, 1, 1);
+  r(C.gold, 5, 22 + bob, 1, 1); // anel
+  r(C.leaf, 2, 19 + bob, 3, 2);
+  r(C.leafLight, 1, 18 + bob, 2, 2);
+  r(C.gold, 3, 18 + bob, 1, 1);
+
+  // Mão direita com pele escura erguendo frasco de ensaio com poção de mana/rubi
+  const vBob = (f === 1 || f === 3) ? -1 : 0;
+  r(0x5c3619, 19, 19 + vBob, 3, 3);
+  r(0x7a4823, 20, 19 + vBob, 1, 1);
+  r(0xffffff, 20, 15 + vBob, 4, 5); // vidro translúcido
+  r(f % 2 === 0 ? 0xff1744 : 0x00e5ff, 21, 16 + vBob, 2, 4); // líquido rubi/mana ciano brilhante
+  r(C.gold, 21, 14 + vBob, 2, 1); // rolha de ouro/cortiça
+  r(0xffffff, 20, 15 + vBob, 1, 2); // reflexo especular
 }
 
 
@@ -7874,7 +8074,7 @@ function showSettingsMenu(scene) {
     const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
     if (m === 'enabled') return 'JOYSTICK VIRTUAL: [SEMPRE ATIVADO]';
     if (m === 'disabled') return 'JOYSTICK VIRTUAL: [DESATIVADO]';
-    return 'JOYSTICK VIRTUAL: [DETECÇÃO AUTOMÁTICA]';
+    return 'JOYSTICK VIRTUAL: [PADRÃO: ATIVO SÓ NO CELULAR]';
   };
   const getJoyColor = () => {
     const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
@@ -8398,10 +8598,14 @@ function showMainMenu(scene) {
   scene.input.keyboard.once('keydown-ENTER', onKeyStart);
 }
 
+// A FORJA DO MESTRE FERREIRO ANVILGAR (DESBLOQUEIO DE ARMAS & ARSENAL DE COMBATE)
+// DESIGN: CENÁRIO COMPLETO COM FORNALHA DOOM FIRE EM TEMPO REAL, ANÃO ATRÁS DO BALCÃO,
+// BIGORNA FRONTAL, MESA DE COURO PESPONTADO PARA AS CARTAS & ELEMENTOS DAS CONCEPTS (1 A 5)
+
 // =============================================================================
-// A FORJA DO FERREIRO REAL (DESBLOQUEIO DE ARMAS & ARSENAL DE COMBATE)
-// DESIGN: CENÁRIO COMPLETO COM MESTRE ANVILGAR ATRÁS DO BALCÃO, LAREIRA E 5 CARTAS
-// INSPIRAÇÃO: CUPHEAD SHOP (IMG 2), UI KIT (IMG 1 & 3) & WITCH/CAT SHOP (IMG 4)
+// A FORJA DO MESTRE FERREIRO ANVILGAR (DESBLOQUEIO DE ARMAS & ARSENAL DE COMBATE)
+// DESIGN: CENÁRIO COMPLETO COM FORNALHA DOOM FIRE EM TEMPO REAL, ANÃO ATRÁS DO BALCÃO,
+// BIGORNA FRONTAL, MESA DE COURO PESPONTADO PARA AS CARTAS & ELEMENTOS DAS CONCEPTS (1 A 5)
 // =============================================================================
 function showBlacksmithMenu(scene) {
   if (!scene) return;
@@ -8417,144 +8621,419 @@ function showBlacksmithMenu(scene) {
   menuContainer = scene.add.container(0, 0).setDepth(3000).setScrollFactor(0);
   menuContainer.isMainMenu = false;
 
-  // 1. CENÁRIO DA FORJA: PAREDE DE PEDRA, LAREIRA FLAMEJANTE E SUPORTES DE ARMAS
-  const forgeArt = scene.add.graphics();
+  // ---------------------------------------------------------------------------
+  // 1. MOTOR DE FOGO DO DOOM ARREDONDADO & PROFUNDO COM CORES VIBRANTES REAIS
+  // PALETA 100% RUBI, VERMELHO VIVO, MAGMA LARANJA, OURO SOLAR E BRANCO INCANDESCENTE
+  // (ZERO TONS MOSTARDA OU ESVERDEADOS — FOGO REAL DE FORJA ARDENTE)
+  // ---------------------------------------------------------------------------
+  const DOOM_FIRE_PALETTE = [
+    [0, 0, 0, 0],           // 0: Transparente / Vazio (topo da fornalha)
+    [30, 2, 2, 160],        // 1: Fumaça de brasa escura
+    [55, 4, 4, 210],        // 2: Vermelho carmesim profundo
+    [85, 6, 6, 255],        // 3
+    [115, 8, 6, 255],       // 4
+    [145, 12, 6, 255],      // 5: Vermelho escuro
+    [175, 18, 6, 255],      // 6
+    [200, 24, 6, 255],      // 7: Vermelho sangue vivo
+    [220, 30, 6, 255],      // 8
+    [235, 38, 8, 255],      // 9: Vermelho fogo ardente
+    [245, 48, 8, 255],      // 10
+    [255, 58, 10, 255],     // 11: Escarlate vivo
+    [255, 70, 10, 255],     // 12
+    [255, 82, 12, 255],     // 13: Vermelhão incandescente
+    [255, 96, 14, 255],     // 14
+    [255, 110, 16, 255],    // 15: Laranja magma elétrico
+    [255, 124, 18, 255],    // 16
+    [255, 138, 20, 255],    // 17: Laranja brasa pura
+    [255, 152, 22, 255],    // 18
+    [255, 166, 24, 255],    // 19: Laranja fogo brilhante
+    [255, 178, 26, 255],    // 20
+    [255, 190, 28, 255],    // 21: Ouro alaranjado
+    [255, 202, 32, 255],    // 22
+    [255, 214, 36, 255],    // 23: Ouro solar
+    [255, 224, 42, 255],    // 24
+    [255, 232, 50, 255],    // 25: Amarelo fogo puro
+    [255, 240, 60, 255],    // 26
+    [255, 245, 75, 255],    // 27: Amarelo brilhante
+    [255, 248, 95, 255],    // 28
+    [255, 250, 120, 255],   // 29: Amarelo-claro ardente
+    [255, 252, 150, 255],   // 30
+    [255, 253, 180, 255],   // 31: Núcleo esbranquiçado
+    [255, 254, 205, 255],   // 32
+    [255, 254, 225, 255],   // 33: Branco fogo
+    [255, 255, 240, 255],   // 34
+    [255, 255, 250, 255],   // 35
+    [255, 255, 255, 255]    // 36: Branco puro (coração da fornalha)
+  ];
 
-  // Parede de alvenaria e fuligem
-  forgeArt.fillStyle(0x1a120c, 1).fillRect(0, 0, 960, 240);
-  for (let by = 0; by < 240; by += 28) {
-    forgeArt.fillStyle(0x241810, 0.4).fillRect(0, by, 960, 2);
+  const fireW = 48;
+  const fireH = 44;
+  const firePixels = new Uint8Array(fireW * fireH);
+
+  // Perfil arredondado do leito de brasas (curvatura da fornalha)
+  const baseHeatProfile = new Uint8Array(fireW);
+  for (let x = 0; x < fireW; x++) {
+    const normX = Math.abs(x - (fireW - 1) / 2) / ((fireW - 1) / 2); // 0 no centro, 1 nas bordas
+    const arch = Math.cos(normX * (Math.PI / 2.2));
+    baseHeatProfile[x] = Math.round(36 * Math.max(0, arch));
   }
 
-  // Lareira / Fornalha de pedra à esquerda (x: 40..170, y: 55..205)
-  forgeArt.fillStyle(0x2a1a12, 1).fillRoundedRect(40, 55, 130, 150, 10);
-  forgeArt.lineStyle(2, 0x4a2c1b).strokeRoundedRect(40, 55, 130, 150, 10);
-  // Boca da fornalha em brasa
-  forgeArt.fillStyle(0x0e0604, 1).fillRoundedRect(55, 100, 100, 100, 8);
-  forgeArt.fillStyle(0xd84315, 0.9).fillCircle(105, 160, 36);
-  forgeArt.fillStyle(0xff6d00, 0.95).fillCircle(105, 168, 25);
-  forgeArt.fillStyle(0xffd54f, 1).fillCircle(105, 174, 14);
+  // Inicializa o leito de brasas arredondado
+  for (let x = 0; x < fireW; x++) {
+    const maxH = baseHeatProfile[x];
+    firePixels[(fireH - 1) * fireW + x] = maxH;
+    firePixels[(fireH - 2) * fireW + x] = Math.max(0, maxH - 1);
+  }
 
-  // Chaminé de ferro subindo
-  forgeArt.fillStyle(0x1a1512, 1).fillRect(85, 0, 40, 55);
-  forgeArt.lineStyle(1.5, 0x3d2b1f).strokeRect(85, 0, 40, 55);
+  let fireTex = scene.textures.get('doom_forge_fire');
+  if (!fireTex || fireTex.key !== 'doom_forge_fire') {
+    if (scene.textures.exists('doom_forge_fire')) scene.textures.remove('doom_forge_fire');
+    fireTex = scene.textures.createCanvas('doom_forge_fire', fireW, fireH);
+    if (fireTex && fireTex.setFilter) fireTex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+  }
 
-  // Racks de armas na parede traseira à direita (x: 640..920, y: 65..185)
-  forgeArt.fillStyle(0x2e1c14, 0.95).fillRoundedRect(640, 68, 280, 115, 8);
-  forgeArt.lineStyle(2, 0x5c3722).strokeRoundedRect(640, 68, 280, 115, 8);
-  forgeArt.lineStyle(1, 0xc5a059, 0.5).strokeRoundedRect(644, 72, 272, 107, 6);
+  const fireCtx = fireTex.context;
+  const fireImgData = fireCtx.createImageData(fireW, fireH);
+  const fireData = fireImgData.data;
 
-  // Silhuetas de espadas, machados e escudos pendurados no suporte
-  forgeArt.fillStyle(0x78909c, 0.85);
-  forgeArt.fillRect(665, 82, 6, 75); // Lâmina de espada
-  forgeArt.fillRect(655, 120, 26, 6); // Guarda
-  forgeArt.fillStyle(0x5c3722, 1).fillRect(666, 126, 4, 18); // Empunhadura
+  const stepDoomFire = () => {
+    // Alimenta o leito de brasas arredondado com pulsaÃ§Ãµes dinÃ¢micas de calor
+    for (let x = 0; x < fireW; x++) {
+      const maxH = baseHeatProfile[x];
+      const jitter = Math.floor(Math.random() * 2);
+      firePixels[(fireH - 1) * fireW + x] = Math.max(0, maxH - jitter);
+      firePixels[(fireH - 2) * fireW + x] = Math.max(0, maxH - jitter - (Math.random() > 0.6 ? 1 : 0));
+    }
 
-  // Escudo redondo viking hung
-  forgeArt.fillStyle(0x546e7a, 0.9).fillCircle(755, 125, 28);
-  forgeArt.lineStyle(2, 0xc5a059).strokeCircle(755, 125, 28);
-  forgeArt.fillStyle(0xffca28, 1).fillCircle(755, 125, 8);
+    // PropagaÃ§Ã£o clÃ¡ssica do Doom: dispersÃ£o lateral e resfriamento para cima
+    for (let x = 0; x < fireW; x++) {
+      for (let y = 1; y < fireH; y++) {
+        const src = y * fireW + x;
+        const pixel = firePixels[src];
+        if (pixel === 0) {
+          firePixels[src - fireW] = 0;
+        } else {
+          const rand = Math.floor(Math.random() * 3);
+          const decay = Math.floor(Math.random() * 2);
+          const dstX = Math.min(fireW - 1, Math.max(0, x - rand + 1));
+          const dst = (y - 1) * fireW + dstX;
+          firePixels[dst] = pixel >= decay ? pixel - decay : 0;
+        }
+      }
+    }
 
-  // Machado duplo de batalha
-  forgeArt.fillStyle(0x455a64, 0.9);
-  forgeArt.fillTriangle(840, 85, 815, 115, 840, 115);
-  forgeArt.fillTriangle(840, 85, 865, 115, 840, 115);
-  forgeArt.fillStyle(0x5c3722, 1).fillRect(838, 95, 4, 70);
+    // Converte os valores tÃ©rmicos em cores vivas de fogo real
+    let p = 0;
+    for (let i = 0; i < firePixels.length; i++) {
+      const col = DOOM_FIRE_PALETTE[firePixels[i]];
+      fireData[p++] = col[0];
+      fireData[p++] = col[1];
+      fireData[p++] = col[2];
+      fireData[p++] = col[3];
+    }
+    fireCtx.putImageData(fireImgData, 0, 0);
+    fireTex.refresh();
+  };
 
-  // Correntes de ferro penduradas no teto
-  forgeArt.lineStyle(2, 0x455a64, 0.7);
-  forgeArt.lineBetween(400, 0, 400, 40);
-  forgeArt.lineBetween(560, 0, 560, 40);
+  // PrÃ©-aquece a simulaÃ§Ã£o para as chamas comeÃ§arem jÃ¡ no auge
+  for (let i = 0; i < 45; i++) stepDoomFire();
 
-  // 2. O MESTRE FERREIRO ANVILGAR ATRÁS DO BALCÃO
-  const blacksmithSprite = scene.add.sprite(225, 142, 'blacksmith_master')
+  // Sprite do Fogo do Doom ampliado para que suas 4 bordas retangulares fiquem
+  // 100% ocultas atrÃ¡s da alvenaria frontal de pedra da fornalha (forgeFrontArt)
+  const doomFireSprite = scene.add.image(105, 150, 'doom_forge_fire')
+    .setScale(2.7)
+    .setOrigin(0.5);
+
+  const doomFireTimer = scene.time.addEvent({
+    delay: 36, // ~28 fps - taxa de atualização perfeita do DOOM fire clássico
+    loop: true,
+    callback: () => {
+      if (!menuContainer || !menuContainer.active) return;
+      stepDoomFire();
+    }
+  });
+
+  menuContainer.on('destroy', () => {
+    if (doomFireTimer) doomFireTimer.remove();
+  });
+
+  // ---------------------------------------------------------------------------
+  // 2. CENÁRIO DA FORJA: ALVENARIA DE PEDRA, FORNALHA COM PROFUNDIDADE & ARSENAL
+  // ---------------------------------------------------------------------------
+  const forgeBackdropArt = scene.add.graphics();
+
+  // Parede de blocos de pedra rÃºstica escura com fuligem e rejunte de carvÃ£o
+  forgeBackdropArt.fillStyle(0x0e0906, 1).fillRect(0, 0, 960, 240);
+  for (let row = 0; row < 9; row++) {
+    const by = row * 26;
+    const offset = (row % 2 === 0) ? 0 : 45;
+    forgeBackdropArt.fillStyle(0x19100a, 0.6).fillRect(0, by, 960, 2);
+    for (let bx = offset; bx < 960; bx += 90) {
+      forgeBackdropArt.fillStyle(0x19100a, 0.45).fillRect(bx, by, 2, 26);
+      if ((bx + row) % 3 === 0) {
+        forgeBackdropArt.fillStyle(0x22150e, 0.35).fillRect(bx + 6, by + 4, 38, 16);
+      }
+    }
+  }
+
+  // Vigas estruturais de carvalho pesado no teto
+  forgeBackdropArt.fillStyle(0x221308, 1).fillRect(0, 0, 960, 14);
+  forgeBackdropArt.fillStyle(0x381f12, 1).fillRect(0, 12, 960, 4);
+  forgeBackdropArt.lineStyle(6, 0x1f1107, 0.95);
+  forgeBackdropArt.strokeCircle(65, 0, 90);
+  forgeBackdropArt.strokeCircle(895, 0, 90);
+
+  // CAVIDADE PROFUNDA DA FORNALHA (FUNDO ESCURO ONDE ARDEM AS CHAMAS)
+  forgeBackdropArt.fillStyle(0x060302, 1).fillRoundedRect(30, 48, 150, 162, 14);
+  // Tijolos refratÃ¡rios internos da cÃ¢mara de combustÃ£o
+  forgeBackdropArt.fillStyle(0x150a05, 0.85);
+  for (let fy = 92; fy < 200; fy += 14) {
+    forgeBackdropArt.fillRect(36, fy, 138, 1);
+  }
+  // Glow tÃ©rmico Ã¢mbar no fundo da cavidade
+  forgeBackdropArt.fillStyle(0xd53205, 0.2).fillCircle(105, 152, 60);
+  forgeBackdropArt.fillStyle(0xff8f00, 0.25).fillCircle(105, 162, 38);
+
+  // ARSENAL DE PAREDE Ã€ DIREITA (x: 640..930, y: 64..190 â€” CONCEPTS 1, 2, 3, 5)
+  forgeBackdropArt.fillStyle(0x24150c, 0.96).fillRoundedRect(638, 64, 290, 124, 8);
+  forgeBackdropArt.lineStyle(2.5, 0x54321d).strokeRoundedRect(638, 64, 290, 124, 8);
+  forgeBackdropArt.lineStyle(1.2, 0xc5a059, 0.6).strokeRoundedRect(642, 68, 282, 116, 6);
+  forgeBackdropArt.fillStyle(0x190d07, 1).fillRect(644, 114, 278, 6);
+
+  // Item 1 (Concept 1): ELMO CRUZADO DE AÃ‡O COM CRUZ DOURADA
+  forgeBackdropArt.fillStyle(0x8a909c, 1).fillRoundedRect(658, 76, 26, 32, 4);
+  forgeBackdropArt.lineStyle(1.5, 0x5a606e).strokeRoundedRect(658, 76, 26, 32, 4);
+  forgeBackdropArt.fillStyle(0xffca28, 1).fillRect(669, 78, 4, 28).fillRect(663, 86, 16, 4);
+  forgeBackdropArt.fillStyle(0x121216, 1).fillRect(663, 87, 5, 2).fillRect(673, 87, 5, 2);
+
+  // Item 2 (Concept 1 & 2): ESCUDO AQUECEDOR DE CARVALHO (HEATER SHIELD)
+  forgeBackdropArt.fillStyle(0x422616, 1).fillRect(700, 75, 26, 22);
+  forgeBackdropArt.fillStyle(0x422616, 1).fillTriangle(700, 97, 726, 97, 713, 112);
+  forgeBackdropArt.lineStyle(1.8, 0x8a909c).strokeRect(700, 75, 26, 22);
+  forgeBackdropArt.lineStyle(1.8, 0x8a909c).lineBetween(700, 97, 713, 112).lineBetween(726, 97, 713, 112);
+  forgeBackdropArt.lineStyle(1, 0x24140b).lineBetween(708, 76, 708, 102).lineBetween(718, 76, 718, 102);
+  forgeBackdropArt.fillStyle(0xffca28, 1).fillCircle(713, 88, 2.5);
+
+  // Item 3 (Concept 1 & 2): ESCUDO REDONDO VIKING COM UMBO DE FERRO
+  forgeBackdropArt.fillStyle(0x2f4f4f, 0.95).fillCircle(758, 92, 17);
+  forgeBackdropArt.lineStyle(2, 0xc5a059).strokeCircle(758, 92, 17);
+  forgeBackdropArt.fillStyle(0x8a909c, 1).fillCircle(758, 92, 6);
+  forgeBackdropArt.fillStyle(0xffffff, 0.8).fillCircle(757, 91, 1.5);
+
+  // Item 4 (Concept 2 & 5): MACHADO DE GUERRA & ESPADA DE AÃ‡O CRUZADOS
+  forgeBackdropArt.fillStyle(0x8d5c38, 1).fillRect(798, 72, 3.5, 42);
+  forgeBackdropArt.fillStyle(0x8a909c, 1).fillTriangle(799, 74, 786, 84, 799, 94);
+  forgeBackdropArt.fillStyle(0x8a909c, 1).fillTriangle(801, 74, 814, 84, 801, 94);
+  forgeBackdropArt.fillStyle(0xffffff, 0.9).fillRect(786, 83, 28, 2);
+
+  forgeBackdropArt.fillStyle(0x5a606e, 1).fillRect(828, 72, 4, 38);
+  forgeBackdropArt.fillStyle(0xffca28, 1).fillRect(822, 80, 16, 3.5);
+  forgeBackdropArt.fillStyle(0x8d5c38, 1).fillRect(828, 83, 4, 8);
+  forgeBackdropArt.fillStyle(0xffca28, 1).fillCircle(830, 92, 2.5);
+
+  // Item 5 (Concept 5): ALJAVA DE COURO COM FLECHAS & ARCO RECURVO
+  forgeBackdropArt.fillStyle(0x4e342e, 1).fillRoundedRect(854, 75, 14, 34, 3);
+  forgeBackdropArt.lineStyle(1.5, 0xc5a059).strokeRoundedRect(854, 75, 14, 34, 3);
+  forgeBackdropArt.fillStyle(0xf5f5f5, 1).fillTriangle(856, 75, 858, 67, 860, 75);
+  forgeBackdropArt.fillStyle(0xf5f5f5, 1).fillTriangle(862, 75, 864, 65, 866, 75);
+
+  // Item 6 (Concept 5): LANTERNA DE TEMPESTADE EM GAIOLA DE FERRO
+  forgeBackdropArt.lineStyle(1.5, 0x1f1610).lineBetween(900, 68, 900, 78);
+  forgeBackdropArt.fillStyle(0x1f1610, 1).fillRoundedRect(892, 78, 16, 22, 3);
+  forgeBackdropArt.fillStyle(0xffeb3b, 0.95).fillRoundedRect(894, 82, 12, 14, 2);
+  forgeBackdropArt.fillStyle(0xff6f00, 1).fillRect(899, 87, 3, 5);
+  forgeBackdropArt.lineStyle(1, 0xc5a059, 0.85).strokeRoundedRect(892, 78, 16, 22, 3);
+  forgeBackdropArt.fillStyle(0xffa000, 0.12).fillCircle(900, 89, 32);
+
+  // Item 7 (Concept 3): PEDRA DE AMOLAR RÃšNICA COM VEIOS EM BRASA
+  forgeBackdropArt.fillStyle(0x23262d, 1).fillRoundedRect(655, 128, 48, 22, 3);
+  forgeBackdropArt.lineStyle(1.5, 0x455a64).strokeRoundedRect(655, 128, 48, 22, 3);
+  forgeBackdropArt.fillStyle(0xff5722, 0.95).fillRect(662, 137, 34, 2);
+  forgeBackdropArt.fillStyle(0xffca28, 1).fillCircle(679, 138, 2);
+
+  // Item 8 (Concept 1): ELMO BARBUTA / SALLET PONTUDO DE INFANTARIA
+  forgeBackdropArt.fillStyle(0x78909c, 1).fillRoundedRect(722, 128, 24, 26, 4);
+  forgeBackdropArt.fillStyle(0x101419, 1).fillRect(731, 135, 4, 14).fillRect(726, 139, 14, 3);
+
+  // Item 9 (Concept 2): SACO DE MOEDAS DE OURO EM COURO CRU
+  forgeBackdropArt.fillStyle(0x8d5c38, 1).fillCircle(776, 142, 9);
+  forgeBackdropArt.fillStyle(0x5c3a1b, 1).fillRect(773, 131, 6, 4);
+  forgeBackdropArt.fillStyle(0xffca28, 1).fillCircle(783, 146, 3).fillCircle(788, 146, 3);
+
+  // Item 10 (Concept 5): ESPADÃƒO MONTANTE PESADO (BUSTER SWORD)
+  forgeBackdropArt.fillStyle(0x5a606e, 1).fillRect(815, 126, 75, 12);
+  forgeBackdropArt.fillStyle(0xffffff, 0.8).fillRect(815, 127, 75, 2);
+  forgeBackdropArt.fillStyle(0x3e2723, 1).fillRect(805, 129, 10, 6);
+  forgeBackdropArt.fillStyle(0xc5a059, 1).fillCircle(804, 132, 3);
+  forgeBackdropArt.fillStyle(0x1a120c, 1).fillCircle(832, 132, 2).fillCircle(852, 132, 2);
+
+  // ---------------------------------------------------------------------------
+  // 3. FACHADA E ALVENARIA FRONTAL DA FORNALHA (LAYER 3: NA FRENTE DO FOGO!)
+  // MASCARA COMPLETAMENTE AS 4 BORDAS RETANGULARES DO SPRITE DO DOOM FIRE
+  // ---------------------------------------------------------------------------
+  const forgeFrontArt = scene.add.graphics();
+
+  // Pilar esquerdo maciÃ§o de pedras da fornalha (x: 28..70 â€” cobre a borda esquerda do fogo x: 40.2)
+  forgeFrontArt.fillStyle(0x28170e, 1).fillRoundedRect(28, 46, 42, 172, 6);
+  forgeFrontArt.lineStyle(2.5, 0x482917).strokeRoundedRect(28, 46, 42, 172, 6);
+  for (let py = 56; py < 210; py += 24) {
+    forgeFrontArt.fillStyle(0x180d07, 0.7).fillRect(28, py, 42, 2);
+    forgeFrontArt.fillStyle(0x3e2417, 0.45).fillRect(32, py + 4, 34, 16);
+  }
+
+  // Pilar direito maciÃ§o de pedras da fornalha (x: 140..182 â€” cobre a borda direita do fogo x: 169.8)
+  forgeFrontArt.fillStyle(0x28170e, 1).fillRoundedRect(140, 46, 42, 172, 6);
+  forgeFrontArt.lineStyle(2.5, 0x482917).strokeRoundedRect(140, 46, 42, 172, 6);
+  for (let py = 56; py < 210; py += 24) {
+    forgeFrontArt.fillStyle(0x180d07, 0.7).fillRect(140, py, 42, 2);
+    forgeFrontArt.fillStyle(0x3e2417, 0.45).fillRect(144, py + 4, 34, 16);
+  }
+
+  // Parede superior frontal e dintel de pedra (y: 46..104 â€” cobre a borda superior do fogo y: 90.6)
+  forgeFrontArt.fillStyle(0x28170e, 1).fillRect(28, 46, 154, 58);
+  forgeFrontArt.lineStyle(2.5, 0x482917).strokeRect(28, 46, 154, 58);
+
+  // Moldura chanfrada do arco de pedra envolvente da fornalha
+  forgeFrontArt.lineStyle(5, 0x3d2112, 1);
+  forgeFrontArt.strokeRoundedRect(64, 98, 82, 100, 18);
+  forgeFrontArt.lineStyle(1.8, 0x160c07, 0.95);
+  forgeFrontArt.strokeRoundedRect(64, 98, 82, 100, 18);
+
+  // Brilho quente do fogo iluminando a aresta interna do arco
+  forgeFrontArt.lineStyle(1.5, 0xff7043, 0.65);
+  forgeFrontArt.strokeRoundedRect(66, 100, 78, 96, 16);
+
+  // Pedra angular superior da abÃ³bada (Keystone central entalhada)
+  forgeFrontArt.fillStyle(0x56321e, 1).fillRect(93, 86, 24, 18);
+  forgeFrontArt.lineStyle(2, 0x1f1109).strokeRect(93, 86, 24, 18);
+  forgeFrontArt.fillStyle(0xffca28, 0.9).fillRect(104, 89, 2, 12).fillRect(99, 93, 12, 2); // runa de forja
+
+  // Base da fornalha e grelha de ferro inferior (y: 194..218 â€” cobre a borda inferior do fogo y: 209.4)
+  forgeFrontArt.fillStyle(0x1a0f08, 1).fillRect(28, 194, 154, 26);
+  forgeFrontArt.lineStyle(2, 0x3d2315).strokeRect(28, 194, 154, 26);
+  for (let gx = 68; gx < 144; gx += 10) {
+    forgeFrontArt.fillStyle(0x454852, 1).fillRect(gx, 192, 3.5, 12);
+    forgeFrontArt.fillStyle(0x8a909c, 0.8).fillRect(gx, 192, 1, 12);
+  }
+
+  // ChaminÃ© de ferro industrial subindo atÃ© o teto
+  forgeFrontArt.fillStyle(0x181310, 1).fillRect(80, 0, 50, 48);
+  forgeFrontArt.lineStyle(2, 0x36251a).strokeRect(80, 0, 50, 48);
+  forgeFrontArt.fillStyle(0x261e16, 1).fillRect(78, 16, 54, 5).fillRect(78, 34, 54, 5); // anÃ©is de reforÃ§o
+  for (let ry = 8; ry < 46; ry += 12) {
+    forgeFrontArt.fillStyle(0x8a909c, 0.9).fillCircle(84, ry, 1.5).fillCircle(126, ry, 1.5);
+  }
+
+  // Ferramentas apoiadas na parede externa da fornalha (chÃ£o limpo)
+  forgeFrontArt.lineStyle(2, 0x5a606e).lineBetween(22, 120, 18, 210); // atiÃ§ador longo
+  forgeFrontArt.fillStyle(0x26272e, 1).fillRect(16, 205, 7, 7);
+  forgeFrontArt.lineStyle(2, 0x3e2723).lineBetween(26, 130, 24, 212); // pÃ¡ de cinzas
+  forgeFrontArt.fillStyle(0x455a64, 1).fillRect(22, 206, 9, 6);
+
+  // Balde / tonel de tÃªmpera de Ã¡gua fria no chÃ£o
+  forgeFrontArt.fillStyle(0x2b1810, 1).fillRoundedRect(8, 214, 20, 28, 3);
+  forgeFrontArt.fillStyle(0x78909c, 1).fillRect(8, 220, 20, 2).fillRect(8, 234, 20, 2);
+  forgeFrontArt.fillStyle(0x0288d1, 0.85).fillRoundedRect(10, 215, 16, 4, 1);
+
+  // ---------------------------------------------------------------------------
+  // 4. O MESTRE FERREIRO ANVILGAR ATRÃS DO BALCÃƒO (RENDERIZADO NO LAYER 4!)
+  // ---------------------------------------------------------------------------
+  const blacksmithSprite = scene.add.sprite(235, 168, 'blacksmith_master')
     .play('blacksmith_master')
-    .setScale(2.2);
+    .setScale(2.3);
 
   scene.tweens.add({
     targets: blacksmithSprite,
-    y: 138,
-    duration: 900,
+    y: 164,
+    duration: 1100,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut'
   });
 
-  // Balão de Diálogo de Pergaminho do Vendedor (Imagem 1 & 4)
+  // ---------------------------------------------------------------------------
+  // 5. BALCÃO DE CARVALHO MACIÇO DA ARMOSA (RENDERIZADO NO LAYER 3: y: 194..248)
+  // FRENTE DA FORNALHA 100% LIMPA E DESOBSTRUÍDA!
+  // ---------------------------------------------------------------------------
+  const counterArt = scene.add.graphics();
+  // Viga maciça de carvalho envelhecido
+  counterArt.fillStyle(0x2c180e, 1).fillRect(0, 194, 960, 54);
+  // Chanfro polido no topo do balcão
+  counterArt.fillStyle(0x5e331b, 1).fillRect(0, 194, 960, 6);
+  counterArt.fillStyle(0x824927, 0.75).fillRect(0, 194, 960, 2); // friso reluzente
+  counterArt.lineStyle(2, 0x160c07).strokeRect(0, 194, 960, 54);
+
+  // Cintas de ferro forjado e junções verticais do balcão
+  counterArt.fillStyle(0x180f08, 0.55);
+  for (let sx = 80; sx < 960; sx += 140) {
+    counterArt.fillRect(sx, 200, 2, 48);
+  }
+
+  // Friso metálico com rebites de latão ao longo do balcão
+  counterArt.fillStyle(0xc5a059, 0.75).fillRect(0, 206, 960, 2);
+  for (let rx = 25; rx < 960; rx += 70) {
+    counterArt.fillStyle(0xffd700, 0.95).fillCircle(rx, 207, 2.5);
+    counterArt.fillStyle(0x221105, 1).fillCircle(rx, 207, 1);
+  }
+
+
+
+  // C) Pilha de moedas de ouro sobre almofada de couro curtido à direita (x: 740..795)
+  counterArt.fillStyle(0x4a2c1b, 0.95).fillRoundedRect(742, 188, 54, 8, 3);
+  counterArt.lineStyle(1, 0x8d5c38).strokeRoundedRect(742, 188, 54, 8, 3);
+  counterArt.fillStyle(0xffca28, 1).fillCircle(754, 187, 3.5).fillCircle(764, 187, 3.5).fillCircle(774, 187, 3.5);
+  counterArt.fillStyle(0xffd54f, 1).fillCircle(759, 184, 3.5).fillCircle(769, 184, 3.5);
+
+  // ---------------------------------------------------------------------------
+  // 6. BALÃO DE DIÁLOGO DE PERGAMINHO (AO LADO DO FERREIRO: x: 315..630, y: 78..178)
+  // ---------------------------------------------------------------------------
   const speechBubble = scene.add.graphics();
   const drawSpeechBubble = () => {
     speechBubble.clear();
-    // Corpo do balão de pergaminho nobre
-    speechBubble.fillStyle(0xf5ebd6, 0.98).fillRoundedRect(310, 82, 310, 96, 10);
-    speechBubble.lineStyle(2, 0x6d4c2a).strokeRoundedRect(310, 82, 310, 96, 10);
-    speechBubble.lineStyle(1, 0xc5a059, 0.7).strokeRoundedRect(313, 85, 304, 90, 8);
+    speechBubble.fillStyle(0xfbf4e6, 0.99).fillRoundedRect(315, 78, 318, 98, 14);
+    speechBubble.lineStyle(2, 0x5c3722).strokeRoundedRect(315, 78, 318, 98, 14);
+    speechBubble.lineStyle(1.2, 0xc5a059, 0.85).strokeRoundedRect(318, 81, 312, 92, 11);
 
-    // Ponta do balão apontando para o Ferreiro
-    speechBubble.fillStyle(0xf5ebd6, 1).fillTriangle(310, 130, 286, 138, 310, 146);
-    speechBubble.lineStyle(2, 0x6d4c2a).lineBetween(310, 130, 286, 138);
-    speechBubble.lineStyle(2, 0x6d4c2a).lineBetween(286, 138, 310, 146);
+    // Ponta do balão apontando diretamente para a boca do Ferreiro
+    speechBubble.fillStyle(0xfbf4e6, 1).fillTriangle(315, 126, 290, 135, 315, 144);
+    speechBubble.lineStyle(2, 0x5c3722).lineBetween(315, 126, 290, 135);
+    speechBubble.lineStyle(2, 0x5c3722).lineBetween(290, 135, 315, 144);
   };
   drawSpeechBubble();
 
-  const smithTitleTxt = scene.add.text(326, 92, 'MESTRE ANVILGAR (FERREIRO REAL)', textStyle('#5c3722', 11, 'bold'));
-  const smithSpeechTxt = scene.add.text(326, 110, '“O fogo forja o aço! Escolha seu armamento para a batalha.”', {
-    ...roundedTextStyle('#2c1b10', 11, 'normal'),
-    lineSpacing: 3,
-    wordWrap: { width: 280, useAdvancedWrap: true }
+  const smithTitleTxt = scene.add.text(332, 90, 'MESTRE ANVILGAR (FERREIRO REAL)', textStyle('#5c3722', 11.5, 'bold'));
+  const smithSpeechTxt = scene.add.text(332, 110, '“O fogo forja o aço! Escolha seu armamento para a batalha.”', {
+    ...roundedTextStyle('#24150b', 11, 'normal'),
+    lineSpacing: 3.5,
+    wordWrap: { width: 290, useAdvancedWrap: true }
   });
 
-  // 3. O BALCÃO DE CARVALHO PESADO (ATRAVESSA DE PONTA A PONTA: y: 195..248)
-  const counterArt = scene.add.graphics();
-  // Viga maciça de carvalho envelhecido
-  counterArt.fillStyle(0x3a2215, 1).fillRect(0, 196, 960, 52);
-  // Brilho de madeira polida no topo do balcão
-  counterArt.fillStyle(0x6e3d22, 1).fillRect(0, 196, 960, 6);
-  counterArt.lineStyle(2, 0x1f1109).strokeRect(0, 196, 960, 52);
-
-  // Textura de veios e emendas de madeira
-  counterArt.fillStyle(0x28160c, 0.6);
-  [160, 340, 520, 700, 880].forEach(sx => counterArt.fillRect(sx, 202, 2, 46));
-
-  // Rebites e cantoneiras de ferro na borda do balcão
-  for (let rx = 20; rx < 960; rx += 70) {
-    counterArt.fillStyle(0x1a120c, 1).fillCircle(rx, 204, 3.5);
-    counterArt.fillStyle(0xc5a059, 1).fillCircle(rx, 204, 2);
-  }
-
-  // Itens em cima do Balcão: Bigorna pesada com ferro em brasa à esquerda
-  counterArt.fillStyle(0x263238, 1).fillRect(72, 178, 38, 20); // Base da bigorna
-  counterArt.fillRect(64, 168, 54, 12); // Tampo
-  counterArt.fillTriangle(64, 168, 50, 172, 64, 176); // Chifre da bigorna
-  // Peça de ferro quente saindo da brasa com tenaz
-  counterArt.fillStyle(0xff5722, 1).fillRect(78, 164, 16, 5);
-  counterArt.fillStyle(0xffeb3b, 1).fillRect(80, 165, 8, 3);
-  counterArt.fillStyle(0x455a64, 1).fillRect(94, 162, 22, 3); // Tenaz
-
-  // Pilha de moedas de ouro sobre um veludo bordô à direita
-  counterArt.fillStyle(0x5c1818, 0.95).fillRoundedRect(720, 190, 55, 8, 3);
-  counterArt.fillStyle(0xffca28, 1).fillCircle(732, 189, 4).fillCircle(742, 189, 4).fillCircle(737, 186, 4);
-
-  // 4. PLACA DE MADEIRA PENDURADA NO TOPO (TÍTULO DA LOJA — IMAGEM 4)
+  // ---------------------------------------------------------------------------
+  // 7. PLACA DE MADEIRA PENDURADA NO TOPO (TÍTULO DA FORJA REAL)
+  // ---------------------------------------------------------------------------
   const signGfx = scene.add.graphics();
-  // Correntes de suspensão
-  signGfx.lineStyle(2, 0x455a64, 1);
-  signGfx.lineBetween(380, 0, 380, 24);
-  signGfx.lineBetween(580, 0, 580, 24);
-  // Placa esculpida
-  signGfx.fillStyle(0x2a170e, 0.96).fillRoundedRect(340, 16, 280, 44, 8);
-  signGfx.lineStyle(2.5, 0x8d5524).strokeRoundedRect(340, 16, 280, 44, 8);
-  signGfx.lineStyle(1.2, 0xc5a059).strokeRoundedRect(344, 20, 272, 36, 6);
-  // Rebites
-  signGfx.fillStyle(0xc5a059, 1).fillCircle(352, 28, 2.5).fillCircle(608, 28, 2.5);
+  signGfx.lineStyle(1.8, 0x455a64, 0.95);
+  for (let cy = 0; cy < 22; cy += 5) {
+    signGfx.strokeCircle(380, cy, 2.5);
+    signGfx.strokeCircle(580, cy, 2.5);
+  }
+  signGfx.fillStyle(0x28160c, 0.98).fillRoundedRect(340, 14, 280, 44, 8);
+  signGfx.lineStyle(2.5, 0x6e3d22).strokeRoundedRect(340, 14, 280, 44, 8);
+  signGfx.lineStyle(1.2, 0xc5a059).strokeRoundedRect(344, 18, 272, 36, 6);
+  signGfx.fillStyle(0xffca28, 1).fillCircle(352, 24, 2.5).fillCircle(608, 24, 2.5);
+  signGfx.fillStyle(0xffca28, 1).fillCircle(352, 48, 2.5).fillCircle(608, 48, 2.5);
 
-  const signTitle = scene.add.text(480, 38, '⚔ A FORJA REAL ⚔', {
-    ...textStyle('#ffca28', 16), fontFamily: 'Georgia, serif'
+  const signTitle = scene.add.text(480, 36, '⚔ A FORJA REAL ⚔', {
+    ...textStyle('#ffd740', 16, 'bold'),
+    fontFamily: 'Georgia, serif'
   }).setOrigin(0.5);
 
-  // 5. ABAS DE NAVEGAÇÃO ENTRE LOJAS NO TOPO ESQUERDO (IMAGEM 4)
-  const forgeTabBtn = scene.add.rectangle(85, 28, 110, 28, 0x8d5524)
+  // ---------------------------------------------------------------------------
+  // 8. ABAS DE NAVEGAÇÃO ENTRE LOJAS NO TOPO ESQUERDO
+  // ---------------------------------------------------------------------------
+  const forgeTabBtn = scene.add.rectangle(85, 28, 110, 28, 0x8d5c38)
     .setStrokeStyle(1.5, 0xffca28);
-  const forgeTabTxt = scene.add.text(85, 28, '⚔ FORJA REAL', textStyle('#ffffff', 10.5)).setOrigin(0.5);
+  const forgeTabTxt = scene.add.text(85, 28, '⚔ FORJA REAL', textStyle('#ffffff', 10.5, 'bold')).setOrigin(0.5);
 
   const mageTabBtn = scene.add.rectangle(205, 28, 110, 28, 0x22132e)
     .setStrokeStyle(1.5, 0x7c4dff)
@@ -8574,31 +9053,74 @@ function showBlacksmithMenu(scene) {
     showMageShopMenu(scene);
   });
 
-  // 6. PAINEL DE OURO DO JOGADOR NO TOPO DIREITO
+  // ---------------------------------------------------------------------------
+  // 9. PAINEL DE OURO DO JOGADOR NO TOPO DIREITO & BOTÃO SAIR
+  // ---------------------------------------------------------------------------
   const goldPouchGfx = scene.add.graphics();
   goldPouchGfx.fillStyle(0x1e150f, 0.96).fillRoundedRect(720, 16, 130, 32, 6);
   goldPouchGfx.lineStyle(2, 0xffca28).strokeRoundedRect(720, 16, 130, 32, 6);
   const coinSprite = scene.add.sprite(738, 32, 'gold_coin').play('gold_coin').setScale(1.2);
-  const goldValTxt = scene.add.text(758, 32, `${getGold()}G`, textStyle('#ffd740', 13)).setOrigin(0, 0.5);
+  const goldValTxt = scene.add.text(758, 32, `${getGold()}G`, textStyle('#ffd740', 13, 'bold')).setOrigin(0, 0.5);
 
-  // Botão Sair [ESC]
   const closeQuickBtn = scene.add.rectangle(905, 32, 70, 30, 0x5c241b)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(905, 32, '✕ SAIR', textStyle('#ffeb3b', 11)).setOrigin(0.5);
+  const closeQuickTxt = scene.add.text(905, 32, '✕ SAIR', textStyle('#ffeb3b', 11, 'bold')).setOrigin(0.5);
+
   closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
   closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
   closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
 
+  // ---------------------------------------------------------------------------
+  // 10. BANCADA DA OFICINA DE ARMAS: ESTEIRA DE COURO PESPONTADO PARA AS CARTAS
+  // ---------------------------------------------------------------------------
+  const leatherMatArt = scene.add.graphics();
+  leatherMatArt.fillStyle(0x1c1109, 1).fillRect(0, 248, 960, 292);
+  for (let wy = 250; wy < 540; wy += 38) {
+    leatherMatArt.fillStyle(0x140c06, 0.7).fillRect(0, wy, 960, 2);
+  }
+
+  leatherMatArt.fillStyle(0x3a2114, 0.98).fillRoundedRect(16, 248, 928, 276, 8);
+  leatherMatArt.fillStyle(0x4a2c1b, 0.5).fillRoundedRect(20, 252, 920, 268, 6);
+  leatherMatArt.lineStyle(2, 0x8d5c38, 0.85).strokeRoundedRect(22, 254, 916, 264, 6);
+  leatherMatArt.lineStyle(1, 0x24140b, 0.9).strokeRoundedRect(18, 250, 924, 272, 8);
+
+  const matCorners = [
+    [24, 256], [936, 256],
+    [24, 516], [936, 516]
+  ];
+  matCorners.forEach(([cx, cy]) => {
+    leatherMatArt.fillStyle(0x1a120c, 1).fillCircle(cx, cy, 6);
+    leatherMatArt.fillStyle(0xc5a059, 1).fillCircle(cx, cy, 3);
+    leatherMatArt.fillStyle(0xffd700, 1).fillCircle(cx, cy, 1.2);
+  });
+
   menuContainer.add([
-    forgeArt, blacksmithSprite, speechBubble, smithTitleTxt, smithSpeechTxt,
-    counterArt, signGfx, signTitle,
-    forgeTabBtn, forgeTabTxt, mageTabBtn, mageTabTxt,
-    goldPouchGfx, coinSprite, goldValTxt,
-    closeQuickBtn, closeQuickTxt
+    forgeBackdropArt,
+    doomFireSprite,
+    forgeFrontArt,
+    blacksmithSprite,
+    counterArt,
+    speechBubble,
+    smithTitleTxt,
+    smithSpeechTxt,
+    signGfx,
+    signTitle,
+    forgeTabBtn,
+    forgeTabTxt,
+    mageTabBtn,
+    mageTabTxt,
+    goldPouchGfx,
+    coinSprite,
+    goldValTxt,
+    closeQuickBtn,
+    closeQuickTxt,
+    leatherMatArt
   ]);
 
-  // 7. SHOWCASE DAS 5 ARMAS: CARTAS DE PERGAMINHO PREGADAS NA FRENTE DO BALCÃO
+  // ---------------------------------------------------------------------------
+  // 11. SHOWCASE DAS 5 ARMAS: CARTAS DE PERGAMINHO DE ARMEIRO COM TEXTOS CENTRALIZADOS
+  // ---------------------------------------------------------------------------
   const upgrades = getUpgrades();
   const weaponKeys = ['bow', 'sword', 'shield', 'axe', 'firestaff'];
   const weaponArchetypes = {
@@ -8609,11 +9131,11 @@ function showBlacksmithMenu(scene) {
     firestaff: 'IMPACTO EM ÁREA'
   };
   const weaponStyles = {
-    bow: 'Disparos rápidos à distância (ideal para arqueiros e magos).',
+    bow: 'Disparos rápidos à distância (ideal para arqueiros e caçadores).',
     sword: 'Corte frontal potente em arco com alto knockback e rastro reluzente.',
     shield: 'Aura defensiva sagrada que bloqueia e reflete projéteis inimigos.',
     axe: 'Corte giratório duplo devastador que atinge múltiplos inimigos em 360°.',
-    firestaff: 'Projéteis arcanos explosivos com dano em área e alta potência de impacto.'
+    firestaff: 'Projéteis vulcânicos explosivos com dano em área e alta potência de impacto.'
   };
   const weaponDialogues = {
     bow: '“O Arco Real dos patrulheiros! Disparos rápidos e certeiros para abater alvos à distância.”',
@@ -8640,22 +9162,17 @@ function showBlacksmithMenu(scene) {
     const cardGfx = scene.add.graphics();
     const drawCard = (hover = false) => {
       cardGfx.clear();
-      // Prego / rebite de ferro no topo da carta prendendo-a ao balcão
       cardGfx.fillStyle(0x000000, 0.4).fillCircle(cx, startY + 5, 4);
       cardGfx.fillStyle(0xc5a059, 1).fillCircle(cx, startY + 4, 3);
       cardGfx.fillStyle(0x2a1a0e, 1).fillCircle(cx, startY + 4, 1.2);
 
-      // Corpo de pergaminho da carta (Imagem 1 & 4)
-      cardGfx.fillStyle(hover ? 0xfff8e7 : (isStarter ? 0xfff3cf : 0xf2e4c9), 0.98)
+      cardGfx.fillStyle(hover ? 0xfff8e7 : (isStarter ? 0xfff3cf : 0xf4ead2), 0.99)
         .fillRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
-      // Moldura externa
       cardGfx.lineStyle(2, hover ? 0xffca28 : (isStarter ? 0xffc107 : (isUnlocked ? 0x8d5524 : 0x5c4233)))
         .strokeRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
-      // Filete interno decorativo
       cardGfx.lineStyle(1, hover ? 0xffd54f : (isStarter ? 0xffca28 : 0xb89569), 0.7)
         .strokeRoundedRect(left + 3, startY + 11, cardW - 6, cardH - 14, 6);
 
-      // Rebites nos 4 cantos da carta
       const corners = [
         [left + 8, startY + 16],
         [left + cardW - 8, startY + 16],
@@ -8663,17 +9180,15 @@ function showBlacksmithMenu(scene) {
         [left + cardW - 8, startY + cardH - 8]
       ];
       corners.forEach(([rx, ry]) => {
-        cardGfx.fillStyle(0xc5a059, 0.8).fillCircle(rx, ry, 1.8);
+        cardGfx.fillStyle(0xc5a059, 0.85).fillCircle(rx, ry, 1.8);
       });
 
-      // Alvéolo circular de relíquia / arma (Medalhão Image 1)
       const socketY = startY + 54;
       cardGfx.fillStyle(0x18120c, 1).fillCircle(cx, socketY, 26);
       cardGfx.lineStyle(2, hover ? 0xffeb3b : (isStarter ? 0xffd740 : (isUnlocked ? 0xc5a059 : 0x6e5233)))
         .strokeCircle(cx, socketY, 26);
       cardGfx.lineStyle(1, 0x8d5524, 0.6).strokeCircle(cx, socketY, 23);
 
-      // 4 Entalhes ornamentais nas bordas do círculo
       cardGfx.fillStyle(0xc5a059, 1);
       cardGfx.fillRect(cx - 1.5, socketY - 29, 3, 4);
       cardGfx.fillRect(cx - 1.5, socketY + 25, 3, 4);
@@ -8682,24 +9197,23 @@ function showBlacksmithMenu(scene) {
     };
     drawCard(false);
 
-    // Ícone da Arma no centro do alvéolo circular
     const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
     if (!isUnlocked) icon.setTint(0x555555);
 
-    // Nome da Arma em tipografia nobre
     const nameTxt = scene.add.text(cx, startY + 92, cfg.name, {
-      ...textStyle(isStarter ? '#794b02' : (isUnlocked ? '#2c1b10' : '#6b5443'), 12),
+      ...textStyle(isStarter ? '#794b02' : (isUnlocked ? '#2c1b10' : '#6b5443'), 12, 'bold'),
       fontFamily: 'Georgia, serif',
       align: 'center'
     }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 16, 18, 9.5);
 
-    // Badge do Arquétipo de Combate
     const badgeBg = scene.add.rectangle(cx, startY + 114, cardW - 24, 18, isStarter ? 0x2e5c26 : (isUnlocked ? 0x3d2919 : 0x221a14))
       .setStrokeStyle(1, isStarter ? 0x76ff03 : (isUnlocked ? 0xc5a059 : 0x6e5233));
-    const badgeTxt = scene.add.text(cx, startY + 114, weaponArchetypes[key] || 'ARMA REAL', textStyle(isStarter ? '#b9f6ca' : (isUnlocked ? '#ffe082' : '#a8987b'), 9)).setOrigin(0.5);
+    const badgeTxt = scene.add.text(cx, startY + 114, weaponArchetypes[key] || 'ARMA REAL', {
+      ...roundedTextStyle(isStarter ? '#b9f6ca' : (isUnlocked ? '#ffe082' : '#a8987b'), 9, 'bold'),
+      align: 'center'
+    }).setOrigin(0.5);
 
-    // Descrição e lore de combate
     const descStr = weaponStyles[key] || cfg.forgeLore || '';
     const descTxt = scene.add.text(cx, startY + 164, descStr, {
       ...roundedTextStyle('#3d2817', 10, 'normal'),
@@ -8709,8 +9223,20 @@ function showBlacksmithMenu(scene) {
     }).setOrigin(0.5);
     fitTextToBox(descTxt, cardW - 18, 76, 8.5);
 
-    // Botão de Ação no Rodapé da Carta
-    const btnX = cx, btnY = startY + cardH - 26, btnW = cardW - 20, btnH = 34;
+    const hitZoneH = cardH - 52;
+    const cardHit = scene.add.rectangle(cx, startY + 8 + hitZoneH / 2, cardW, hitZoneH, 0x000000, 0)
+      .setInteractive({ useHandCursor: true });
+
+    cardHit.on('pointerover', () => {
+      drawCard(true);
+      smithSpeechTxt.setText(weaponDialogues[key] || '“Excelente escolha, guerreiro!”');
+    });
+    cardHit.on('pointerout', () => {
+      drawCard(false);
+      smithSpeechTxt.setText('“O fogo forja o aço! Escolha seu armamento para a batalha.”');
+    });
+
+    const btnX = cx, btnY = startY + cardH - 24, btnW = cardW - 24, btnH = 34;
     let actionBtn, actionTxt;
 
     if (!isUnlocked) {
@@ -8719,9 +9245,29 @@ function showBlacksmithMenu(scene) {
 
       actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x246b3d : 0x3b2c22)
         .setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846)
-        .setInteractive({ useHandCursor: true });
-      actionTxt = scene.add.text(btnX, btnY, `FORJAR (${cost}G)`, textStyle(canAfford ? '#ffffff' : '#8c7b6b', 10.5)).setOrigin(0.5);
+        .setInteractive({ useHandCursor: canAfford });
+
+      actionTxt = scene.add.text(btnX, btnY, `FORJAR (${cost}G)`, {
+        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 11, 'bold'),
+        align: 'center'
+      }).setOrigin(0.5);
       fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
+
+      actionBtn.on('pointerover', () => {
+        if (getGold() >= cost) {
+          actionBtn.setFillStyle(0x2e854b);
+          actionBtn.setStrokeStyle(2, 0xffd740);
+          actionTxt.setColor('#ffeb3b');
+        } else {
+          actionBtn.setFillStyle(0x4a372b);
+        }
+      });
+      actionBtn.on('pointerout', () => {
+        const stillAfford = getGold() >= cost;
+        actionBtn.setFillStyle(stillAfford ? 0x246b3d : 0x3b2c22);
+        actionBtn.setStrokeStyle(2, stillAfford ? 0xffca28 : 0x6e5846);
+        actionTxt.setColor(stillAfford ? '#ffffff' : '#8c7b6b');
+      });
 
       actionBtn.on('pointerdown', () => {
         if (getGold() < cost) {
@@ -8743,8 +9289,21 @@ function showBlacksmithMenu(scene) {
       actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, isStarter ? 0x1f4724 : 0x543217)
         .setStrokeStyle(2, isStarter ? 0xffca28 : 0xc5a059)
         .setInteractive({ useHandCursor: true });
-      actionTxt = scene.add.text(btnX, btnY, isStarter ? '★ EM USO' : 'EQUIPAR', textStyle(isStarter ? '#ffd740' : '#ffffff', 10.5)).setOrigin(0.5);
+
+      actionTxt = scene.add.text(btnX, btnY, isStarter ? '★ EM USO' : 'EQUIPAR', {
+        ...roundedTextStyle(isStarter ? '#ffd740' : '#ffffff', 11, 'bold'),
+        align: 'center'
+      }).setOrigin(0.5);
       fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
+
+      actionBtn.on('pointerover', () => {
+        actionBtn.setFillStyle(isStarter ? 0x27592e : 0x6d401e);
+        if (!isStarter) actionTxt.setColor('#ffd740');
+      });
+      actionBtn.on('pointerout', () => {
+        actionBtn.setFillStyle(isStarter ? 0x1f4724 : 0x543217);
+        actionTxt.setColor(isStarter ? '#ffd740' : '#ffffff');
+      });
 
       actionBtn.on('pointerdown', () => {
         sound.playButtonClick();
@@ -8756,23 +9315,12 @@ function showBlacksmithMenu(scene) {
       });
     }
 
-    // Zona Interativa da Carta Inteira (Atualiza o Diálogo do Ferreiro ao passar o mouse!)
-    const cardHit = scene.add.rectangle(cx, startY + cardH / 2, cardW, cardH, 0x000000, 0)
-      .setInteractive({ useHandCursor: true });
-
-    cardHit.on('pointerover', () => {
-      drawCard(true);
-      smithSpeechTxt.setText(weaponDialogues[key] || '“Excelente escolha, guerreiro!”');
-    });
-    cardHit.on('pointerout', () => {
-      drawCard(false);
-      smithSpeechTxt.setText('“O fogo forja o aço! Escolha seu armamento para a batalha.”');
-    });
-
-    menuContainer.add([cardGfx, icon, nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt, cardHit]);
+    menuContainer.add([cardGfx, cardHit, icon, nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
   });
 
-  // 8. TECLA DE ATALHO ESC PARA SAÍDA RÁPIDA
+  // ---------------------------------------------------------------------------
+  // 12. TECLAS DE ATALHO ESC & TAB
+  // ---------------------------------------------------------------------------
   const onEsc = (e) => {
     if (e.key === 'Escape') {
       scene.input.keyboard.off('keydown', onEsc);
@@ -8807,335 +9355,306 @@ function showMageShopMenu(scene) {
   menuContainer = scene.add.container(0, 0).setDepth(3000).setScrollFactor(0);
   menuContainer.isMainMenu = false;
 
-  // 1. CENÁRIO DO SANTUÁRIO: PAREDE OBSIDIANA, VIGAS EM ARCO (CUPHEAD) & PRATELEIRAS ALQUÍMICAS (IMG 1-4)
+  // ---------------------------------------------------------------------------
+  // 1. CENÁRIO DE FUNDO: PAREDE DE ALVENARIA MÍSTICA, VIGAS EM ARCO (CUPHEAD) & PRATELEIRAS
+  // ---------------------------------------------------------------------------
   const sanctumArt = scene.add.graphics();
 
-  // Parede de alvenaria mística escura
-  sanctumArt.fillStyle(0x0e0a1a, 1).fillRect(0, 0, 960, 240);
-  for (let by = 0; by < 240; by += 26) {
-    sanctumArt.fillStyle(0x19122a, 0.45).fillRect(0, by, 960, 2);
+  // Parede de alvenaria mística escura texturizada com blocos de pedra e argamassa
+  sanctumArt.fillStyle(0x0c0817, 1).fillRect(0, 0, 960, 240);
+  // Blocos de pedra intercalados com sutis variações de cor e linhas de rejunte
+  for (let row = 0; row < 9; row++) {
+    const by = row * 26;
+    const offset = (row % 2 === 0) ? 0 : 45;
+    sanctumArt.fillStyle(0x130d22, 0.45).fillRect(0, by, 960, 2);
+    for (let bx = offset; bx < 960; bx += 90) {
+      sanctumArt.fillStyle(0x130d22, 0.35).fillRect(bx, by, 2, 26);
+      // Sutil textura interna no bloco de pedra
+      if ((bx + row) % 3 === 0) {
+        sanctumArt.fillStyle(0x19102b, 0.3).fillRect(bx + 6, by + 4, 38, 16);
+      }
+    }
   }
 
-  // Vigas e arcos de teto no estilo Cuphead Shop (Imagem 5)
-  sanctumArt.fillStyle(0x24140c, 1).fillRect(0, 0, 960, 16);
-  sanctumArt.fillStyle(0x381f13, 1).fillRect(0, 14, 960, 4);
-  // Arcos estruturais laterais
+  // Vigas e arcos estruturais de teto no estilo Cuphead Shop (Imagem 5)
+  sanctumArt.fillStyle(0x22130a, 1).fillRect(0, 0, 960, 14);
+  sanctumArt.fillStyle(0x381f12, 1).fillRect(0, 12, 960, 4);
+  // Arcos estruturais de madeira nas laterais
   sanctumArt.lineStyle(8, 0x24140c, 0.95);
-  sanctumArt.strokeCircle(60, 0, 90);
-  sanctumArt.strokeCircle(900, 0, 90);
-  sanctumArt.lineStyle(2, 0x54321d, 0.8);
-  sanctumArt.strokeCircle(60, 0, 92);
-  sanctumArt.strokeCircle(900, 0, 92);
+  sanctumArt.strokeCircle(65, 0, 92);
+  sanctumArt.strokeCircle(895, 0, 92);
+  sanctumArt.lineStyle(2, 0x54321d, 0.85);
+  sanctumArt.strokeCircle(65, 0, 94);
+  sanctumArt.strokeCircle(895, 0, 94);
 
-  // Lanterna de ferro fundido pendurada em corrente (Cuphead shop) com halo quente
+  // Lanterna de ferro fundido pendurada em corrente (Cuphead) - posicionada sem colidir
   sanctumArt.lineStyle(1.5, 0x1f1610, 0.9);
-  for (let cy = 0; cy < 38; cy += 6) {
-    sanctumArt.strokeCircle(385, cy, 2.5);
+  for (let cy = 0; cy < 34; cy += 6) {
+    sanctumArt.strokeCircle(345, cy, 2.5);
   }
-  // Halo de iluminação quente âmbar
-  sanctumArt.fillStyle(0xffa000, 0.12).fillCircle(385, 54, 52);
-  sanctumArt.fillStyle(0xffd54f, 0.22).fillCircle(385, 54, 26);
+  // Halo de iluminação quente âmbar que banha o Mago e o balcão
+  sanctumArt.fillStyle(0xffa000, 0.12).fillCircle(345, 48, 56);
+  sanctumArt.fillStyle(0xffd54f, 0.20).fillCircle(345, 48, 28);
   // Corpo da lanterna
-  sanctumArt.fillStyle(0x1f1610, 1).fillRoundedRect(377, 40, 16, 22, 3);
-  sanctumArt.fillStyle(0xffeb3b, 0.95).fillRoundedRect(379, 44, 12, 14, 2);
-  sanctumArt.fillStyle(0xff6f00, 1).fillRect(384, 49, 3, 5); // chama
-  sanctumArt.lineStyle(1, 0xc5a059, 0.8).strokeRoundedRect(377, 40, 16, 22, 3);
+  sanctumArt.fillStyle(0x1f1610, 1).fillRoundedRect(337, 36, 16, 22, 3);
+  sanctumArt.fillStyle(0xffeb3b, 0.95).fillRoundedRect(339, 40, 12, 14, 2);
+  sanctumArt.fillStyle(0xff6f00, 1).fillRect(344, 45, 3, 5); // chama
+  sanctumArt.lineStyle(1, 0xc5a059, 0.85).strokeRoundedRect(337, 36, 16, 22, 3);
 
-  // Runas arcanas gravadas no fundo da parede com aura de brilho (ciano & violeta)
-  sanctumArt.lineStyle(2, 0x7c4dff, 0.35);
-  sanctumArt.strokeCircle(105, 120, 30);
-  sanctumArt.lineBetween(105, 90, 105, 150);
-  sanctumArt.lineBetween(75, 120, 135, 120);
-  sanctumArt.strokeRect(93, 108, 24, 24);
+  // Runas arcanas gravadas no fundo da parede com aura de brilho sutil
+  sanctumArt.lineStyle(1.5, 0x7c4dff, 0.3);
+  sanctumArt.strokeCircle(235, 95, 24);
+  sanctumArt.lineBetween(235, 71, 235, 119);
+  sanctumArt.lineBetween(211, 95, 259, 95);
 
   // ---------------------------------------------------------------------------
-  // PAREDE ESQUERDA: BOTICÁRIO COM ITENS DA IMAGEM 1 & 3
+  // PAREDE ESQUERDA: BOTICÁRIO COM PROPS DA IMAGEM 1 & 3 (SEM BAGUNÇA, POSIÇÃO LIMPA)
   // ---------------------------------------------------------------------------
-  // Prateleira rústica de pedra entalhada (x: 24..180, y: 62..185)
-  sanctumArt.fillStyle(0x1b1324, 0.95).fillRoundedRect(24, 62, 160, 120, 6);
-  sanctumArt.lineStyle(2, 0x5c2b75).strokeRoundedRect(24, 62, 160, 120, 6);
-  sanctumArt.fillStyle(0x351945, 1).fillRect(28, 114, 152, 5); // prateleira 1
-  sanctumArt.fillStyle(0x351945, 1).fillRect(28, 164, 152, 5); // prateleira 2
+  // Nicho em pedra entalhada (x: 20..160, y: 58..184)
+  sanctumArt.fillStyle(0x140d1e, 0.95).fillRoundedRect(20, 58, 144, 126, 6);
+  sanctumArt.lineStyle(2, 0x4a225e).strokeRoundedRect(20, 58, 144, 126, 6);
+  sanctumArt.fillStyle(0x2d143c, 1).fillRect(24, 112, 136, 5); // prateleira superior
+  sanctumArt.fillStyle(0x2d143c, 1).fillRect(24, 164, 136, 5); // prateleira inferior
 
-  // Item A (Imagem 1): O GRANDE FRASCO COM OLHO DE MONSTRO PRESERVADO EM LÍQUIDO VERDE
-  sanctumArt.fillStyle(0x00e676, 0.25).fillCircle(54, 94, 14); // aura mágica
-  sanctumArt.fillStyle(0x1a3320, 0.9).fillRoundedRect(42, 78, 24, 34, 4); // frasco de vidro
-  sanctumArt.fillStyle(0x00e676, 0.75).fillRoundedRect(44, 84, 20, 26, 3); // líquido verde
-  sanctumArt.lineStyle(1.5, 0x81c784, 0.8).strokeRoundedRect(42, 78, 24, 34, 4);
+  // Item 1 (Imagem 1): O FRASCO DE CONSERVA COM OLHO DE MONSTRO PRESERVADO
+  sanctumArt.fillStyle(0x00e676, 0.2).fillCircle(45, 93, 14); // brilho etéreo
+  sanctumArt.fillStyle(0x132918, 0.9).fillRoundedRect(34, 76, 22, 34, 4); // vidro
+  sanctumArt.fillStyle(0x00e676, 0.75).fillRoundedRect(36, 82, 18, 26, 3); // líquido esmeralda
+  sanctumArt.lineStyle(1.5, 0x81c784, 0.8).strokeRoundedRect(34, 76, 22, 34, 4);
   // Olho de monstro flutuando dentro
-  sanctumArt.fillStyle(0xfff59d, 1).fillCircle(54, 97, 6); // globo ocular
-  sanctumArt.fillStyle(0xd50000, 1).fillCircle(54, 97, 3); // íris vermelha
-  sanctumArt.fillStyle(0x0a0505, 1).fillCircle(54, 97, 1.5); // pupila
-  sanctumArt.fillStyle(0xffffff, 0.8).fillRect(45, 82, 3, 18); // brilho do vidro
-  sanctumArt.fillStyle(0x8d5524, 1).fillRect(47, 74, 14, 5); // rolha de cortiça
+  sanctumArt.fillStyle(0xfff59d, 1).fillCircle(45, 95, 5.5); // esclera
+  sanctumArt.fillStyle(0xd50000, 1).fillCircle(45, 95, 3); // íris vermelha
+  sanctumArt.fillStyle(0x0a0505, 1).fillCircle(45, 95, 1.5); // pupila
+  sanctumArt.fillStyle(0xffffff, 0.85).fillRect(37, 80, 2, 16); // reflexo do vidro
+  sanctumArt.fillStyle(0x8d5524, 1).fillRect(38, 72, 14, 5); // rolha de cortiça
 
-  // Item B (Imagem 1): CRÂNIO DE ANIMAL COM CHIFRES/DENTES
-  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillCircle(104, 96, 9);
-  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillRect(98, 98, 12, 10);
-  sanctumArt.fillStyle(0x2e1c12, 1).fillCircle(101, 95, 2.5).fillCircle(107, 95, 2.5); // órbitas
-  sanctumArt.fillStyle(0x2e1c12, 1).fillRect(100, 104, 2, 4).fillRect(103, 104, 2, 4).fillRect(106, 104, 2, 4); // dentes
-  sanctumArt.lineStyle(1.5, 0x8d6e63).lineBetween(97, 92, 89, 84); // chifre esquerdo
-  sanctumArt.lineStyle(1.5, 0x8d6e63).lineBetween(111, 92, 119, 84); // chifre direito
+  // Item 2 (Imagem 1 & 3): CRÂNIO DE CRIATURA COM CHIFRES
+  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillCircle(92, 94, 8);
+  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillRect(87, 96, 10, 8);
+  sanctumArt.fillStyle(0x24151a, 1).fillCircle(89, 93, 2).fillCircle(95, 93, 2); // órbitas
+  sanctumArt.fillStyle(0x24151a, 1).fillRect(89, 101, 1.5, 3).fillRect(92, 101, 1.5, 3).fillRect(95, 101, 1.5, 3); // dentes
+  sanctumArt.lineStyle(1.5, 0x8d6e63).lineBetween(86, 90, 78, 83); // chifre esquerdo
+  sanctumArt.lineStyle(1.5, 0x8d6e63).lineBetween(98, 90, 106, 83); // chifre direito
 
-  // Item C (Imagem 1): COGUMELO MÍSTICO LUMINOSO EM PIRESTESTO
-  sanctumArt.fillStyle(0xffb74d, 0.25).fillCircle(154, 94, 12); // halo
-  sanctumArt.fillStyle(0xefebe9, 1).fillRect(152, 95, 4, 14); // haste
-  sanctumArt.fillStyle(0xd84315, 1).fillCircle(154, 92, 9); // chapéu do cogumelo
-  sanctumArt.fillStyle(0xfff9c4, 1).fillCircle(151, 90, 1.5).fillCircle(156, 89, 1.5).fillCircle(154, 94, 1.5); // pintas
+  // Item 3 (Imagem 1): COGUMELO MÍSTICO LUMINOSO
+  sanctumArt.fillStyle(0xffa726, 0.22).fillCircle(136, 92, 11);
+  sanctumArt.fillStyle(0xefebe9, 1).fillRect(134, 93, 4, 14); // haste
+  sanctumArt.fillStyle(0xd84315, 1).fillCircle(136, 90, 8); // chapéu
+  sanctumArt.fillStyle(0xfff9c4, 1).fillCircle(133, 88, 1.2).fillCircle(138, 87, 1.2).fillCircle(136, 92, 1.2); // pintas
 
   // Prateleira inferior esquerda:
-  // Item D (Imagem 1): ADAGA CERIMONIAL DE OBSIDIANA CRAVADA NUM SUPORTE
-  sanctumArt.fillStyle(0x3e2723, 1).fillRect(40, 156, 26, 4); // suporte
-  sanctumArt.fillStyle(0x212121, 1).fillTriangle(42, 154, 64, 146, 46, 144); // lâmina de obsidiana
-  sanctumArt.fillStyle(0x7c4dff, 0.6).fillRect(46, 147, 10, 1.5); // veio arcano
-  sanctumArt.fillStyle(0x8d5524, 1).fillRect(36, 152, 7, 3); // empunhadura
+  // Item 4 (Imagem 1): ADAGA CERIMONIAL DE OBSIDIANA EM SUPORTE
+  sanctumArt.fillStyle(0x3e2723, 1).fillRect(32, 156, 26, 4); // suporte
+  sanctumArt.fillStyle(0x181822, 1).fillTriangle(34, 154, 54, 146, 38, 144); // lâmina
+  sanctumArt.fillStyle(0x7c4dff, 0.7).fillRect(38, 147, 8, 1.5); // veio arcano
+  sanctumArt.fillStyle(0x8d5524, 1).fillRect(28, 152, 6, 3); // empunhadura
 
-  // Item E (Imagem 1): CHIFRE DE BEBER ORNAMENTADO COM OURO
-  sanctumArt.lineStyle(3, 0xf5ecd0).lineBetween(88, 154, 114, 144);
-  sanctumArt.fillStyle(0xffca28, 1).fillCircle(88, 154, 3.5); // anel dourado
-  sanctumArt.fillStyle(0xffca28, 1).fillCircle(114, 144, 2.5);
+  // Item 5 (Imagem 1): CHIFRE DE BEBER ORNAMENTADO COM ARO DOURADO
+  sanctumArt.lineStyle(3, 0xf5ecd0).lineBetween(72, 154, 96, 144);
+  sanctumArt.fillStyle(0xffca28, 1).fillCircle(72, 154, 3);
+  sanctumArt.fillStyle(0xffca28, 1).fillCircle(96, 144, 2);
 
-  // Item F (Imagem 1): COLAR DE PRESAS E FEIXE DE PENAS PENDURADOS NA BASE DA PRATELEIRA
-  sanctumArt.lineStyle(1, 0x8d6e63, 0.8).lineBetween(132, 169, 148, 169);
-  sanctumArt.fillStyle(0xf5ecd0, 1).fillTriangle(135, 169, 137, 178, 139, 169);
-  sanctumArt.fillStyle(0xf5ecd0, 1).fillTriangle(141, 169, 143, 180, 145, 169);
-  // Feixe de penas mágicas
-  sanctumArt.lineStyle(1.5, 0x00bcd4, 0.9).lineBetween(164, 166, 168, 182);
-  sanctumArt.lineStyle(1.5, 0xab47bc, 0.9).lineBetween(162, 166, 163, 180);
+  // Item 6 (Imagem 1): COLAR DE DENTES & FEIXE DE PENAS MÍSTICAS PENDURADOS
+  sanctumArt.lineStyle(1, 0x8d6e63, 0.8).lineBetween(112, 169, 126, 169);
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillTriangle(114, 169, 116, 177, 118, 169);
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillTriangle(120, 169, 122, 179, 124, 169);
+  // Penas azuis e violetas
+  sanctumArt.lineStyle(1.5, 0x00bcd4, 0.9).lineBetween(142, 166, 146, 180);
+  sanctumArt.lineStyle(1.5, 0xab47bc, 0.9).lineBetween(140, 166, 141, 178);
 
   // ---------------------------------------------------------------------------
-  // PAREDE DIREITA: BOTICÁRIO REPLETO DE CRISTAIS, AMPULHETA E GRIMÓRIOS (IMG 2, 3, 4)
+  // PAREDE DIREITA: BOTICÁRIO COM CRISTAIS, AMPULHETA E GRIMÓRIOS (IMG 2, 3, 4)
   // ---------------------------------------------------------------------------
-  sanctumArt.fillStyle(0x1b1324, 0.96).fillRoundedRect(635, 56, 295, 128, 8);
-  sanctumArt.lineStyle(2, 0x6a1b9a).strokeRoundedRect(635, 56, 295, 128, 8);
-  sanctumArt.lineStyle(1, 0xba68c8, 0.5).strokeRoundedRect(639, 60, 287, 120, 6);
+  sanctumArt.fillStyle(0x140d1e, 0.96).fillRoundedRect(740, 58, 200, 126, 6);
+  sanctumArt.lineStyle(2, 0x5a1888).strokeRoundedRect(740, 58, 200, 126, 6);
+  sanctumArt.lineStyle(1, 0xba68c8, 0.45).strokeRoundedRect(743, 61, 194, 120, 5);
+  sanctumArt.fillStyle(0x2d143c, 1).fillRect(746, 112, 188, 5); // prateleira 1
+  sanctumArt.fillStyle(0x2d143c, 1).fillRect(746, 164, 188, 5); // prateleira 2
 
-  sanctumArt.fillStyle(0x3e1f57, 1).fillRect(645, 105, 275, 6);
-  sanctumArt.fillRect(645, 150, 275, 6);
+  // Item 7 (Imagem 2): AMPULHETA MÁGICA COM FUMAÇA VIOLETA
+  sanctumArt.fillStyle(0xffca28, 1).fillRect(756, 78, 16, 2.5).fillRect(756, 99, 16, 2.5);
+  sanctumArt.fillStyle(0xe1bee7, 0.5).fillTriangle(758, 81, 770, 81, 764, 89);
+  sanctumArt.fillStyle(0xe1bee7, 0.5).fillTriangle(764, 89, 758, 97, 770, 97);
+  sanctumArt.fillStyle(0xffd54f, 1).fillCircle(764, 94, 2.5); // areia
+  // Névoa etérea violeta
+  sanctumArt.fillStyle(0xba68c8, 0.35).fillCircle(764, 73, 3.5).fillCircle(762, 67, 4).fillCircle(766, 62, 3);
 
-  // Item G (Imagem 2): AMPULHETA MÁGICA COM FUMAÇA VIOLETA SUBINDO
-  sanctumArt.fillStyle(0xffca28, 1).fillRect(655, 76, 18, 3).fillRect(655, 99, 18, 3);
-  sanctumArt.fillStyle(0xe1bee7, 0.5).fillTriangle(658, 80, 670, 80, 664, 88);
-  sanctumArt.fillStyle(0xe1bee7, 0.5).fillTriangle(664, 88, 658, 97, 670, 97);
-  sanctumArt.fillStyle(0xffd54f, 1).fillCircle(664, 94, 3); // areia brilhante
-  // Vapores espectrais arroxeados subindo
-  sanctumArt.fillStyle(0xba68c8, 0.35).fillCircle(664, 71, 4).fillCircle(662, 65, 5).fillCircle(666, 59, 3);
+  // Item 8 (Imagem 2): CRISTAIS ELEMENTAIS (Ametista e Safira de Gelo)
+  sanctumArt.fillStyle(0x9c27b0, 0.95).fillTriangle(784, 104, 789, 76, 794, 104);
+  sanctumArt.fillStyle(0xe1bee7, 0.8).fillTriangle(787, 104, 789, 76, 791, 104);
+  sanctumArt.fillStyle(0x00e5ff, 0.9).fillTriangle(800, 104, 804, 80, 808, 104);
+  sanctumArt.fillStyle(0xffffff, 0.7).fillRect(803, 84, 1.5, 14);
 
-  // Item H (Imagem 2): GRANDES CRISTAIS ELEMENTAIS (Ametista, Safira de Gelo e Rubi)
-  // Cristal Ametista Púrpura (facetado pontiagudo)
-  sanctumArt.fillStyle(0x9c27b0, 0.95).fillTriangle(690, 104, 696, 74, 702, 104);
-  sanctumArt.fillStyle(0xe1bee7, 0.8).fillTriangle(694, 104, 696, 74, 698, 104); // faceta de brilho
-  // Cristal Safira Glacial (ciano)
-  sanctumArt.fillStyle(0x00e5ff, 0.9).fillTriangle(708, 104, 713, 79, 718, 104);
-  sanctumArt.fillStyle(0xffffff, 0.7).fillRect(712, 84, 2, 15);
-  // Cristal Rubi Flamejante (vermelho)
-  sanctumArt.fillStyle(0xff1744, 0.95).fillTriangle(724, 104, 729, 82, 734, 104);
+  // Item 9 (Imagem 4): ÓCULOS DE ALQUIMISTA EM LATÃO COM LENTES CIANO
+  sanctumArt.fillStyle(0xffca28, 1).fillCircle(828, 92, 6).fillCircle(842, 92, 6);
+  sanctumArt.fillStyle(0x00e5ff, 0.85).fillCircle(828, 92, 4.5).fillCircle(842, 92, 4.5);
+  sanctumArt.lineStyle(1.5, 0x8d5524).lineBetween(834, 92, 836, 92);
+  sanctumArt.fillStyle(0xffffff, 0.9).fillRect(827, 90, 1.5, 1.5).fillRect(841, 90, 1.5, 1.5);
 
-  // Item I (Imagem 4): ÓCULOS DE ALQUIMISTA EM LATÃO COM LENTES CIANO BRILHANTES
-  sanctumArt.fillStyle(0xffca28, 1).fillCircle(755, 92, 7).fillCircle(771, 92, 7);
-  sanctumArt.fillStyle(0x00e5ff, 0.85).fillCircle(755, 92, 5).fillCircle(771, 92, 5);
-  sanctumArt.lineStyle(1.5, 0x8d5524).lineBetween(762, 92, 764, 92); // ponte de couro
-  sanctumArt.fillStyle(0xffffff, 0.9).fillRect(753, 90, 2, 2).fillRect(769, 90, 2, 2);
-
-  // Item J (Imagem 4): FRASCOS DE POÇÃO ESFÉRICOS COM VÁLVULAS & ROLHAS
-  const potionSpecs = [
-    { x: 798, col: 0xe91e63, r: 8, cap: 0x8d5524 }, // Lágrima Rubi
-    { x: 825, col: 0x00e676, r: 7, cap: 0xffca28 }, // Veneno Esmeralda
-    { x: 852, col: 0x7c4dff, r: 9, cap: 0x37474f }, // Essência Astral
-    { x: 882, col: 0xffd600, r: 8, cap: 0x8d5524 }  // Elixir Dourado
-  ];
-  potionSpecs.forEach(p => {
-    sanctumArt.fillStyle(p.col, 0.9).fillCircle(p.x, 93, p.r);
-    sanctumArt.fillStyle(0xffffff, 0.6).fillRect(p.x - 2, 93 - p.r, 4, 3);
-    sanctumArt.fillStyle(p.cap, 1).fillRect(p.x - 3, 93 - p.r - 5, 6, 6);
-    sanctumArt.fillStyle(0xffffff, 0.7).fillRect(p.x - p.r / 2, 91, 2, 4); // brilho esférico
-  });
+  // Item 10 (Imagem 4): FRASCOS DE POÇÃO ESFÉRICOS
+  sanctumArt.fillStyle(0xe91e63, 0.9).fillCircle(865, 93, 7.5);
+  sanctumArt.fillStyle(0x8d5524, 1).fillRect(863, 82, 4, 4);
+  sanctumArt.fillStyle(0xffb300, 0.9).fillCircle(886, 93, 7);
+  sanctumArt.fillStyle(0xffca28, 1).fillRect(884, 83, 4, 4);
+  sanctumArt.fillStyle(0x7c4dff, 0.9).fillCircle(908, 93, 8);
+  sanctumArt.fillStyle(0x37474f, 1).fillRect(906, 81, 4, 5);
 
   // Prateleira inferior direita:
-  // Item K (Imagem 3): GRIMÓRIO ESCURO COM OLHO ARCANO CENTRAL E CANTOS DOURADOS
-  sanctumArt.fillStyle(0x211728, 1).fillRect(655, 118, 32, 32);
-  sanctumArt.lineStyle(1.5, 0xffca28).strokeRect(655, 118, 32, 32);
-  sanctumArt.fillStyle(0xffca28, 1).fillCircle(657, 120, 2).fillCircle(685, 120, 2).fillCircle(657, 148, 2).fillCircle(685, 148, 2);
-  sanctumArt.fillStyle(0x7c4dff, 1).fillCircle(671, 134, 5); // olho violeta central
-  sanctumArt.fillStyle(0x0a0505, 1).fillCircle(671, 134, 2);
+  // Item 11 (Imagem 3): GRIMÓRIO NEGRO COM OLHO ARCANO CENTRAL E CANTOS DOURADOS
+  sanctumArt.fillStyle(0x1d1222, 1).fillRect(756, 120, 28, 30);
+  sanctumArt.lineStyle(1.5, 0xffca28).strokeRect(756, 120, 28, 30);
+  sanctumArt.fillStyle(0x7c4dff, 1).fillCircle(770, 135, 4.5);
+  sanctumArt.fillStyle(0x0a0505, 1).fillCircle(770, 135, 2);
 
-  // Item L (Imagem 4): GRIMÓRIO COM FECHO DE CINTO E LIVROS ENCADERNADOS
-  sanctumArt.fillStyle(0x8d5524, 1).fillRect(696, 116, 14, 34); // livro marrom
-  sanctumArt.fillStyle(0xffca28, 1).fillRect(694, 131, 18, 3); // fivela do cinto
-  sanctumArt.fillStyle(0x006064, 1).fillRect(716, 118, 14, 32); // tomo turquesa
-  sanctumArt.fillStyle(0xb71c1c, 1).fillRect(734, 122, 12, 28); // tomo rubi
-  sanctumArt.fillStyle(0x4a148c, 1).fillRect(750, 116, 16, 34); // tomo ametista
+  // Item 12 (Imagem 4): TOMOS ENCADERNADOS COM FECHO DE COURO
+  sanctumArt.fillStyle(0x8d5524, 1).fillRect(794, 118, 12, 32);
+  sanctumArt.fillStyle(0xffca28, 1).fillRect(792, 132, 16, 2.5); // fecho
+  sanctumArt.fillStyle(0x006064, 1).fillRect(812, 120, 12, 30);
+  sanctumArt.fillStyle(0xb71c1c, 1).fillRect(828, 122, 12, 28);
 
-  // Item M (Imagem 2 & 4): PERGAMINHOS ENROLADOS COM SELO DE CERA & CHAVES MÍSTICAS
-  sanctumArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(778, 124, 24, 8, 2);
-  sanctumArt.fillStyle(0xd50000, 1).fillCircle(790, 128, 3); // sinete de cera vermelha
-  sanctumArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(782, 134, 22, 8, 2);
-  sanctumArt.fillStyle(0x00b0ff, 1).fillCircle(793, 138, 2.5); // sinete azul
+  // Item 13 (Imagem 2 & 4): PERGAMINHOS COM SELO DE CERA & CHAVES DE FERRO
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(848, 124, 22, 8, 2);
+  sanctumArt.fillStyle(0xd50000, 1).fillCircle(859, 128, 3); // sinete vermelho
+  sanctumArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(850, 135, 20, 8, 2);
+  sanctumArt.fillStyle(0x00b0ff, 1).fillCircle(860, 139, 2.5); // sinete azul
 
-  // Molho de chaves de ferro pendurado na lateral (Imagem 4)
-  sanctumArt.lineStyle(1.5, 0xb0bec5).strokeCircle(820, 126, 4);
-  sanctumArt.lineStyle(1.5, 0xb0bec5).lineBetween(820, 130, 820, 145);
-  sanctumArt.lineStyle(1, 0xb0bec5).lineBetween(820, 138, 823, 138).lineBetween(820, 142, 824, 142);
+  // Molho de chaves antigas
+  sanctumArt.lineStyle(1.5, 0xb0bec5).strokeCircle(886, 126, 3.5);
+  sanctumArt.lineStyle(1.5, 0xb0bec5).lineBetween(886, 130, 886, 144);
+  sanctumArt.lineStyle(1, 0xb0bec5).lineBetween(886, 136, 889, 136).lineBetween(886, 140, 889, 140);
 
-  // Item N (Imagem 3): CRÂNIO HUMANO COM RUNAS VERMELHAS GRAVADAS NA TESTA
-  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillCircle(856, 130, 10);
-  sanctumArt.fillStyle(0xd7ccc8, 0.95).fillRect(850, 134, 12, 9);
-  sanctumArt.fillStyle(0x1a0f1c, 1).fillCircle(853, 130, 2.5).fillCircle(859, 130, 2.5);
-  sanctumArt.lineStyle(1.5, 0xff1744).lineBetween(854, 123, 858, 123); // runa rubi brilhante
-  sanctumArt.lineStyle(1.5, 0xff1744).lineBetween(856, 121, 856, 126);
 
-  // Esferas de mana flutuando no ar com pulsação suave
-  sanctumArt.fillStyle(0x00e5ff, 0.25).fillCircle(495, 96, 15);
-  sanctumArt.fillStyle(0x00e5ff, 0.85).fillCircle(495, 96, 5);
-  sanctumArt.fillStyle(0xe040fb, 0.25).fillCircle(425, 72, 13);
-  sanctumArt.fillStyle(0xe040fb, 0.85).fillCircle(425, 72, 4);
 
   // ---------------------------------------------------------------------------
-  // 2. O ARQUIMAGO ALQUIMISTA ATRÁS DO BALCÃO
+  // 2. O ARQUIMAGO ALQUIMISTA ATRÁS DO BALCÃO (RENDERIZADO NO LAYER ATRÁS DO BALCÃO!)
   // ---------------------------------------------------------------------------
-  const mageSprite = scene.add.sprite(225, 142, 'mage_master')
+  // Posição: y: 168, scale: 2.3. A parte inferior do Mago (y: 194..227) fica oculta pelo balcão!
+  const mageSprite = scene.add.sprite(235, 168, 'mage_master')
     .play('mage_master')
-    .setScale(2.2);
+    .setScale(2.3);
 
   scene.tweens.add({
     targets: mageSprite,
-    y: 138,
+    y: 164,
     duration: 1100,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut'
   });
 
-  // Balão de Diálogo em Pergaminho Nobre com Cantos Arredondados
+  // ---------------------------------------------------------------------------
+  // 3. O BALCÃO DE MOGNO MÍSTICO (RENDERIZADO NA FRENTE DO MAGO: y: 194..248)
+  // ---------------------------------------------------------------------------
+  const counterArt = scene.add.graphics();
+  // Viga maciça de mogno polido
+  counterArt.fillStyle(0x2b1331, 1).fillRect(0, 194, 960, 54);
+  // Brilho de madeira nobre polida na borda superior do balcão
+  counterArt.fillStyle(0x562363, 1).fillRect(0, 194, 960, 6);
+  counterArt.fillStyle(0x7b2f8e, 0.8).fillRect(0, 194, 960, 2); // friso reluzente
+  counterArt.lineStyle(2, 0x15071a).strokeRect(0, 194, 960, 54);
+
+  // Textura de madeira e junções verticais do balcão
+  counterArt.fillStyle(0x1a091f, 0.5);
+  for (let sx = 80; sx < 960; sx += 140) {
+    counterArt.fillRect(sx, 200, 2, 48);
+  }
+
+  // Friso dourado com rebites de latão ao longo do balcão
+  counterArt.fillStyle(0xc5a059, 0.7).fillRect(0, 206, 960, 2);
+  for (let rx = 25; rx < 960; rx += 70) {
+    counterArt.fillStyle(0xffd700, 0.95).fillCircle(rx, 207, 2.5);
+    counterArt.fillStyle(0x221105, 1).fillCircle(rx, 207, 1);
+  }
+
+  // ITENS EM CIMA DO BALCÃO (DISPOSTOS SEM POLUIÇÃO):
+  // A) GRIMÓRIO ABERTO COM RUNAS DOURADAS & MARCADOR DE SEDA (Imagem 4)
+  counterArt.fillStyle(0x3e1818, 1).fillRect(74, 172, 54, 25);
+  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(78, 170, 23, 23, 2);
+  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(103, 170, 23, 23, 2);
+  counterArt.fillStyle(0x7c4dff, 0.85);
+  counterArt.fillRect(81, 174, 16, 2); counterArt.fillRect(81, 178, 14, 2); counterArt.fillRect(81, 182, 16, 2);
+  counterArt.fillRect(106, 174, 16, 2); counterArt.fillRect(106, 178, 13, 2); counterArt.fillRect(106, 182, 15, 2);
+  // Fita de seda vermelha caindo pela borda do balcão
+  counterArt.lineStyle(2.5, 0xd50000, 0.95).lineBetween(102, 180, 102, 204);
+
+
+
+  // ---------------------------------------------------------------------------
+  // 4. BALÃO DE DIÁLOGO DE PERGAMINHO MÍSTICO (AO LADO DO MAGO: x: 315..635, y: 78..178)
+  // ---------------------------------------------------------------------------
   const speechBubble = scene.add.graphics();
   const drawSpeechBubble = () => {
     speechBubble.clear();
-    // Pergaminho místico com borda violeta nobre e filete dourado
-    speechBubble.fillStyle(0xf9f2e3, 0.99).fillRoundedRect(310, 80, 314, 98, 14);
-    speechBubble.lineStyle(2, 0x5e1d88).strokeRoundedRect(310, 80, 314, 98, 14);
-    speechBubble.lineStyle(1, 0xc5a059, 0.85).strokeRoundedRect(313, 83, 308, 92, 11);
+    speechBubble.fillStyle(0xfbf4e6, 0.99).fillRoundedRect(315, 78, 318, 98, 14);
+    speechBubble.lineStyle(2, 0x5e1d88).strokeRoundedRect(315, 78, 318, 98, 14);
+    speechBubble.lineStyle(1.2, 0xc5a059, 0.85).strokeRoundedRect(318, 81, 312, 92, 11);
 
-    // Ponta estilizada do balão apontando para o Mago
-    speechBubble.fillStyle(0xf9f2e3, 1).fillTriangle(310, 128, 284, 137, 310, 146);
-    speechBubble.lineStyle(2, 0x5e1d88).lineBetween(310, 128, 284, 137);
-    speechBubble.lineStyle(2, 0x5e1d88).lineBetween(284, 137, 310, 146);
+    // Ponta do balão apontando para o Mago
+    speechBubble.fillStyle(0xfbf4e6, 1).fillTriangle(315, 126, 290, 135, 315, 144);
+    speechBubble.lineStyle(2, 0x5e1d88).lineBetween(315, 126, 290, 135);
+    speechBubble.lineStyle(2, 0x5e1d88).lineBetween(290, 135, 315, 144);
   };
   drawSpeechBubble();
 
-  const mageTitleTxt = scene.add.text(328, 91, 'ARQUIMAGO ALQUIMISTA (MESTRE)', textStyle('#4a148c', 11, 'bold'));
-  const mageSpeechTxt = scene.add.text(328, 110, '“Beba dos meus elixires e seu poder ecoará em cada batalha!”', {
-    ...roundedTextStyle('#26132b', 11.5, 'normal'),
+  const mageTitleTxt = scene.add.text(332, 90, 'ARQUIMAGO ALQUIMISTA (MESTRE)', textStyle('#4a148c', 11.5, 'bold'));
+  const mageSpeechTxt = scene.add.text(332, 110, '“Beba dos meus elixires e seu poder ecoará em cada batalha!”', {
+    ...roundedTextStyle('#221226', 11.5, 'normal'),
     lineSpacing: 4,
-    wordWrap: { width: 284, useAdvancedWrap: true }
+    wordWrap: { width: 288, useAdvancedWrap: true }
   });
 
   // ---------------------------------------------------------------------------
-  // 3. O BALCÃO DE MOGNO MÍSTICO (y: 195..248)
-  // ---------------------------------------------------------------------------
-  const counterArt = scene.add.graphics();
-  // Viga de mogno místico
-  counterArt.fillStyle(0x28122e, 1).fillRect(0, 196, 960, 52);
-  counterArt.fillStyle(0x562363, 1).fillRect(0, 196, 960, 6); // Brilho de mogno polido
-  counterArt.lineStyle(2, 0x15071a).strokeRect(0, 196, 960, 52);
-
-  // Runas arcanas gravadas no topo do balcão
-  counterArt.lineStyle(1, 0xba68c8, 0.4);
-  for (let rx = 30; rx < 960; rx += 80) {
-    counterArt.fillStyle(0x7c4dff, 0.8).fillCircle(rx, 204, 2.5);
-  }
-
-  // Itens em cima do Balcão:
-  // A) O GRIMÓRIO ABERTO COM RUNAS DOURADAS E MARCADOR DE SEDA (Imagem 4)
-  counterArt.fillStyle(0x3e1818, 1).fillRect(74, 172, 52, 26); // Capa de couro
-  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(78, 170, 22, 24, 2); // Página esquerda
-  counterArt.fillStyle(0xf5ecd0, 1).fillRoundedRect(102, 170, 22, 24, 2); // Página direita
-  // Runas douradas / violetas escritas
-  counterArt.fillStyle(0x7c4dff, 0.8);
-  counterArt.fillRect(81, 174, 15, 2); counterArt.fillRect(81, 178, 13, 2); counterArt.fillRect(81, 182, 15, 2);
-  counterArt.fillRect(105, 174, 15, 2); counterArt.fillRect(105, 178, 12, 2); counterArt.fillRect(105, 182, 14, 2);
-  // Fita marcadora vermelha saindo do livro e caindo pelo balcão
-  counterArt.lineStyle(2, 0xd50000, 0.9).lineBetween(100, 180, 100, 204);
-
-  // B) CÁLICE DE OURO ORNAMENTADO COM RUBI (Imagem 2)
-  counterArt.fillStyle(0xffca28, 1).fillTriangle(680, 186, 696, 174, 712, 186);
-  counterArt.fillStyle(0xffca28, 1).fillRect(694, 186, 4, 10).fillRect(688, 194, 16, 3);
-  counterArt.fillStyle(0xff1744, 1).fillCircle(696, 181, 3); // gema rubi no cálice
-
-  // C) FRASCO DE ENSAIO BORBULHANTE COM VAPORES (Imagem 1 & 4)
-  counterArt.fillStyle(0x00e676, 0.9).fillCircle(740, 182, 10);
-  counterArt.fillStyle(0xffffff, 0.7).fillRect(738, 166, 4, 10);
-  counterArt.fillStyle(0x69f0ae, 0.5).fillCircle(740, 162, 3).fillCircle(738, 156, 4);
-
-  // D) ALMOFARIZ E PILÃO COM ERVAS MÍSTICAS TRITURADAS (Imagem 1)
-  counterArt.fillStyle(0x37474f, 1).fillCircle(805, 184, 10);
-  counterArt.fillStyle(0x76ff03, 1).fillCircle(805, 183, 6);
-  counterArt.fillStyle(0xb0bec5, 1).fillRect(809, 172, 4, 16);
-
-  // E) CAJADO DO MAGO COM CRISTAL VIOLETA ENCOSTADO À DIREITA (Imagem 2)
-  counterArt.lineStyle(4, 0x4e342e).lineBetween(930, 240, 915, 140);
-  counterArt.fillStyle(0xffca28, 1).fillCircle(915, 140, 7); // engaste de ouro
-  counterArt.fillStyle(0xba68c8, 1).fillCircle(915, 140, 5); // orbe de cristal ametista
-  counterArt.fillStyle(0xffffff, 0.8).fillCircle(913, 138, 1.5);
-
-  // ---------------------------------------------------------------------------
-  // 4. MESA DE MADEIRA FORRADA COM TECIDO ROXO E ENTALHES EM DOURADO (BACKGROUND DAS CARTAS)
+  // 5. MESA DE MADEIRA FORRADA COM TECIDO ROXO E ENTALHES DOURADOS (FUNDO DAS CARTAS)
   // ---------------------------------------------------------------------------
   const tableClothArt = scene.add.graphics();
 
-  // A) BASE DA MESA DE MADEIRA MACIÇA POLIDA (y: 236..540, largura 960)
-  // Moldura chanfrada de madeira nobre do topo
-  tableClothArt.fillStyle(0x23120b, 1).fillRect(0, 236, 960, 12);
-  tableClothArt.fillStyle(0x462415, 1).fillRect(0, 236, 960, 3); // brilho de quina
-  tableClothArt.fillStyle(0x140a06, 1).fillRect(0, 246, 960, 2); // vinco de sombra
-
-  // Pranchas de carvalho escuro / mogno
-  tableClothArt.fillStyle(0x1b0e08, 1).fillRect(0, 248, 960, 292);
-  [318, 390, 462, 532].forEach(py => {
+  // A) BASE DA MESA DE MADEIRA MACIÇA (y: 246..540)
+  tableClothArt.fillStyle(0x23120b, 1).fillRect(0, 246, 960, 10);
+  tableClothArt.fillStyle(0x462415, 1).fillRect(0, 246, 960, 2.5);
+  tableClothArt.fillStyle(0x1b0e08, 1).fillRect(0, 256, 960, 284);
+  // Sulcos de pranchas horizontais de madeira
+  [326, 398, 470, 534].forEach(py => {
     tableClothArt.fillStyle(0x100805, 0.7).fillRect(0, py, 960, 2);
     tableClothArt.fillStyle(0x311a10, 0.35).fillRect(0, py + 2, 960, 1);
   });
-  // Veios finos orgânicos da madeira
-  tableClothArt.lineStyle(1, 0x2e1910, 0.45);
-  for (let gx = 10; gx < 960; gx += 45) {
-    tableClothArt.lineBetween(gx, 250, gx + 25, 538);
+  // Textura sutil de veios
+  tableClothArt.lineStyle(1, 0x2e1910, 0.4);
+  for (let gx = 15; gx < 960; gx += 50) {
+    tableClothArt.lineBetween(gx, 256, gx + 20, 540);
   }
 
-  // Cantoneiras decorativas de latão nas bordas externas da mesa
-  tableClothArt.fillStyle(0x8d5524, 0.9).fillRect(0, 252, 12, 280).fillRect(948, 252, 12, 280);
-  tableClothArt.lineStyle(1.5, 0xc5a059).strokeRect(0, 252, 12, 280).strokeRect(948, 252, 12, 280);
-  for (let ry = 270; ry < 530; ry += 35) {
+  // Cantoneiras de latão nas bordas extremas da mesa
+  tableClothArt.fillStyle(0x8d5524, 0.9).fillRect(0, 256, 12, 280).fillRect(948, 256, 12, 280);
+  tableClothArt.lineStyle(1.5, 0xc5a059).strokeRect(0, 256, 12, 280).strokeRect(948, 256, 12, 280);
+  for (let ry = 275; ry < 530; ry += 35) {
     tableClothArt.fillStyle(0xffd700, 1).fillCircle(6, ry, 2.5).fillCircle(954, ry, 2.5);
   }
 
-  // B) O TECIDO ROXO VELUDO REAL (COBRE O CENTRO DA MESA: x: 16..944, y: 244..532)
-  // Sombra de profundidade que o tecido projeta sobre a mesa de madeira
-  tableClothArt.fillStyle(0x060303, 0.75).fillRoundedRect(16, 247, 928, 287, 14);
+  // B) TECIDO DE VELUDO ROXO REAL (x: 16..944, y: 248..532)
+  tableClothArt.fillStyle(0x060303, 0.75).fillRoundedRect(16, 251, 928, 283, 14); // sombra
+  tableClothArt.fillStyle(0x2d0b3e, 1).fillRoundedRect(16, 248, 928, 283, 14); // veludo
+  tableClothArt.fillStyle(0x3e1055, 0.85).fillRoundedRect(18, 250, 924, 279, 12);
+  tableClothArt.fillStyle(0x4f156d, 0.45).fillRoundedRect(22, 254, 916, 271, 10);
 
-  // Corpo do tecido de veludo roxo místico
-  tableClothArt.fillStyle(0x2d0b3e, 1).fillRoundedRect(16, 244, 928, 287, 14);
-  // Camada suave com tom aveludado mais rico
-  tableClothArt.fillStyle(0x3e1055, 0.82).fillRoundedRect(18, 246, 924, 283, 12);
-  tableClothArt.fillStyle(0x4f156d, 0.45).fillRoundedRect(22, 250, 916, 275, 10);
-
-  // Efeito de caimento e brilho sedoso de veludo nas dobras verticais
+  // Dobras verticais acetinadas do veludo
   for (let vx = 50; vx < 920; vx += 90) {
-    tableClothArt.fillStyle(0x6a1f91, 0.16).fillRoundedRect(vx, 252, 42, 270, 6);
+    tableClothArt.fillStyle(0x6a1f91, 0.16).fillRoundedRect(vx, 254, 42, 267, 6);
   }
 
-  // C) DETALHES E ENTALHES EM DOURADO (BORDAS, CORDÃO TRANÇADO & ARABESCOS)
-  // Filete dourado duplo de contorno bordado (Entalhes e filigranas de ouro)
-  tableClothArt.lineStyle(2.5, 0xc5a059, 0.95).strokeRoundedRect(23, 251, 914, 273, 10);
-  tableClothArt.lineStyle(1.2, 0xffd700, 0.8).strokeRoundedRect(27, 255, 906, 265, 8);
+  // C) ENTALHES E DETALHES EM DOURADO
+  // Moldura dupla bordada a ouro
+  tableClothArt.lineStyle(2.5, 0xc5a059, 0.95).strokeRoundedRect(23, 255, 914, 269, 10);
+  tableClothArt.lineStyle(1.2, 0xffd700, 0.8).strokeRoundedRect(27, 259, 906, 261, 8);
 
-  // Pesponto / cordão dourado trançado (pontos alternados reluzentes ao redor da borda)
+  // Pontos de pesponto dourado ao redor do tecido
   for (let px = 38; px < 920; px += 18) {
-    tableClothArt.fillStyle(0xffecb3, 0.9).fillCircle(px, 255, 1.2).fillCircle(px, 520, 1.2);
+    tableClothArt.fillStyle(0xffecb3, 0.9).fillCircle(px, 259, 1.2).fillCircle(px, 518, 1.2);
   }
-  for (let py = 265; py < 515; py += 18) {
+  for (let py = 269; py < 515; py += 18) {
     tableClothArt.fillStyle(0xffecb3, 0.9).fillCircle(27, py, 1.2).fillCircle(933, py, 1.2);
   }
 
-  // Arabescos ornamentais dourados nos 4 cantos do tecido roxo
+  // Arabescos dourados nos 4 cantos
   const drawCornerArabesque = (ox, oy, flipX = 1, flipY = 1) => {
     tableClothArt.lineStyle(2, 0xffca28, 0.95);
     tableClothArt.lineBetween(ox, oy, ox + 22 * flipX, oy);
@@ -9145,32 +9664,28 @@ function showMageShopMenu(scene) {
     tableClothArt.fillStyle(0xffd700, 1).fillCircle(ox + 9 * flipX, oy + 9 * flipY, 3);
     tableClothArt.fillStyle(0xffffff, 0.9).fillCircle(ox + 9 * flipX, oy + 9 * flipY, 1.2);
   };
-  drawCornerArabesque(33, 261, 1, 1);
-  drawCornerArabesque(927, 261, -1, 1);
-  drawCornerArabesque(33, 514, 1, -1);
-  drawCornerArabesque(927, 514, -1, -1);
+  drawCornerArabesque(33, 265, 1, 1);
+  drawCornerArabesque(927, 265, -1, 1);
+  drawCornerArabesque(33, 512, 1, -1);
+  drawCornerArabesque(927, 512, -1, -1);
 
-  // Divisores decorativos verticais em ouro entre as 4 baias de cartas (x: 245, 475, 705)
-  [245, 475, 705].forEach(divX => {
-    tableClothArt.lineStyle(1.5, 0xc5a059, 0.45).lineBetween(divX, 262, divX, 515);
-    // Arabesco central estilizado
+  // Divisores verticais de ouro exatamente nos pontos médios entre as cartas (x: 250, 480, 710)
+  [250, 480, 710].forEach(divX => {
+    tableClothArt.lineStyle(1.5, 0xc5a059, 0.45).lineBetween(divX, 266, divX, 512);
     tableClothArt.fillStyle(0xffca28, 0.85).fillCircle(divX, 388, 3.5);
     tableClothArt.fillStyle(0xffd700, 1).fillCircle(divX, 388, 1.8);
     tableClothArt.lineStyle(1.5, 0xffca28, 0.8).lineBetween(divX - 6, 388, divX + 6, 388);
   });
 
-  // Alvéolos / Esteiras acolchoadas sob cada uma das 4 cartas
+  // Alvéolos / Esteiras para as cartas
   const cardW = 210;
   const cardH = 266;
-  const startY = 250;
+  const startY = 252;
   const cardLefts = [30, 260, 490, 720];
 
   cardLefts.forEach(cLeft => {
-    // Sombra suave sob a carta
     tableClothArt.fillStyle(0x0e0414, 0.8).fillRoundedRect(cLeft - 3, startY + 6, cardW + 6, cardH - 4, 10);
-    // Borda de esteira dourada no tecido
     tableClothArt.lineStyle(1.5, 0xc5a059, 0.55).strokeRoundedRect(cLeft - 3, startY + 5, cardW + 6, cardH - 4, 10);
-    // Cantoneiras douradas que sustentam a carta no tecido
     const cCorners = [
       [cLeft - 1, startY + 7],
       [cLeft + cardW + 1, startY + 7],
@@ -9183,41 +9698,25 @@ function showMageShopMenu(scene) {
     });
   });
 
-  // Itens decorativos repousando sobre o tecido roxo (Imagem 2)
-  // Pilha de moedas de ouro e gemas brilhantes no canto inferior esquerdo
-  tableClothArt.fillStyle(0xffd700, 1).fillCircle(38, 514, 4.5).fillCircle(45, 517, 4).fillCircle(42, 511, 4.5);
-  tableClothArt.lineStyle(1, 0xc5a059).strokeCircle(38, 514, 4.5).strokeCircle(45, 517, 4).strokeCircle(42, 511, 4.5);
-  tableClothArt.fillStyle(0x00e5ff, 1).fillTriangle(52, 519, 57, 511, 62, 519); // gema safira azul
-  tableClothArt.fillStyle(0xffffff, 0.8).fillRect(56, 513, 2, 2);
+  // Itens decorativos sobre o veludo (Imagem 2)
+  // Moedas de ouro e safira no canto esquerdo
+  tableClothArt.fillStyle(0xffd700, 1).fillCircle(38, 512, 4.5).fillCircle(45, 515, 4).fillCircle(42, 509, 4.5);
+  tableClothArt.lineStyle(1, 0xc5a059).strokeCircle(38, 512, 4.5).strokeCircle(45, 515, 4).strokeCircle(42, 509, 4.5);
+  tableClothArt.fillStyle(0x00e5ff, 1).fillTriangle(52, 517, 57, 509, 62, 517);
+  tableClothArt.fillStyle(0xffffff, 0.8).fillRect(56, 511, 2, 2);
 
-  // Cristal de ametista brilhando no canto inferior direito
-  tableClothArt.fillStyle(0xba68c8, 1).fillTriangle(912, 519, 917, 508, 922, 519);
-  tableClothArt.fillStyle(0xe1bee7, 0.8).fillTriangle(915, 519, 917, 508, 919, 519);
-
-  // ---------------------------------------------------------------------------
-  // 5. PLACA DE MADEIRA PENDURADA NO TOPO (TÍTULO DO SANTUÁRIO)
-  // ---------------------------------------------------------------------------
-  const signGfx = scene.add.graphics();
-  signGfx.lineStyle(2, 0x7c4dff, 0.8);
-  signGfx.lineBetween(380, 0, 380, 24);
-  signGfx.lineBetween(580, 0, 580, 24);
-
-  signGfx.fillStyle(0x22132e, 0.96).fillRoundedRect(330, 16, 300, 44, 8);
-  signGfx.lineStyle(2.5, 0x6a1b9a).strokeRoundedRect(330, 16, 300, 44, 8);
-  signGfx.lineStyle(1.2, 0xba68c8).strokeRoundedRect(334, 20, 292, 36, 6);
-  signGfx.fillStyle(0x00e5ff, 1).fillCircle(342, 28, 2.5).fillCircle(618, 28, 2.5);
-
-  const signTitle = scene.add.text(480, 38, '🔮 SANTUÁRIO ALQUIMISTA 🔮', {
-    ...textStyle('#e1bee7', 15), fontFamily: 'Georgia, serif'
-  }).setOrigin(0.5);
+  // Cristal de ametista no canto direito
+  tableClothArt.fillStyle(0xba68c8, 1).fillTriangle(912, 517, 917, 506, 922, 517);
+  tableClothArt.fillStyle(0xe1bee7, 0.8).fillTriangle(915, 517, 917, 506, 919, 517);
 
   // ---------------------------------------------------------------------------
-  // 6. ABAS DE NAVEGAÇÃO ENTRE LOJAS NO TOPO ESQUERDO
+  // 6. BARRA DE NAVEGAÇÃO SUPERIOR (REORGANIZADA, LIMPA E SEM COLISÕES)
   // ---------------------------------------------------------------------------
-  const forgeTabBtn = scene.add.rectangle(85, 28, 110, 28, 0x3d2215)
+  // Abas de lojas à esquerda
+  const forgeTabBtn = scene.add.rectangle(85, 24, 110, 28, 0x3d2215)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
-  const forgeTabTxt = scene.add.text(85, 28, '⚔ FORJA REAL', textStyle('#e0c088', 10.5)).setOrigin(0.5);
+  const forgeTabTxt = scene.add.text(85, 24, '⚔ FORJA REAL', textStyle('#e0c088', 10.5)).setOrigin(0.5);
 
   forgeTabBtn.on('pointerover', () => {
     forgeTabBtn.setFillStyle(0x6e3d1b);
@@ -9232,29 +9731,44 @@ function showMageShopMenu(scene) {
     showBlacksmithMenu(scene);
   });
 
-  const mageTabBtn = scene.add.rectangle(205, 28, 110, 28, 0x6a1b9a)
+  const mageTabBtn = scene.add.rectangle(205, 24, 110, 28, 0x6a1b9a)
     .setStrokeStyle(1.5, 0xffca28);
-  const mageTabTxt = scene.add.text(205, 28, '🔮 SANTUÁRIO', textStyle('#ffffff', 10.5)).setOrigin(0.5);
+  const mageTabTxt = scene.add.text(205, 24, '🔮 SANTUÁRIO', textStyle('#ffffff', 10.5)).setOrigin(0.5);
 
-  // ---------------------------------------------------------------------------
-  // 7. PAINEL DE OURO DO JOGADOR NO TOPO DIREITO & BOTÃO SAIR
-  // ---------------------------------------------------------------------------
+  // Placa central suspensa
+  const signGfx = scene.add.graphics();
+  signGfx.lineStyle(1.5, 0x7c4dff, 0.7);
+  signGfx.lineBetween(390, 0, 390, 14);
+  signGfx.lineBetween(570, 0, 570, 14);
+  signGfx.fillStyle(0x1e0f2b, 0.96).fillRoundedRect(360, 10, 240, 30, 6);
+  signGfx.lineStyle(2, 0x6a1b9a).strokeRoundedRect(360, 10, 240, 30, 6);
+  signGfx.lineStyle(1, 0xba68c8, 0.6).strokeRoundedRect(363, 13, 234, 24, 5);
+  const signTitle = scene.add.text(480, 25, '🔮 SANTUÁRIO DO ARQUIMAGO 🔮', {
+    ...textStyle('#e1bee7', 12.5), fontFamily: 'Georgia, serif'
+  }).setOrigin(0.5);
+
+  // Painel de ouro do jogador à direita
   const goldPouchGfx = scene.add.graphics();
-  goldPouchGfx.fillStyle(0x1e150f, 0.96).fillRoundedRect(720, 16, 130, 32, 6);
-  goldPouchGfx.lineStyle(2, 0xffca28).strokeRoundedRect(720, 16, 130, 32, 6);
-  const coinSprite = scene.add.sprite(738, 32, 'gold_coin').play('gold_coin').setScale(1.2);
-  const goldValTxt = scene.add.text(758, 32, `${getGold()}G`, textStyle('#ffd740', 13)).setOrigin(0, 0.5);
+  goldPouchGfx.fillStyle(0x1e150f, 0.96).fillRoundedRect(720, 10, 120, 30, 6);
+  goldPouchGfx.lineStyle(2, 0xffca28).strokeRoundedRect(720, 10, 120, 30, 6);
+  const coinSprite = scene.add.sprite(736, 25, 'gold_coin').play('gold_coin').setScale(1.1);
+  const goldValTxt = scene.add.text(754, 25, `${getGold()}G`, textStyle('#ffd740', 13)).setOrigin(0, 0.5);
 
-  const closeQuickBtn = scene.add.rectangle(905, 32, 70, 30, 0x5c241b)
+  // Botão Sair
+  const closeQuickBtn = scene.add.rectangle(895, 25, 64, 28, 0x5c241b)
     .setStrokeStyle(1.5, 0xc5a059)
     .setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(905, 32, '✕ SAIR', textStyle('#ffeb3b', 11)).setOrigin(0.5);
+  const closeQuickTxt = scene.add.text(895, 25, '✕ SAIR', textStyle('#ffeb3b', 10.5)).setOrigin(0.5);
   closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
   closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
   closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
 
+  // ADICIONA AS CAMADAS EM ORDEM PRECISA (MAGO ATRÁS DO BALCÃO):
   menuContainer.add([
-    sanctumArt, mageSprite, counterArt, tableClothArt,
+    sanctumArt,
+    mageSprite,        // LAYER 2: O Mago (oculto parcialmente pelo balcão!)
+    counterArt,        // LAYER 3: O Balcão (renderizado na frente do Mago!)
+    tableClothArt,     // LAYER 4: A Mesa e Tecido Roxo (abaixo do balcão)
     speechBubble, mageTitleTxt, mageSpeechTxt,
     signGfx, signTitle,
     forgeTabBtn, forgeTabTxt, mageTabBtn, mageTabTxt,
@@ -9263,11 +9777,10 @@ function showMageShopMenu(scene) {
   ]);
 
   // ---------------------------------------------------------------------------
-  // 8. SHOWCASE DOS 4 STATUS: CARTAS CENTRALIZADAS SOBRE O TECIDO ROXO DOURADO
+  // 7. SHOWCASE DOS 4 STATUS: CARTAS INTERATIVAS COM BOTÕES DE COMPRA 100% FUNCIONAIS
   // ---------------------------------------------------------------------------
   const statusUpgrades = getStatusUpgrades();
   const statusKeys = ['maxHp', 'moveSpeed', 'magnet', 'wisdom'];
-  const currentGold = getGold();
 
   const statusDialogues = {
     maxHp: '“O Elixir da Vitalidade do Titã! Cada gota fortalece seu coração para aguentar os golpes mais rudes.”',
@@ -9294,10 +9807,10 @@ function showMageShopMenu(scene) {
       cardGfx.fillStyle(isMax ? 0xffca28 : 0x7c4dff, 1).fillCircle(cx, startY + 4, 3.5);
       cardGfx.fillStyle(0xffffff, 0.85).fillCircle(cx, startY + 4, 1.2);
 
-      // Corpo de pergaminho da carta (pergaminho claro nobre com alto contraste)
+      // Corpo de pergaminho da carta (pergaminho nobre claro e nítido)
       cardGfx.fillStyle(hover ? 0xfffcf2 : (isMax ? 0xfff6dd : 0xf8efe0), 0.99)
         .fillRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
-      // Moldura externa mística
+      // Moldura externa
       cardGfx.lineStyle(2, hover ? 0xffca28 : (isMax ? 0xffc107 : 0x6a1b9a))
         .strokeRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
       // Filete interno decorativo
@@ -9367,55 +9880,18 @@ function showMageShopMenu(scene) {
     const descStr = isMax
       ? `★ Efeito Completo ★\n${levelDescs[lvl - 1] || ''}`
       : `Atual: ${levelDescs[lvl - 1] || ''}\nPróximo: ${levelDescs[lvl] || ''}`;
-    const descTxt = scene.add.text(cx, startY + 174, descStr, {
+    const descTxt = scene.add.text(cx, startY + 172, descStr, {
       ...roundedTextStyle('#2e1a10', 10, 'normal'),
       align: 'center',
       lineSpacing: 3.5,
       wordWrap: { width: cardW - 20, useAdvancedWrap: true }
     }).setOrigin(0.5);
-    fitTextToBox(descTxt, cardW - 18, 64, 8.5);
+    fitTextToBox(descTxt, cardW - 18, 62, 8.5);
 
-    // Botão de Ação no Rodapé — 100% CENTRALIZADO
-    const btnX = cx, btnY = startY + cardH - 26, btnW = cardW - 24, btnH = 34;
-    let actionBtn, actionTxt;
-
-    if (isMax) {
-      actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2314).setStrokeStyle(1.5, 0xffca28);
-      actionTxt = scene.add.text(btnX, btnY, 'COMPLETO ★', {
-        ...roundedTextStyle('#ffd740', 11, 'bold'),
-        align: 'center'
-      }).setOrigin(0.5);
-    } else {
-      const cost = cfg.costs ? (cfg.costs[lvl - 1] || 15) : 15;
-      const canAfford = currentGold >= cost;
-
-      actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x4a148c : 0x2e1c3b)
-        .setStrokeStyle(2, canAfford ? 0xba68c8 : 0x4a2e5c)
-        .setInteractive({ useHandCursor: true });
-      actionTxt = scene.add.text(btnX, btnY, `AUMENTAR (${cost}G)`, {
-        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 11, 'bold'),
-        align: 'center'
-      }).setOrigin(0.5);
-      fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
-
-      actionBtn.on('pointerdown', () => {
-        if (!canAfford) {
-          sound.playShieldBlock();
-          floatText(scene, btnX, btnY - 20, 'OURO INSUFICIENTE!', '#ff5252');
-          return;
-        }
-        if (spendGold(cost)) {
-          const nextLvl = lvl + 1;
-          setStatusUpgradeLevel(key, nextLvl);
-          sound.playBuy();
-          showMageShopMenu(scene);
-          floatText(scene, btnX, btnY - 24, `${cfg.name} NÍVEL ${nextLvl}!`, '#7fe7ff');
-        }
-      });
-    }
-
-    // Zona Interativa da Carta (Atualiza Diálogo do Arquimago!)
-    const cardHit = scene.add.rectangle(cx, startY + cardH / 2, cardW, cardH, 0x000000, 0)
+    // ZONA INTERATIVA DA CARTA (Hover para diálogo do mago — delimitada acima do botão!)
+    // Altura calculada para cobrir apenas o corpo da carta, SEM invadir a área do botão de compra!
+    const hitZoneH = cardH - 52;
+    const cardHit = scene.add.rectangle(cx, startY + 8 + hitZoneH / 2, cardW, hitZoneH, 0x000000, 0)
       .setInteractive({ useHandCursor: true });
 
     cardHit.on('pointerover', () => {
@@ -9427,10 +9903,83 @@ function showMageShopMenu(scene) {
       mageSpeechTxt.setText('“Beba dos meus elixires e seu poder ecoará em cada batalha!”');
     });
 
-    menuContainer.add([cardGfx, icon, nameTxt, lvlBadgeBg, lvlBadgeTxt, descTxt, actionBtn, actionTxt, cardHit]);
+    // BOTÃO DE COMPRA / AÇÃO NO RODAPÉ — 100% CENTRALIZADO E INTERATIVO
+    const btnX = cx;
+    const btnY = startY + cardH - 24;
+    const btnW = cardW - 24;
+    const btnH = 34;
+    let actionBtn, actionTxt;
+
+    if (isMax) {
+      actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2314)
+        .setStrokeStyle(1.5, 0xffca28);
+      actionTxt = scene.add.text(btnX, btnY, 'COMPLETO ★', {
+        ...roundedTextStyle('#ffd740', 11, 'bold'),
+        align: 'center'
+      }).setOrigin(0.5);
+    } else {
+      const cost = cfg.costs ? (cfg.costs[lvl - 1] || 15) : 15;
+      const canAfford = getGold() >= cost;
+
+      actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x4a148c : 0x2e1c3b)
+        .setStrokeStyle(2, canAfford ? 0xba68c8 : 0x4a2e5c)
+        .setInteractive({ useHandCursor: canAfford });
+
+      actionTxt = scene.add.text(btnX, btnY, `AUMENTAR (${cost}G)`, {
+        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 11, 'bold'),
+        align: 'center'
+      }).setOrigin(0.5);
+      fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
+
+      // Feedback visual de hover do botão de compra
+      actionBtn.on('pointerover', () => {
+        if (getGold() >= cost) {
+          actionBtn.setFillStyle(0x6a1b9a);
+          actionBtn.setStrokeStyle(2, 0xffd740);
+          actionTxt.setColor('#ffeb3b');
+        } else {
+          actionBtn.setFillStyle(0x3a2347);
+        }
+      });
+      actionBtn.on('pointerout', () => {
+        const stillAfford = getGold() >= cost;
+        actionBtn.setFillStyle(stillAfford ? 0x4a148c : 0x2e1c3b);
+        actionBtn.setStrokeStyle(2, stillAfford ? 0xba68c8 : 0x4a2e5c);
+        actionTxt.setColor(stillAfford ? '#ffffff' : '#8c7b6b');
+      });
+
+      // Clique de compra desbugado com suporte direto ao ouro e persistência
+      actionBtn.on('pointerdown', () => {
+        const currentGold = getGold();
+        if (currentGold < cost) {
+          sound.playShieldBlock();
+          floatText(scene, btnX, btnY - 20, 'OURO INSUFICIENTE!', '#ff5252');
+          return;
+        }
+
+        // Debita o ouro corretamente
+        addGold(-cost);
+
+        // Atualiza e salva o status permanente
+        const nextLvl = lvl + 1;
+        const currentStats = getStatusUpgrades();
+        currentStats[key] = nextLvl;
+        saveStatusUpgrades(currentStats);
+
+        // Feedback de áudio, floatText e atualização imediata da tela
+        sound.playBuy();
+        showMageShopMenu(scene);
+        floatText(scene, btnX, btnY - 24, `${cfg.name} NÍVEL ${nextLvl}!`, '#7fe7ff');
+      });
+    }
+
+    // Adiciona elementos da carta: actionBtn e actionTxt POR ÚLTIMO para garantir clique prioritário!
+    menuContainer.add([cardGfx, cardHit, icon, nameTxt, lvlBadgeBg, lvlBadgeTxt, descTxt, actionBtn, actionTxt]);
   });
 
-  // 9. TECLA DE ATALHO ESC & TAB
+  // ---------------------------------------------------------------------------
+  // 8. TECLAS DE ATALHO ESC & TAB
+  // ---------------------------------------------------------------------------
   const onEsc = (e) => {
     if (e.key === 'Escape') {
       scene.input.keyboard.off('keydown', onEsc);
@@ -9444,7 +9993,6 @@ function showMageShopMenu(scene) {
   scene.input.keyboard.on('keydown', onEsc);
   menuContainer.on('destroy', () => scene.input.keyboard.off('keydown', onEsc));
 }
-
 
 
 // --- BUNDLE FILE: JS_Teste/src/ui/virtualJoystick.js ---
@@ -9492,15 +10040,16 @@ class VirtualJoystick {
       if (mode === 'disabled') return false;
     }
 
-    if (typeof window === 'undefined') return false;
-    const hasTouch = (
-      'ontouchstart' in window ||
-      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
-      (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0)
-    );
-    const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    return hasTouch && (isCoarse || isMobileUA || window.innerWidth <= 1024);
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+
+    // Detecção estrita de telefone ou aparelho móvel real (smartphone / tablet)
+    const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+    const isMobileDevice = /android|iphone|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua);
+    const isIPad = /ipad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // No computador (desktop / laptop), o joystick fica SEMPRE desativado por padrão!
+    // Para ativar no computador, o usuário precisa ligar nos ajustes.
+    return Boolean(isMobileDevice || isIPad);
   }
 
   init() {
@@ -9522,16 +10071,7 @@ class VirtualJoystick {
     // Ouvintes de Toque com suporte a Multi-Touch
     this.setupTouchListeners();
 
-    // Detecção dinâmica de primeiro toque para telas touch híbridas
-    if (typeof window !== 'undefined') {
-      const onFirstTouch = () => {
-        if (typeof getJoystickMode === 'function' && getJoystickMode() !== 'disabled') {
-          this.isMobile = true;
-          this.updateVisibility();
-        }
-      };
-      window.addEventListener('touchstart', onFirstTouch, { once: true, passive: true });
-    }
+
 
     this.updateVisibility();
   }
@@ -9636,6 +10176,7 @@ class VirtualJoystick {
     const scene = this.scene;
 
     this.onPointerDownHandler = (pointer) => {
+      if (!this.visible) return;
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
       if (typeof pauseModal !== 'undefined' && pauseModal) return;
       if (typeof draftModal !== 'undefined' && draftModal) return;
@@ -9807,8 +10348,8 @@ function preload() {
   makeSheet(this, 'gold_coin', 16, 16, 2, drawGoldCoin);
   makeSheet(this, 'silver_coin', 16, 16, 2, drawSilverCoin);
   makeSheet(this, 'xp_orb', 14, 14, 2, drawXpOrb);
-  makeSheet(this, 'blacksmith_master', 44, 44, 2, drawBlacksmithMaster);
-  makeSheet(this, 'mage_master', 44, 44, 2, drawMageMaster);
+  makeSheet(this, 'blacksmith_master', 48, 52, 4, drawBlacksmithMaster);
+  makeSheet(this, 'mage_master', 48, 52, 4, drawMageMaster);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
@@ -9928,8 +10469,8 @@ function create(data) {
     gold_coin: { fps: 8, frames: 2 },
     silver_coin: { fps: 8, frames: 2 },
     xp_orb: { fps: 8, frames: 2 },
-    blacksmith_master: { fps: 3, frames: 2 },
-    mage_master: { fps: 3, frames: 2 }
+    blacksmith_master: { fps: 4, frames: 4 },
+    mage_master: { fps: 4, frames: 4 }
   };
   Object.entries(animSpecs).forEach(([key, spec]) => {
     if (!scene.anims.exists(key)) {

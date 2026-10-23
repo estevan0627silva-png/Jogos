@@ -314,6 +314,11 @@ const getBestScore = () => StorageManager.getBestScore();
 function getGold() { return StorageManager.getGold(); }
 function setGold(total) { return StorageManager.setGold(total); }
 function addGold(amount) { return StorageManager.addGold(amount); }
+function spendGold(amount) {
+  if (getGold() < amount) return false;
+  addGold(-amount);
+  return true;
+}
 function consolidateSilverToGold() { return StorageManager.consolidateSilverToGold(); }
 function getUpgrades() { return StorageManager.getUpgrades(); }
 function saveUpgrades(up) { return StorageManager.saveUpgrades(up); }
@@ -321,6 +326,12 @@ function getWeaponLevel(type) { return StorageManager.getWeaponLevel(type); }
 function getUnlockedWeaponPool() { return StorageManager.getUnlockedWeaponPool(); }
 function getStatusUpgrades() { return StorageManager.getStatusUpgrades(); }
 function saveStatusUpgrades(st) { return StorageManager.saveStatusUpgrades(st); }
+function setStatusUpgradeLevel(key, lvl) {
+  const current = StorageManager.getStatusUpgrades();
+  current[key] = lvl;
+  StorageManager.saveStatusUpgrades(current);
+  return current;
+}
 function getStatusLevel(key) { return StorageManager.getStatusLevel(key); }
 function getMagnetRadius() { return StorageManager.getMagnetRadius(); }
 function getPlayerMaxHp() { return StorageManager.getPlayerMaxHp(); }

@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
 
@@ -26,8 +26,8 @@ function preload() {
   makeSheet(this, 'gold_coin', 16, 16, 2, drawGoldCoin);
   makeSheet(this, 'silver_coin', 16, 16, 2, drawSilverCoin);
   makeSheet(this, 'xp_orb', 14, 14, 2, drawXpOrb);
-  makeSheet(this, 'blacksmith_master', 44, 44, 2, drawBlacksmithMaster);
-  makeSheet(this, 'mage_master', 44, 44, 2, drawMageMaster);
+  makeSheet(this, 'blacksmith_master', 48, 52, 4, drawBlacksmithMaster);
+  makeSheet(this, 'mage_master', 48, 52, 4, drawMageMaster);
   makeSheet(this, 'tree', 48, 64, 1, drawTree);
   makeSheet(this, 'rock', 32, 26, 2, drawRock);
   makeSheet(this, 'shield_worn', 18, 22, 1, drawShieldIcon);
@@ -147,8 +147,8 @@ function create(data) {
     gold_coin: { fps: 8, frames: 2 },
     silver_coin: { fps: 8, frames: 2 },
     xp_orb: { fps: 8, frames: 2 },
-    blacksmith_master: { fps: 3, frames: 2 },
-    mage_master: { fps: 3, frames: 2 }
+    blacksmith_master: { fps: 4, frames: 4 },
+    mage_master: { fps: 4, frames: 4 }
   };
   Object.entries(animSpecs).forEach(([key, spec]) => {
     if (!scene.anims.exists(key)) {
