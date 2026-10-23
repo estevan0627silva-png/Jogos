@@ -1,4 +1,4 @@
-// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
+﻿// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
 const StorageManager = {
@@ -294,9 +294,17 @@ const StorageManager = {
   getJoystickMode() {
     try {
       const mode = this.safeGet(STORAGE_JOYSTICK_KEY);
-      return mode || 'auto';
+      if (mode === 'enabled' || mode === 'disabled') return mode;
+      // No computador (desktop / laptop), o padrÃ£o Ã© SEMPRE desativado!
+      if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
+        const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+        const isMobile = /android|iphone|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua);
+        const isIPad = /ipad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isMobile || isIPad) return 'enabled';
+      }
+      return 'disabled';
     } catch {
-      return 'auto';
+      return 'disabled';
     }
   },
 

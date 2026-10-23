@@ -59,6 +59,7 @@ class VirtualJoystick {
 
     // Container principal fixado na câmera (setScrollFactor 0) e sob profundidade de HUD
     this.container = this.scene.add.container(0, 0).setDepth(2400).setScrollFactor(0);
+    this.container.setVisible(false);
 
     // Gráficos do Joystick: Linha de tensão, Base Rúnica Fixa e Pino Central Nobre
     this.lineGraphics = this.scene.add.graphics();
@@ -178,7 +179,7 @@ class VirtualJoystick {
     const scene = this.scene;
 
     this.onPointerDownHandler = (pointer) => {
-      if (!this.visible) return;
+      if (!this.visible || !this.detectMobile()) return;
       if (typeof gameState !== 'undefined' && gameState !== 'PLAYING') return;
       if (typeof pauseModal !== 'undefined' && pauseModal) return;
       if (typeof draftModal !== 'undefined' && draftModal) return;
@@ -286,9 +287,11 @@ class VirtualJoystick {
   }
 
   setVisible(show) {
-    if (this.visible === show) return;
-    this.visible = show;
-    if (this.container) this.container.setVisible(show);
+    const isShow = Boolean(show);
+    this.visible = isShow;
+    if (this.container) {
+      this.container.setVisible(isShow);
+    }
   }
 
   update(dt) {

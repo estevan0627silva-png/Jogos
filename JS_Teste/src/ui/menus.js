@@ -57,16 +57,13 @@ function showSettingsMenu(scene) {
 
   // Botão 3: Ativar Joystick Virtual (Mobile / PC)
   const getJoyLabel = () => {
-    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
-    if (m === 'enabled') return 'JOYSTICK VIRTUAL: [SEMPRE ATIVADO]';
-    if (m === 'disabled') return 'JOYSTICK VIRTUAL: [DESATIVADO]';
-    return 'JOYSTICK VIRTUAL: [PADRÃO: ATIVO SÓ NO CELULAR]';
+    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
+    if (m === 'enabled') return 'JOYSTICK VIRTUAL: [ATIVADO]';
+    return 'JOYSTICK VIRTUAL: [DESATIVADO]';
   };
   const getJoyColor = () => {
-    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
-    if (m === 'enabled') return 0x247a46;
-    if (m === 'disabled') return 0x8e1b1b;
-    return 0x2d3a4f;
+    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
+    return (m === 'enabled') ? 0x247a46 : 0x8e1b1b;
   };
 
   const joyToggleBtn = scene.add.rectangle(cx, 168, 480, 30, getJoyColor())
@@ -76,8 +73,8 @@ function showSettingsMenu(scene) {
 
   joyToggleBtn.on('pointerdown', () => {
     sound.playButtonClick();
-    const current = typeof getJoystickMode === 'function' ? getJoystickMode() : 'auto';
-    const next = current === 'auto' ? 'enabled' : (current === 'enabled' ? 'disabled' : 'auto');
+    const current = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
+    const next = current === 'enabled' ? 'disabled' : 'enabled';
     if (typeof setJoystickMode === 'function') setJoystickMode(next);
     joyToggleBtn.setFillStyle(getJoyColor());
     joyToggleTxt.setText(getJoyLabel());
@@ -724,11 +721,17 @@ function showBlacksmithMenu(scene) {
   // PrÃ©-aquece a simulaÃ§Ã£o para as chamas comeÃ§arem jÃ¡ no auge
   for (let i = 0; i < 45; i++) stepDoomFire();
 
-  // Sprite do Fogo do Doom ampliado para que suas 4 bordas retangulares fiquem
-  // 100% ocultas atrÃ¡s da alvenaria frontal de pedra da fornalha (forgeFrontArt)
+  // Sprite do Fogo do Doom com mÃ¡scara de geometria cÃ´ncava
+  // O fogo fica fisicamente recortado dentro da cavidade e em layer atrÃ¡s da alvenaria frontal
   const doomFireSprite = scene.add.image(105, 150, 'doom_forge_fire')
     .setScale(2.7)
     .setOrigin(0.5);
+
+  const hearthFireMaskGfx = scene.make.graphics();
+  hearthFireMaskGfx.fillStyle(0xffffff);
+  hearthFireMaskGfx.fillRoundedRect(64, 106, 82, 90, 18);
+  const doomHearthMask = hearthFireMaskGfx.createGeometryMask();
+  doomFireSprite.setMask(doomHearthMask);
 
   const doomFireTimer = scene.time.addEvent({
     delay: 36, // ~28 fps - taxa de atualização perfeita do DOOM fire clássico
@@ -882,6 +885,8 @@ function showBlacksmithMenu(scene) {
   // Moldura chanfrada do arco de pedra envolvente da fornalha
   forgeFrontArt.lineStyle(5, 0x3d2112, 1);
   forgeFrontArt.strokeRoundedRect(64, 98, 82, 100, 18);
+  forgeFrontArt.lineStyle(6, 0x070302, 0.85);
+  forgeFrontArt.strokeRoundedRect(64, 104, 82, 92, 18); // sombra profunda de recuo da cÃ¢mara
   forgeFrontArt.lineStyle(1.8, 0x160c07, 0.95);
   forgeFrontArt.strokeRoundedRect(64, 98, 82, 100, 18);
 
@@ -892,7 +897,7 @@ function showBlacksmithMenu(scene) {
   // Pedra angular superior da abÃ³bada (Keystone central entalhada)
   forgeFrontArt.fillStyle(0x56321e, 1).fillRect(93, 86, 24, 18);
   forgeFrontArt.lineStyle(2, 0x1f1109).strokeRect(93, 86, 24, 18);
-  forgeFrontArt.fillStyle(0xffca28, 0.9).fillRect(104, 89, 2, 12).fillRect(99, 93, 12, 2); // runa de forja
+  forgeFrontArt.fillStyle(0x5e3822, 1).fillRect(96, 89, 18, 12); // entalhe rÃºstico de pedra esculpida (sem cruz)
 
   // Base da fornalha e grelha de ferro inferior (y: 194..218 â€” cobre a borda inferior do fogo y: 209.4)
   forgeFrontArt.fillStyle(0x1a0f08, 1).fillRect(28, 194, 154, 26);
@@ -924,13 +929,14 @@ function showBlacksmithMenu(scene) {
   // ---------------------------------------------------------------------------
   // 4. O MESTRE FERREIRO ANVILGAR ATRÃS DO BALCÃƒO (RENDERIZADO NO LAYER 4!)
   // ---------------------------------------------------------------------------
-  const blacksmithSprite = scene.add.sprite(235, 168, 'blacksmith_master')
+  // O ferreiro Ã© posicionado a y = 144 para que o seu barbÃ£o massivo e anÃ©is fiquem 100% visÃ­veis acima do balcÃ£o!
+  const blacksmithSprite = scene.add.sprite(235, 144, 'blacksmith_master')
     .play('blacksmith_master')
     .setScale(2.3);
 
   scene.tweens.add({
     targets: blacksmithSprite,
-    y: 164,
+    y: 140,
     duration: 1100,
     yoyo: true,
     repeat: -1,
