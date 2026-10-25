@@ -10,21 +10,17 @@
 function showSettingsMenu(scene) {
   if (menuContainer) menuContainer.destroy();
   const cx = GAME_WIDTH / 2;
-  const modalH = 490;
+  const modalH = 460;
+  const modalW = 560;
   const top = (GAME_HEIGHT - modalH) / 2;
-  menuContainer = createModal(scene, 'CONFIGURA\u00c7\u00d5ES DO REINO', modalH, 'Ajustes de \u00e1udio, v\u00eddeo e joystick de batalha', 580);
+  menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', modalH, 'Ajustes de áudio, vídeo e joystick de batalha', modalW, false);
   menuContainer.isMainMenu = false;
 
-  // Seção 1: Áudio, Tela Cheia & Controles Mobile
-  const audioBox = scene.add.graphics();
-  audioBox.fillStyle(0x221a13, 0.94).fillRoundedRect(cx - 260, top + 78, 520, 116, 6);
-  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, top + 78, 520, 116, 6);
-  audioBox.lineStyle(1, 0xc5a059, 0.6).strokeRoundedRect(cx - 258, top + 80, 516, 112, 4);
-
-  const audioTitle = scene.add.text(cx - 240, top + 88, '\u00c1UDIO, TELA CHEIA & JOYSTICK VIRTUAL', textStyle('#ffca28', 11.5));
+  // Seção 1: Áudio, Tela Cheia & Joystick Virtual (Renderizados diretamente na tábula de madeira)
+  const audioTitle = scene.add.text(cx, top + 92, 'ÁUDIO, TELA CHEIA & JOYSTICK VIRTUAL', textStyle('#ffd740', 12, 'bold', 2, '#1a0e05')).setOrigin(0.5);
 
   // Botão 1: Áudio
-  const audioBtnGroup = createButton(scene, cx - 130, top + 124, sound.isMuted() ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]', () => {
+  const audioBtnGroup = createButton(scene, cx - 130, top + 128, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', () => {
     sound.toggleMute();
     updateAudioUI();
   }, 240, 36, sound.isMuted() ? 'ui_btn_red_reg' : 'ui_btn_blue_reg');
@@ -36,12 +32,12 @@ function showSettingsMenu(scene) {
     const muted = sound.isMuted();
     audioToggleBtn.baseTexture = muted ? 'ui_btn_red_reg' : 'ui_btn_blue_reg';
     audioToggleBtn.setTexture(audioToggleBtn.baseTexture);
-    audioToggleTxt.setText(muted ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]');
+    audioToggleTxt.setText(muted ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
     if (hudHornIcon) hudHornIcon.setFrame(muted ? 1 : 0);
   };
 
   // Botão 2: Tela Cheia
-  const fsBtnGroup = createButton(scene, cx + 130, top + 124, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
+  const fsBtnGroup = createButton(scene, cx + 130, top + 128, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
     toggleFullscreen(scene);
     scene.time.delayedCall(80, refreshFsBtn);
   }, 240, 36);
@@ -62,7 +58,7 @@ function showSettingsMenu(scene) {
   };
   const isJoyActive = () => (typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled') === 'enabled';
 
-  const joyBtnGroup = createButton(scene, cx, top + 166, getJoyLabel(), () => {
+  const joyBtnGroup = createButton(scene, cx, top + 172, getJoyLabel(), () => {
     const current = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
     const next = current === 'enabled' ? 'disabled' : 'enabled';
     if (typeof setJoystickMode === 'function') setJoystickMode(next);
@@ -71,33 +67,35 @@ function showSettingsMenu(scene) {
     joyToggleBtn.setTexture(joyToggleBtn.baseTexture);
     joyToggleTxt.setText(getJoyLabel());
     if (virtualJoystick) virtualJoystick.updateVisibility();
-  }, 500, 32, isJoyActive() ? 'ui_btn_blue_reg' : 'ui_btn_red_reg');
+  }, 500, 34, isJoyActive() ? 'ui_btn_blue_reg' : 'ui_btn_red_reg');
   const joyToggleBtn = joyBtnGroup[0];
   const joyToggleTxt = joyBtnGroup[1];
 
-  // Seção 2: Pergaminho de Dicas de Combate
-  const guideBox = scene.add.graphics();
-  guideBox.fillStyle(0x1d1611, 0.94).fillRoundedRect(cx - 260, top + 204, 520, 186, 6);
-  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, top + 204, 520, 186, 6);
-  guideBox.lineStyle(1, 0xc5a059, 0.5).strokeRoundedRect(cx - 258, top + 206, 516, 182, 4);
+  // Divisória sutil em filigrana dourada
+  const divider = scene.add.graphics();
+  divider.lineStyle(1.5, 0xc5a059, 0.45).lineBetween(cx - 240, top + 204, cx + 240, top + 204);
 
-  const guideTitle = scene.add.text(cx, top + 214, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 12)).setOrigin(0.5);
+  // Seção 2: Pergaminho de Dicas de Combate
+  const guideTitle = scene.add.text(cx, top + 218, 'PERGAMINHO DE COMBATE', textStyle('#ffd740', 12, 'bold', 2, '#1a0e05')).setOrigin(0.5);
   const guideLines = [
-    '\u2022 Mobile (Touch): Joystick Virtual anal\u00f3gico \u00e0 esquerda para movimenta\u00e7\u00e3o (ataque autom\u00e1tico).',
-    '\u2022 Inimigos derrotados dropam Moedas de Prata durante a expedi\u00e7\u00e3o na floresta.',
-    '\u2022 Ao encerrar a partida, suas Moedas de Prata s\u00e3o convertidas em Ouro Real!',
-    '\u2022 Visite a Forja do Ferreiro para desbloquear novas armas de combate com seu Ouro.',
-    '\u2022 Visite o Santu\u00e1rio do Mago para aprimorar seus atributos permanentes.',
-    '\u2022 O Escudo Sagrado reflete proj\u00e9teis inimigos enquanto desfere seus ataques.'
+    '• Mobile (Touch): Joystick Virtual analógico à esquerda para movimentação (ataque automático).',
+    '• Inimigos derrotados dropam Moedas de Prata durante a expedição na floresta.',
+    '• Ao encerrar a partida, suas Moedas de Prata são convertidas em Ouro Real!',
+    '• Visite a Forja do Ferreiro para desbloquear novas armas de combate com seu Ouro.',
+    '• Visite o Santuário do Mago para aprimorar seus atributos permanentes.',
+    '• O Escudo Sagrado reflete projéteis inimigos enquanto desfere seus ataques.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
-    scene.add.text(cx - 240, top + 232 + i * 23, txt, { ...textStyle('#d6c8aa', 10, 'normal'), lineSpacing: 3 })
+    scene.add.text(cx - 240, top + 236 + i * 23, txt, {
+      ...textStyle('#ffffff', 10.5, 'normal', 2, '#1a0e05'),
+      lineSpacing: 3
+    })
   );
 
   menuContainer.add([
-    audioBox, audioTitle, ...audioBtnGroup, ...fsBtnGroup, ...joyBtnGroup,
-    guideBox, guideTitle, ...guideTexts,
-    ...createButton(scene, cx, top + 424, 'VOLTAR', () => exitSubMenu(scene), 260, 38)
+    audioTitle, ...audioBtnGroup, ...fsBtnGroup, ...joyBtnGroup,
+    divider, guideTitle, ...guideTexts,
+    ...createButton(scene, cx, top + 420, 'VOLTAR', () => exitSubMenu(scene), 240, 38)
   ]);
 }
 
@@ -107,28 +105,35 @@ function showSettingsMenu(scene) {
 function showRecordsMenu(scene) {
   if (menuContainer) menuContainer.destroy();
   const cx = GAME_WIDTH / 2;
-  menuContainer = createModal(scene, 'TÁBULA DOS CAMPEÕES', 470, 'Os maiores guerreiros imortalizados pelas eras', 560);
+  const modalH = 460;
+  const modalW = 560;
+  const top = (GAME_HEIGHT - modalH) / 2;
+  menuContainer = createModal(scene, 'TÁBULA DOS CAMPEÕES', modalH, 'Os maiores guerreiros imortalizados pelas eras', modalW, false);
   menuContainer.isMainMenu = false;
 
   const scores = getHighScores();
   const ranks = ['1º LUGAR', '2º LUGAR', '3º LUGAR', '4º LUGAR', '5º LUGAR'];
-  const colors = ['#ffca28', '#e8e8e8', '#cd7f32', '#d6c8aa', '#a8987b'];
+  const colors = ['#ffd740', '#ffffff', '#e8b888', '#d6c8aa', '#a8987b'];
 
   scores.forEach((entry, i) => {
-    const rowY = 145 + i * 48;
-    const rowBg = scene.add.graphics();
-    rowBg.fillStyle(i === 0 ? 0x2e2314 : 0x1d1611, 0.94).fillRoundedRect(cx - 235, rowY - 18, 470, 38, 5);
-    rowBg.lineStyle(1.5, i === 0 ? 0xc5a059 : 0x4a3b2c).strokeRoundedRect(cx - 235, rowY - 18, 470, 38, 5);
+    const rowY = top + 130 + i * 50;
+    const rowGraphic = scene.add.graphics();
+    if (i === 0) {
+      rowGraphic.fillStyle(0xffd700, 0.12).fillRoundedRect(cx - 240, rowY - 18, 480, 36, 4);
+      rowGraphic.lineStyle(1.5, 0xc5a059, 0.65).strokeRoundedRect(cx - 240, rowY - 18, 480, 36, 4);
+    } else {
+      rowGraphic.lineStyle(1, 0x4a3220, 0.45).lineBetween(cx - 235, rowY + 18, cx + 235, rowY + 18);
+    }
 
     // Medalha / Ícone do Rank
-    const rankTxt = scene.add.text(cx - 215, rowY, ranks[i], textStyle(colors[i], 12)).setOrigin(0, 0.5);
-    const nameTxt = scene.add.text(cx - 30, rowY, entry.name, textStyle('#ffffff', 17)).setOrigin(0.5);
-    const scoreTxt = scene.add.text(cx + 215, rowY, `${entry.score}s de glória`, textStyle(colors[i], 13.5)).setOrigin(1, 0.5);
+    const rankTxt = scene.add.text(cx - 220, rowY, ranks[i], textStyle(colors[i], 12.5, 'bold', 2, '#1a0e05')).setOrigin(0, 0.5);
+    const nameTxt = scene.add.text(cx - 20, rowY, entry.name, textStyle('#ffffff', 16, 'bold', 2, '#1a0e05')).setOrigin(0.5);
+    const scoreTxt = scene.add.text(cx + 220, rowY, `${entry.score}s de glória`, textStyle(colors[i], 13.5, 'bold', 2, '#1a0e05')).setOrigin(1, 0.5);
 
-    menuContainer.add([rowBg, rankTxt, nameTxt, scoreTxt]);
+    menuContainer.add([rowGraphic, rankTxt, nameTxt, scoreTxt]);
   });
 
-  menuContainer.add(createButton(scene, cx, 436, 'VOLTAR', () => exitSubMenu(scene), 260, 40));
+  menuContainer.add(createButton(scene, cx, top + 420, 'VOLTAR', () => exitSubMenu(scene), 240, 38));
 }
 
 // -----------------------------------------------------------------------------

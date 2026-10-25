@@ -5,7 +5,7 @@ let ground, road, forestTop, forestBottom, shadows, hitFx, dustFx, sparksFx, deb
 let enemies, obstacles, items, playerArrows, enemyArrows, slashes, xpOrbs;
 let hudContainer, hudGloryText, hudSilverText, hudGoldText, hudBestText, hudHearts = [];
 let hudItemIcon, hudItemName, hudItemTime, hudItemBar, hudItemBarBase, hudHornIcon, hudFullscreenIcon;
-let hudBackpackSlot, hudBackpackIcon, hudBackpackLock, backpackWeapon = null;
+let hudBackpackSlot, hudBackpackIcon, hudBackpackPadlock, backpackWeapon = null;
 let hudXpBar, hudXpText, hudLevelText;
 let activeBoss, bossSpawned, bossDefeated, bossHudContainer, bossHpBar, bossHpText, bossFilterOverlay;
 let villageDecor, coins, menuContainer, pauseModal, draftModal, activeModal = null;

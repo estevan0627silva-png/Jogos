@@ -279,12 +279,6 @@ function openLevelUpDraft(scene) {
     }
 
     card.apply(scene);
-    if (scene && scene.anims && player && player.active) {
-      if (scene.anims.exists('anim_vfx_levelup_text')) {
-        const lvlText = scene.add.sprite(player.x, player.y - 48, 'vfx_levelup_text').play('anim_vfx_levelup_text').setScale(0.65).setDepth(2600);
-        lvlText.once('animationcomplete', () => { if (lvlText && lvlText.active) lvlText.destroy(); });
-      }
-    }
     pendingLevelUps = Math.max(0, pendingLevelUps - 1);
     updateXpHUD();
 
@@ -408,7 +402,7 @@ function createButton(scene, x, y, label, onClick, w = 260, h = 46, defaultTextu
 // -----------------------------------------------------------------------------
 // FÁBRICA UNIFICADA DE JANELAS E MODAIS MEDIEVAIS (COM ANCORAGEM DINÂMICA)
 // -----------------------------------------------------------------------------
-function createModal(scene, titleText, height, subtitleText = '', width = 520) {
+function createModal(scene, titleText, height, subtitleText = '', width = 520, solidBacking = false) {
   const cx = GAME_WIDTH / 2;
   const cy = GAME_HEIGHT / 2;
   const left = cx - width / 2;
@@ -417,27 +411,34 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
   const woodBg = scene.add.image(cx, cy, 'ui_wood_table').setDisplaySize(width + 16, height + 16).setAlpha(1.0);
 
   const frame = scene.add.graphics();
-  // Fundo interno sutil em madeira escura acetinada (deixa as bordas da ui_wood_table 100% visíveis)
-  frame.fillStyle(0x16100b, 0.95).fillRoundedRect(left + 22, top + 22, width - 44, height - 44, 8);
-  // Moldura interna em couro nobre e filete dourado
-  frame.lineStyle(2, 0x8d5524, 0.9).strokeRoundedRect(left + 22, top + 22, width - 44, height - 44, 8);
-  frame.lineStyle(1, 0xc5a059, 0.65).strokeRoundedRect(left + 24, top + 24, width - 48, height - 48, 6);
+  if (solidBacking) {
+    // Fundo interno sutil em madeira escura acetinada (deixa as bordas da ui_wood_table 100% visíveis em modais com formulários)
+    frame.fillStyle(0x16100b, 0.95).fillRoundedRect(left + 22, top + 22, width - 44, height - 44, 8);
+    // Moldura interna em couro nobre e filete dourado
+    frame.lineStyle(2, 0x8d5524, 0.9).strokeRoundedRect(left + 22, top + 22, width - 44, height - 44, 8);
+    frame.lineStyle(1, 0xc5a059, 0.65).strokeRoundedRect(left + 24, top + 24, width - 48, height - 48, 6);
+  }
 
   // Faixa de título com o ribbon amarelo autêntico do Tiny Swords
   const ribbonW = Math.min(width - 24, 460);
-  const titleRibbon = scene.add.image(cx, top + 26, 'ui_ribbon_big_yellow').setDisplaySize(ribbonW, 52);
-  const title = scene.add.text(cx, top + 24, titleText, titleTextStyle('#ffffff', 17, 'bold', '#2a1a0e', 2)).setOrigin(0.5);
+  const ribbonY = solidBacking ? (top + 26) : (top + 42);
+  const titleY = solidBacking ? (top + 24) : (top + 40);
+  const titleRibbon = scene.add.image(cx, ribbonY, 'ui_ribbon_big_yellow').setDisplaySize(ribbonW, 46);
+  const title = scene.add.text(cx, titleY, titleText, titleTextStyle('#ffffff', 16, 'bold', '#2a1a0e', 2)).setOrigin(0.5);
   fitTextToBox(title, ribbonW - 70, 26, 13);
 
   const children = [overlay, woodBg, frame, titleRibbon, title];
   if (subtitleText) {
-    const sub = scene.add.text(cx, top + 58, subtitleText, {
-      ...subtitleTextStyle('#ffd740', 10.5, 'bold', '#000000', 2),
+    const subY = solidBacking ? (top + 58) : (top + 74);
+    const sub = scene.add.text(cx, subY, subtitleText, {
+      ...subtitleTextStyle('#ffd740', 11),
       align: 'center',
       wordWrap: { width: width - 60, useAdvancedWrap: true }
     }).setOrigin(0.5);
     fitTextToBox(sub, width - 60, 22, 9);
-    frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 72, left + width - 40, top + 72);
+    if (solidBacking) {
+      frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 72, left + width - 40, top + 72);
+    }
     children.push(sub);
   }
 
@@ -518,31 +519,34 @@ function resumeGame(scene) {
 function showPauseModal(scene) {
   if (pauseModal) pauseModal.destroy();
 
-  const height = 440;
+  const width = 520;
+  const height = 450;
   const top = (GAME_HEIGHT - height) / 2;
   const cx = GAME_WIDTH / 2;
-  pauseModal = createModal(scene, '\u2694 JOGO PAUSADO \u2694', height, 'JORNADA EM ESPERA', 480);
+  // solidBacking = false: sem caixa marrom sobrepondo a mesa, apenas a autêntica ui_wood_table do Tiny Swords
+  pauseModal = createModal(scene, '\u2694 JOGO PAUSADO \u2694', height, 'JORNADA EM ESPERA', width, false);
 
-  // Status de sobrevivencia, prata e reliquia em painel de madeira Tiny Swords
-  const statsPlate = scene.add.graphics();
-  statsPlate.fillStyle(0x0e0b08, 0.88).fillRoundedRect(cx - 200, top + 78, 400, 46, 6);
-  statsPlate.lineStyle(1.5, 0x8d5524, 0.9).strokeRoundedRect(cx - 200, top + 78, 400, 46, 6);
-  statsPlate.lineStyle(1, 0xc5a059, 0.45).strokeRoundedRect(cx - 198, top + 80, 396, 42, 4);
+  const timeTxt = scene.add.text(cx, top + 98, 'TEMPO: ' + survivalTime + 's   \u2022   PRATA: ' + runSilver + '   \u2022   OURO: ' + getGold(), {
+    ...textStyle('#ffffff', 12, 'bold', 2, '#000000'),
+    align: 'center'
+  }).setOrigin(0.5);
+  fitTextToBox(timeTxt, 440, 20, 10);
 
-  const timeTxt = scene.add.text(cx, top + 92, 'TEMPO: ' + survivalTime + 's  |  PRATA: ' + runSilver + '  |  OURO: ' + getGold(), textStyle('#ffca28', 11.5, 'bold')).setOrigin(0.5);
-  fitTextToBox(timeTxt, 390, 18, 10);
   const relicName = buff.type ? ((BUFF_NAMES[buff.type] || buff.type) + ' NV.' + getWeaponLevel(buff.type) + ' (' + Math.max(0, buff.timeLeft).toFixed(1) + 's)') : 'Nenhuma';
-  const relicColor = buff.type ? '#7fe7ff' : '#d6c8aa';
-  const relicTxt = scene.add.text(cx, top + 112, 'REL\u00cdQUIA ATIVA: ' + relicName, textStyle(relicColor, 11, 'bold')).setOrigin(0.5);
-  fitTextToBox(relicTxt, 390, 18, 10);
+  const relicColor = buff.type ? '#7fe7ff' : '#ffe0b2';
+  const relicTxt = scene.add.text(cx, top + 122, 'REL\u00cdQUIA ATIVA: ' + relicName, {
+    ...textStyle(relicColor, 12, 'bold', 2, '#000000'),
+    align: 'center'
+  }).setOrigin(0.5);
+  fitTextToBox(relicTxt, 440, 20, 10);
 
   // Botoes com a UI oficial do Tiny Swords (ui_btn_blue_reg / ui_btn_red_reg)
-  const btnW = 310;
+  const btnW = 290;
   const btnH = 38;
-  const continueBtn = createButton(scene, cx, top + 152, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), btnW, btnH);
+  const continueBtn = createButton(scene, cx, top + 164, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), btnW, btnH);
 
   // Botao Audio: usa createButton e alterna textura ui_btn_red_reg / ui_btn_blue_reg
-  const audioBtnGroup = createButton(scene, cx, top + 196, sound.isMuted() ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]', () => {
+  const audioBtnGroup = createButton(scene, cx, top + 210, sound.isMuted() ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]', () => {
     sound.toggleMute();
     updateAudioUI();
   }, btnW, btnH, sound.isMuted() ? 'ui_btn_red_reg' : 'ui_btn_blue_reg');
@@ -559,7 +563,7 @@ function showPauseModal(scene) {
   };
 
   // Botao Tela Cheia: usa createButton
-  const fsBtnGroup = createButton(scene, cx, top + 240, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
+  const fsBtnGroup = createButton(scene, cx, top + 256, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
     toggleFullscreen(scene);
     scene.time.delayedCall(80, updateFsUI);
   }, btnW, btnH);
@@ -575,12 +579,15 @@ function showPauseModal(scene) {
   pauseModal.updateAudio = updateAudioUI;
   pauseModal.updateFullscreen = updateFsUI;
 
-  const restartBtn = createButton(scene, cx, top + 284, 'REINICIAR MISS\u00c3O', () => restartScene(scene, true, false), btnW, btnH);
-  const menuBtn = createButton(scene, cx, top + 328, 'MENU PRINCIPAL', () => restartScene(scene, false, false), btnW, btnH);
-  const footerHint = scene.add.text(cx, top + 372, 'Pausar / Retornar: Tecla [P] ou [ESC]', textStyle('#e0c088', 10.5)).setOrigin(0.5);
+  const restartBtn = createButton(scene, cx, top + 302, 'REINICIAR MISS\u00c3O', () => restartScene(scene, true, false), btnW, btnH);
+  const menuBtn = createButton(scene, cx, top + 348, 'MENU PRINCIPAL', () => restartScene(scene, false, false), btnW, btnH);
+  const footerHint = scene.add.text(cx, top + 394, 'Pausar / Retornar: Tecla [P] ou [ESC]', {
+    ...textStyle('#f5e1c4', 11, 'bold', 2, '#000000'),
+    align: 'center'
+  }).setOrigin(0.5);
 
   pauseModal.add([
-    statsPlate, timeTxt, relicTxt,
+    timeTxt, relicTxt,
     ...continueBtn,
     ...audioBtnGroup,
     ...fsBtnGroup,
