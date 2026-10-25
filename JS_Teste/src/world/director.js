@@ -47,10 +47,10 @@ function spawnStartingVillage(scene) {
 
   // 5. Moradores (NPCs) paradinhos na beira do caminho dando tchau e desejando boa sorte!
   const npcSpecs = [
-    { x: 186, y: 215, tint: 0xffd8b0, msg: 'Boa sorte!' },
-    { x: 345, y: 218, tint: 0xb3e5fc, msg: 'Força, Herói!' },
-    { x: 202, y: 355, tint: 0xc8e6c9, msg: 'Proteja o Reino!' },
-    { x: 345, y: 352, tint: 0xfff59d, msg: 'Vá com luz!' }
+    { x: 186, y: 215, tint: 0xffd8b0, msg: 'BOA SORTE!' },
+    { x: 345, y: 218, tint: 0xb3e5fc, msg: 'FORÇA, HERÓI!' },
+    { x: 202, y: 355, tint: 0xc8e6c9, msg: 'PROTEJA O REINO!' },
+    { x: 345, y: 352, tint: 0xfff59d, msg: 'VÁ COM LUZ!' }
   ];
   npcSpecs.forEach(spec => {
     const npc = villageDecor.create(spec.x, spec.y, 'village_npc');

@@ -13,7 +13,7 @@ function showSettingsMenu(scene) {
   const modalH = 460;
   const modalW = 560;
   const top = (GAME_HEIGHT - modalH) / 2;
-  menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', modalH, 'Ajustes de áudio, vídeo e joystick de batalha', modalW, false);
+  menuContainer = createModal(scene, 'AJUSTES DO REINO', modalH, 'AJUSTES DE ÁUDIO, VÍDEO E JOYSTICK DE BATALHA', modalW, false);
   menuContainer.isMainMenu = false;
 
   // Seção 1: Áudio, Tela Cheia & Joystick Virtual (Renderizados diretamente na tábula de madeira)
@@ -78,24 +78,24 @@ function showSettingsMenu(scene) {
   // Seção 2: Pergaminho de Dicas de Combate
   const guideTitle = scene.add.text(cx, top + 218, 'PERGAMINHO DE COMBATE', textStyle('#ffd740', 12, 'bold', 2, '#1a0e05')).setOrigin(0.5);
   const guideLines = [
-    '• Mobile (Touch): Joystick Virtual analógico à esquerda para movimentação (ataque automático).',
-    '• Inimigos derrotados dropam Moedas de Prata durante a expedição na floresta.',
-    '• Ao encerrar a partida, suas Moedas de Prata são convertidas em Ouro Real!',
-    '• Visite a Forja do Ferreiro para desbloquear novas armas de combate com seu Ouro.',
-    '• Visite o Santuário do Mago para aprimorar seus atributos permanentes.',
-    '• O Escudo Sagrado reflete projéteis inimigos enquanto desfere seus ataques.'
+    '• CONTROLES: WASD OU JOYSTICK VIRTUAL PARA SE MOVER',
+    '• COMBATE: ATAQUES SÃO DESFERIDOS AUTOMATICAMENTE',
+    '• EXPEDIÇÃO: INIMIGOS DERROTADOS DROPAM PRATA E XP',
+    '• OURO REAL: PRATA É CONVERTIDA EM OURO AO FIM DA RUN',
+    '• ARSENAL: VISITE O FERREIRO E O MAGO PARA EVOLUIR',
+    '• DEFESA: ESCUDO SAGRADO REFLETE PROJÉTEIS INIMIGOS'
   ];
   const guideTexts = guideLines.map((txt, i) =>
-    scene.add.text(cx - 240, top + 236 + i * 23, txt, {
-      ...textStyle('#ffffff', 10.5, 'normal', 2, '#1a0e05'),
+    scene.add.text(cx, top + 240 + i * 23, txt, {
+      ...textStyle('#ffffff', 10, 'normal', 2, '#1a0e05'),
       lineSpacing: 3
-    })
+    }).setOrigin(0.5)
   );
 
   menuContainer.add([
     audioTitle, ...audioBtnGroup, ...fsBtnGroup, ...joyBtnGroup,
     divider, guideTitle, ...guideTexts,
-    ...createButton(scene, cx, top + 420, 'VOLTAR', () => exitSubMenu(scene), 240, 38)
+    ...createButton(scene, cx, top + 420, 'VOLTAR AO MENU', () => exitSubMenu(scene), 240, 38)
   ]);
 }
 
@@ -108,7 +108,7 @@ function showRecordsMenu(scene) {
   const modalH = 460;
   const modalW = 560;
   const top = (GAME_HEIGHT - modalH) / 2;
-  menuContainer = createModal(scene, 'TÁBULA DOS CAMPEÕES', modalH, 'Os maiores guerreiros imortalizados pelas eras', modalW, false);
+  menuContainer = createModal(scene, 'TÁBULA DOS CAMPEÕES', modalH, 'OS MAIORES GUERREIROS IMORTALIZADOS PELAS ERAS', modalW, false);
   menuContainer.isMainMenu = false;
 
   const scores = getHighScores();
@@ -128,12 +128,12 @@ function showRecordsMenu(scene) {
     // Medalha / Ícone do Rank
     const rankTxt = scene.add.text(cx - 220, rowY, ranks[i], textStyle(colors[i], 12.5, 'bold', 2, '#1a0e05')).setOrigin(0, 0.5);
     const nameTxt = scene.add.text(cx - 20, rowY, entry.name, textStyle('#ffffff', 16, 'bold', 2, '#1a0e05')).setOrigin(0.5);
-    const scoreTxt = scene.add.text(cx + 220, rowY, `${entry.score}s de glória`, textStyle(colors[i], 13.5, 'bold', 2, '#1a0e05')).setOrigin(1, 0.5);
+    const scoreTxt = scene.add.text(cx + 220, rowY, `${entry.score}S DE GLÓRIA`, textStyle(colors[i], 13.5, 'bold', 2, '#1a0e05')).setOrigin(1, 0.5);
 
     menuContainer.add([rowGraphic, rankTxt, nameTxt, scoreTxt]);
   });
 
-  menuContainer.add(createButton(scene, cx, top + 420, 'VOLTAR', () => exitSubMenu(scene), 240, 38));
+  menuContainer.add(createButton(scene, cx, top + 420, 'VOLTAR AO MENU', () => exitSubMenu(scene), 240, 38));
 }
 
 // -----------------------------------------------------------------------------
@@ -154,14 +154,14 @@ function showAchievementsMenu(scene) {
     scene,
     'TÁBULA DE CONQUISTAS DO REINO',
     490,
-    'Complete façanhas heróicas de combate para desbloquear Ouro e glória eterna',
+    'COMPLETE FAÇANHAS HERÓICAS PARA DESBLOQUEAR OURO REAL',
     820
   );
   menuContainer.isMainMenu = false;
 
   // Botão Rápido " SAIR [ESC]" no canto superior direito do modal
   const closeQuickBtn = scene.add.image(850, 48, 'ui_btn_red_reg').setDisplaySize(78, 28).setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(850, 48, 'SAIR', textStyle('#ffeb3b', 11)).setOrigin(0.5);
+  const closeQuickTxt = scene.add.text(850, 48, 'SAIR', textStyle('#ffffff', 11)).setOrigin(0.5);
   closeQuickBtn.on('pointerover', () => { closeQuickBtn.setTexture('ui_btn_red_press'); closeQuickTxt.setColor('#ffeb3b'); });
   closeQuickBtn.on('pointerout', () => { closeQuickBtn.setTexture('ui_btn_red_reg'); closeQuickTxt.setColor('#ffffff'); });
   closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
@@ -173,18 +173,18 @@ function showAchievementsMenu(scene) {
 
   // 1. BARRA DE RESUMO SUPERIOR (CONQUISTAS TOTAIS + OURO)
   const summaryBox = scene.add.graphics();
-  summaryBox.fillStyle(0x221a13, 0.96).fillRoundedRect(80, 84, 450, 46, 7);
-  summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(80, 84, 450, 46, 7);
+  summaryBox.fillStyle(0x221a13, 0.96).fillRoundedRect(95, 86, 410, 44, 7);
+  summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(95, 86, 410, 44, 7);
 
-  const crownIcon = scene.add.image(108, 107, 'hud_crown').setScale(1.1);
-  const progTxt = scene.add.text(134, 98, `CONQUISTAS: ${unlockedCount} / ${totalCount} DESBLOQUEADAS`, textStyle('#ffca28', 11.5));
-  const subProg = scene.add.text(134, 115, 'Conquistas concedem Ouro Real instantaneamente!', textStyle('#c5a059', 9.5));
+  const crownIcon = scene.add.image(118, 108, 'hud_crown').setScale(1.05);
+  const progTxt = scene.add.text(142, 98, `CONQUISTAS: ${unlockedCount} / ${totalCount} DESBLOQUEADAS`, textStyle('#ffca28', 11));
+  const subProg = scene.add.text(142, 114, 'Conquistas concedem Ouro Real instantaneamente!', textStyle('#c5a059', 9));
 
   const goldBadge = scene.add.graphics();
-  goldBadge.fillStyle(0x261c12, 0.98).fillRoundedRect(540, 84, 330, 46, 7);
-  goldBadge.lineStyle(2, 0xffca28).strokeRoundedRect(540, 84, 330, 46, 7);
-  const coinSprite = scene.add.sprite(568, 107, 'gold_coin').play('gold_coin').setScale(1.25);
-  const goldValTxt = scene.add.text(592, 107, `OURO ATUAL: ${getGold()}`, textStyle('#ffd740', 13)).setOrigin(0, 0.5);
+  goldBadge.fillStyle(0x261c12, 0.98).fillRoundedRect(520, 86, 345, 44, 7);
+  goldBadge.lineStyle(2, 0xffca28).strokeRoundedRect(520, 86, 345, 44, 7);
+  const coinSprite = scene.add.sprite(548, 108, 'gold_coin').play('gold_coin').setScale(1.2);
+  const goldValTxt = scene.add.text(574, 108, `OURO ATUAL: ${getGold()}`, textStyle('#ffd740', 12.5)).setOrigin(0, 0.5);
 
   menuContainer.add([summaryBox, crownIcon, progTxt, subProg, goldBadge, coinSprite, goldValTxt]);
 
@@ -192,10 +192,10 @@ function showAchievementsMenu(scene) {
   ACHIEVEMENTS_CATALOG.forEach((ach, idx) => {
     const col = idx % 2;
     const row = Math.floor(idx / 2);
-    const cardLeft = col === 0 ? 80 : 485;
-    const cardW = 385;
+    const cardLeft = col === 0 ? 95 : 495;
+    const cardW = 370;
     const cardH = 64;
-    const cardTop = 138 + row * 70;
+    const cardTop = 138 + row * 72;
 
     const isDone = Boolean(achData.unlocked[ach.id]);
     const currentVal = Math.min(ach.target, achData.stats[ach.stat] || 0);
@@ -212,18 +212,18 @@ function showAchievementsMenu(scene) {
     const icon = scene.add.image(cardLeft + 30, cardTop + 32, ach.icon).setScale(1.18);
     if (!isDone) icon.setTint(0x777777);
 
-    const titleTxt = scene.add.text(cardLeft + 62, cardTop + 6, ach.title, textStyle(isDone ? '#ffca28' : '#e0d2b4', 11));
-    fitTextToBox(titleTxt, cardW - 74, 16, 10);
+    const titleTxt = scene.add.text(cardLeft + 60, cardTop + 7, ach.title, textStyle(isDone ? '#ffca28' : '#e0d2b4', 10.5));
+    fitTextToBox(titleTxt, cardW - 74, 16, 9.5);
 
-    const descTxt = scene.add.text(cardLeft + 62, cardTop + 20, ach.desc, {
-      ...textStyle('#a8987b', 9.5, 'normal'),
+    const descTxt = scene.add.text(cardLeft + 60, cardTop + 22, ach.desc, {
+      ...textStyle('#a8987b', 9, 'normal'),
       wordWrap: { width: cardW - 74, useAdvancedWrap: true }
     });
-    fitTextToBox(descTxt, cardW - 74, 20, 8.5);
+    fitTextToBox(descTxt, cardW - 74, 20, 8);
 
-    const barX = cardLeft + 62;
+    const barX = cardLeft + 60;
     const barY = cardTop + 42;
-    const barW = cardW - 146;
+    const barW = cardW - 138;
     const barH = 12;
 
     const progBar = scene.add.graphics();
@@ -244,7 +244,7 @@ function showAchievementsMenu(scene) {
   });
 
   // 3. BOTÃO DE VOLTAR NO RODAPÉ
-  const backMenuBtn = createButton(scene, GAME_WIDTH / 2, 465, 'VOLTAR', () => exitSubMenu(scene), 260, 36);
+  const backMenuBtn = createButton(scene, GAME_WIDTH / 2, 465, 'VOLTAR AO MENU', () => exitSubMenu(scene), 260, 36);
   menuContainer.add([...backMenuBtn]);
 }
 
@@ -560,13 +560,13 @@ function showMainMenu(scene) {
     showSettingsMenu(scene);
   }, 156, 36);
 
-  const startHint = scene.add.text(720, 448, 'Pressione [ESPAÇO] ou [ENTER] para iniciar', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const startHint = scene.add.text(720, 448, 'PRESSIONE [ESPAÇO] OU [ENTER] PARA INICIAR', textStyle('#ffca28', 11)).setOrigin(0.5);
 
   // 7. FAIXA DE RODAPÉ (LARGURA TOTAL 960px)
   const footerBg = scene.add.rectangle(480, 526, 960, 28, 0x0c0907, 0.94);
   const footerLine = scene.add.graphics().lineStyle(1.5, 0x8d5524, 0.9).lineBetween(0, 512, 960, 512);
-  const footerTxt = scene.add.text(320, 526, 'Mover: WASD/Setas  |  Pausar: P ou ESC  |  Áudio: M  |  Tela Cheia: F', textStyle('#d6c8aa', 10.5)).setOrigin(0.5);
-  const versionTxt = scene.add.text(820, 526, `${GAME_VERSION} Ateliê do Reino`, textStyle('#c5a059', 10.5)).setOrigin(0.5);
+  const footerTxt = scene.add.text(320, 526, 'MOVER: WASD / SETAS   •   PAUSAR: [P] OU [ESC]   •   ÁUDIO: [M]   •   TELA CHEIA: [F]', textStyle('#d6c8aa', 10.5)).setOrigin(0.5);
+  const versionTxt = scene.add.text(820, 526, `${GAME_VERSION}   •   ATELIÊ DO REINO`, textStyle('#ffca28', 10.5)).setOrigin(0.5);
 
   menuContainer.add([
     treeFar, menuHouse, menuBlacksmith, menuGateTower,
@@ -1002,11 +1002,11 @@ function showBlacksmithMenu(scene) {
   };
   drawSpeechBubble();
 
-  const smithTitleTxt = scene.add.text(332, 90, 'MESTRE ANVILGAR (FERREIRO REAL)', parchmentTitleStyle('#4e2814', 12, 'bold'));
-  const smithSpeechTxt = scene.add.text(332, 110, '“O fogo forja o aço! Escolha seu armamento para a batalha.”', {
-    ...parchmentBodyStyle('#1f130b', 11, 'normal'),
-    lineSpacing: 3.5,
-    wordWrap: { width: 290, useAdvancedWrap: true }
+  const smithTitleTxt = scene.add.text(336, 92, 'MESTRE ANVILGAR (FERREIRO REAL)', parchmentTitleStyle('#4e2814', 11.5, 'bold'));
+  const smithSpeechTxt = scene.add.text(336, 114, '“O FOGO FORJA O AÇO! DESBLOQUEIE NOVAS ARMAS PARA SUAS JORNADAS.”', {
+    ...parchmentBodyStyle('#1f130b', 10, 'normal'),
+    lineSpacing: 3,
+    wordWrap: { width: 285, useAdvancedWrap: true }
   });
 
   // ---------------------------------------------------------------------------
@@ -1220,13 +1220,13 @@ function showBlacksmithMenu(scene) {
     fitTextToBox(badgeTxt, cardW - 28, 16, 8.5);
 
     const descStr = weaponStyles[key] || cfg.forgeLore || '';
-    const descTxt = scene.add.text(cx, startY + 164, descStr, {
-      ...roundedTextStyle('#3d2817', 10, 'normal'),
+    const descTxt = scene.add.text(cx, startY + 130, descStr, {
+      ...roundedTextStyle('#3d2817', 9.5, 'normal'),
       align: 'center',
-      lineSpacing: 2.5,
-      wordWrap: { width: cardW - 20, useAdvancedWrap: true }
-    }).setOrigin(0.5);
-    fitTextToBox(descTxt, cardW - 18, 76, 8.5);
+      lineSpacing: 2,
+      wordWrap: { width: cardW - 16, useAdvancedWrap: true }
+    }).setOrigin(0.5, 0);
+    fitTextToBox(descTxt, cardW - 16, 76, 8.5);
 
     const hitZoneH = cardH - 52;
     const cardHit = scene.add.rectangle(cx, startY + 8 + hitZoneH / 2, cardW, hitZoneH, 0x000000, 0)
@@ -1238,7 +1238,7 @@ function showBlacksmithMenu(scene) {
     });
     cardHit.on('pointerout', () => {
       drawCard(false);
-      smithSpeechTxt.setText('"O fogo forja o ao! Escolha seu armamento para a batalha."');
+      smithSpeechTxt.setText('“O FOGO FORJA O AÇO! DESBLOQUEIE NOVAS ARMAS PARA SUAS JORNADAS.”');
     });
 
     const btnX = cx, btnY = startY + cardH - 24, btnW = cardW - 24, btnH = 34;
@@ -1251,8 +1251,8 @@ function showBlacksmithMenu(scene) {
         .setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846)
         .setInteractive({ useHandCursor: canAfford });
 
-      const actionTxt = scene.add.text(btnX, btnY, 'FORJAR (' + cost + 'G)', {
-        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 11, 'bold'),
+      const actionTxt = scene.add.text(btnX, btnY, 'DESBLOQUEAR (' + cost + 'G)', {
+        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 10, 'bold'),
         align: 'center'
       }).setOrigin(0.5);
       fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
@@ -1604,11 +1604,11 @@ function showMageShopMenu(scene) {
   };
   drawSpeechBubble();
 
-  const mageTitleTxt = scene.add.text(332, 90, 'ARQUIMAGO ALQUIMISTA (MESTRE)', parchmentTitleStyle('#3a115c', 12, 'bold'));
-  const mageSpeechTxt = scene.add.text(332, 110, '“Beba dos meus elixires e seu poder ecoará em cada batalha!”', {
-    ...parchmentBodyStyle('#180d21', 11, 'normal'),
-    lineSpacing: 4,
-    wordWrap: { width: 288, useAdvancedWrap: true }
+  const mageTitleTxt = scene.add.text(336, 92, 'ARQUIMAGO ALQUIMISTA (MESTRE)', parchmentTitleStyle('#3a115c', 11.5, 'bold'));
+  const mageSpeechTxt = scene.add.text(336, 114, '“BEBA DOS MEUS ELIXIRES E SEU PODER ECOARÁ EM CADA BATALHA!”', {
+    ...parchmentBodyStyle('#180d21', 10, 'normal'),
+    lineSpacing: 3,
+    wordWrap: { width: 285, useAdvancedWrap: true }
   });
 
   // ---------------------------------------------------------------------------
@@ -1868,28 +1868,28 @@ function showMageShopMenu(scene) {
       for (let p = 0; p < maxLvl; p++) {
         const px = pipsStartX + p * (pipW + pipGap);
         const activePip = p < lvl;
-        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 114, pipW, 8);
-        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 114, pipW, 8);
+        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 104, pipW, 6);
+        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 104, pipW, 6);
       }
     };
     drawCard(false);
 
     // Ícone da Poção
-    const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
+    const icon = scene.add.image(cx, startY + 48, cfg.icon).setScale(1.3);
 
     // Nome do Item — APENAS O NOME DO ITEM (100% CENTRALIZADO E NÍTIDO)
     const itemTitle = mageItemNames[key] || cfg.shortName || cfg.name;
-    const nameTxt = scene.add.text(cx, startY + 92, itemTitle, {
-      ...parchmentTitleStyle(isMax ? '#8c4e03' : '#221226', 13, 'bold'),
+    const nameTxt = scene.add.text(cx, startY + 80, String(itemTitle).toUpperCase(), {
+      ...parchmentTitleStyle(isMax ? '#8c4e03' : '#221226', 11.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 16, 18, 9);
 
     // Badge / Nível Textual — 100% CENTRALIZADO COM FUNDO ARREDONDADO
-    const lvlBadgeBg = scene.add.rectangle(cx, startY + 132, cardW - 38, 18, isMax ? 0xfff3e0 : 0xf3e5f5)
+    const lvlBadgeBg = scene.add.rectangle(cx, startY + 122, cardW - 38, 16, isMax ? 0xfff3e0 : 0xf3e5f5)
       .setStrokeStyle(1, isMax ? 0xffb74d : 0xce93d8);
-    const lvlBadgeTxt = scene.add.text(cx, startY + 132, isMax ? 'PODER MÁXIMO' : `NÍVEL ${lvl} / ${maxLvl}`, {
-      ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9.5, 'bold'),
+    const lvlBadgeTxt = scene.add.text(cx, startY + 122, isMax ? 'PODER MÁXIMO' : `NÍVEL ${lvl} / ${maxLvl}`, {
+      ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
 
@@ -1898,16 +1898,15 @@ function showMageShopMenu(scene) {
     const descStr = isMax
       ? `Efeito Completo:\n${levelDescs[lvl - 1] || ''}`
       : `Atual: ${levelDescs[lvl - 1] || ''}\nPróximo: ${levelDescs[lvl] || ''}`;
-    const descTxt = scene.add.text(cx, startY + 172, descStr, {
-      ...roundedTextStyle('#2e1a10', 10, 'normal'),
+    const descTxt = scene.add.text(cx, startY + 138, descStr, {
+      ...roundedTextStyle('#2e1a10', 9, 'normal'),
       align: 'center',
-      lineSpacing: 3.5,
-      wordWrap: { width: cardW - 20, useAdvancedWrap: true }
-    }).setOrigin(0.5);
-    fitTextToBox(descTxt, cardW - 18, 62, 8.5);
+      lineSpacing: 2.5,
+      wordWrap: { width: cardW - 16, useAdvancedWrap: true }
+    }).setOrigin(0.5, 0);
+    fitTextToBox(descTxt, cardW - 16, 72, 8);
 
     // ZONA INTERATIVA DA CARTA (Hover para diálogo do mago — delimitada acima do botão!)
-    // Altura calculada para cobrir apenas o corpo da carta, SEM invadir a área do botão de compra!
     const hitZoneH = cardH - 52;
     const cardHit = scene.add.rectangle(cx, startY + 8 + hitZoneH / 2, cardW, hitZoneH, 0x000000, 0)
       .setInteractive({ useHandCursor: true });
@@ -1918,7 +1917,7 @@ function showMageShopMenu(scene) {
     });
     cardHit.on('pointerout', () => {
       drawCard(false);
-      mageSpeechTxt.setText('“Beba dos meus elixires e seu poder ecoará em cada batalha!”');
+      mageSpeechTxt.setText('“BEBA DOS MEUS ELIXIRES E SEU PODER ECOARÁ EM CADA BATALHA!”');
     });
 
     // BOTÃO DE COMPRA / AÇÃO NO RODAPÉ — 100% CENTRALIZADO E INTERATIVO
@@ -1931,8 +1930,8 @@ function showMageShopMenu(scene) {
     if (isMax) {
       actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2314)
         .setStrokeStyle(1.5, 0xffca28);
-      actionTxt = scene.add.text(btnX, btnY, 'COMPLETO ', {
-        ...roundedTextStyle('#ffd740', 11, 'bold'),
+      actionTxt = scene.add.text(btnX, btnY, 'PODER MÁXIMO', {
+        ...roundedTextStyle('#ffd740', 10, 'bold'),
         align: 'center'
       }).setOrigin(0.5);
     } else {
@@ -1943,8 +1942,8 @@ function showMageShopMenu(scene) {
         .setStrokeStyle(2, canAfford ? 0xba68c8 : 0x4a2e5c)
         .setInteractive({ useHandCursor: canAfford });
 
-      actionTxt = scene.add.text(btnX, btnY, `AUMENTAR (${cost}G)`, {
-        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 11, 'bold'),
+      actionTxt = scene.add.text(btnX, btnY, `APRIMORAR (${cost}G)`, {
+        ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 10, 'bold'),
         align: 'center'
       }).setOrigin(0.5);
       fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
@@ -2048,26 +2047,26 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
   }).setOrigin(0.5);
   fitTextToBox(titleTxt, cardW - 16, 18, 9);
 
-  const badgeBg = scene.add.rectangle(cx, startY + 132, cardW - 38, 18, unlocked ? 0xfff3e0 : (defeatedBoss ? 0xf3e5f5 : 0x2e1c3b))
+  const badgeBg = scene.add.rectangle(cx, startY + 122, cardW - 38, 16, unlocked ? 0xfff3e0 : (defeatedBoss ? 0xf3e5f5 : 0x2e1c3b))
     .setStrokeStyle(1, unlocked ? 0xffb74d : (defeatedBoss ? 0xce93d8 : 0x7c4dff));
-  const badgeTxt = scene.add.text(cx, startY + 132, unlocked ? 'DESBLOQUEADO' : (defeatedBoss ? 'ITEM ESPECIAL' : 'BLOQUEADO'), {
-    ...roundedTextStyle(unlocked ? '#e65100' : (defeatedBoss ? '#6a1b9a' : '#b388ff'), 9.5, 'bold'),
+  const badgeTxt = scene.add.text(cx, startY + 122, unlocked ? 'DESBLOQUEADO' : (defeatedBoss ? 'ITEM ESPECIAL' : 'BLOQUEADO'), {
+    ...roundedTextStyle(unlocked ? '#e65100' : (defeatedBoss ? '#6a1b9a' : '#b388ff'), 9, 'bold'),
     align: 'center'
   }).setOrigin(0.5);
 
   const descString = unlocked
-    ? 'Slot de reserva ativo em todas as suas expedicoes! Armas extras ficam congeladas.'
+    ? 'Slot de reserva ativo em todas as suas expedições! Armas extras ficam congeladas.'
     : (defeatedBoss
-        ? 'Adiciona 1 slot de reserva! A 2a arma fica congelada ate a arma da mao quebrar.'
-        : 'Derrote o Golem Ancestral de Pedra para revelar esta reliquia especial!');
+        ? 'Adiciona 1 slot de reserva! A 2ª arma fica congelada até a arma da mão quebrar.'
+        : 'Derrote o Golem Ancestral de Pedra para revelar esta relíquia especial!');
 
-  const descTxt = scene.add.text(cx, startY + 174, descString, {
-    ...parchmentBodyStyle(defeatedBoss ? '#321b38' : '#b388ff', 10, 'normal'),
+  const descTxt = scene.add.text(cx, startY + 138, descString, {
+    ...parchmentBodyStyle(defeatedBoss ? '#321b38' : '#b388ff', 9, 'normal'),
     align: 'center',
     lineSpacing: 2,
-    wordWrap: { width: cardW - 20, useAdvancedWrap: true }
-  }).setOrigin(0.5);
-  fitTextToBox(descTxt, cardW - 18, 62, 8);
+    wordWrap: { width: cardW - 16, useAdvancedWrap: true }
+  }).setOrigin(0.5, 0);
+  fitTextToBox(descTxt, cardW - 16, 72, 8);
 
   const cardHit = scene.add.rectangle(cx, startY + 8 + (cardH - 52) / 2, cardW, cardH - 52, 0x000000, 0)
     .setInteractive({ useHandCursor: true });

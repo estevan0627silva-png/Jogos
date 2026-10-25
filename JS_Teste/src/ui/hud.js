@@ -113,7 +113,8 @@ function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {
 }
 
 function floatText(scene, x, y, msg, color) {
-  const t = scene.add.text(Math.round(x), Math.round(y), msg, { fontSize: '15px', fontStyle: 'bold', color, fontFamily: SERIF_TITLE_FONT, stroke: 'transparent', strokeThickness: 0, shadow: { offsetX: 1, offsetY: 2, color: '#000000', blur: 0, fill: true } })
+  const upperMsg = String(msg != null ? msg : '').toUpperCase();
+  const t = scene.add.text(Math.round(x), Math.round(y), upperMsg, { fontSize: '15px', fontStyle: 'bold', color, fontFamily: SERIF_TITLE_FONT, stroke: 'transparent', strokeThickness: 0, shadow: { offsetX: 1, offsetY: 2, color: '#000000', blur: 0, fill: true } })
     .setOrigin(0.5).setDepth(1500);
   scene.tweens.add({ targets: t, y: y - 40, alpha: 0, duration: 900, onComplete: () => t.destroy() });
 }

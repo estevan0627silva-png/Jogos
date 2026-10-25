@@ -135,28 +135,28 @@ const SCROLL_CATALOG = {
     icon: 'hud_hourglass',
     maxLevel: 10,
     levels: [
-      { badge: 'PERSISTÃŠNCIA ETERNA', desc: '+15.0s na duraÃ§Ã£o mÃ¡xima! Suas armas duram uma eternidade em campo!', toString() { return this.desc; } }
+      { badge: 'PERSISTÊNCIA ETERNA', desc: '+15.0s na duração máxima! Suas armas duram uma eternidade em campo!', toString() { return this.desc; } }
     ]
   }
 };
 
-// CatÃ¡logo Exclusivo do SantuÃ¡rio do Mago (Upgrades Permanentes de Status com PoÃ§Ãµes e Ervas)
+// Catálogo Exclusivo do Santuário do Mago (Upgrades Permanentes de Status com Poções e Ervas)
 const STATUS_CATALOG = {
   maxHp: {
-    name: 'ELIXIR DO CORAO DE RUBI (VIDA)',
-    shortName: 'VIDA MXIMA',
+    name: 'ELIXIR DO CORAÇÃO DE RUBI (VIDA)',
+    shortName: 'VIDA MÁXIMA',
     potionColor: 0xff5252,
     icon: 'stat_health',
     maxLevel: 6,
     costs: [10, 20, 40, 80, 160, 0],
     values: [1, 2, 3, 4, 5, 6],
     levels: [
-      '1 Corao de Vida (Aspecto hardcore inicial de sobrevivncia).',
-      '2 Coraes de Vida (+1 Corao - 2 golpes suportados).',
-      '3 Coraes de Vida (Vigor honrado do Cavaleiro - 3 golpes).',
-      '4 Coraes de Vida (Baluarte de Ao - 4 golpes suportados).',
-      '5 Coraes de Vida (Sangue de Drago - 5 golpes suportados).',
-      '6 Coraes de Vida (Imortalidade Rubra - 6 Coraes supremos)!'
+      '1 Coração de Vida (Aspecto hardcore inicial de sobrevivência).',
+      '2 Corações de Vida (+1 Coração - 2 golpes suportados).',
+      '3 Corações de Vida (Vigor honrado do Cavaleiro - 3 golpes).',
+      '4 Corações de Vida (Baluarte de Aço - 4 golpes suportados).',
+      '5 Corações de Vida (Sangue de Dragão - 5 golpes suportados).',
+      '6 Corações de Vida (Imortalidade Rubra - 6 Corações supremos)!'
     ]
   },
   moveSpeed: {

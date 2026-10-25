@@ -253,12 +253,12 @@ function openLevelUpDraft(scene) {
   const overlay = scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x06040a, 0.80);
   const bannerRibbon = scene.add.image(GAME_WIDTH / 2, 44, "ui_ribbon_big_yellow").setDisplaySize(560, 64);
 
-  const titleTxt = scene.add.text(GAME_WIDTH / 2, 44, "\u2694 SUBIU PARA O N\u00cdVEL " + runLevel + "! \u2694", {
+  const titleTxt = scene.add.text(GAME_WIDTH / 2, 44, "⚔ SUBIU PARA O NÍVEL " + runLevel + "! ⚔", {
     ...textStyle("#2c1b10", 20),
     fontFamily: SERIF_TITLE_FONT, stroke: "transparent", strokeThickness: 0, shadow: null
   }).setOrigin(0.5);
-  const subTxt = scene.add.text(GAME_WIDTH / 2, 86, "ESCOLHA 1 CARTA DE UPGRADE OU ITEM (CLIQUE OU TECLAS [1] [2] [3])", {
-    ...subtitleTextStyle("#e8dcc4", 11.5, "bold"),
+  const subTxt = scene.add.text(GAME_WIDTH / 2, 86, "ESCOLHA 1 CARTA DE EVOLUÇÃO (CLIQUE OU TECLAS [1] [2] [3])", {
+    ...subtitleTextStyle("#ffd740", 11.5, "bold"),
     shadow: { offsetX: 1, offsetY: 1, color: "#000000", blur: 0, fill: true }
   }).setOrigin(0.5);
   fitTextToBox(subTxt, 600, 20, 9);
@@ -343,14 +343,14 @@ function openLevelUpDraft(scene) {
     drawHighlight(false);
     const slotImg = scene.add.image(cx, top + 74, 'ui_wood_slots').setDisplaySize(68, 68);
     const iconImg = scene.add.image(cx, top + 74, card.icon).setScale(1.55);
-    const catTxt = scene.add.text(cx, top + 24, card.category, parchmentTitleStyle("#4a2c11", 11, "bold")).setOrigin(0.5);
-    fitTextToBox(catTxt, cardW - 20, 16, 9);
-    const nameTxt = scene.add.text(cx, top + 132, card.title, { ...parchmentTitleStyle('#22140a', 14, 'bold'), align: 'center', wordWrap: { width: cardW - 24, useAdvancedWrap: true } }).setOrigin(0.5);
+    const catTxt = scene.add.text(cx, top + 24, String(card.category || '').toUpperCase(), parchmentTitleStyle("#4a2c11", 10, "bold")).setOrigin(0.5);
+    fitTextToBox(catTxt, cardW - 20, 16, 8.5);
+    const nameTxt = scene.add.text(cx, top + 132, String(card.title || '').toUpperCase(), { ...parchmentTitleStyle('#22140a', 13, 'bold'), align: 'center', wordWrap: { width: cardW - 24, useAdvancedWrap: true } }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 24, 26, 9.5);
     const badgeBg = scene.add.rectangle(cx, top + 164, cardW - 40, 22, 0x22150a, 0.85);
-    const badgeTxt = scene.add.text(cx, top + 164, card.badge, textStyle(card.badgeColor, 10.5)).setOrigin(0.5);
+    const badgeTxt = scene.add.text(cx, top + 164, String(card.badge || '').toUpperCase(), textStyle(card.badgeColor, 10)).setOrigin(0.5);
     fitTextToBox(badgeTxt, cardW - 46, 18, 8.5);
-    const descTxt = scene.add.text(cx, top + 242, card.desc, { ...parchmentBodyStyle('#1f1208', 11, 'bold'), align: 'center', lineSpacing: 3, wordWrap: { width: cardW - 32, useAdvancedWrap: true } }).setOrigin(0.5);
+    const descTxt = scene.add.text(cx, top + 242, card.desc, { ...parchmentBodyStyle('#1f1208', 10.5, 'normal'), align: 'center', lineSpacing: 2.5, wordWrap: { width: cardW - 32, useAdvancedWrap: true } }).setOrigin(0.5);
     fitTextToBox(descTxt, cardW - 30, 116, 8.5);
     const pickBtn = scene.add.image(cx, top + cardH - 34, 'ui_btn_blue_reg').setDisplaySize(cardW - 32, 42);
     const pickTxt = scene.add.text(cx, top + cardH - 34, 'ESCOLHER [' + (idx + 1) + ']', buttonTextStyle('#ffffff', 12)).setOrigin(0.5);
@@ -526,15 +526,15 @@ function showPauseModal(scene) {
   // solidBacking = false: sem caixa marrom sobrepondo a mesa, apenas a autêntica ui_wood_table do Tiny Swords
   pauseModal = createModal(scene, '\u2694 JOGO PAUSADO \u2694', height, 'JORNADA EM ESPERA', width, false);
 
-  const timeTxt = scene.add.text(cx, top + 98, 'TEMPO: ' + survivalTime + 's   \u2022   PRATA: ' + runSilver + '   \u2022   OURO: ' + getGold(), {
+  const timeTxt = scene.add.text(cx, top + 98, 'TEMPO: ' + survivalTime + 'S   •   PRATA: ' + runSilver + '   •   OURO: ' + getGold(), {
     ...textStyle('#ffffff', 12, 'bold', 2, '#000000'),
     align: 'center'
   }).setOrigin(0.5);
   fitTextToBox(timeTxt, 440, 20, 10);
 
-  const relicName = buff.type ? ((BUFF_NAMES[buff.type] || buff.type) + ' NV.' + getWeaponLevel(buff.type) + ' (' + Math.max(0, buff.timeLeft).toFixed(1) + 's)') : 'Nenhuma';
+  const relicName = buff.type ? ((BUFF_NAMES[buff.type] || buff.type).toUpperCase() + ' NV.' + getWeaponLevel(buff.type) + ' (' + Math.max(0, buff.timeLeft).toFixed(1) + 'S)') : 'NENHUMA';
   const relicColor = buff.type ? '#7fe7ff' : '#ffe0b2';
-  const relicTxt = scene.add.text(cx, top + 122, 'REL\u00cdQUIA ATIVA: ' + relicName, {
+  const relicTxt = scene.add.text(cx, top + 122, 'RELÍQUIA ATIVA: ' + relicName, {
     ...textStyle(relicColor, 12, 'bold', 2, '#000000'),
     align: 'center'
   }).setOrigin(0.5);
@@ -581,8 +581,8 @@ function showPauseModal(scene) {
 
   const restartBtn = createButton(scene, cx, top + 302, 'REINICIAR MISS\u00c3O', () => restartScene(scene, true, false), btnW, btnH);
   const menuBtn = createButton(scene, cx, top + 348, 'MENU PRINCIPAL', () => restartScene(scene, false, false), btnW, btnH);
-  const footerHint = scene.add.text(cx, top + 394, 'Pausar / Retornar: Tecla [P] ou [ESC]', {
-    ...textStyle('#f5e1c4', 11, 'bold', 2, '#000000'),
+  const footerHint = scene.add.text(cx, top + 394, 'PAUSAR / RETORNAR: TECLA [P] OU [ESC]', {
+    ...textStyle('#ffd740', 11, 'bold', 2, '#000000'),
     align: 'center'
   }).setOrigin(0.5);
 
@@ -626,8 +626,8 @@ function showInitials(scene) {
   summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(boxLeft, top + 88, boxW, 132, 8);
   summaryBox.lineStyle(1, 0xc5a059, 0.35).lineBetween(boxLeft + 20, top + 122, boxLeft + boxW - 20, top + 122);
 
-  const braveryTxt = scene.add.text(cx, top + 105, `Tempo de bravura em combate: ${survivalTime}s`, {
-    ...textStyle('#f5e6c8', 14),
+  const braveryTxt = scene.add.text(cx, top + 105, `TEMPO DE BRAVURA EM COMBATE: ${survivalTime}S`, {
+    ...textStyle('#f5e6c8', 13),
     align: 'center',
     wordWrap: { width: boxW - 28, useAdvancedWrap: true }
   }).setOrigin(0.5);
@@ -640,7 +640,7 @@ function showInitials(scene) {
   const conversionLine = scene.add.text(
     cx - 148,
     top + 144,
-    `${summary.silverCollected ?? summary.runSilver ?? 0} Pratas   ->`,
+    `${summary.silverCollected ?? summary.runSilver ?? 0} PRATAS   ->`,
     textStyle('#e0f7fa', 14)
   ).setOrigin(0, 0.5);
 
@@ -652,10 +652,7 @@ function showInitials(scene) {
   ).setOrigin(0, 0.5);
   fitTextToBox(goldEarnedLine, 165, 24, 10);
 
-  const bonusParts = [`Prata convertida (3:1): +${summary.goldFromSilver ?? summary.earnedGold ?? 0}G`, `Cofre Total: ${summary.newTotalGold ?? summary.totalGold ?? getGold()}G`];
-
-
-
+  const bonusParts = [`PRATA CONVERTIDA (3:1): +${summary.goldFromSilver ?? summary.earnedGold ?? 0}G`, `COFRE TOTAL: ${summary.newTotalGold ?? summary.totalGold ?? getGold()}G`];
 
   const breakdownTxt = scene.add.text(cx, top + 188, bonusParts.join('  •  '), {
     ...textStyle('#c5a059', 11, 'normal'),
@@ -665,8 +662,8 @@ function showInitials(scene) {
   fitTextToBox(breakdownTxt, boxW - 24, 38, 9);
 
   // Seção de Registro de Iniciais ancorada abaixo da Bounding Box
-  const promptTxt = scene.add.text(cx, top + 234, 'Digite suas 3 iniciais de honra para a Tábula:', {
-    ...textStyle('#e8dcbe', 13),
+  const promptTxt = scene.add.text(cx, top + 234, 'DIGITE SUAS 3 INICIAIS DE HONRA PARA A TÁBULA:', {
+    ...textStyle('#ffca28', 12.5),
     align: 'center',
     wordWrap: { width: boxW - 20, useAdvancedWrap: true }
   }).setOrigin(0.5);
@@ -698,7 +695,7 @@ function showInitials(scene) {
     repeat: -1
   });
 
-  const inputHint = scene.add.text(cx, top + 328, 'Digite 3 letras no teclado e confirme abaixo', {
+  const inputHint = scene.add.text(cx, top + 328, 'DIGITE 3 LETRAS NO TECLADO E CONFIRME ABAIXO', {
     ...textStyle('#a8987b', 11),
     align: 'center',
     wordWrap: { width: boxW - 20, useAdvancedWrap: true }
@@ -749,8 +746,8 @@ function showInitials(scene) {
   modal.add([
     summaryBox, braveryTxt, silverSprite, conversionLine, goldSprite, goldEarnedLine, breakdownTxt,
     promptTxt, inputBg, placeholder, display, cursor, inputHint,
-    ...createButton(scene, cx - 118, top + 392, 'CONFIRMAR HONRA', () => submit(false), 216, 44),
-    ...createButton(scene, cx + 118, top + 392, 'SANTUÁRIO DO MAGO', () => submit(true), 216, 44)
+    ...createButton(scene, cx - 126, top + 392, 'CONFIRMAR HONRA', () => submit(false), 238, 44),
+    ...createButton(scene, cx + 126, top + 392, 'SANTUÁRIO DO MAGO', () => submit(true), 238, 44)
   ]);
   scene.input.keyboard.on('keydown', onKey);
 }
@@ -762,7 +759,7 @@ function showLeaderboard(scene, topScores, currentName) {
   const top = (GAME_HEIGHT - modalH) / 2;
 
   const summary = lastRunSummary || { silverCollected: runSilver, totalGoldEarned: runGold };
-  const subtitle = `Prata Convertida: ${summary.silverCollected ?? summary.runSilver ?? 0} -> +${summary.totalGoldEarned ?? summary.earnedGold ?? 0} Ouro  |  Cofre Total: ${getGold()} Ouro`;
+  const subtitle = `PRATA CONVERTIDA: ${summary.silverCollected ?? summary.runSilver ?? 0} -> +${summary.totalGoldEarned ?? summary.earnedGold ?? 0} OURO  |  COFRE TOTAL: ${getGold()} OURO`;
 
   const modal = createModal(scene, 'CAMPEÕES DO REINO', modalH, subtitle, modalW);
   let marked = false;
@@ -777,8 +774,8 @@ function showLeaderboard(scene, topScores, currentName) {
     rowBg.fillStyle(isMine ? 0x2e2314 : 0x1d1611, 0.92).fillRoundedRect(cx - 230, rowY - 14, 460, 28, 4);
     rowBg.lineStyle(1, isMine ? 0xffca28 : 0x4a3b2c).strokeRoundedRect(cx - 230, rowY - 14, 460, 28, 4);
 
-    const rowTxt = scene.add.text(cx, rowY, `${rankLabel}   ${entry.name}   —   ${entry.score}s de glória`, {
-      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 15),
+    const rowTxt = scene.add.text(cx, rowY, `${rankLabel} LUGAR   ${entry.name}   •   ${entry.score}S DE GLÓRIA`, {
+      ...textStyle(isMine ? '#ffca28' : '#e8dcbe', 14),
       fontStyle: isMine ? 'bold' : 'normal'
     }).setOrigin(0.5);
     fitTextToBox(rowTxt, 430, 24, 11);
@@ -845,7 +842,7 @@ function showLeaderboard(scene, topScores, currentName) {
   const mageBtn = createButton(scene, cx - 138, actionRow2Y, 'SANTUÁRIO DO MAGO', () => finishAndRestart(false, true, 'mage'), 254, 38);
   const menuBtn = createButton(scene, cx + 138, actionRow2Y, 'MENU INICIAL', () => finishAndRestart(false, false), 254, 38);
   const isTouchDevice = (typeof virtualJoystick !== 'undefined' && virtualJoystick && virtualJoystick.isMobile);
-  const hintTxt = scene.add.text(cx, hintY, isTouchDevice ? 'Toque em um dos botões para prosseguir' : '[ESPAÇO] ou [ENTER] para reiniciar imediatamente', textStyle('#c5a059', 11)).setOrigin(0.5);
+  const hintTxt = scene.add.text(cx, hintY, isTouchDevice ? 'TOQUE EM UM DOS BOTÕES PARA PROSSEGUIR' : '[ESPAÇO] OU [ENTER] PARA REINICIAR IMEDIATAMENTE', textStyle('#ffd740', 11)).setOrigin(0.5);
 
   modal.add([...newRunBtn, ...forgeBtn, ...mageBtn, ...menuBtn, hintTxt]);
 
