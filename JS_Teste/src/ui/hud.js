@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS (16:9 WIDESCREEN)
 // DESIGN: DARK FANTASY MEDIEVAL RPG UI KIT (INSPIRADO EM PERGAMINHO, FERRO & OURO NOBRE)
 // =============================================================================
@@ -213,66 +213,62 @@ function showAchievementToast(scene, ach) {
 function createHUD(scene) {
   hudContainer = scene.add.container(0, 0).setDepth(2000).setScrollFactor(0).setVisible(false);
 
-  // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 10..164)
-  const gloryBg = scene.add.graphics();
-  drawMedievalHudFrame(gloryBg, 10, 10, 154, 48, false);
-  const hourglass = scene.add.image(24, 34, 'hud_hourglass');
-  const gloryLabel = scene.add.text(38, 14, 'GLÓRIA & VIDA', textStyle('#a89260', 9));
-  hudGloryText = scene.add.text(38, 25, '0s', textStyle('#f5e6c8', 14));
+  // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 14..202)
+  const gloryBg = scene.add.image(14, 10, 'ui_hud_panel_time').setOrigin(0, 0).setDisplaySize(188, 48);
+  const hourglass = scene.add.image(28, 34, 'hud_hourglass');
+  const gloryLabel = scene.add.text(42, 22, "GL\u00d3RIA & VIDA", textStyle("#a89260", 9)).setOrigin(0, 0.5);
+  hudGloryText = scene.add.text(42, 36, "0s", textStyle("#f5e6c8", 13)).setOrigin(0, 0.5);
   hudContainer.add([gloryBg, hourglass, gloryLabel, hudGloryText]);
 
   hudHearts = [];
   for (let i = 0; i < 6; i++) {
-    const heart = scene.add.image(74 + i * 14, 39, 'hud_heart', 0).setScale(1.0);
+    const heart = scene.add.image(94 + i * 14, 34, "hud_heart", 0).setScale(1.0);
     hudHearts.push(heart);
     hudContainer.add(heart);
   }
   updateHeartsHUD();
 
-  // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 170..274)
-  const silverBg = scene.add.graphics();
-  drawMedievalHudFrame(silverBg, 170, 10, 104, 48, false);
-  const silverIcon = scene.add.image(188, 34, 'silver_coin', 0).setScale(1.2);
-  const silverLabel = scene.add.text(202, 16, 'PRATA', textStyle('#b0bec5', 10));
-  hudSilverText = scene.add.text(202, 28, '0', textStyle('#e0f7fa', 18));
+  // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 210..298)
+  const silverBg = scene.add.image(210, 10, 'ui_hud_panel_silver').setOrigin(0, 0).setDisplaySize(88, 48);
+  const silverIcon = scene.add.image(226, 34, "silver_coin", 0).setScale(1.2);
+  const silverLabel = scene.add.text(242, 22, "PRATA", textStyle("#b0bec5", 9)).setOrigin(0, 0.5);
+  hudSilverText = scene.add.text(242, 36, "0", textStyle("#e0f7fa", 15)).setOrigin(0, 0.5);
   hudContainer.add([silverBg, silverIcon, silverLabel, hudSilverText]);
 
-  // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 280..514)
-  const itemBg = scene.add.graphics();
-  drawMedievalHudFrame(itemBg, 280, 10, 234, 48, false);
+  // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 306..532)
+  const itemBg = scene.add.image(306, 10, "ui_hud_panel_weapon").setOrigin(0, 0).setDisplaySize(260, 48);
 
   // Alvéolo circular / medalhão medieval de relíquia (UI Kit)
-  const slotFrame = scene.add.graphics();
-  slotFrame.fillStyle(0x120d0a, 1).fillRoundedRect(288, 16, 36, 36, 6);
-  slotFrame.lineStyle(1.5, 0xc5a059).strokeRoundedRect(288, 16, 36, 36, 6);
-  slotFrame.fillStyle(0xc5a059, 1).fillCircle(291, 19, 1.5).fillCircle(321, 19, 1.5).fillCircle(291, 49, 1.5).fillCircle(321, 49, 1.5);
+  const slotFrame = scene.add.image(326, 34, "ui_wood_slots").setDisplaySize(34, 34);
+  hudBackpackSlot = scene.add.image(364, 34, "ui_wood_slots").setDisplaySize(34, 34);
+  hudBackpackIcon = scene.add.image(364, 34, "item_bow").setDisplaySize(22, 22).setVisible(false);
+  hudBackpackLock = scene.add.text(364, 34, "BLOQ.", textStyle("#8d5524", 9)).setOrigin(0.5);
 
-  hudItemIcon = scene.add.image(306, 34, 'item_bow').setVisible(false);
-  hudItemName = scene.add.text(330, 16, 'SEM RELÍQUIA', textStyle('#7a7265', 11));
+  hudItemIcon = scene.add.image(326, 34, "item_bow").setDisplaySize(22, 22).setVisible(false);
+  hudItemName = scene.add.text(388, 22, "SEM ARMA", textStyle("#7a7265", 10)).setOrigin(0, 0.5);
+  hudItemBarBase = scene.add.image(388, 36, "ui_bar_timer_base").setOrigin(0, 0.5).setDisplaySize(54, 12);
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(450, 35.5, '', textStyle('#ffca28', 11)).setOrigin(0.5, 0.5);
-  const badge1 = scene.add.image(478, 27, 'scroll_multishot').setScale(0.85).setVisible(false);
-  const txt1 = scene.add.text(478, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
-  const badge2 = scene.add.image(501, 27, 'scroll_growth').setScale(0.85).setVisible(false);
-  const txt2 = scene.add.text(501, 43, '', textStyle('#b388ff', 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  hudItemTime = scene.add.text(446, 36, "", textStyle("#ffca28", 9.5)).setOrigin(0, 0.5);
+  const badge1 = scene.add.image(486, 25, "scroll_multishot").setScale(0.70).setVisible(false);
+  const txt1 = scene.add.text(486, 39, "", textStyle("#b388ff", 8)).setOrigin(0.5, 0.5).setVisible(false);
+  const badge2 = scene.add.image(512, 25, "scroll_growth").setScale(0.70).setVisible(false);
+  const txt2 = scene.add.text(512, 39, "", textStyle("#b388ff", 8)).setOrigin(0.5, 0.5).setVisible(false);
   hudScrollBadges = [badge1, badge2];
   hudScrollTexts = [txt1, txt2];
   hudScrollBadge = badge1;
   hudScrollText = txt1;
-  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudItemName, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudBackpackSlot, hudBackpackIcon, hudBackpackLock, hudItemName, hudItemBarBase, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
 
-  // 4. PAINEL DE RECORDE DO REINO (x: 520..628)
-  const bestBg = scene.add.graphics();
-  drawMedievalHudFrame(bestBg, 520, 10, 108, 48, false);
-  const crown = scene.add.image(536, 34, 'hud_crown');
-  const bestLabel = scene.add.text(552, 16, 'RECORDE', textStyle('#a89260', 10));
-  hudBestText = scene.add.text(552, 28, `${getBestScore()}s`, textStyle('#ffca28', 17));
+  // 4. PAINEL DE RECORDE DO REINO (x: 540..648)
+  const bestBg = scene.add.image(574, 10, "ui_hud_panel_record").setOrigin(0, 0).setDisplaySize(108, 48);
+  const crown = scene.add.image(590, 34, "hud_crown");
+  const bestLabel = scene.add.text(572, 22, "RECORDE", textStyle("#a89260", 9)).setOrigin(0, 0.5);
+  hudBestText = scene.add.text(606, 36, `${getBestScore()}s`, textStyle("#ffca28", 15)).setOrigin(0, 0.5);
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
-
   // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 844..892 em 16:9)
-  const soundBtnBg = scene.add.graphics();
-  const drawSoundBtn = (hover = false) => drawMedievalHudButton(soundBtnBg, 844, 10, 48, 48, hover);
-  drawSoundBtn(false);
+  const soundBtnBg = scene.add.image(868, 34, 'ui_btn_blue_sq').setDisplaySize(44, 44);
+
+
 
   hudHornIcon = scene.add.image(868, 34, 'hud_horn', sound.isMuted() ? 1 : 0);
   const soundHitArea = scene.add.rectangle(868, 34, 48, 48, 0x000000, 0)
@@ -285,9 +281,10 @@ function createHUD(scene) {
     if (menuContainer && menuContainer.updateMenuHorn) menuContainer.updateMenuHorn();
   };
 
-  soundHitArea.on('pointerover', () => drawSoundBtn(true));
-  soundHitArea.on('pointerout', () => drawSoundBtn(false));
-  soundHitArea.on('pointerdown', toggleAudio);
+  soundHitArea.on('pointerdown', () => { soundBtnBg.setTexture('ui_btn_blue_sq_press'); toggleAudio(); });
+  soundHitArea.on('pointerup', () => soundBtnBg.setTexture('ui_btn_blue_sq'));
+  soundHitArea.on('pointerout', () => soundBtnBg.setTexture('ui_btn_blue_sq'));
+
 
   scene.input.keyboard.on('keydown-M', () => {
     if (gameState === 'GAMEOVER') return;
@@ -298,57 +295,36 @@ function createHUD(scene) {
   });
 
   // 6. BOTÃO DE TELA CHEIA RÁPIDO [F] — Extremo Superior Direito (x: 902..950 em 16:9)
-  const fsBtnBg = scene.add.graphics();
-  const drawFsBtn = (hover = false) => drawMedievalHudButton(fsBtnBg, 902, 10, 48, 48, hover);
-  drawFsBtn(false);
+  const fsBtnBg = scene.add.image(926, 34, 'ui_btn_blue_sq').setDisplaySize(44, 44);
+
+
 
   hudFullscreenIcon = scene.add.image(926, 34, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
-  const fsHitArea = scene.add.rectangle(926, 34, 48, 48, 0x000000, 0)
-    .setInteractive({ useHandCursor: true });
-
-  fsHitArea.on('pointerover', () => drawFsBtn(true));
-  fsHitArea.on('pointerout', () => drawFsBtn(false));
+  const fsHitArea = scene.add.rectangle(926, 34, 44, 44, 0x000000, 0).setInteractive({ useHandCursor: true });
   fsHitArea.on('pointerdown', () => {
+    fsBtnBg.setTexture('ui_btn_blue_sq_press');
     sound.playButtonClick();
     toggleFullscreen(scene);
   });
+  fsHitArea.on('pointerup', () => fsBtnBg.setTexture('ui_btn_blue_sq'));
+  fsHitArea.on('pointerout', () => fsBtnBg.setTexture('ui_btn_blue_sq'));
 
-  // 7. BOTÃO DE PAUSA RÁPIDO [ESC] — (x: 786..834 em 16:9)
-  const pauseBtnBg = scene.add.graphics();
-  const drawPauseBtn = (hover = false) => {
-    drawMedievalHudButton(pauseBtnBg, 786, 10, 48, 48, hover);
-    pauseBtnBg.fillStyle(hover ? 0xffeb3b : 0xc5a059, 1);
-    pauseBtnBg.fillRect(803, 22, 4, 24);
-    pauseBtnBg.fillRect(813, 22, 4, 24);
-  };
-  drawPauseBtn(false);
-
-  const pauseHitArea = scene.add.rectangle(810, 34, 48, 48, 0x000000, 0)
-    .setInteractive({ useHandCursor: true });
-  pauseHitArea.on('pointerover', () => drawPauseBtn(true));
-  pauseHitArea.on('pointerout', () => drawPauseBtn(false));
+  // 7. BOTAO DE PAUSA RAPIDO [ESC] - (Tiny Swords Blue Button)
+  const pauseBtnBg = scene.add.image(810, 34, 'ui_btn_blue_sq').setDisplaySize(44, 44);
+  const pauseIcon = scene.add.text(810, 32, '||', { fontSize: '16px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
+  const pauseHitArea = scene.add.rectangle(810, 34, 44, 44, 0x000000, 0).setInteractive({ useHandCursor: true });
   pauseHitArea.on('pointerdown', () => {
+    pauseBtnBg.setTexture('ui_btn_blue_sq_press');
     sound.playButtonClick();
-    if (typeof handleEscPress === 'function') {
-      handleEscPress(scene);
-    }
+    if (typeof handleEscPress === 'function') handleEscPress(scene);
   });
+  pauseHitArea.on('pointerup', () => pauseBtnBg.setTexture('ui_btn_blue_sq'));
+  pauseHitArea.on('pointerout', () => pauseBtnBg.setTexture('ui_btn_blue_sq'));
 
-  hudContainer.add([pauseBtnBg, pauseHitArea, soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
+  hudContainer.add([pauseBtnBg, pauseIcon, pauseHitArea, soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
 
   // 8. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre 16:9 (x: 14..946, y: 61..77)
-  const xpFrame = scene.add.graphics();
-  // Fundo e borda externa em ferro nobre
-  xpFrame.fillStyle(0x120e0b, 0.95).fillRoundedRect(14, 61, 932, 16, 5);
-  xpFrame.lineStyle(2, 0x3d2b1f).strokeRoundedRect(14, 61, 932, 16, 5);
-  xpFrame.lineStyle(1, 0xc5a059, 0.85).strokeRoundedRect(16, 62, 928, 14, 4);
-
-  // Cantoneiras ornamentais de metal nas extremidades da barra de XP (Image 1 UI Kit)
-  [14, 938].forEach(ex => {
-    xpFrame.fillStyle(0xc5a059, 1).fillRect(ex, 61, 8, 16);
-    xpFrame.fillStyle(0x2a1a0e, 1).fillRect(ex + 2, 63, 4, 12);
-  });
-
+  const xpFrame = scene.add.image(14, 61, 'ui_bar_xp_base').setOrigin(0, 0).setDisplaySize(932, 16);
   hudXpBar = scene.add.graphics();
   const xpGemIcon = scene.add.image(28, 69, 'xp_orb', 0).setScale(1.05);
   hudLevelText = scene.add.text(42, 69, 'NÍVEL 1', textStyle('#ffca28', 10.5)).setOrigin(0, 0.5);
@@ -423,7 +399,8 @@ function updateHeartsHUD() {
 function updateItemHUD() {
   if (!buff.type) {
     hudItemIcon.setVisible(false);
-    hudItemName.setText('SEM RELÍQUIA').setColor('#7a7265');
+    hudItemName.setText('SEM ARMA').setColor('#7a7265');
+  
     hudItemTime.setText('');
     hudItemBar.clear();
     if (playerBuffBar) playerBuffBar.clear();
@@ -441,12 +418,12 @@ function updateItemHUD() {
   const remaining = Math.max(0, buff.timeLeft);
   hudItemTime.setText(`${remaining.toFixed(1)}s`);
 
-  const maxTime = buff.maxTime || BUFF_TIME[buff.type] || 6;
+  const maxTime = buff.maxTime || BUFF_TIME[buff.type] || 10;
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
-  const barW = 100;
-  const barH = 7;
-  const barX = 330;
-  const barY = 32;
+  const barW = 50;
+  const barH = 6;
+  const barX = 389;
+  const barY = 33;
 
   hudItemBar.clear();
   hudItemBar.fillStyle(0x100e0b, 1).fillRect(barX, barY, barW, barH);
@@ -478,6 +455,7 @@ function updateItemHUD() {
     const fillW = Math.max(0, Math.round(pW * pct));
     playerBuffBar.fillStyle(overheadColor, 1).fillRect(pX, pY, fillW, pH);
   }
+  updateBackpackHUD();
 }
 
 function updateScrollHUD() {
@@ -503,18 +481,36 @@ function updateScrollHUD() {
     }
   }
 
-  // Se possuir exatamente 1 pergaminho, centraliza o badge (x: 495)
+  // Se possuir exatamente 1 pergaminho, centraliza o badge (x: 506)
   if (activeScrolls.length === 1 && hudScrollBadges[0] && hudScrollTexts[0]) {
-    hudScrollBadges[0].setX(495);
-    hudScrollTexts[0].setX(495);
+    hudScrollBadges[0].setX(518);
+    hudScrollTexts[0].setX(518);
   } else if (activeScrolls.length >= 2) {
     if (hudScrollBadges[0] && hudScrollTexts[0]) {
-      hudScrollBadges[0].setX(478);
-      hudScrollTexts[0].setX(478);
+    hudScrollBadges[0].setX(518);
+    hudScrollTexts[0].setX(518);
     }
     if (hudScrollBadges[1] && hudScrollTexts[1]) {
-      hudScrollBadges[1].setX(501);
-      hudScrollTexts[1].setX(501);
+      hudScrollBadges[1].setX(512);
+      hudScrollTexts[1].setX(512);
+    }
+  }
+}
+
+
+function updateBackpackHUD() {
+  if (!hudBackpackSlot || !hudBackpackLock || !hudBackpackIcon) return;
+  const unlocked = typeof hasBackpack === 'function' ? hasBackpack() : false;
+  if (!unlocked) {
+    hudBackpackLock.setVisible(true).setText('BLOQ.').setColor('#8d5524');
+    hudBackpackIcon.setVisible(false);
+  } else {
+    hudBackpackLock.setVisible(!backpackWeapon).setText('VAZIO').setColor('#5c4a38');
+    if (backpackWeapon) {
+      const tex = backpackWeapon === 'shield' ? 'shield_worn' : 'item_' + backpackWeapon;
+      hudBackpackIcon.setTexture(tex).setVisible(true);
+    } else {
+      hudBackpackIcon.setVisible(false);
     }
   }
 }

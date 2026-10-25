@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (ATAQUES, TELEGRAFIAS E CONTROLE)
 // =============================================================================
 function registerBossTelegraph(boss, obj) {
@@ -276,6 +276,9 @@ function bossThrowRocks(scene, boss) {
         boss,
         scene.add.rectangle(tx, ty, 2, 32, 0xff8a80, 0.85).setDepth(ty)
       );
+      const alertVfx = (scene.anims && scene.anims.exists('anim_vfx_alert_red'))
+        ? registerBossTelegraph(boss, scene.add.sprite(tx, ty, 'vfx_alert_red').play('anim_vfx_alert_red').setDepth(ty + 1).setScale(0.75))
+        : null;
 
       scene.tweens.add({
         targets: innerPulse,
@@ -310,8 +313,13 @@ function bossThrowRocks(scene, boss) {
           duration: 730,
           ease: 'Sine.easeIn',
           onComplete: () => {
-            [alertRing, innerPulse, crossH, crossV, flyingRock].forEach(o => { if (o && o.active) o.destroy(); });
+            [alertRing, innerPulse, crossH, crossV, flyingRock, alertVfx].forEach(o => { if (o && o.active) o.destroy(); });
             if (gameState !== 'PLAYING' || !boss.active) return;
+
+            if (scene.anims && scene.anims.exists('anim_vfx_explosion')) {
+              const rockImpact = scene.add.sprite(tx, ty, 'vfx_explosion').play('anim_vfx_explosion').setDepth(1620).setScale(0.75);
+              rockImpact.once('animationcomplete', () => { if (rockImpact && rockImpact.active) rockImpact.destroy(); });
+            }
 
             sound.playEarthSmash();
             scene.cameras.main.shake(170, 0.006);
@@ -470,6 +478,7 @@ function defeatBoss(scene, boss) {
   const bx = boss.x, by = boss.y;
   activeBoss = null;
   bossDefeated = true;
+  if (typeof setBossDefeatedOnce === 'function') setBossDefeatedOnce(true);
 
   sound.playEarthSmash();
   sound.playEnemyHit();

@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="lib/phaser.min.js"></script>
+    <script src="game.js"></script>
+</head>
+<body style="margin:0; background:#000;">
+<div id="game-container"></div>
+<script>
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const scene = window.game ? window.game.scene.scenes[0] : null;
+        if (scene) {
+            showSettingsMenu(scene);
+        }
+    }, 600);
+});
+</script>
+</body>
+</html>

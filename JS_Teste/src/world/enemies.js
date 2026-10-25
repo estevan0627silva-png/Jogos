@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // INIMIGOS: SPAWN DE HORDAS E MECÂNICAS DE DISPARO (ELFO E MAGO SOMBRIO)
 // =============================================================================
 function spawnEnemy(scene, forcedType, customY) {
@@ -53,13 +53,14 @@ function spawnEnemy(scene, forcedType, customY) {
   enemy.hp = enemy.maxHp;
 
   if (type === 'elf') {
-    enemy.shootTimer = scene.time.delayedCall(650, () => {
+    // GDD v1.0 Section 6: Atira imediatamente ao surgir em tela, recarrega a cada 3.0s
+    enemy.shootTimer = scene.time.delayedCall(80, () => {
       if (!enemy.active || gameState !== 'PLAYING') return;
-      elfShoot(scene, enemy);
+      elfShoot(scene, enemy, true);
       enemy.shootTimer = scene.time.addEvent({
-        delay: 1700,
+        delay: 3000,
         loop: true,
-        callback: () => elfShoot(scene, enemy)
+        callback: () => elfShoot(scene, enemy, false)
       });
     });
   } else if (type === 'dark_mage') {
@@ -87,20 +88,23 @@ function spawnEnemy(scene, forcedType, customY) {
 // PRIMEIRA BOSS FIGHT: GOLEM ANCESTRAL DE PEDRA (AOS 120 SEGUNDOS)
 // =============================================================================
 
-function elfShoot(scene, elf) {
+function elfShoot(scene, elf, isImmediate = false) {
   if (!elf.active || !player || !player.active || gameState !== 'PLAYING') return;
-  if (elf.x > (GAME_WIDTH - 10) || elf.x < player.x + 25) return;
 
   elf.setTint(0xa7ffeb);
   if (sparksFx) sparksFx.explode(4, elf.x - 10, elf.y);
 
-  scene.time.delayedCall(280, () => {
+  const shotDelay = isImmediate ? 60 : 220;
+  scene.time.delayedCall(shotDelay, () => {
     if (!elf.active || !player || !player.active || !player.body || gameState !== 'PLAYING') return;
     elf.clearTint();
     sound.playElfShot();
     const arrow = enemyArrows.create(elf.x - 14, elf.y, 'arrow_elf');
     arrow.body.setSize(8, 8);
-    arrow.rotation = scene.physics.moveToObject(arrow, player, 360);
+    // GDD v1.0: Dispara flecha reta horizontal para a esquerda (Bullet-Hell)
+    arrow.setVelocityX(-380);
+    arrow.setVelocityY(0);
+    arrow.rotation = Math.PI;
   });
 }
 
@@ -139,9 +143,10 @@ function activateMageBarrier(scene, mage) {
   }
 
   // Cria a barreira em pixel art em frente ao mago (x: mage.x - 16, y: mage.y)
-  const barrier = scene.add.sprite(mage.x - 16, mage.y, 'mage_barrier', 0)
-    .setDepth(mage.depth + 5);
-  barrier.play('mage_barrier');
+  const barrier = (scene.anims && scene.anims.exists('anim_vfx_lightning_aura'))
+    ? scene.add.sprite(mage.x - 16, mage.y, 'vfx_lightning_aura').setDepth(mage.depth + 5).setScale(0.65).play('anim_vfx_lightning_aura')
+    : scene.add.sprite(mage.x - 16, mage.y, 'mage_barrier', 0).setDepth(mage.depth + 5);
+  if (!scene.anims || !scene.anims.exists('anim_vfx_lightning_aura')) barrier.play('mage_barrier');
   mage.barrierSprite = barrier;
 
   // Pulso místico sutil de energia

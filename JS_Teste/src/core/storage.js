@@ -73,7 +73,8 @@ const StorageManager = {
   },
 
   consolidateSilverToGold() {
-    const earnedGold = Math.floor(runSilver / 3);
+    // GDD v1.0: 10 Moedas de Prata = 1 Moeda de Ouro
+    const earnedGold = Math.floor(runSilver / 10);
     const savedSilver = runSilver;
     runGold = earnedGold;
     this.addGold(earnedGold);
@@ -95,7 +96,7 @@ const StorageManager = {
     const defaults = {
       bow: { unlocked: true, level: 1 },
       sword: { unlocked: true, level: 1 },
-      shield: { unlocked: true, level: 1 },
+      shield: { unlocked: false, level: 1 },
       axe: { unlocked: false, level: 1 },
       firestaff: { unlocked: false, level: 1 },
       starterWeapon: 'bow'
@@ -111,7 +112,7 @@ const StorageManager = {
         } else {
           res[k] = {
             unlocked: Boolean(parsed[k]?.unlocked ?? defaults[k].unlocked),
-            level: 1
+            level: Math.max(1, parseInt(parsed[k]?.level ?? 1, 10))
           };
         }
       });
@@ -312,6 +313,22 @@ const StorageManager = {
     try {
       this.safeSet(STORAGE_JOYSTICK_KEY, mode);
     } catch {}
+  },
+
+  hasBackpack() {
+    return this.safeGet(STORAGE_BACKPACK_KEY) === 'true';
+  },
+
+  setBackpack(val) {
+    this.safeSet(STORAGE_BACKPACK_KEY, val ? 'true' : 'false');
+  },
+
+  hasDefeatedBossOnce() {
+    return this.safeGet(STORAGE_BOSS_DEFEATED_KEY) === 'true';
+  },
+
+  setBossDefeatedOnce(val) {
+    this.safeSet(STORAGE_BOSS_DEFEATED_KEY, val ? 'true' : 'false');
   }
 };
 
@@ -355,6 +372,10 @@ function updateFullscreenIcons(scene) { return StorageManager.updateFullscreenIc
 function toggleFullscreen(scene) { return StorageManager.toggleFullscreen(scene); }
 function getJoystickMode() { return StorageManager.getJoystickMode(); }
 function setJoystickMode(mode) { return StorageManager.setJoystickMode(mode); }
+function hasBackpack() { return StorageManager.hasBackpack(); }
+function setBackpack(val) { return StorageManager.setBackpack(val); }
+function hasDefeatedBossOnce() { return StorageManager.hasDefeatedBossOnce(); }
+function setBossDefeatedOnce(val) { return StorageManager.setBossDefeatedOnce(val); }
 
 // Desacoplamento da tecla ESC com Tela Cheia nativa do navegador
 if (typeof document !== 'undefined') {

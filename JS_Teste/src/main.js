@@ -57,8 +57,11 @@ function preload() {
   makeItem(this, 'scroll_multishot', 0xb388ff, drawScrollMultiShotIcon);
   makeItem(this, 'scroll_growth', 0x81c784, drawScrollGrowthIcon);
   makeItem(this, 'scroll_speed', 0xffb74d, drawScrollSpeedIcon);
-  makeWorldTextures(this);
+    makeWorldTextures(this);
   makeSlashTexture(this);
+  if (typeof makeUIButtonTextures === 'function') makeUIButtonTextures(this);
+  if (typeof registerTinySwordsUI === 'function') registerTinySwordsUI(this);
+  if (typeof registerSuperPixelVFX === 'function') registerSuperPixelVFX(this);
 
   // Garante filtro NEAREST puro em todas as texturas geradas (sem aspecto borrado ou esfarelado)
   Object.values(this.textures.list).forEach(tex => {
@@ -73,6 +76,8 @@ function preload() {
 function create(data) {
   const scene = this;
   sound.stopBGM();
+  if (typeof createVFXAnimations === 'function') createVFXAnimations(scene);
+  Object.values(scene.textures.list).forEach(tex => { if (tex && tex.setFilter) tex.setFilter(Phaser.Textures.FilterMode.NEAREST); });
 
   // Garante que tempo, tweens e física nunca venham congelados após Game Over ou Level Up
   scene.time.paused = false;
@@ -362,6 +367,10 @@ function create(data) {
     if (e.x < GAME_WIDTH && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, s.dmg || 1);
+      if (scene.anims && scene.anims.exists('anim_vfx_impact_sword')) {
+        const imp = scene.add.sprite(e.x, e.y, 'vfx_impact_sword').play('anim_vfx_impact_sword').setDepth(e.y + 3).setScale(0.85);
+        imp.once('animationcomplete', () => { if (imp && imp.active) imp.destroy(); });
+      }
       // Regra 22: Espada aplica empurrão suave (knockback) exclusivo se o inimigo sobreviver
       if (!e.isBoss && e.active && e.hp > 0) {
         const kbDist = Math.min(34, s.knockback ? Math.round(s.knockback * 0.65) : 22);

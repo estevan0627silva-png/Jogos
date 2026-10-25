@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 
 // Schema Unificado de Status de Armas:
 // damage, area, attackRate, knockback, projectiles
@@ -443,8 +443,9 @@ const WeaponSystem = {
   },
   getDuration(type) {
     const s = this.get(type);
-    if (!s) return BUFF_TIME[type] || 6.0;
-    return s.getDuration(getWeaponLevel(type), runBonusDuration, getWisdomBonusDuration());
+    const scrollBonus = (typeof scrollLevels !== 'undefined' && scrollLevels.duration) ? scrollLevels.duration * 1.5 : 0;
+    if (!s) return (BUFF_TIME[type] || 10.0) + scrollBonus;
+    return s.getDuration(getWeaponLevel(type), runBonusDuration + scrollBonus, getWisdomBonusDuration());
   },
   getAttackRate(type) {
     const s = this.get(type);
@@ -481,7 +482,7 @@ const WeaponSystem = {
     events.emit(GameEvents.BUFF_EQUIPPED, { type, level: lvl, duration: dur });
     updateItemHUD();
   },
-  end() {
+  end(scene) {
     const prevType = buff.type;
     const s = this.get(prevType);
     if (s && s.onUnequip) {
@@ -494,12 +495,23 @@ const WeaponSystem = {
     buff = { type: null, timeLeft: 0, maxTime: 0, nextAttack: 0 };
     if (playerBuffBar) playerBuffBar.clear();
     events.emit(GameEvents.BUFF_ENDED, { type: prevType });
+
+    if (backpackWeapon) {
+      const nextW = backpackWeapon;
+      backpackWeapon = null;
+      if (typeof updateBackpackHUD === 'function') updateBackpackHUD();
+      if (scene) {
+        this.equip(scene, nextW, true);
+      }
+    } else {
+      updateItemHUD();
+    }
   },
   update(scene, time, dt) {
     if (!buff.type) return;
     buff.timeLeft -= dt;
     if (buff.timeLeft <= 0) {
-      this.end();
+      this.end(scene);
       return;
     }
     const s = this.get(buff.type);
@@ -530,8 +542,28 @@ function equipWeaponBuff(scene, type, announce = true) {
 
 function collectItem(scene, item) {
   sound.playItemCollect();
-  equipWeaponBuff(scene, item.lootType, true);
+  const newType = item.lootType;
   removeEntity(item);
+
+  const hasPack = typeof hasBackpack === 'function' ? hasBackpack() : false;
+
+  if (!hasPack) {
+    equipWeaponBuff(scene, newType, true);
+  } else {
+    if (!buff.type) {
+      equipWeaponBuff(scene, newType, true);
+    } else if (!backpackWeapon) {
+      backpackWeapon = newType;
+      floatText(scene, player.x, player.y - 28, `${BUFF_NAMES[newType]} NA MOCHILA!`, '#7fe7ff');
+      if (typeof updateBackpackHUD === 'function') updateBackpackHUD();
+    } else {
+      const fromBackpack = backpackWeapon;
+      backpackWeapon = newType;
+      floatText(scene, player.x, player.y - 28, `${BUFF_NAMES[newType]} NA MOCHILA!`, '#7fe7ff');
+      if (typeof updateBackpackHUD === 'function') updateBackpackHUD();
+      equipWeaponBuff(scene, fromBackpack, true);
+    }
+  }
 }
 
 function endBuff() {
@@ -548,7 +580,8 @@ function createFirePool(scene, x, y, radius, dmg) {
     elapsed: 0,
     tickCooldown: 0.35, // pulso a cada 0.35s
     tickTimer: 0.1,
-    graphics: scene.add.graphics().setDepth(-4) // Desenha no chão (abaixo dos personagens, acima da estrada)
+    graphics: scene.add.graphics().setDepth(-4),
+    sprite: (scene.anims && scene.anims.exists('anim_vfx_fire_loop')) ? scene.add.sprite(x, y - 8, 'vfx_fire_loop').play('anim_vfx_fire_loop').setDepth(y - 1).setScale(0.65) : null
   };
   activeFirePools.push(pool);
 }
@@ -560,11 +593,12 @@ function updateFirePools(scene, dt) {
     p.elapsed += dt;
     const curWorldSpeed = typeof worldSpeed !== 'undefined' ? worldSpeed : ((enemySpeed || 195) * 0.6);
     p.x -= curWorldSpeed * dt;
+    if (p.sprite && p.sprite.active) p.sprite.setPosition(p.x, p.y - 8);
     p.tickTimer -= dt;
 
     p.graphics.clear();
-    const progress = p.elapsed / p.duration;
-    const alpha = Math.max(0, 1 - progress);
+
+    const alpha = 0.88 + Math.sin(p.elapsed * 8) * 0.10;
     const pulse = 1 + Math.sin(p.elapsed * 12) * 0.08;
     const curRad = p.radius * pulse;
 
@@ -603,7 +637,8 @@ function updateFirePools(scene, dt) {
       });
     }
 
-    if (p.elapsed >= p.duration || p.x < -100) {
+    if (p.x < -100) {
+      if (p.sprite && p.sprite.active) p.sprite.destroy();
       p.graphics.destroy();
       activeFirePools.splice(i, 1);
     }
@@ -621,6 +656,14 @@ function explodeFireball(scene, x, y, radius, dmg) {
   sound.playEarthSmash();
   emberFx.explode(10, x, y);
   hitFx.explode(6, x, y);
+
+  if (scene.anims && scene.anims.exists('anim_vfx_explosion')) {
+    const explosionSprite = scene.add.sprite(x, y, 'vfx_explosion')
+      .setDepth(1560)
+      .setScale(Math.max(0.75, (radius * 1.8) / 96))
+      .play('anim_vfx_explosion');
+    explosionSprite.once('animationcomplete', () => { if (explosionSprite && explosionSprite.active) explosionSprite.destroy(); });
+  }
 
   const blastOuter = scene.add.circle(x, y, 10, 0xff7043, 0.40)
     .setStrokeStyle(2, 0xffeb3b, 0.85).setDepth(1550);

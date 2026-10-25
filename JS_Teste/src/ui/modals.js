@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
@@ -37,7 +37,7 @@ function rollLevelUpCards() {
 
   // Cartas de Pergaminhos Arcanos (Regra: até 2 pergaminhos por partida, até Nv. 5 cada)
   const scrollCards = [];
-  const scrollKeys = ['multishot', 'growth', 'attackspeed'];
+  const scrollKeys = ['multishot', 'growth', 'attackspeed', 'duration'];
   const maxChosenScrolls = 2;
   const activeChosen = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) ? chosenScrolls : (chosenScroll ? [chosenScroll] : []);
   const currentChosenCount = activeChosen.length;
@@ -48,7 +48,7 @@ function rollLevelUpCards() {
     if (!isAlreadyChosen && currentChosenCount >= maxChosenScrolls) return;
 
     const currLvl = scrollLevels[sKey] || 0;
-    if (currLvl >= 5) return;
+    if (currLvl >= 10) return;
     const nextLvl = currLvl + 1;
     const sCfg = SCROLL_CATALOG[sKey];
     if (!sCfg) return;
@@ -251,22 +251,19 @@ function openLevelUpDraft(scene) {
   draftModal = scene.add.container(0, 0).setDepth(3300).setScrollFactor(0);
 
   const overlay = scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x06040a, 0.80);
-  const bannerBg = scene.add.graphics();
-  const bannerW = 640, bannerH = 68;
-  const bannerLeft = GAME_WIDTH / 2 - bannerW / 2;
-  bannerBg.fillStyle(0x16110c, 0.98).fillRoundedRect(bannerLeft, 16, bannerW, bannerH, 10);
-  bannerBg.lineStyle(3, 0xffca28).strokeRoundedRect(bannerLeft, 16, bannerW, bannerH, 10);
-  bannerBg.lineStyle(1, 0x8d5524).strokeRoundedRect(bannerLeft + 5, 21, bannerW - 10, bannerH - 10, 8);
+  const bannerRibbon = scene.add.image(GAME_WIDTH / 2, 44, "ui_ribbon_big_yellow").setDisplaySize(560, 64);
 
-  const titleTxt = scene.add.text(GAME_WIDTH / 2, 38, `SUBIU PARA O NÍVEL ${runLevel}!`, {
-    ...textStyle('#ffca28', 22),
-    fontFamily: 'Georgia, serif'
+  const titleTxt = scene.add.text(GAME_WIDTH / 2, 44, "\u2694 SUBIU PARA O N\u00cdVEL " + runLevel + "! \u2694", {
+    ...textStyle("#2c1b10", 20),
+    fontFamily: SERIF_TITLE_FONT, stroke: "transparent", strokeThickness: 0, shadow: null
   }).setOrigin(0.5);
-  const subTxt = scene.add.text(GAME_WIDTH / 2, 64, 'ESCOLHA 1 CARTA DE UPGRADE DE ARMA OU ITEM (CLIQUE OU TECLAS [1] [2] [3])', subtitleTextStyle('#7fe7ff', 11)).setOrigin(0.5);
+  const subTxt = scene.add.text(GAME_WIDTH / 2, 86, "ESCOLHA 1 CARTA DE UPGRADE OU ITEM (CLIQUE OU TECLAS [1] [2] [3])", {
+    ...subtitleTextStyle("#e8dcc4", 11.5, "bold"),
+    shadow: { offsetX: 1, offsetY: 1, color: "#000000", blur: 0, fill: true }
+  }).setOrigin(0.5);
   fitTextToBox(subTxt, 600, 20, 9);
 
-  draftModal.add([overlay, bannerBg, titleTxt, subTxt]);
-
+  draftModal.add([overlay, bannerRibbon, titleTxt, subTxt]);
   let chosen = false;
   const selectCard = (card) => {
     if (chosen) return;
@@ -282,6 +279,16 @@ function openLevelUpDraft(scene) {
     }
 
     card.apply(scene);
+    if (scene && scene.anims && player && player.active) {
+      if (scene.anims.exists('anim_vfx_haste')) {
+        const haste = scene.add.sprite(player.x, player.y - 10, 'vfx_haste').play('anim_vfx_haste').setScale(0.8).setDepth(player.depth + 2);
+        haste.once('animationcomplete', () => { if (haste && haste.active) haste.destroy(); });
+      }
+      if (scene.anims.exists('anim_vfx_levelup_text')) {
+        const lvlText = scene.add.sprite(player.x, player.y - 48, 'vfx_levelup_text').play('anim_vfx_levelup_text').setScale(0.65).setDepth(2600);
+        lvlText.once('animationcomplete', () => { if (lvlText && lvlText.active) lvlText.destroy(); });
+      }
+    }
     pendingLevelUps = Math.max(0, pendingLevelUps - 1);
     updateXpHUD();
 
@@ -329,92 +336,76 @@ function openLevelUpDraft(scene) {
   const cardPositions = [220, 480, 740];
   const cardW = 230;
   const cardH = 390;
-  const cardY = 308;
+  const cardY = 320;
 
   cards.forEach((card, idx) => {
     const cx = cardPositions[idx];
     const left = cx - cardW / 2;
     const top = cardY - cardH / 2;
 
-    const cardBg = scene.add.graphics();
-    const drawCardFrame = (hover = false) => {
-      cardBg.clear();
-      cardBg.fillStyle(hover ? 0x2b2016 : 0x1b140e, 0.98).fillRoundedRect(left, top, cardW, cardH, 10);
-      cardBg.lineStyle(hover ? 3 : 2, hover ? 0xffeb3b : card.borderColor).strokeRoundedRect(left, top, cardW, cardH, 10);
-      cardBg.lineStyle(1, 0x6e5233).strokeRoundedRect(left + 5, top + 5, cardW - 10, cardH - 10, 7);
-      cardBg.fillStyle(0x110c08, 1).fillRoundedRect(cx - 34, top + 46, 68, 68, 8);
-      cardBg.lineStyle(1.5, card.borderColor).strokeRoundedRect(cx - 34, top + 46, 68, 68, 8);
+    const paperKey = (card.id && card.id.startsWith('scroll_')) ? 'ui_paper_special' : 'ui_paper_regular';
+    const cardPaper = scene.add.image(cx, cardY, paperKey).setDisplaySize(cardW, cardH);
+    const cardHighlight = scene.add.graphics();
+    const drawHighlight = (hover = false) => {
+      cardHighlight.clear();
+      if (hover) cardHighlight.lineStyle(3, 0xffeb3b, 0.95).strokeRoundedRect(left - 2, top - 2, cardW + 4, cardH + 4, 10);
     };
-    drawCardFrame(false);
-
-    const catTxt = scene.add.text(cx, top + 24, card.category, textStyle('#c5a059', 10)).setOrigin(0.5);
-    const iconImg = scene.add.image(cx, top + 80, card.icon).setScale(1.65);
-    const nameTxt = scene.add.text(cx, top + 136, card.title, {
-      ...textStyle('#ffca28', 14),
-      fontFamily: 'Georgia, serif',
-      align: 'center',
-      wordWrap: { width: cardW - 24, useAdvancedWrap: true }
-    }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 24, 26, 9);
-
-    const badgeBg = scene.add.rectangle(cx, top + 166, cardW - 36, 24, 0x100c09).setStrokeStyle(1, card.borderColor);
-    const badgeTxt = scene.add.text(cx, top + 166, card.badge, textStyle(card.badgeColor, 11)).setOrigin(0.5);
-    fitTextToBox(badgeTxt, cardW - 44, 20, 9);
-
-    const descTxt = scene.add.text(cx, top + 246, card.desc, {
-      ...roundedTextStyle('#f5ecd0', 11.5, 'normal'),
-      align: 'center',
-
-      lineSpacing: 4,
-      wordWrap: { width: cardW - 28, useAdvancedWrap: true }
-    }).setOrigin(0.5);
-    fitTextToBox(descTxt, cardW - 26, 120, 9);
-
-    const pickBtn = scene.add.rectangle(cx, top + cardH - 34, cardW - 32, 36, 0x246b3d)
-      .setStrokeStyle(2, 0xffca28);
-    const pickTxt = scene.add.text(cx, top + cardH - 34, `ESCOLHER [${idx + 1}]`, buttonTextStyle('#ffffff', 12)).setOrigin(0.5);
-
-    const hitZone = scene.add.rectangle(cx, cardY, cardW, cardH, 0x000000, 0)
-      .setInteractive({ useHandCursor: true });
-
-    hitZone.on('pointerover', () => {
-      drawCardFrame(true);
-      pickBtn.setFillStyle(0x2f8a4f);
-      pickTxt.setColor('#ffeb3b');
-    });
-    hitZone.on('pointerout', () => {
-      drawCardFrame(false);
-      pickBtn.setFillStyle(0x246b3d);
-      pickTxt.setColor('#ffffff');
-    });
+    drawHighlight(false);
+    const slotImg = scene.add.image(cx, top + 74, 'ui_wood_slots').setDisplaySize(68, 68);
+    const iconImg = scene.add.image(cx, top + 74, card.icon).setScale(1.55);
+    const catTxt = scene.add.text(cx, top + 24, card.category, parchmentTitleStyle("#4a2c11", 11, "bold")).setOrigin(0.5);
+    fitTextToBox(catTxt, cardW - 20, 16, 9);
+    const nameTxt = scene.add.text(cx, top + 132, card.title, { ...parchmentTitleStyle('#22140a', 14, 'bold'), align: 'center', wordWrap: { width: cardW - 24, useAdvancedWrap: true } }).setOrigin(0.5);
+    fitTextToBox(nameTxt, cardW - 24, 26, 9.5);
+    const badgeBg = scene.add.rectangle(cx, top + 164, cardW - 40, 22, 0x22150a, 0.85);
+    const badgeTxt = scene.add.text(cx, top + 164, card.badge, textStyle(card.badgeColor, 10.5)).setOrigin(0.5);
+    fitTextToBox(badgeTxt, cardW - 46, 18, 8.5);
+    const descTxt = scene.add.text(cx, top + 242, card.desc, { ...parchmentBodyStyle('#1f1208', 11, 'bold'), align: 'center', lineSpacing: 3, wordWrap: { width: cardW - 32, useAdvancedWrap: true } }).setOrigin(0.5);
+    fitTextToBox(descTxt, cardW - 30, 116, 8.5);
+    const pickBtn = scene.add.image(cx, top + cardH - 34, 'ui_btn_blue_reg').setDisplaySize(cardW - 32, 42);
+    const pickTxt = scene.add.text(cx, top + cardH - 34, 'ESCOLHER [' + (idx + 1) + ']', buttonTextStyle('#ffffff', 12)).setOrigin(0.5);
+    const hitZone = scene.add.rectangle(cx, cardY, cardW, cardH, 0x000000, 0).setInteractive({ useHandCursor: true });
+    hitZone.on('pointerover', () => { drawHighlight(true); pickBtn.setTexture('ui_btn_blue_press'); pickTxt.setColor('#ffeb3b'); });
+    hitZone.on('pointerout', () => { drawHighlight(false); pickBtn.setTexture('ui_btn_blue_reg'); pickTxt.setColor('#ffffff'); });
     hitZone.on('pointerdown', () => selectCard(card));
-
-    draftModal.add([cardBg, catTxt, iconImg, nameTxt, badgeBg, badgeTxt, descTxt, pickBtn, pickTxt, hitZone]);
+    draftModal.add([cardPaper, cardHighlight, slotImg, iconImg, catTxt, nameTxt, badgeBg, badgeTxt, descTxt, pickBtn, pickTxt, hitZone]);
   });
 }
 
 // -----------------------------------------------------------------------------
 // BOTÕES NOBRES MEDIEVAIS EM CARVALHO & OURO
 // -----------------------------------------------------------------------------
-function createButton(scene, x, y, label, onClick, w = 260, h = 46) {
-  const btn = scene.add.rectangle(x, y, w, h, 0x6e3d1b).setStrokeStyle(2, 0xc5a059).setInteractive({ useHandCursor: true });
+function createButton(scene, x, y, label, onClick, w = 260, h = 46, defaultTexture = 'ui_btn_blue_reg') {
+  if (typeof makeUIButtonTextures === 'function') makeUIButtonTextures(scene);
+
+  const btn = scene.add.image(x, y, defaultTexture).setDisplaySize(w, h).setInteractive({ useHandCursor: true });
   const txt = scene.add.text(x, y, label, buttonTextStyle('#ffffff', 13.5)).setOrigin(0.5);
-  fitTextToBox(txt, w - 16, h - 8, 10);
+  fitTextToBox(txt, w - 24, h - 10, 10);
+
+  btn.baseTexture = defaultTexture;
 
   btn.on('pointerover', () => {
-    btn.setFillStyle(0x945324);
-    btn.setStrokeStyle(2, 0xffeb3b);
+    const isRed = (btn.baseTexture || '').includes('red');
+    btn.setTexture(isRed ? 'ui_btn_red_hover' : 'ui_btn_blue_hover');
     txt.setColor('#ffeb3b');
   });
   btn.on('pointerout', () => {
-    btn.setFillStyle(0x6e3d1b);
-    btn.setStrokeStyle(2, 0xc5a059);
+    btn.setTexture(btn.baseTexture || defaultTexture);
     txt.setColor('#ffffff');
+    txt.setY(y);
   });
-  btn.once('pointerdown', () => {
+  btn.on('pointerdown', () => {
+    const isRed = (btn.baseTexture || '').includes('red');
+    btn.setTexture(isRed ? 'ui_btn_red_press' : 'ui_btn_blue_press');
+    txt.setY(y + 1);
     sound.playButtonClick();
-    onClick();
+    if (onClick) onClick();
   });
+  btn.on('pointerup', () => {
+    btn.setTexture(btn.baseTexture || defaultTexture);
+    txt.setY(y);
+  });
+
   return [btn, txt];
 }
 
@@ -426,54 +417,31 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
   const cy = GAME_HEIGHT / 2;
   const left = cx - width / 2;
   const top = cy - height / 2;
-  const overlay = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.76);
+  const overlay = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.78);
+  const woodBg = scene.add.image(cx, cy, 'ui_wood_table').setDisplaySize(width + 16, height + 16).setAlpha(1.0);
 
   const frame = scene.add.graphics();
-  // Fundo em couro / madeira nobre
-  frame.fillStyle(0x14100c, 0.98).fillRoundedRect(left, top, width, height, 12);
-  // Moldura externa em ferro forjado com espessura uniforme
-  frame.lineStyle(2, 0x3d2b1f).strokeRoundedRect(left, top, width, height, 12);
-  // Moldura secundária em ouro nobre
-  frame.lineStyle(1, 0xc5a059, 0.9).strokeRoundedRect(left + 3, top + 3, width - 6, height - 6, 10);
-  // Filete interno sutil
-  frame.lineStyle(1, 0x8d5524, 0.4).strokeRoundedRect(left + 6, top + 6, width - 12, height - 12, 8);
+  // Fundo interno sutil em madeira escura acetinada (deixa as bordas da ui_wood_table 100% visíveis)
+  frame.fillStyle(0x16100b, 0.85).fillRoundedRect(left + 14, top + 14, width - 28, height - 28, 8);
+  // Moldura interna em couro nobre e filete dourado
+  frame.lineStyle(2, 0x8d5524, 0.85).strokeRoundedRect(left + 14, top + 14, width - 28, height - 28, 8);
+  frame.lineStyle(1, 0xc5a059, 0.75).strokeRoundedRect(left + 16, top + 16, width - 32, height - 32, 6);
 
-  // Rebites de ouro com sombra nos 4 cantos
-  const rOff = 14;
-  [
-    [left + rOff, top + rOff],
-    [left + width - rOff, top + rOff],
-    [left + rOff, top + height - rOff],
-    [left + width - rOff, top + height - rOff]
-  ].forEach(([rx, ry]) => {
-    frame.fillStyle(0xc5a059, 1).fillCircle(rx, ry, 3.5);
-    frame.fillStyle(0x2a1a0e, 1).fillCircle(rx, ry, 1.5);
-  });
+  // Faixa de título com o ribbon amarelo autêntico do Tiny Swords
+  const ribbonW = Math.min(width - 24, 460);
+  const titleRibbon = scene.add.image(cx, top + 26, 'ui_ribbon_big_yellow').setDisplaySize(ribbonW, 52);
+  const title = scene.add.text(cx, top + 24, titleText, titleTextStyle('#ffffff', 17, 'bold', '#2a1a0e', 2)).setOrigin(0.5);
+  fitTextToBox(title, ribbonW - 70, 26, 13);
 
-  // Brasão ornamental central no topo
-  frame.fillStyle(0xc5a059, 1);
-  frame.fillTriangle(cx, top - 8, cx - 18, top + 4, cx + 18, top + 4);
-  frame.fillCircle(cx, top - 8, 3.5);
-  frame.fillStyle(0x14100c, 1);
-  frame.fillCircle(cx, top - 8, 1.5);
-  frame.lineStyle(2, 0xc5a059, 0.9);
-  frame.lineBetween(cx - 22, top + 3, cx - 48, top + 3);
-  frame.lineBetween(cx + 22, top + 3, cx + 48, top + 3);
-  frame.fillStyle(0xc5a059, 1).fillCircle(cx - 48, top + 3, 2.5).fillCircle(cx + 48, top + 3, 2.5);
-
-  // Título e Subtítulo limpos com sombra sólida de 1px/2px (SEM borda esfarelada)
-  const title = scene.add.text(cx, top + 30, titleText, titleTextStyle('#ffca28', 22)).setOrigin(0.5);
-  fitTextToBox(title, width - 80, 32, 14);
-
-  const children = [overlay, frame, title];
+  const children = [overlay, woodBg, frame, titleRibbon, title];
   if (subtitleText) {
-    const sub = scene.add.text(cx, top + 56, subtitleText, {
-      ...subtitleTextStyle('#c5a059', 11),
+    const sub = scene.add.text(cx, top + 58, subtitleText, {
+      ...subtitleTextStyle('#ffd740', 10.5, 'bold', '#000000', 2),
       align: 'center',
       wordWrap: { width: width - 60, useAdvancedWrap: true }
     }).setOrigin(0.5);
-    fitTextToBox(sub, width - 60, 26, 9);
-    frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 70, left + width - 40, top + 70);
+    fitTextToBox(sub, width - 60, 22, 9);
+    frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 72, left + width - 40, top + 72);
     children.push(sub);
   }
 
@@ -485,6 +453,7 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
   return container;
 }
 
+// -----------------------------------------------------------------------------
 // SISTEMA DE PAUSA (TECLA P & BOTÃO DO HUD)
 // -----------------------------------------------------------------------------
 function handleEscPress(scene) {
@@ -553,73 +522,69 @@ function resumeGame(scene) {
 function showPauseModal(scene) {
   if (pauseModal) pauseModal.destroy();
 
-  const height = 430;
+  const height = 440;
   const top = (GAME_HEIGHT - height) / 2;
   const cx = GAME_WIDTH / 2;
-  pauseModal = createModal(scene, 'JOGO PAUSADO', height, 'JORNADA EM ESPERA', 480);
+  pauseModal = createModal(scene, '\u2694 JOGO PAUSADO \u2694', height, 'JORNADA EM ESPERA', 480);
 
-  // Status de sobrevivência, prata e relíquia
-  const statsBox = scene.add.graphics();
-  statsBox.fillStyle(0x221a13, 0.92).fillRoundedRect(cx - 210, top + 74, 420, 58, 6);
-  statsBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 210, top + 74, 420, 58, 6);
+  // Status de sobrevivencia, prata e reliquia em painel de madeira Tiny Swords
+  const statsPanel = scene.add.image(cx, top + 102, 'ui_hud_panel_weapon').setDisplaySize(410, 48);
 
-  const timeTxt = scene.add.text(cx - 192, top + 88, `TEMPO: ${survivalTime}s  |  PRATA: ${runSilver}  |  OURO: ${getGold()}`, textStyle('#ffca28', 12));
-  fitTextToBox(timeTxt, 384, 22, 10);
-  const relicName = buff.type ? `${BUFF_NAMES[buff.type]} NV.${getWeaponLevel(buff.type)} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
-  const relicColor = buff.type ? '#7fe7ff' : '#8c8272';
-  const relicTxt = scene.add.text(cx - 192, top + 110, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 12));
-  fitTextToBox(relicTxt, 384, 22, 10);
+  const timeTxt = scene.add.text(cx, top + 92, 'TEMPO: ' + survivalTime + 's  |  PRATA: ' + runSilver + '  |  OURO: ' + getGold(), textStyle('#ffca28', 11.5, 'bold')).setOrigin(0.5);
+  fitTextToBox(timeTxt, 390, 18, 10);
+  const relicName = buff.type ? ((BUFF_NAMES[buff.type] || buff.type) + ' NV.' + getWeaponLevel(buff.type) + ' (' + Math.max(0, buff.timeLeft).toFixed(1) + 's)') : 'Nenhuma';
+  const relicColor = buff.type ? '#7fe7ff' : '#d6c8aa';
+  const relicTxt = scene.add.text(cx, top + 112, 'REL\u00cdQUIA ATIVA: ' + relicName, textStyle(relicColor, 11, 'bold')).setOrigin(0.5);
+  fitTextToBox(relicTxt, 390, 18, 10);
 
-  const continueBtn = createButton(scene, cx, top + 154, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), 290, 36);
+  // Botoes com a UI oficial do Tiny Swords (ui_btn_blue_reg / ui_btn_red_reg)
+  const btnW = 310;
+  const btnH = 38;
+  const continueBtn = createButton(scene, cx, top + 152, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), btnW, btnH);
 
-  const audioBtn = scene.add.rectangle(cx, top + 196, 290, 36, sound.isMuted() ? 0x8e1b1b : 0x247a46)
-    .setStrokeStyle(2, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioTxt = scene.add.text(cx, top + 196, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 12))
-    .setOrigin(0.5);
+  // Botao Audio: usa createButton e alterna textura ui_btn_red_reg / ui_btn_blue_reg
+  const audioBtnGroup = createButton(scene, cx, top + 196, sound.isMuted() ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]', () => {
+    sound.toggleMute();
+    updateAudioUI();
+  }, btnW, btnH, sound.isMuted() ? 'ui_btn_red_reg' : 'ui_btn_blue_reg');
+  const audioBtn = audioBtnGroup[0];
+  const audioTxt = audioBtnGroup[1];
 
   const updateAudioUI = () => {
     if (!audioBtn.active) return;
-    audioBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
-    audioTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
-    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
+    const muted = sound.isMuted();
+    audioBtn.baseTexture = muted ? 'ui_btn_red_reg' : 'ui_btn_blue_reg';
+    audioBtn.setTexture(audioBtn.baseTexture);
+    audioTxt.setText(muted ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]');
+    if (hudHornIcon) hudHornIcon.setFrame(muted ? 1 : 0);
   };
 
-  audioBtn.on('pointerdown', () => {
-    sound.toggleMute();
-    sound.playButtonClick();
-    updateAudioUI();
-  });
-
-  const fsBtn = scene.add.rectangle(cx, top + 238, 290, 36, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
-    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const fsTxt = scene.add.text(cx, top + 238, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 12))
-    .setOrigin(0.5);
+  // Botao Tela Cheia: usa createButton
+  const fsBtnGroup = createButton(scene, cx, top + 240, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, updateFsUI);
+  }, btnW, btnH);
+  const fsBtn = fsBtnGroup[0];
+  const fsTxt = fsBtnGroup[1];
 
   const updateFsUI = () => {
     if (!fsBtn.active) return;
     const active = isGameFullscreen(scene);
-    fsBtn.setFillStyle(active ? 0x247a46 : 0x6e3d1b);
     fsTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
   };
-
-  fsBtn.on('pointerdown', () => {
-    sound.playButtonClick();
-    toggleFullscreen(scene);
-    scene.time.delayedCall(80, updateFsUI);
-  });
 
   pauseModal.updateAudio = updateAudioUI;
   pauseModal.updateFullscreen = updateFsUI;
 
-  const restartBtn = createButton(scene, cx, top + 280, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), 290, 36);
-  const menuBtn = createButton(scene, cx, top + 322, 'MENU PRINCIPAL', () => restartScene(scene, false, false), 290, 36);
-  const footerHint = scene.add.text(cx, top + 368, 'Pausar / Retornar: Tecla P', textStyle('#a8987b', 11)).setOrigin(0.5);
+  const restartBtn = createButton(scene, cx, top + 284, 'REINICIAR MISS\u00c3O', () => restartScene(scene, true, false), btnW, btnH);
+  const menuBtn = createButton(scene, cx, top + 328, 'MENU PRINCIPAL', () => restartScene(scene, false, false), btnW, btnH);
+  const footerHint = scene.add.text(cx, top + 372, 'Pausar / Retornar: Tecla [P] ou [ESC]', textStyle('#e0c088', 10.5)).setOrigin(0.5);
 
   pauseModal.add([
-    statsBox, timeTxt, relicTxt,
+    statsPanel, timeTxt, relicTxt,
     ...continueBtn,
-    audioBtn, audioTxt,
-    fsBtn, fsTxt,
+    ...audioBtnGroup,
+    ...fsBtnGroup,
     ...restartBtn,
     ...menuBtn,
     footerHint
@@ -830,16 +795,15 @@ function showLeaderboard(scene, topScores, currentName) {
             addGold(goldToDouble);
             sound.playAchievement();
             doubleGoldBtn[1].setText(`OURO DOBRADO COM SUCESSO! (+${goldToDouble}G)`);
-            doubleGoldBtn[0].setFillStyle(0x233e18);
-            doubleGoldBtn[0].setStrokeStyle(2, 0x81c784);
+            doubleGoldBtn[0].setTexture('ui_btn_blue_press');
+            doubleGoldBtn[0].setTint(0x81c784);
             doubleGoldBtn[1].setColor('#a5d6a7');
             floatText(scene, cx, top + 260, `+${goldToDouble} OURO EXTRA!`, '#ffd740');
           }
         });
       }
     }, 460, 36);
-    doubleGoldBtn[0].setFillStyle(0x4a2e12);
-    doubleGoldBtn[0].setStrokeStyle(2, 0xffd54f);
+    doubleGoldBtn[0].setTint(0xffd54f);
     doubleGoldBtn[1].setColor('#ffe082');
     modal.add(doubleGoldBtn);
   }

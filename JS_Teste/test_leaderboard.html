@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="lib/phaser.min.js"></script>
+    <script src="game.js"></script>
+</head>
+<body style="margin:0; background:#000;">
+<div id="game-container"></div>
+<script>
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const scene = window.game ? window.game.scene.scenes[0] : null;
+        if (scene) {
+            lastRunSummary = { silverCollected: 72, totalGoldEarned: 24, goldFromSilver: 24 };
+            const scores = [
+                { name: 'HER', score: 62 },
+                { name: 'VAL', score: 45 },
+                { name: 'ART', score: 30 },
+                { name: 'LEO', score: 20 },
+                { name: 'MAX', score: 12 }
+            ];
+            showLeaderboard(scene, scores, 'HER');
+        }
+    }, 600);
+});
+</script>
+</body>
+</html>

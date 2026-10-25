@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // CATÁLOGOS DE EQUIPAMENTOS, STATUS E CONQUISTAS
 // =============================================================================
 const WEAPON_CATALOG = {
@@ -38,8 +38,8 @@ const WEAPON_CATALOG = {
     name: 'ESCUDO SAGRADO',
     category: 'BALUARTE SAGRADO',
     icon: 'item_shield',
-    unlockedDefault: true,
-    unlockCost: 0,
+    unlockedDefault: false,
+    unlockCost: 30,
     maxLevel: Infinity,
     forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
     levels: [
@@ -55,7 +55,7 @@ const WEAPON_CATALOG = {
     category: 'FORÇA RÚNICA',
     icon: 'item_axe',
     unlockedDefault: false,
-    unlockCost: 25,
+    unlockCost: 40,
     maxLevel: Infinity,
     forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
     levels: [
@@ -71,7 +71,7 @@ const WEAPON_CATALOG = {
     category: 'CANALIZAÇÃO SOLAR',
     icon: 'item_firestaff',
     unlockedDefault: false,
-    unlockCost: 45,
+    unlockCost: 20,
     maxLevel: Infinity,
     forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
     levels: [
@@ -127,24 +127,36 @@ const SCROLL_CATALOG = {
       { badge: 'VELOCIDADE FRENÉTICA', desc: 'Ataques desferidos em sucessão avassaladora com intervalo mínimo entre ativações.', toString() { return this.desc; } },
       { badge: 'TEMPESTADE TEMPORAL', desc: 'Velocidade de ataque suprema! O herói maneja suas relíquias em uma velocidade sobrenatural!', toString() { return this.desc; } }
     ]
+  },
+  duration: {
+    id: 'duration',
+    name: 'DURAÇÃO ESTENDIDA',
+    shortName: 'DURAÇÃO',
+    icon: 'hud_hourglass',
+    maxLevel: 10,
+    levels: [
+      { badge: 'PERSISTÃŠNCIA ETERNA', desc: '+15.0s na duraÃ§Ã£o mÃ¡xima! Suas armas duram uma eternidade em campo!', toString() { return this.desc; } }
+    ]
   }
 };
 
-// Catálogo Exclusivo do Santuário do Mago (Upgrades Permanentes de Status com Poções e Ervas)
+// CatÃ¡logo Exclusivo do SantuÃ¡rio do Mago (Upgrades Permanentes de Status com PoÃ§Ãµes e Ervas)
 const STATUS_CATALOG = {
   maxHp: {
-    name: 'ELIXIR DO CORAÇÃO DE RUBI (VIDA)',
-    shortName: 'VIDA MÁXIMA',
+    name: 'ELIXIR DO CORAO DE RUBI (VIDA)',
+    shortName: 'VIDA MXIMA',
     potionColor: 0xff5252,
     icon: 'stat_health',
-    maxLevel: 4,
-    costs: [25, 50, 90, 0],
-    values: [3, 4, 5, 6],
+    maxLevel: 6,
+    costs: [10, 20, 40, 80, 160, 0],
+    values: [1, 2, 3, 4, 5, 6],
     levels: [
-      '3 Corações de Vida (Vigor inicial honrado do Cavaleiro).',
-      '4 Corações de Vida (+1 Coração — 4 golpes suportados).',
-      '5 Corações de Vida (Sangue de Dragão — 5 Corações).',
-      '6 Corações de Vida (Imortalidade Rubra — 6 Corações supremos)!'
+      '1 Corao de Vida (Aspecto hardcore inicial de sobrevivncia).',
+      '2 Coraes de Vida (+1 Corao - 2 golpes suportados).',
+      '3 Coraes de Vida (Vigor honrado do Cavaleiro - 3 golpes).',
+      '4 Coraes de Vida (Baluarte de Ao - 4 golpes suportados).',
+      '5 Coraes de Vida (Sangue de Drago - 5 golpes suportados).',
+      '6 Coraes de Vida (Imortalidade Rubra - 6 Coraes supremos)!'
     ]
   },
   moveSpeed: {
@@ -153,7 +165,7 @@ const STATUS_CATALOG = {
     potionColor: 0xffeb3b,
     icon: 'stat_speed',
     maxLevel: 5,
-    costs: [12, 24, 42, 70, 0],
+    costs: [10, 20, 40, 80, 160, 0],
     values: [280, 304, 328, 352, 380],
     levels: [
       'Passos ágeis base (280 px/s).',
@@ -169,7 +181,7 @@ const STATUS_CATALOG = {
     potionColor: 0x7fe7ff,
     icon: 'stat_magnet',
     maxLevel: 5,
-    costs: [12, 24, 42, 70, 0],
+    costs: [10, 20, 40, 80, 160, 0],
     values: [90, 135, 185, 240, 310],
     levels: [
       'Aura curta (90 px) para atrair Orbes de XP e Moedas de Prata.',
@@ -185,7 +197,7 @@ const STATUS_CATALOG = {
     potionColor: 0xc36bff,
     icon: 'stat_wisdom',
     maxLevel: 5,
-    costs: [15, 30, 52, 80, 0],
+    costs: [10, 20, 40, 80, 160, 0],
     values: [1.0, 1.15, 1.30, 1.45, 1.65],
     levels: [
       'Ganho de XP padrão (100%) e duração base das relíquias.',

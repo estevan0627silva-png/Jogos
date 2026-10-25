@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // GERENCIADOR DE COMBATE, DANO, COLISÕES E EVENTOS DE COMBATE
 // =============================================================================
 // COMBATE, DROPS DE XP/PRATA, LEVEL UP & ARMAS REBALANCEADAS (NV. 1 A 5)
@@ -174,8 +174,12 @@ function setupDecoupledEventListeners(scene) {
 
 
   // 2. EFEITOS VISUAIS (VFX)
-  events.on(GameEvents.ENEMY_KILLED, ({ x, y, enemyType }) => {
+  events.on(GameEvents.ENEMY_KILLED, ({ scene, x, y, enemyType }) => {
     hitFx.explode(10, x, y);
+    if (scene && scene.anims && scene.anims.exists('anim_vfx_skull_burst')) {
+      const skull = scene.add.sprite(x, y, 'vfx_skull_burst').setScale(0.85).play('anim_vfx_skull_burst').setDepth(y + 2);
+      skull.once('animationcomplete', () => { if (skull && skull.active) skull.destroy(); });
+    }
     if (enemyType === 'warrior') {
       sparksFx.explode(8, x, y);
       debrisFx.explode(5, x, y);

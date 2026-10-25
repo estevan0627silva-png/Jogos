@@ -11,6 +11,8 @@ $srcFiles = @(
     "JS_Teste/src/art/characterArt.js",
     "JS_Teste/src/art/itemArt.js",
     "JS_Teste/src/art/worldArt.js",
+    "JS_Teste/src/art/uiAssets.js",
+    "JS_Teste/src/art/vfxAssets.js",
     "JS_Teste/src/combat/weapons.js",
     "JS_Teste/src/combat/combatManager.js",
     "JS_Teste/src/combat/lootManager.js",

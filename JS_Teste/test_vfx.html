@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="lib/phaser.min.js"></script>
+    <script src="game.js"></script>
+</head>
+<body style="margin:0; background:#000;">
+<div id="game-container"></div>
+<script>
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const scene = window.game ? window.game.scene.scenes[0] : null;
+        if (scene) {
+            if (menuContainer) {
+                menuContainer.destroy();
+                menuContainer = null;
+            }
+            startGameplay(scene);
+
+            setTimeout(() => {
+                // 1. Spawns skull burst at player.x + 80
+                const skull = scene.add.sprite(player.x + 80, player.y, 'vfx_skull_burst').setScale(1.2).play('anim_vfx_skull_burst').setDepth(3000);
+                
+                // 2. Spawns levelup text and haste aura on player
+                const haste = scene.add.sprite(player.x, player.y - 10, 'vfx_haste').play('anim_vfx_haste').setScale(0.9).setDepth(3000);
+                const lvlText = scene.add.sprite(player.x + 10, player.y - 48, 'vfx_levelup_text').play('anim_vfx_levelup_text').setScale(0.7).setDepth(3000);
+
+                // 3. Spawns sword impact at player.x + 40
+                const imp = scene.add.sprite(player.x + 40, player.y, 'vfx_impact_sword').play('anim_vfx_impact_sword').setScale(1.1).setDepth(3000);
+            }, 500);
+        }
+    }, 600);
+});
+</script>
+</body>
+</html>

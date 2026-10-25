@@ -1,0 +1,218 @@
+// -----------------------------------------------------------------------------
+// BOTÕES NOBRES MEDIEVAIS EM CARVALHO & OURO
+// -----------------------------------------------------------------------------
+function createButton(scene, x, y, label, onClick, w = 260, h = 46, defaultTexture = 'ui_btn_blue_reg') {
+  if (typeof makeUIButtonTextures === 'function') makeUIButtonTextures(scene);
+
+  const btn = scene.add.image(x, y, defaultTexture).setDisplaySize(w, h).setInteractive({ useHandCursor: true });
+  const txt = scene.add.text(x, y, label, buttonTextStyle('#ffffff', 13.5)).setOrigin(0.5);
+  fitTextToBox(txt, w - 24, h - 10, 10);
+
+  btn.baseTexture = defaultTexture;
+
+  btn.on('pointerover', () => {
+    const isRed = (btn.baseTexture || '').includes('red');
+    btn.setTexture(isRed ? 'ui_btn_red_hover' : 'ui_btn_blue_hover');
+    txt.setColor('#ffeb3b');
+  });
+  btn.on('pointerout', () => {
+    btn.setTexture(btn.baseTexture || defaultTexture);
+    txt.setColor('#ffffff');
+    txt.setY(y);
+  });
+  btn.on('pointerdown', () => {
+    const isRed = (btn.baseTexture || '').includes('red');
+    btn.setTexture(isRed ? 'ui_btn_red_press' : 'ui_btn_blue_press');
+    txt.setY(y + 1);
+    sound.playButtonClick();
+    if (onClick) onClick();
+  });
+  btn.on('pointerup', () => {
+    btn.setTexture(btn.baseTexture || defaultTexture);
+    txt.setY(y);
+  });
+
+  return [btn, txt];
+}
+
+// -----------------------------------------------------------------------------
+// FÁBRICA UNIFICADA DE JANELAS E MODAIS MEDIEVAIS (COM ANCORAGEM DINÂMICA)
+// -----------------------------------------------------------------------------
+function createModal(scene, titleText, height, subtitleText = '', width = 520) {
+  const cx = GAME_WIDTH / 2;
+  const cy = GAME_HEIGHT / 2;
+  const left = cx - width / 2;
+  const top = cy - height / 2;
+  const overlay = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.78);
+  const woodBg = scene.add.image(cx, cy, 'ui_wood_table').setDisplaySize(width + 16, height + 16).setAlpha(1.0);
+
+  const frame = scene.add.graphics();
+  // Fundo interno sutil em madeira escura acetinada (deixa as bordas da ui_wood_table 100% visíveis)
+  frame.fillStyle(0x16100b, 0.85).fillRoundedRect(left + 14, top + 14, width - 28, height - 28, 8);
+  // Moldura interna em couro nobre e filete dourado
+  frame.lineStyle(2, 0x8d5524, 0.85).strokeRoundedRect(left + 14, top + 14, width - 28, height - 28, 8);
+  frame.lineStyle(1, 0xc5a059, 0.75).strokeRoundedRect(left + 16, top + 16, width - 32, height - 32, 6);
+
+  // Faixa de título com o ribbon amarelo autêntico do Tiny Swords
+  const ribbonW = Math.min(width - 24, 460);
+  const titleRibbon = scene.add.image(cx, top + 26, 'ui_ribbon_big_yellow').setDisplaySize(ribbonW, 52);
+  const title = scene.add.text(cx, top + 24, titleText, titleTextStyle('#ffffff', 17, 'bold', '#2a1a0e', 2)).setOrigin(0.5);
+  fitTextToBox(title, ribbonW - 70, 26, 13);
+
+  const children = [overlay, woodBg, frame, titleRibbon, title];
+  if (subtitleText) {
+    const sub = scene.add.text(cx, top + 56, subtitleText, {
+      ...subtitleTextStyle('#ffd740', 10.5, 'bold', '#000000', 2),
+      align: 'center',
+      wordWrap: { width: width - 60, useAdvancedWrap: true }
+    }).setOrigin(0.5);
+    fitTextToBox(sub, width - 60, 22, 9);
+    frame.lineStyle(1, 0xc5a059, 0.45).lineBetween(left + 40, top + 68, left + width - 40, top + 68);
+    children.push(sub);
+  }
+
+  const container = scene.add.container(0, 0, children).setDepth(3000).setScrollFactor(0);
+  activeModal = container;
+  container.on('destroy', () => {
+    if (activeModal === container) activeModal = null;
+  });
+  return container;
+}
+
+// -----------------------------------------------------------------------------
+// SISTEMA DE PAUSA (TECLA P & BOTÃO DO HUD)
+// -----------------------------------------------------------------------------
+function handleEscPress(scene) {
+  if (gameState === 'PLAYING') {
+    pauseGame(scene);
+  } else if (gameState === 'PAUSED') {
+    resumeGame(scene);
+  } else if (gameState === 'MENU' && menuContainer && !menuContainer.isMainMenu) {
+    exitSubMenu(scene);
+  }
+}
+
+function pauseGame(scene) {
+  if (gameState !== 'PLAYING') return;
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStop();
+  gameState = 'PAUSED';
+  isHitstopping = false;
+
+  scene.physics.pause();
+  scene.time.paused = true;
+  scene.tweens.pauseAll();
+  if (scene.anims && scene.anims.pauseAll) {
+    scene.anims.pauseAll();
+  }
+  [player, ...enemies.getChildren()].forEach(s => {
+    if (s && s.anims && s.anims.isPlaying) s.anims.pause();
+  });
+  if (player && player.body) {
+    player.setVelocity(0, 0);
+  }
+  sound.pauseBGM();
+  sound.playButtonClick();
+  showPauseModal(scene);
+}
+
+function resumeGame(scene) {
+  if (gameState !== 'PAUSED') return;
+  if (pauseModal) {
+    pauseModal.destroy();
+    pauseModal = null;
+  }
+  gameState = 'PLAYING';
+  if (typeof PlatformBridge !== 'undefined') PlatformBridge.gameplayStart();
+
+  scene.physics.resume();
+  scene.physics.world.isPaused = false;
+  scene.time.paused = false;
+  scene.tweens.resumeAll();
+  if (scene.anims) {
+    if (scene.anims.resumeAll) scene.anims.resumeAll();
+    scene.anims.paused = false;
+  }
+  [player, ...enemies.getChildren()].forEach(s => {
+    if (s && s.anims) {
+      if (s.anims.isPaused) {
+        s.anims.resume();
+      } else if (!s.anims.isPlaying && s.anims.currentAnim) {
+        s.anims.play({ key: s.anims.currentAnim.key, repeat: -1 });
+      }
+    }
+  });
+  sound.resumeBGM();
+  sound.playButtonClick();
+}
+
+function showPauseModal(scene) {
+  if (pauseModal) pauseModal.destroy();
+
+  const height = 440;
+  const top = (GAME_HEIGHT - height) / 2;
+  const cx = GAME_WIDTH / 2;
+  pauseModal = createModal(scene, '⚔ JOGO PAUSADO ⚔', height, 'JORNADA EM ESPERA', 480);
+
+  // Status de sobrevivência, prata e relíquia em painel de madeira Tiny Swords
+  const statsPanel = scene.add.image(cx, top + 94, 'ui_hud_panel_weapon').setDisplaySize(410, 50);
+
+  const timeTxt = scene.add.text(cx, top + 84, `TEMPO: ${survivalTime}s  |  PRATA: ${runSilver}  |  OURO: ${getGold()}`, textStyle('#ffca28', 11.5, 'bold')).setOrigin(0.5);
+  fitTextToBox(timeTxt, 390, 18, 10);
+  const relicName = buff.type ? `${BUFF_NAMES[buff.type] || buff.type} NV.${getWeaponLevel(buff.type)} (${Math.max(0, buff.timeLeft).toFixed(1)}s)` : 'Nenhuma';
+  const relicColor = buff.type ? '#7fe7ff' : '#d6c8aa';
+  const relicTxt = scene.add.text(cx, top + 104, `RELÍQUIA ATIVA: ${relicName}`, textStyle(relicColor, 11, 'bold')).setOrigin(0.5);
+  fitTextToBox(relicTxt, 390, 18, 10);
+
+  // Botões com a UI oficial do Tiny Swords (ui_btn_blue_reg / ui_btn_red_reg)
+  const btnW = 310;
+  const btnH = 38;
+  const continueBtn = createButton(scene, cx, top + 146, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), btnW, btnH);
+
+  // Botão Áudio: usa createButton e alterna textura ui_btn_red_reg / ui_btn_blue_reg
+  const audioBtnGroup = createButton(scene, cx, top + 190, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', () => {
+    sound.toggleMute();
+    updateAudioUI();
+  }, btnW, btnH, sound.isMuted() ? 'ui_btn_red_reg' : 'ui_btn_blue_reg');
+  const audioBtn = audioBtnGroup[0];
+  const audioTxt = audioBtnGroup[1];
+
+  const updateAudioUI = () => {
+    if (!audioBtn.active) return;
+    const muted = sound.isMuted();
+    audioBtn.baseTexture = muted ? 'ui_btn_red_reg' : 'ui_btn_blue_reg';
+    audioBtn.setTexture(audioBtn.baseTexture);
+    audioTxt.setText(muted ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
+    if (hudHornIcon) hudHornIcon.setFrame(muted ? 1 : 0);
+  };
+
+  // Botão Tela Cheia: usa createButton
+  const fsBtnGroup = createButton(scene, cx, top + 234, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, updateFsUI);
+  }, btnW, btnH);
+  const fsBtn = fsBtnGroup[0];
+  const fsTxt = fsBtnGroup[1];
+
+  const updateFsUI = () => {
+    if (!fsBtn.active) return;
+    const active = isGameFullscreen(scene);
+    fsTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
+  };
+
+  pauseModal.updateAudio = updateAudioUI;
+  pauseModal.updateFullscreen = updateFsUI;
+
+  const restartBtn = createButton(scene, cx, top + 278, 'REINICIAR MISSÃO', () => restartScene(scene, true, false), btnW, btnH);
+  const menuBtn = createButton(scene, cx, top + 322, 'MENU PRINCIPAL', () => restartScene(scene, false, false), btnW, btnH);
+  const footerHint = scene.add.text(cx, top + 368, 'Pausar / Retornar: Tecla [P] ou [ESC]', textStyle('#e0c088', 10.5)).setOrigin(0.5);
+
+  pauseModal.add([
+    statsPanel, timeTxt, relicTxt,
+    ...continueBtn,
+    ...audioBtnGroup,
+    ...fsBtnGroup,
+    ...restartBtn,
+    ...menuBtn,
+    footerHint
+  ]);
+}

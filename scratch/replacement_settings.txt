@@ -1,0 +1,91 @@
+function showSettingsMenu(scene) {
+  if (menuContainer) menuContainer.destroy();
+  const cx = GAME_WIDTH / 2;
+  menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', 480, 'Ajustes de áudio, vídeo (Tela Cheia) e pergaminho de batalha', 580);
+  menuContainer.isMainMenu = false;
+
+  // Seção 1: Áudio, Tela Cheia & Controles Mobile
+  const audioBox = scene.add.graphics();
+  audioBox.fillStyle(0x221a13, 0.94).fillRoundedRect(cx - 260, 84, 520, 118, 6);
+  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, 84, 520, 118, 6);
+  audioBox.lineStyle(1, 0xc5a059, 0.6).strokeRoundedRect(cx - 258, 86, 516, 114, 4);
+
+  const audioTitle = scene.add.text(cx - 240, 94, 'ÁUDIO, TELA CHEIA & JOYSTICK VIRTUAL', textStyle('#ffca28', 12));
+
+  // Botão 1: Áudio
+  const audioBtnGroup = createButton(scene, cx - 130, 134, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', () => {
+    sound.toggleMute();
+    updateAudioUI();
+  }, 240, 36, sound.isMuted() ? 'ui_btn_red_reg' : 'ui_btn_blue_reg');
+  const audioToggleBtn = audioBtnGroup[0];
+  const audioToggleTxt = audioBtnGroup[1];
+
+  const updateAudioUI = () => {
+    if (!audioToggleBtn.active) return;
+    const muted = sound.isMuted();
+    audioToggleBtn.baseTexture = muted ? 'ui_btn_red_reg' : 'ui_btn_blue_reg';
+    audioToggleBtn.setTexture(audioToggleBtn.baseTexture);
+    audioToggleTxt.setText(muted ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
+    if (hudHornIcon) hudHornIcon.setFrame(muted ? 1 : 0);
+  };
+
+  // Botão 2: Tela Cheia
+  const fsBtnGroup = createButton(scene, cx + 130, 134, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, refreshFsBtn);
+  }, 240, 36);
+  const fsToggleBtn = fsBtnGroup[0];
+  const fsToggleTxt = fsBtnGroup[1];
+
+  const refreshFsBtn = () => {
+    if (!fsToggleBtn.active) return;
+    const active = isGameFullscreen(scene);
+    fsToggleTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
+  };
+  menuContainer.updateMenuFullscreen = refreshFsBtn;
+
+  // Botão 3: Ativar Joystick Virtual (Mobile / PC)
+  const getJoyLabel = () => {
+    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
+    return (m === 'enabled') ? 'JOYSTICK VIRTUAL: [ATIVADO]' : 'JOYSTICK VIRTUAL: [DESATIVADO]';
+  };
+  const isJoyActive = () => (typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled') === 'enabled';
+
+  const joyBtnGroup = createButton(scene, cx, 178, getJoyLabel(), () => {
+    const current = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
+    const next = current === 'enabled' ? 'disabled' : 'enabled';
+    if (typeof setJoystickMode === 'function') setJoystickMode(next);
+    const active = isJoyActive();
+    joyToggleBtn.baseTexture = active ? 'ui_btn_blue_reg' : 'ui_btn_red_reg';
+    joyToggleBtn.setTexture(joyToggleBtn.baseTexture);
+    joyToggleTxt.setText(getJoyLabel());
+    if (virtualJoystick) virtualJoystick.updateVisibility();
+  }, 500, 34, isJoyActive() ? 'ui_btn_blue_reg' : 'ui_btn_red_reg');
+  const joyToggleBtn = joyBtnGroup[0];
+  const joyToggleTxt = joyBtnGroup[1];
+
+  // Seção 2: Pergaminho de Dicas de Combate
+  const guideBox = scene.add.graphics();
+  guideBox.fillStyle(0x1d1611, 0.94).fillRoundedRect(cx - 260, 210, 520, 192, 6);
+  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, 210, 520, 192, 6);
+  guideBox.lineStyle(1, 0xc5a059, 0.5).strokeRoundedRect(cx - 258, 212, 516, 188, 4);
+
+  const guideTitle = scene.add.text(cx, 220, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 12.5)).setOrigin(0.5);
+  const guideLines = [
+    '• Mobile (Touch): Joystick Virtual analógico à esquerda para movimentação (ataque automático).',
+    '• Inimigos derrotados dropam Moedas de Prata durante a expedição na floresta.',
+    '• Ao encerrar a partida, suas Moedas de Prata são convertidas em Ouro Real!',
+    '• Visite a Forja do Ferreiro para desbloquear e equipar novas armas de combate.',
+    '• Visite o Santuário do Mago para aprimorar seus atributos permanentes.',
+    '• O Escudo Sagrado reflete projéteis inimigos enquanto desfere seus ataques.'
+  ];
+  const guideTexts = guideLines.map((txt, i) =>
+    scene.add.text(cx - 240, 240 + i * 24, txt, { ...textStyle('#d6c8aa', 10.5, 'normal'), lineSpacing: 3 })
+  );
+
+  menuContainer.add([
+    audioBox, audioTitle, ...audioBtnGroup, ...fsBtnGroup, ...joyBtnGroup,
+    guideBox, guideTitle, ...guideTexts,
+    ...createButton(scene, cx, 442, 'VOLTAR', () => exitSubMenu(scene), 260, 38)
+  ]);
+}

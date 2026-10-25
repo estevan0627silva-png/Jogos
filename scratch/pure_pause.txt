@@ -1,0 +1,71 @@
+function showPauseModal(scene) {
+  if (pauseModal) pauseModal.destroy();
+
+  const height = 440;
+  const top = (GAME_HEIGHT - height) / 2;
+  const cx = GAME_WIDTH / 2;
+  pauseModal = createModal(scene, '\u2694 JOGO PAUSADO \u2694', height, 'JORNADA EM ESPERA', 480);
+
+  // Status de sobrevivencia, prata e reliquia em painel de madeira Tiny Swords
+  const statsPanel = scene.add.image(cx, top + 102, 'ui_hud_panel_weapon').setDisplaySize(410, 48);
+
+  const timeTxt = scene.add.text(cx, top + 92, 'TEMPO: ' + survivalTime + 's  |  PRATA: ' + runSilver + '  |  OURO: ' + getGold(), textStyle('#ffca28', 11.5, 'bold')).setOrigin(0.5);
+  fitTextToBox(timeTxt, 390, 18, 10);
+  const relicName = buff.type ? ((BUFF_NAMES[buff.type] || buff.type) + ' NV.' + getWeaponLevel(buff.type) + ' (' + Math.max(0, buff.timeLeft).toFixed(1) + 's)') : 'Nenhuma';
+  const relicColor = buff.type ? '#7fe7ff' : '#d6c8aa';
+  const relicTxt = scene.add.text(cx, top + 112, 'REL\u00cdQUIA ATIVA: ' + relicName, textStyle(relicColor, 11, 'bold')).setOrigin(0.5);
+  fitTextToBox(relicTxt, 390, 18, 10);
+
+  // Botoes com a UI oficial do Tiny Swords (ui_btn_blue_reg / ui_btn_red_reg)
+  const btnW = 310;
+  const btnH = 38;
+  const continueBtn = createButton(scene, cx, top + 152, 'CONTINUAR JORNADA [P]', () => resumeGame(scene), btnW, btnH);
+
+  // Botao Audio: usa createButton e alterna textura ui_btn_red_reg / ui_btn_blue_reg
+  const audioBtnGroup = createButton(scene, cx, top + 196, sound.isMuted() ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]', () => {
+    sound.toggleMute();
+    updateAudioUI();
+  }, btnW, btnH, sound.isMuted() ? 'ui_btn_red_reg' : 'ui_btn_blue_reg');
+  const audioBtn = audioBtnGroup[0];
+  const audioTxt = audioBtnGroup[1];
+
+  const updateAudioUI = () => {
+    if (!audioBtn.active) return;
+    const muted = sound.isMuted();
+    audioBtn.baseTexture = muted ? 'ui_btn_red_reg' : 'ui_btn_blue_reg';
+    audioBtn.setTexture(audioBtn.baseTexture);
+    audioTxt.setText(muted ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]');
+    if (hudHornIcon) hudHornIcon.setFrame(muted ? 1 : 0);
+  };
+
+  // Botao Tela Cheia: usa createButton
+  const fsBtnGroup = createButton(scene, cx, top + 240, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, updateFsUI);
+  }, btnW, btnH);
+  const fsBtn = fsBtnGroup[0];
+  const fsTxt = fsBtnGroup[1];
+
+  const updateFsUI = () => {
+    if (!fsBtn.active) return;
+    const active = isGameFullscreen(scene);
+    fsTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
+  };
+
+  pauseModal.updateAudio = updateAudioUI;
+  pauseModal.updateFullscreen = updateFsUI;
+
+  const restartBtn = createButton(scene, cx, top + 284, 'REINICIAR MISS\u00c3O', () => restartScene(scene, true, false), btnW, btnH);
+  const menuBtn = createButton(scene, cx, top + 328, 'MENU PRINCIPAL', () => restartScene(scene, false, false), btnW, btnH);
+  const footerHint = scene.add.text(cx, top + 372, 'Pausar / Retornar: Tecla [P] ou [ESC]', textStyle('#e0c088', 10.5)).setOrigin(0.5);
+
+  pauseModal.add([
+    statsPanel, timeTxt, relicTxt,
+    ...continueBtn,
+    ...audioBtnGroup,
+    ...fsBtnGroup,
+    ...restartBtn,
+    ...menuBtn,
+    footerHint
+  ]);
+}

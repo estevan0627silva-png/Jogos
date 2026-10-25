@@ -10,100 +10,94 @@
 function showSettingsMenu(scene) {
   if (menuContainer) menuContainer.destroy();
   const cx = GAME_WIDTH / 2;
-  menuContainer = createModal(scene, 'CONFIGURAÇÕES DO REINO', 480, 'Ajustes de áudio, vídeo (Tela Cheia) e pergaminho de batalha', 580);
+  const modalH = 490;
+  const top = (GAME_HEIGHT - modalH) / 2;
+  menuContainer = createModal(scene, 'CONFIGURA\u00c7\u00d5ES DO REINO', modalH, 'Ajustes de \u00e1udio, v\u00eddeo e joystick de batalha', 580);
   menuContainer.isMainMenu = false;
 
   // Seção 1: Áudio, Tela Cheia & Controles Mobile
   const audioBox = scene.add.graphics();
-  audioBox.fillStyle(0x221a13, 0.94).fillRoundedRect(cx - 260, 84, 520, 118, 6);
-  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, 84, 520, 118, 6);
-  audioBox.lineStyle(1, 0xc5a059, 0.6).strokeRoundedRect(cx - 258, 86, 516, 114, 4);
+  audioBox.fillStyle(0x221a13, 0.94).fillRoundedRect(cx - 260, top + 78, 520, 116, 6);
+  audioBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, top + 78, 520, 116, 6);
+  audioBox.lineStyle(1, 0xc5a059, 0.6).strokeRoundedRect(cx - 258, top + 80, 516, 112, 4);
 
-  const audioTitle = scene.add.text(cx - 240, 94, 'ÁUDIO, TELA CHEIA & JOYSTICK VIRTUAL', textStyle('#ffca28', 12));
+  const audioTitle = scene.add.text(cx - 240, top + 88, '\u00c1UDIO, TELA CHEIA & JOYSTICK VIRTUAL', textStyle('#ffca28', 11.5));
 
   // Botão 1: Áudio
-  const audioToggleBtn = scene.add.rectangle(cx - 125, 128, 230, 32, sound.isMuted() ? 0x8e1b1b : 0x247a46)
-    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const audioToggleTxt = scene.add.text(cx - 125, 128, sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]', textStyle('#ffffff', 11))
-    .setOrigin(0.5);
-
-  audioToggleBtn.on('pointerdown', () => {
+  const audioBtnGroup = createButton(scene, cx - 130, top + 124, sound.isMuted() ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]', () => {
     sound.toggleMute();
-    sound.playButtonClick();
-    audioToggleBtn.setFillStyle(sound.isMuted() ? 0x8e1b1b : 0x247a46);
-    audioToggleTxt.setText(sound.isMuted() ? 'ÁUDIO: MUTADO [M]' : 'ÁUDIO: ATIVADO [M]');
-    if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
-  });
+    updateAudioUI();
+  }, 240, 36, sound.isMuted() ? 'ui_btn_red_reg' : 'ui_btn_blue_reg');
+  const audioToggleBtn = audioBtnGroup[0];
+  const audioToggleTxt = audioBtnGroup[1];
+
+  const updateAudioUI = () => {
+    if (!audioToggleBtn.active) return;
+    const muted = sound.isMuted();
+    audioToggleBtn.baseTexture = muted ? 'ui_btn_red_reg' : 'ui_btn_blue_reg';
+    audioToggleBtn.setTexture(audioToggleBtn.baseTexture);
+    audioToggleTxt.setText(muted ? '\u00c1UDIO: MUTADO [M]' : '\u00c1UDIO: ATIVADO [M]');
+    if (hudHornIcon) hudHornIcon.setFrame(muted ? 1 : 0);
+  };
 
   // Botão 2: Tela Cheia
-  const fsToggleBtn = scene.add.rectangle(cx + 125, 128, 230, 32, isGameFullscreen(scene) ? 0x247a46 : 0x6e3d1b)
-    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const fsToggleTxt = scene.add.text(cx + 125, 128, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', textStyle('#ffffff', 11))
-    .setOrigin(0.5);
+  const fsBtnGroup = createButton(scene, cx + 130, top + 124, isGameFullscreen(scene) ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]', () => {
+    toggleFullscreen(scene);
+    scene.time.delayedCall(80, refreshFsBtn);
+  }, 240, 36);
+  const fsToggleBtn = fsBtnGroup[0];
+  const fsToggleTxt = fsBtnGroup[1];
 
   const refreshFsBtn = () => {
     if (!fsToggleBtn.active) return;
     const active = isGameFullscreen(scene);
-    fsToggleBtn.setFillStyle(active ? 0x247a46 : 0x6e3d1b);
     fsToggleTxt.setText(active ? 'TELA CHEIA: ATIVA [F]' : 'ATIVAR TELA CHEIA [F]');
   };
   menuContainer.updateMenuFullscreen = refreshFsBtn;
 
-  fsToggleBtn.on('pointerdown', () => {
-    sound.playButtonClick();
-    toggleFullscreen(scene);
-    scene.time.delayedCall(80, refreshFsBtn);
-  });
-
   // Botão 3: Ativar Joystick Virtual (Mobile / PC)
   const getJoyLabel = () => {
     const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
-    if (m === 'enabled') return 'JOYSTICK VIRTUAL: [ATIVADO]';
-    return 'JOYSTICK VIRTUAL: [DESATIVADO]';
+    return (m === 'enabled') ? 'JOYSTICK VIRTUAL: [ATIVADO]' : 'JOYSTICK VIRTUAL: [DESATIVADO]';
   };
-  const getJoyColor = () => {
-    const m = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
-    return (m === 'enabled') ? 0x247a46 : 0x8e1b1b;
-  };
+  const isJoyActive = () => (typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled') === 'enabled';
 
-  const joyToggleBtn = scene.add.rectangle(cx, 168, 480, 30, getJoyColor())
-    .setStrokeStyle(1.5, 0xc5a059).setInteractive({ useHandCursor: true });
-  const joyToggleTxt = scene.add.text(cx, 168, getJoyLabel(), textStyle('#ffffff', 11))
-    .setOrigin(0.5);
-
-  joyToggleBtn.on('pointerdown', () => {
-    sound.playButtonClick();
+  const joyBtnGroup = createButton(scene, cx, top + 166, getJoyLabel(), () => {
     const current = typeof getJoystickMode === 'function' ? getJoystickMode() : 'disabled';
     const next = current === 'enabled' ? 'disabled' : 'enabled';
     if (typeof setJoystickMode === 'function') setJoystickMode(next);
-    joyToggleBtn.setFillStyle(getJoyColor());
+    const active = isJoyActive();
+    joyToggleBtn.baseTexture = active ? 'ui_btn_blue_reg' : 'ui_btn_red_reg';
+    joyToggleBtn.setTexture(joyToggleBtn.baseTexture);
     joyToggleTxt.setText(getJoyLabel());
     if (virtualJoystick) virtualJoystick.updateVisibility();
-  });
+  }, 500, 32, isJoyActive() ? 'ui_btn_blue_reg' : 'ui_btn_red_reg');
+  const joyToggleBtn = joyBtnGroup[0];
+  const joyToggleTxt = joyBtnGroup[1];
 
   // Seção 2: Pergaminho de Dicas de Combate
   const guideBox = scene.add.graphics();
-  guideBox.fillStyle(0x1d1611, 0.94).fillRoundedRect(cx - 260, 210, 520, 192, 6);
-  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, 210, 520, 192, 6);
-  guideBox.lineStyle(1, 0xc5a059, 0.5).strokeRoundedRect(cx - 258, 212, 516, 188, 4);
+  guideBox.fillStyle(0x1d1611, 0.94).fillRoundedRect(cx - 260, top + 204, 520, 186, 6);
+  guideBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(cx - 260, top + 204, 520, 186, 6);
+  guideBox.lineStyle(1, 0xc5a059, 0.5).strokeRoundedRect(cx - 258, top + 206, 516, 182, 4);
 
-  const guideTitle = scene.add.text(cx, 220, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 12.5)).setOrigin(0.5);
+  const guideTitle = scene.add.text(cx, top + 214, 'PERGAMINHO DE COMBATE', textStyle('#ffca28', 12)).setOrigin(0.5);
   const guideLines = [
-    '• Mobile (Touch): Joystick Virtual analógico à esquerda para movimentação (ataque automático).',
-    '• Inimigos derrotados dropam Moedas de Prata durante a expedição na floresta.',
-    '• Ao encerrar a partida, suas Moedas de Prata são convertidas em Ouro Real!',
-    '• Visite a Forja do Ferreiro para desbloquear e equipar novas armas de combate.',
-    '• Visite o Santuário do Mago para aprimorar seus atributos permanentes.',
-    '• O Escudo Sagrado reflete projéteis inimigos enquanto desfere seus ataques.'
+    '\u2022 Mobile (Touch): Joystick Virtual anal\u00f3gico \u00e0 esquerda para movimenta\u00e7\u00e3o (ataque autom\u00e1tico).',
+    '\u2022 Inimigos derrotados dropam Moedas de Prata durante a expedi\u00e7\u00e3o na floresta.',
+    '\u2022 Ao encerrar a partida, suas Moedas de Prata s\u00e3o convertidas em Ouro Real!',
+    '\u2022 Visite a Forja do Ferreiro para desbloquear novas armas de combate com seu Ouro.',
+    '\u2022 Visite o Santu\u00e1rio do Mago para aprimorar seus atributos permanentes.',
+    '\u2022 O Escudo Sagrado reflete proj\u00e9teis inimigos enquanto desfere seus ataques.'
   ];
   const guideTexts = guideLines.map((txt, i) =>
-    scene.add.text(cx - 240, 240 + i * 24, txt, { ...textStyle('#d6c8aa', 10.5, 'normal'), lineSpacing: 3 })
+    scene.add.text(cx - 240, top + 232 + i * 23, txt, { ...textStyle('#d6c8aa', 10, 'normal'), lineSpacing: 3 })
   );
 
   menuContainer.add([
-    audioBox, audioTitle, audioToggleBtn, audioToggleTxt, fsToggleBtn, fsToggleTxt, joyToggleBtn, joyToggleTxt,
+    audioBox, audioTitle, ...audioBtnGroup, ...fsBtnGroup, ...joyBtnGroup,
     guideBox, guideTitle, ...guideTexts,
-    ...createButton(scene, cx, 442, 'VOLTAR', () => exitSubMenu(scene), 260, 38)
+    ...createButton(scene, cx, top + 424, 'VOLTAR', () => exitSubMenu(scene), 260, 38)
   ]);
 }
 
@@ -161,12 +155,10 @@ function showAchievementsMenu(scene) {
   menuContainer.isMainMenu = false;
 
   // Botão Rápido " SAIR [ESC]" no canto superior direito do modal
-  const closeQuickBtn = scene.add.rectangle(850, 48, 78, 28, 0x5c241b)
-    .setStrokeStyle(1.5, 0xc5a059)
-    .setInteractive({ useHandCursor: true });
+  const closeQuickBtn = scene.add.image(850, 48, 'ui_btn_red_reg').setDisplaySize(78, 28).setInteractive({ useHandCursor: true });
   const closeQuickTxt = scene.add.text(850, 48, 'SAIR', textStyle('#ffeb3b', 11)).setOrigin(0.5);
-  closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
-  closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
+  closeQuickBtn.on('pointerover', () => { closeQuickBtn.setTexture('ui_btn_red_press'); closeQuickTxt.setColor('#ffeb3b'); });
+  closeQuickBtn.on('pointerout', () => { closeQuickBtn.setTexture('ui_btn_red_reg'); closeQuickTxt.setColor('#ffffff'); });
   closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
   menuContainer.add([closeQuickBtn, closeQuickTxt]);
 
@@ -437,45 +429,62 @@ function showMainMenu(scene) {
   const subtitleTxt = scene.add.text(480, 74, 'CRÔNICAS DE ELDÓRIA - ROGUELITE DE AÇÃO', subtitleTextStyle('#e0c088', 11.5)).setOrigin(0.5);
 
   // Botões Rápidos no Canto Superior Direito: Áudio [M] e Tela Cheia [F]
-  const menuSoundBg = scene.add.graphics();
-  const drawMenuSound = (hover = false) => {
-    menuSoundBg.clear();
-    menuSoundBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.94).fillRoundedRect(844, 18, 46, 46, 8);
-    menuSoundBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(844, 18, 46, 46, 8);
-  };
-  drawMenuSound(false);
+  let menuSoundBg, menuFsBg;
+  if (scene.textures && scene.textures.exists('ui_btn_blue_sq')) {
+    menuSoundBg = scene.add.image(867, 41, 'ui_btn_blue_sq').setDisplaySize(44, 44);
+    menuFsBg = scene.add.image(921, 41, 'ui_btn_blue_sq').setDisplaySize(44, 44);
+  } else {
+    menuSoundBg = scene.add.graphics();
+    const drawMenuSound = (hover = false) => {
+      menuSoundBg.clear();
+      menuSoundBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.94).fillRoundedRect(844, 18, 46, 46, 8);
+      menuSoundBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(844, 18, 46, 46, 8);
+    };
+    drawMenuSound(false);
+    menuFsBg = scene.add.graphics();
+    const drawMenuFs = (hover = false) => {
+      menuFsBg.clear();
+      menuFsBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.94).fillRoundedRect(898, 18, 46, 46, 8);
+      menuFsBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(898, 18, 46, 46, 8);
+    };
+    drawMenuFs(false);
+  }
+
   const menuHorn = scene.add.image(867, 41, 'hud_horn', sound.isMuted() ? 1 : 0);
   const menuSoundHit = scene.add.rectangle(867, 41, 46, 46, 0x000000, 0).setInteractive({ useHandCursor: true });
   menuContainer.updateMenuHorn = () => {
     if (menuHorn && menuHorn.active) menuHorn.setFrame(sound.isMuted() ? 1 : 0);
   };
-  menuSoundHit.on('pointerover', () => drawMenuSound(true));
-  menuSoundHit.on('pointerout', () => drawMenuSound(false));
   menuSoundHit.on('pointerdown', () => {
+    if (menuSoundBg && menuSoundBg.setTexture && scene.textures.exists('ui_btn_blue_sq_press')) menuSoundBg.setTexture('ui_btn_blue_sq_press');
     sound.toggleMute();
     sound.playButtonClick();
     if (!sound.isMuted()) sound.startMenuBGM();
     menuContainer.updateMenuHorn();
     if (hudHornIcon) hudHornIcon.setFrame(sound.isMuted() ? 1 : 0);
   });
+  menuSoundHit.on('pointerup', () => {
+    if (menuSoundBg && menuSoundBg.setTexture && scene.textures.exists('ui_btn_blue_sq')) menuSoundBg.setTexture('ui_btn_blue_sq');
+  });
+  menuSoundHit.on('pointerout', () => {
+    if (menuSoundBg && menuSoundBg.setTexture && scene.textures.exists('ui_btn_blue_sq')) menuSoundBg.setTexture('ui_btn_blue_sq');
+  });
 
-  const menuFsBg = scene.add.graphics();
-  const drawMenuFs = (hover = false) => {
-    menuFsBg.clear();
-    menuFsBg.fillStyle(hover ? 0x2e241c : 0x14100c, 0.94).fillRoundedRect(898, 18, 46, 46, 8);
-    menuFsBg.lineStyle(2, hover ? 0xffca28 : 0xc5a059).strokeRoundedRect(898, 18, 46, 46, 8);
-  };
-  drawMenuFs(false);
   const menuFsIcon = scene.add.image(921, 41, 'hud_fullscreen', isGameFullscreen(scene) ? 1 : 0);
   const menuFsHit = scene.add.rectangle(921, 41, 46, 46, 0x000000, 0).setInteractive({ useHandCursor: true });
   menuContainer.updateMenuFullscreen = () => {
     if (menuFsIcon && menuFsIcon.active) menuFsIcon.setFrame(isGameFullscreen(scene) ? 1 : 0);
   };
-  menuFsHit.on('pointerover', () => drawMenuFs(true));
-  menuFsHit.on('pointerout', () => drawMenuFs(false));
   menuFsHit.on('pointerdown', () => {
+    if (menuFsBg && menuFsBg.setTexture && scene.textures.exists('ui_btn_blue_sq_press')) menuFsBg.setTexture('ui_btn_blue_sq_press');
     sound.playButtonClick();
     toggleFullscreen(scene);
+  });
+  menuFsHit.on('pointerup', () => {
+    if (menuFsBg && menuFsBg.setTexture && scene.textures.exists('ui_btn_blue_sq')) menuFsBg.setTexture('ui_btn_blue_sq');
+  });
+  menuFsHit.on('pointerout', () => {
+    if (menuFsBg && menuFsBg.setTexture && scene.textures.exists('ui_btn_blue_sq')) menuFsBg.setTexture('ui_btn_blue_sq');
   });
 
   // 6. PAINEL DE MISSÕES & AÇÕES DA CORTE (LADO DIREITO: x: 530..910, y: 120..495)
@@ -1049,14 +1058,13 @@ function showBlacksmithMenu(scene) {
   const coinSprite = scene.add.sprite(738, 32, 'gold_coin').play('gold_coin').setScale(1.2);
   const goldValTxt = scene.add.text(758, 32, `${getGold()}G`, textStyle('#ffd740', 13, 'bold')).setOrigin(0, 0.5);
 
-  const closeQuickBtn = scene.add.rectangle(905, 32, 70, 30, 0x5c241b)
-    .setStrokeStyle(1.5, 0xc5a059)
+  const closeQuickBtn = scene.add.image(905, 32, 'ui_btn_red_reg').setDisplaySize(74, 32)
     .setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(905, 32, 'SAIR', textStyle('#ffeb3b', 11, 'bold')).setOrigin(0.5);
+  const closeQuickTxt = scene.add.text(905, 32, 'SAIR', buttonTextStyle('#ffffff', 11)).setOrigin(0.5);
 
-  closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
-  closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
-  closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
+  closeQuickBtn.on('pointerover', () => { closeQuickBtn.setTexture('ui_btn_red_press'); closeQuickTxt.setColor('#ffeb3b'); });
+  closeQuickBtn.on('pointerout', () => { closeQuickBtn.setTexture('ui_btn_red_reg'); closeQuickTxt.setColor('#ffffff'); });
+  closeQuickBtn.on('pointerdown', () => { sound.playButtonClick(); exitSubMenu(scene); });
 
   // ---------------------------------------------------------------------------
   // 10. BANCADA DA OFICINA DE ARMAS: ESTEIRA DE COURO PESPONTADO PARA AS CARTAS
@@ -1187,18 +1195,20 @@ function showBlacksmithMenu(scene) {
     const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
     if (!isUnlocked) icon.setTint(0x555555);
 
-    const nameTxt = scene.add.text(cx, startY + 92, cfg.name, {
-      ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 12.5, 'bold'),
-      align: 'center'
+                const nameTxt = scene.add.text(cx, startY + 90, cfg.name, {
+      ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 12, 'bold'),
+      align: 'center',
+      wordWrap: { width: cardW - 14, useAdvancedWrap: true }
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 16, 18, 9.5);
+    fitTextToBox(nameTxt, cardW - 14, 28, 9.5);
 
     const badgeBg = scene.add.rectangle(cx, startY + 114, cardW - 24, 18, isStarter ? 0x2e5c26 : (isUnlocked ? 0x3d2919 : 0x221a14))
       .setStrokeStyle(1, isStarter ? 0x76ff03 : (isUnlocked ? 0xc5a059 : 0x6e5233));
     const badgeTxt = scene.add.text(cx, startY + 114, weaponArchetypes[key] || 'ARMA REAL', {
-      ...roundedTextStyle(isStarter ? '#b9f6ca' : (isUnlocked ? '#ffe082' : '#a8987b'), 9, 'bold'),
+      ...roundedTextStyle(isStarter ? '#b9f6ca' : (isUnlocked ? '#ffe082' : '#a8987b'), 8.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
+    fitTextToBox(badgeTxt, cardW - 28, 16, 8.5);
 
     const descStr = weaponStyles[key] || cfg.forgeLore || '';
     const descTxt = scene.add.text(cx, startY + 164, descStr, {
@@ -1215,25 +1225,24 @@ function showBlacksmithMenu(scene) {
 
     cardHit.on('pointerover', () => {
       drawCard(true);
-      smithSpeechTxt.setText(weaponDialogues[key] || '“Excelente escolha, guerreiro!”');
+      smithSpeechTxt.setText(weaponDialogues[key] || '"Excelente escolha, guerreiro!"');
     });
     cardHit.on('pointerout', () => {
       drawCard(false);
-      smithSpeechTxt.setText('“O fogo forja o aço! Escolha seu armamento para a batalha.”');
+      smithSpeechTxt.setText('"O fogo forja o ao! Escolha seu armamento para a batalha."');
     });
 
     const btnX = cx, btnY = startY + cardH - 24, btnW = cardW - 24, btnH = 34;
-    let actionBtn, actionTxt;
 
     if (!isUnlocked) {
       const cost = cfg.unlockCost || 25;
       const canAfford = getGold() >= cost;
 
-      actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x246b3d : 0x3b2c22)
+      const actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x246b3d : 0x3b2c22)
         .setStrokeStyle(2, canAfford ? 0xffca28 : 0x6e5846)
         .setInteractive({ useHandCursor: canAfford });
 
-      actionTxt = scene.add.text(btnX, btnY, `FORJAR (${cost}G)`, {
+      const actionTxt = scene.add.text(btnX, btnY, 'FORJAR (' + cost + 'G)', {
         ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 11, 'bold'),
         align: 'center'
       }).setOrigin(0.5);
@@ -1264,44 +1273,48 @@ function showBlacksmithMenu(scene) {
         addGold(-cost);
         const curr = getUpgrades();
         curr[key].unlocked = true;
+        curr[key].level = 1;
         curr.starterWeapon = key;
         saveUpgrades(curr);
         sound.playItemCollect();
         sound.playCoin();
         showBlacksmithMenu(scene);
-        floatText(scene, btnX, btnY - 24, `${cfg.name} FORJADA!`, '#ffd740');
+        floatText(scene, btnX, btnY - 24, cfg.name + ' FORJADA!', '#ffd740');
       });
-    } else {
-      actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, isStarter ? 0x1f4724 : 0x543217)
-        .setStrokeStyle(2, isStarter ? 0xffca28 : 0xc5a059)
-        .setInteractive({ useHandCursor: true });
 
-      actionTxt = scene.add.text(btnX, btnY, isStarter ? ' EM USO' : 'EQUIPAR', {
+      menuContainer.add([cardGfx, cardHit, icon, nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
+    } else {
+      const actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, isStarter ? 0x1f4724 : 0x543217)
+        .setStrokeStyle(2, isStarter ? 0xffca28 : 0xc5a059)
+        .setInteractive({ useHandCursor: !isStarter });
+
+      const actionTxt = scene.add.text(btnX, btnY, isStarter ? 'EM USO' : 'EQUIPAR', {
         ...roundedTextStyle(isStarter ? '#ffd740' : '#ffffff', 11, 'bold'),
         align: 'center'
       }).setOrigin(0.5);
       fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
 
-      actionBtn.on('pointerover', () => {
-        actionBtn.setFillStyle(isStarter ? 0x27592e : 0x6d401e);
-        if (!isStarter) actionTxt.setColor('#ffd740');
-      });
-      actionBtn.on('pointerout', () => {
-        actionBtn.setFillStyle(isStarter ? 0x1f4724 : 0x543217);
-        actionTxt.setColor(isStarter ? '#ffd740' : '#ffffff');
-      });
+      if (!isStarter) {
+        actionBtn.on('pointerover', () => {
+          actionBtn.setFillStyle(0x6d401e);
+          actionTxt.setColor('#ffd740');
+        });
+        actionBtn.on('pointerout', () => {
+          actionBtn.setFillStyle(0x543217);
+          actionTxt.setColor('#ffffff');
+        });
+        actionBtn.on('pointerdown', () => {
+          sound.playButtonClick();
+          const curr = getUpgrades();
+          curr.starterWeapon = key;
+          saveUpgrades(curr);
+          showBlacksmithMenu(scene);
+          floatText(scene, cx, startY + 114, cfg.name + ' SER\u00c1 SUA INICIAL!', '#7fe7ff');
+        });
+      }
 
-      actionBtn.on('pointerdown', () => {
-        sound.playButtonClick();
-        const curr = getUpgrades();
-        curr.starterWeapon = key;
-        saveUpgrades(curr);
-        showBlacksmithMenu(scene);
-        floatText(scene, btnX, btnY - 24, `${cfg.name} SERÁ SUA INICIAL!`, '#7fe7ff');
-      });
+      menuContainer.add([cardGfx, cardHit, icon, nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
     }
-
-    menuContainer.add([cardGfx, cardHit, icon, nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
   });
 
   // ---------------------------------------------------------------------------
@@ -1656,18 +1669,18 @@ function showMageShopMenu(scene) {
   drawCornerArabesque(927, 512, -1, -1);
 
   // Divisores verticais de ouro exatamente nos pontos médios entre as cartas (x: 250, 480, 710)
-  [250, 480, 710].forEach(divX => {
+  [204, 388, 572, 756].forEach(divX => {
     tableClothArt.lineStyle(1.5, 0xc5a059, 0.45).lineBetween(divX, 266, divX, 512);
     tableClothArt.fillStyle(0xffca28, 0.85).fillCircle(divX, 388, 3.5);
     tableClothArt.fillStyle(0xffd700, 1).fillCircle(divX, 388, 1.8);
     tableClothArt.lineStyle(1.5, 0xffca28, 0.8).lineBetween(divX - 6, 388, divX + 6, 388);
   });
 
-  // Alvéolos / Esteiras para as cartas
-  const cardW = 210;
+  // Alveolos / Esteiras para as 5 cartas
+  const cardW = 168;
   const cardH = 266;
-  const startY = 252;
-  const cardLefts = [30, 260, 490, 720];
+  const startY = 250;
+  const cardLefts = [28, 212, 396, 580, 764];
 
   cardLefts.forEach(cLeft => {
     tableClothArt.fillStyle(0x0e0414, 0.8).fillRoundedRect(cLeft - 3, startY + 6, cardW + 6, cardH - 4, 10);
@@ -1741,13 +1754,12 @@ function showMageShopMenu(scene) {
   const goldValTxt = scene.add.text(754, 25, `${getGold()}G`, textStyle('#ffd740', 13)).setOrigin(0, 0.5);
 
   // Botão Sair
-  const closeQuickBtn = scene.add.rectangle(895, 25, 64, 28, 0x5c241b)
-    .setStrokeStyle(1.5, 0xc5a059)
+  const closeQuickBtn = scene.add.image(895, 25, 'ui_btn_red_reg').setDisplaySize(70, 30)
     .setInteractive({ useHandCursor: true });
-  const closeQuickTxt = scene.add.text(895, 25, 'SAIR', textStyle('#ffeb3b', 10.5)).setOrigin(0.5);
-  closeQuickBtn.on('pointerover', () => closeQuickBtn.setFillStyle(0x8e2a1b));
-  closeQuickBtn.on('pointerout', () => closeQuickBtn.setFillStyle(0x5c241b));
-  closeQuickBtn.on('pointerdown', () => exitSubMenu(scene));
+  const closeQuickTxt = scene.add.text(895, 25, 'SAIR', buttonTextStyle('#ffffff', 10.5)).setOrigin(0.5);
+  closeQuickBtn.on('pointerover', () => { closeQuickBtn.setTexture('ui_btn_red_press'); closeQuickTxt.setColor('#ffeb3b'); });
+  closeQuickBtn.on('pointerout', () => { closeQuickBtn.setTexture('ui_btn_red_reg'); closeQuickTxt.setColor('#ffffff'); });
+  closeQuickBtn.on('pointerdown', () => { sound.playButtonClick(); exitSubMenu(scene); });
 
   // ADICIONA AS CAMADAS EM ORDEM PRECISA (MAGO ATRÁS DO BALCÃO):
   menuContainer.add([
@@ -1766,7 +1778,7 @@ function showMageShopMenu(scene) {
   // 7. SHOWCASE DOS 4 STATUS: CARTAS INTERATIVAS COM BOTÕES DE COMPRA 100% FUNCIONAIS
   // ---------------------------------------------------------------------------
   const statusUpgrades = getStatusUpgrades();
-  const statusKeys = ['maxHp', 'moveSpeed', 'magnet', 'wisdom'];
+  const statusKeys = ['maxHp', 'moveSpeed', 'magnet', 'wisdom', 'backpack'];
 
   const statusDialogues = {
     maxHp: '“O Elixir da Vitalidade do Titã! Cada gota fortalece seu coração para aguentar os golpes mais rudes.”',
@@ -1783,6 +1795,10 @@ function showMageShopMenu(scene) {
   };
 
   statusKeys.forEach((key, idx) => {
+    if (key === 'backpack') {
+      renderMageBackpackCard(scene, idx, cardLefts[idx], cardW, cardH, startY, mageSpeechTxt);
+      return;
+    }
     const cfg = STATUS_CATALOG[key];
     if (!cfg) return;
     const maxLvl = cfg.maxLevel || 5;
@@ -1985,4 +2001,123 @@ function showMageShopMenu(scene) {
   };
   scene.input.keyboard.on('keydown', onEsc);
   menuContainer.on('destroy', () => scene.input.keyboard.off('keydown', onEsc));
+}
+
+
+function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTxt) {
+  const cx = left + cardW / 2;
+  const defeatedBoss = typeof hasDefeatedBossOnce === 'function' ? hasDefeatedBossOnce() : false;
+  const unlocked = typeof hasBackpack === 'function' ? hasBackpack() : false;
+
+  const cardGfx = scene.add.graphics();
+  const drawCard = (hover = false) => {
+    cardGfx.clear();
+    cardGfx.fillStyle(0x000000, 0.45).fillCircle(cx, startY + 5, 5);
+    cardGfx.fillStyle(unlocked ? 0xffca28 : (defeatedBoss ? 0x7c4dff : 0x4a148c), 1).fillCircle(cx, startY + 4, 3.5);
+
+    cardGfx.fillStyle(hover ? 0xfffcf2 : (unlocked ? 0xfff6dd : (defeatedBoss ? 0xf8efe0 : 0x1f142b)), 0.99)
+      .fillRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
+    cardGfx.lineStyle(2, hover ? 0xffca28 : (unlocked ? 0xffc107 : (defeatedBoss ? 0x7c4dff : 0x4a2e5c)))
+      .strokeRoundedRect(left, startY + 8, cardW, cardH - 8, 8);
+    cardGfx.lineStyle(1, hover ? 0xffd54f : (unlocked ? 0xffca28 : 0xba68c8), 0.65)
+      .strokeRoundedRect(left + 3, startY + 11, cardW - 6, cardH - 14, 6);
+
+    cardGfx.fillStyle(0x130a1c, 1).fillCircle(cx, startY + 54, 25);
+    cardGfx.lineStyle(1.5, unlocked ? 0xffca28 : (defeatedBoss ? 0xba68c8 : 0x4a2e5c)).strokeCircle(cx, startY + 54, 25);
+  };
+  drawCard(false);
+
+  const icon = scene.add.image(cx, startY + 54, 'ui_wood_slots').setDisplaySize(42, 42);
+  const lockStr = unlocked ? 'OK' : (defeatedBoss ? 'MOCHILA' : 'BLOQ.');
+  const lockIcon = scene.add.text(cx, startY + 54, lockStr, textStyle(unlocked ? '#ffd740' : (defeatedBoss ? '#ba68c8' : '#8d5524'), 9.5)).setOrigin(0.5);
+
+  const titleTxt = scene.add.text(cx, startY + 92, 'MOCHILA DE ARMAS', {
+    ...parchmentTitleStyle(unlocked ? '#8c4e03' : (defeatedBoss ? '#221226' : '#ce93d8'), 11.5, 'bold'),
+    align: 'center'
+  }).setOrigin(0.5);
+  fitTextToBox(titleTxt, cardW - 16, 18, 9);
+
+  const badgeBg = scene.add.rectangle(cx, startY + 132, cardW - 38, 18, unlocked ? 0xfff3e0 : (defeatedBoss ? 0xf3e5f5 : 0x2e1c3b))
+    .setStrokeStyle(1, unlocked ? 0xffb74d : (defeatedBoss ? 0xce93d8 : 0x7c4dff));
+  const badgeTxt = scene.add.text(cx, startY + 132, unlocked ? 'DESBLOQUEADO' : (defeatedBoss ? 'ITEM ESPECIAL' : 'BLOQUEADO'), {
+    ...roundedTextStyle(unlocked ? '#e65100' : (defeatedBoss ? '#6a1b9a' : '#b388ff'), 9.5, 'bold'),
+    align: 'center'
+  }).setOrigin(0.5);
+
+  const descString = unlocked
+    ? 'Slot de reserva ativo em todas as suas expedicoes! Armas extras ficam congeladas.'
+    : (defeatedBoss
+        ? 'Adiciona 1 slot de reserva! A 2a arma fica congelada ate a arma da mao quebrar.'
+        : 'Derrote o Golem Ancestral de Pedra para revelar esta reliquia especial!');
+
+  const descTxt = scene.add.text(cx, startY + 174, descString, {
+    ...parchmentBodyStyle(defeatedBoss ? '#321b38' : '#b388ff', 10, 'normal'),
+    align: 'center',
+    lineSpacing: 2,
+    wordWrap: { width: cardW - 20, useAdvancedWrap: true }
+  }).setOrigin(0.5);
+  fitTextToBox(descTxt, cardW - 18, 62, 8);
+
+  const cardHit = scene.add.rectangle(cx, startY + 8 + (cardH - 52) / 2, cardW, cardH - 52, 0x000000, 0)
+    .setInteractive({ useHandCursor: true });
+  cardHit.on('pointerover', () => {
+    drawCard(true);
+    speechTxt.setText(unlocked
+      ? 'Sua Mochila de Armas esta ativa! Um verdadeiro mestre do combate nunca fica desarmado!'
+      : (defeatedBoss
+          ? 'A lendaria Mochila de Armas! Permite guardar uma arma congelada na reserva enquanto luta!'
+          : 'Apenas guerreiros que domaram o Golem de Pedra sao dignos de tocar nesta reliquia!'));
+  });
+  cardHit.on('pointerout', () => {
+    drawCard(false);
+    speechTxt.setText('Beba dos meus elixires e seu poder ecoara em cada batalha!');
+  });
+
+  const btnX = cx;
+  const btnY = startY + cardH - 24;
+  const btnW = cardW - 24;
+  const btnH = 34;
+
+  let actionBtn, actionTxt;
+  if (unlocked) {
+    actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x2e2314).setStrokeStyle(1.5, 0xffca28);
+    actionTxt = scene.add.text(btnX, btnY, 'ADQUIRIDO', { ...roundedTextStyle('#ffd740', 11, 'bold'), align: 'center' }).setOrigin(0.5);
+  } else if (!defeatedBoss) {
+    actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, 0x1f142b).setStrokeStyle(1.5, 0x4a2e5c);
+    actionTxt = scene.add.text(btnX, btnY, 'BLOQUEADO', { ...roundedTextStyle('#7a638a', 10, 'bold'), align: 'center' }).setOrigin(0.5);
+  } else {
+    const cost = 75; // GDD v1.0: Mochila de Armas custa 75 Ouros cravados
+    const canAfford = getGold() >= cost;
+    actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, canAfford ? 0x4a148c : 0x2e1c3b)
+      .setStrokeStyle(2, canAfford ? 0xba68c8 : 0x4a2e5c)
+      .setInteractive({ useHandCursor: canAfford });
+    actionTxt = scene.add.text(btnX, btnY, 'COMPRAR (75G)', {
+      ...roundedTextStyle(canAfford ? '#ffffff' : '#8c7b6b', 10.5, 'bold'),
+      align: 'center'
+    }).setOrigin(0.5);
+    fitTextToBox(actionTxt, btnW - 8, btnH - 6, 8.5);
+
+    actionBtn.on('pointerover', () => {
+      if (getGold() >= cost) { actionBtn.setFillStyle(0x6a1b9a); actionTxt.setColor('#ffeb3b'); }
+    });
+    actionBtn.on('pointerout', () => {
+      const still = getGold() >= cost;
+      actionBtn.setFillStyle(still ? 0x4a148c : 0x2e1c3b);
+      actionTxt.setColor(still ? '#ffffff' : '#8c7b6b');
+    });
+    actionBtn.on('pointerdown', () => {
+      if (getGold() < cost) {
+        sound.playShieldBlock();
+        floatText(scene, btnX, btnY - 20, 'OURO INSUFICIENTE!', '#ff5252');
+        return;
+      }
+      addGold(-cost);
+      if (typeof setBackpack === 'function') setBackpack(true);
+      sound.playBuy();
+      showMageShopMenu(scene);
+      floatText(scene, btnX, btnY - 24, 'MOCHILA DE ARMAS DESBLOQUEADA!', '#ffd740');
+    });
+  }
+
+  menuContainer.add([cardGfx, cardHit, icon, lockIcon, titleTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
 }

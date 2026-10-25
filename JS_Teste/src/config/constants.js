@@ -12,7 +12,7 @@ const GAME_HEIGHT = 540;
 // AJUSTES DO JOGO (Rebalanceamento v1.6.0: Progressão Infinita e Curva Suave)
 // =============================================================================
 const PLAYER_SPEED = 280;
-const BUFF_TIME = { bow: 6.0, shield: 4.8, sword: 6.0, axe: 6.2, firestaff: 6.0 }; // duração base Nv.1 (s)
+const BUFF_TIME = { bow: 10.0, shield: 10.0, sword: 10.0, axe: 10.0, firestaff: 10.0 }; // duração base GDD v1.0: 10s cravados
 const ATTACK_RATE = { bow: 520, sword: 480, axe: 600, firestaff: 650 };            // cadência base Nv.1 reduzida (ms)
 const BUFF_NAMES = {
   bow: 'ARCO REAL',
@@ -41,5 +41,7 @@ const STORAGE_UPGRADES_KEY = 'knight_quest_upgrades_v1';
 const STORAGE_STATUS_KEY = 'knight_quest_status_v1';
 const STORAGE_ACHIEVEMENTS_KEY = 'knight_quest_achievements_v1';
 const STORAGE_JOYSTICK_KEY = 'knight_quest_joystick_mode_v1';
+const STORAGE_BACKPACK_KEY = 'knight_quest_backpack_v1';
+const STORAGE_BOSS_DEFEATED_KEY = 'knight_quest_boss_defeated_v1';
 
 // Catálogo do Ferreiro (Apenas Desbloqueio no Menu; os Níveis 1 a 5 evoluem IN-GAME via XP Level Up!)

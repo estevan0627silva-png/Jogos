@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // DIRETOR DO MUNDO: ONDAS DE SPAWN, VILA INICIAL E ELEMENTOS AMBIENTAIS
 // =============================================================================
 // SPAWNS & BOSS FIGHT (60 SEGUNDOS)
@@ -80,10 +80,17 @@ function startGameplay(scene) {
   runLevel = 1;
   xpToNextLevel = getXpRequiredForLevel(1);
   pendingLevelUps = 0;
-  runWeaponLevels = { bow: 1, sword: 1, shield: 1, axe: 1, firestaff: 1 };
+  const up = typeof StorageManager !== 'undefined' ? StorageManager.getUpgrades() : {};
+  runWeaponLevels = {
+    bow: up.bow?.level || 1,
+    sword: up.sword?.level || 1,
+    shield: up.shield?.level || 1,
+    axe: up.axe?.level || 1,
+    firestaff: up.firestaff?.level || 1
+  };
   chosenScrolls = [];
   chosenScroll = null;
-  scrollLevels = { multishot: 0, growth: 0, attackspeed: 0 };
+  scrollLevels = { multishot: 0, growth: 0, attackspeed: 0, duration: 0 };
   if (typeof updateScrollHUD === 'function') updateScrollHUD();
   clearFirePools();
   enemySpeed = 195;
@@ -131,7 +138,7 @@ function startGameplay(scene) {
   spawnStartingVillage(scene);
 
   // Se o jogador selecionou uma Relíquia Favorita na Forja do Ferreiro, ela aguarda no portão!
-  const up = getUpgrades();
+  // starter weapon check
   if (up.starterWeapon && up[up.starterWeapon]?.unlocked) {
     const starter = items.create(475, 285, 'item_' + up.starterWeapon);
     starter.lootType = up.starterWeapon;
@@ -147,7 +154,7 @@ function startGameplay(scene) {
     }
     if (survivalTime >= nextHordeTime && (!activeBoss || !activeBoss.active)) {
       hordeCycleCount++;
-      nextHordeTime = survivalTime + 30;
+      nextHordeTime = survivalTime + 45;
       triggerSpecialHorde(scene, hordeCycleCount);
     }
     if (survivalTime === 52 && !bossSpawned) {
@@ -160,6 +167,8 @@ function startGameplay(scene) {
 
   // Director Dinâmico: ajusta velocidade e intervalo progressivamente ao longo da Run
   every(4000, () => {
+    // GDD v1.0 Section 6: Durante o Boss, o aumento de dificuldade congela temporariamente
+    if (activeBoss && activeBoss.active) return;
     if (survivalTime < 20) {
       enemySpeed = Math.min(205, enemySpeed + 2);
       spawnDelay = Math.max(950, spawnDelay - 30);
@@ -287,6 +296,14 @@ function triggerSpecialHorde(scene, cycle) {
   const isDenseGoblin = (cycle % 2 === 1);
   sound.playEarthSmash();
   scene.cameras.main.shake(260, 0.008);
+
+  if (scene.anims && scene.anims.exists('anim_vfx_warning_yellow')) {
+    const warnSprite = scene.add.sprite(GAME_WIDTH / 2, 70, 'vfx_warning_yellow')
+      .setDepth(2100)
+      .setScale(0.85)
+      .play('anim_vfx_warning_yellow');
+    scene.time.delayedCall(1600, () => { if (warnSprite && warnSprite.active) warnSprite.destroy(); });
+  }
 
   if (isDenseGoblin) {
     // Ciclo Ãmpar (1, 3, 5...): Horda Densa de Goblins simples
