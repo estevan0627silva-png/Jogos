@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // GERENCIADOR DE DROPS, XP, MOEDAS E ATRAÇÃO MAGNÉTICA
 // =============================================================================
 function spawnXpOrb(scene, x, y, xpValue = 2) {
@@ -32,10 +32,6 @@ function collectXpOrb(scene, orb) {
   sound.playXpOrb();
   events.emit(GameEvents.XP_GAINED, { amount: gained, x: ox, y: oy });
   hitFx.explode(4, ox, oy);
-  if (orb.magnetized && scene && scene.anims && scene.anims.exists('anim_vfx_absorb')) {
-    const abs = scene.add.sprite(player.x, player.y, 'vfx_absorb').play('anim_vfx_absorb').setScale(0.6).setDepth(player.depth + 1);
-    abs.once('animationcomplete', () => { if (abs && abs.active) abs.destroy(); });
-  }
   removeEntity(orb);
   gainXp(scene, gained);
 }

@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // DIRETOR DO MUNDO: ONDAS DE SPAWN, VILA INICIAL E ELEMENTOS AMBIENTAIS
 // =============================================================================
 // SPAWNS & BOSS FIGHT (60 SEGUNDOS)
@@ -297,18 +297,27 @@ function triggerSpecialHorde(scene, cycle) {
   sound.playEarthSmash();
   scene.cameras.main.shake(260, 0.008);
 
+  const wx = (player && player.active) ? player.x : (GAME_WIDTH / 2);
+  const wy = (player && player.active) ? (player.y - 48) : 70;
   if (scene.anims && scene.anims.exists('anim_vfx_warning_yellow')) {
-    const warnSprite = scene.add.sprite(GAME_WIDTH / 2, 70, 'vfx_warning_yellow')
-      .setDepth(2100)
-      .setScale(0.85)
+    const warnSprite = scene.add.sprite(wx, wy, 'vfx_warning_yellow')
+      .setDepth(2600)
+      .setScale(0.7)
       .play('anim_vfx_warning_yellow');
-    scene.time.delayedCall(1600, () => { if (warnSprite && warnSprite.active) warnSprite.destroy(); });
+    scene.tweens.add({
+      targets: warnSprite,
+      y: wy - 28,
+      alpha: { from: 1, to: 0.8 },
+      duration: 1600,
+      ease: 'Quad.easeOut',
+      onComplete: () => { if (warnSprite && warnSprite.active) warnSprite.destroy(); }
+    });
   }
 
   if (isDenseGoblin) {
     // Ciclo Ãmpar (1, 3, 5...): Horda Densa de Goblins simples
     const count = 9 + Math.floor((cycle - 1) * 2.5);
-    floatText(scene, GAME_WIDTH / 2, 120, 'HORDA DENSA DE GOBLINS (' + count + ')!', '#ff5252');
+    floatText(scene, wx, wy - 24, 'HORDA DENSA DE GOBLINS (' + count + ')!', '#ff5252');
 
     for (let i = 0; i < count; i++) {
       scene.time.delayedCall(i * 125, () => {

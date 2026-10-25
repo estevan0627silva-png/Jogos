@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // INTERFACE DE JOGO (HUD): VIDA, EXPERIÊNCIA, TEMPO, OURO E ITENS (16:9 WIDESCREEN)
 // DESIGN: DARK FANTASY MEDIEVAL RPG UI KIT (INSPIRADO EM PERGAMINHO, FERRO & OURO NOBRE)
 // =============================================================================
@@ -242,7 +242,8 @@ function createHUD(scene) {
   const slotFrame = scene.add.image(326, 34, "ui_wood_slots").setDisplaySize(34, 34);
   hudBackpackSlot = scene.add.image(364, 34, "ui_wood_slots").setDisplaySize(34, 34);
   hudBackpackIcon = scene.add.image(364, 34, "item_bow").setDisplaySize(22, 22).setVisible(false);
-  hudBackpackLock = scene.add.text(364, 34, "BLOQ.", textStyle("#8d5524", 9)).setOrigin(0.5);
+  hudBackpackLock = scene.add.text(364, 34, "BLOQ.", textStyle("#8d5524", 9)).setOrigin(0.5).setVisible(false);
+  hudBackpackPadlock = scene.add.image(364, 34, "ui_padlock").setDisplaySize(14, 20).setVisible(true);
 
   hudItemIcon = scene.add.image(326, 34, "item_bow").setDisplaySize(22, 22).setVisible(false);
   hudItemName = scene.add.text(388, 22, "SEM ARMA", textStyle("#7a7265", 10)).setOrigin(0, 0.5);
@@ -257,7 +258,7 @@ function createHUD(scene) {
   hudScrollTexts = [txt1, txt2];
   hudScrollBadge = badge1;
   hudScrollText = txt1;
-  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudBackpackSlot, hudBackpackIcon, hudBackpackLock, hudItemName, hudItemBarBase, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
+  hudContainer.add([itemBg, slotFrame, hudItemIcon, hudBackpackSlot, hudBackpackIcon, hudBackpackLock, hudBackpackPadlock, hudItemName, hudItemBarBase, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
 
   // 4. PAINEL DE RECORDE DO REINO (x: 540..648)
   const bestBg = scene.add.image(574, 10, "ui_hud_panel_record").setOrigin(0, 0).setDisplaySize(108, 48);

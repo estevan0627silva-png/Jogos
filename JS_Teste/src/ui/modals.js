@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // COMPONENTES DE INTERFACE: BOTÕES, MODAIS, DRAFT DE LEVEL UP, PAUSA E RECORDES
 // =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
@@ -280,10 +280,6 @@ function openLevelUpDraft(scene) {
 
     card.apply(scene);
     if (scene && scene.anims && player && player.active) {
-      if (scene.anims.exists('anim_vfx_haste')) {
-        const haste = scene.add.sprite(player.x, player.y - 10, 'vfx_haste').play('anim_vfx_haste').setScale(0.8).setDepth(player.depth + 2);
-        haste.once('animationcomplete', () => { if (haste && haste.active) haste.destroy(); });
-      }
       if (scene.anims.exists('anim_vfx_levelup_text')) {
         const lvlText = scene.add.sprite(player.x, player.y - 48, 'vfx_levelup_text').play('anim_vfx_levelup_text').setScale(0.65).setDepth(2600);
         lvlText.once('animationcomplete', () => { if (lvlText && lvlText.active) lvlText.destroy(); });
@@ -422,10 +418,10 @@ function createModal(scene, titleText, height, subtitleText = '', width = 520) {
 
   const frame = scene.add.graphics();
   // Fundo interno sutil em madeira escura acetinada (deixa as bordas da ui_wood_table 100% visíveis)
-  frame.fillStyle(0x16100b, 0.85).fillRoundedRect(left + 14, top + 14, width - 28, height - 28, 8);
+  frame.fillStyle(0x16100b, 0.95).fillRoundedRect(left + 22, top + 22, width - 44, height - 44, 8);
   // Moldura interna em couro nobre e filete dourado
-  frame.lineStyle(2, 0x8d5524, 0.85).strokeRoundedRect(left + 14, top + 14, width - 28, height - 28, 8);
-  frame.lineStyle(1, 0xc5a059, 0.75).strokeRoundedRect(left + 16, top + 16, width - 32, height - 32, 6);
+  frame.lineStyle(2, 0x8d5524, 0.9).strokeRoundedRect(left + 22, top + 22, width - 44, height - 44, 8);
+  frame.lineStyle(1, 0xc5a059, 0.65).strokeRoundedRect(left + 24, top + 24, width - 48, height - 48, 6);
 
   // Faixa de título com o ribbon amarelo autêntico do Tiny Swords
   const ribbonW = Math.min(width - 24, 460);
@@ -528,7 +524,10 @@ function showPauseModal(scene) {
   pauseModal = createModal(scene, '\u2694 JOGO PAUSADO \u2694', height, 'JORNADA EM ESPERA', 480);
 
   // Status de sobrevivencia, prata e reliquia em painel de madeira Tiny Swords
-  const statsPanel = scene.add.image(cx, top + 102, 'ui_hud_panel_weapon').setDisplaySize(410, 48);
+  const statsPlate = scene.add.graphics();
+  statsPlate.fillStyle(0x0e0b08, 0.88).fillRoundedRect(cx - 200, top + 78, 400, 46, 6);
+  statsPlate.lineStyle(1.5, 0x8d5524, 0.9).strokeRoundedRect(cx - 200, top + 78, 400, 46, 6);
+  statsPlate.lineStyle(1, 0xc5a059, 0.45).strokeRoundedRect(cx - 198, top + 80, 396, 42, 4);
 
   const timeTxt = scene.add.text(cx, top + 92, 'TEMPO: ' + survivalTime + 's  |  PRATA: ' + runSilver + '  |  OURO: ' + getGold(), textStyle('#ffca28', 11.5, 'bold')).setOrigin(0.5);
   fitTextToBox(timeTxt, 390, 18, 10);
@@ -581,7 +580,7 @@ function showPauseModal(scene) {
   const footerHint = scene.add.text(cx, top + 372, 'Pausar / Retornar: Tecla [P] ou [ESC]', textStyle('#e0c088', 10.5)).setOrigin(0.5);
 
   pauseModal.add([
-    statsPanel, timeTxt, relicTxt,
+    statsPlate, timeTxt, relicTxt,
     ...continueBtn,
     ...audioBtnGroup,
     ...fsBtnGroup,
@@ -616,11 +615,11 @@ function showInitials(scene) {
 
   // Bounding Box interna com limites estritos para o resumo e conversão Prata -> Ouro
   const summaryBox = scene.add.graphics();
-  summaryBox.fillStyle(0x1f1711, 0.96).fillRoundedRect(boxLeft, top + 80, boxW, 132, 8);
-  summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(boxLeft, top + 80, boxW, 132, 8);
-  summaryBox.lineStyle(1, 0xc5a059, 0.35).lineBetween(boxLeft + 20, top + 114, boxLeft + boxW - 20, top + 114);
+  summaryBox.fillStyle(0x1f1711, 0.96).fillRoundedRect(boxLeft, top + 88, boxW, 132, 8);
+  summaryBox.lineStyle(1.5, 0x8d5524).strokeRoundedRect(boxLeft, top + 88, boxW, 132, 8);
+  summaryBox.lineStyle(1, 0xc5a059, 0.35).lineBetween(boxLeft + 20, top + 122, boxLeft + boxW - 20, top + 122);
 
-  const braveryTxt = scene.add.text(cx, top + 97, `Tempo de bravura em combate: ${survivalTime}s`, {
+  const braveryTxt = scene.add.text(cx, top + 105, `Tempo de bravura em combate: ${survivalTime}s`, {
     ...textStyle('#f5e6c8', 14),
     align: 'center',
     wordWrap: { width: boxW - 28, useAdvancedWrap: true }
@@ -628,19 +627,19 @@ function showInitials(scene) {
   fitTextToBox(braveryTxt, boxW - 28, 26, 11);
 
   // Linha visual de Conversão: Moedas de Prata -> Moedas de Ouro
-  const silverSprite = scene.add.sprite(cx - 165, top + 138, 'silver_coin').play('silver_coin').setScale(1.3);
-  const goldSprite = scene.add.sprite(cx + 28, top + 138, 'gold_coin').play('gold_coin').setScale(1.3);
+  const silverSprite = scene.add.sprite(cx - 165, top + 144, 'silver_coin').play('silver_coin').setScale(1.3);
+  const goldSprite = scene.add.sprite(cx + 28, top + 144, 'gold_coin').play('gold_coin').setScale(1.3);
 
   const conversionLine = scene.add.text(
     cx - 148,
-    top + 138,
+    top + 144,
     `${summary.silverCollected ?? summary.runSilver ?? 0} Pratas   ->`,
     textStyle('#e0f7fa', 14)
   ).setOrigin(0, 0.5);
 
   const goldEarnedLine = scene.add.text(
     cx + 45,
-    top + 138,
+    top + 144,
     `+${summary.totalGoldEarned ?? summary.earnedGold ?? 0} OURO REAL`,
     textStyle('#ffd740', 14)
   ).setOrigin(0, 0.5);
@@ -651,7 +650,7 @@ function showInitials(scene) {
 
 
 
-  const breakdownTxt = scene.add.text(cx, top + 182, bonusParts.join('  •  '), {
+  const breakdownTxt = scene.add.text(cx, top + 188, bonusParts.join('  •  '), {
     ...textStyle('#c5a059', 11, 'normal'),
     align: 'center',
     wordWrap: { width: boxW - 24, useAdvancedWrap: true }

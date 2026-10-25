@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // CICLO DE VIDA DO JOGO (PHASER 3): PRELOAD, CREATE, UPDATE & INICIALIZAÇÃO
 // =============================================================================
 
@@ -367,10 +367,6 @@ function create(data) {
     if (e.x < GAME_WIDTH && s.active && e.active && (e.lastSlashId ?? 0) < s.slashId) {
       e.lastSlashId = s.slashId;
       damageEnemy(scene, e, s.dmg || 1);
-      if (scene.anims && scene.anims.exists('anim_vfx_impact_sword')) {
-        const imp = scene.add.sprite(e.x, e.y, 'vfx_impact_sword').play('anim_vfx_impact_sword').setDepth(e.y + 3).setScale(0.85);
-        imp.once('animationcomplete', () => { if (imp && imp.active) imp.destroy(); });
-      }
       // Regra 22: Espada aplica empurrão suave (knockback) exclusivo se o inimigo sobreviver
       if (!e.isBoss && e.active && e.hp > 0) {
         const kbDist = Math.min(34, s.knockback ? Math.round(s.knockback * 0.65) : 22);
@@ -425,7 +421,7 @@ function create(data) {
   if (data && data.autoStart) {
     startGameplay(scene);
   } else if (data && data.openShop) {
-    showShopMenu(scene, data.shopTab || 'mage');
+    if (data.shopTab === 'blacksmith') showBlacksmithMenu(scene); else showMageShopMenu(scene);
   } else {
     showMainMenu(scene);
   }

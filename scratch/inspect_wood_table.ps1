@@ -1,16 +1,11 @@
 Add-Type -AssemblyName System.Drawing
-$wt = [System.Drawing.Bitmap]::FromFile("JS_Teste\assets\ui\wood_table.png")
-Write-Output "wood_table: $($wt.Width) x $($wt.Height)"
-$minX = 999; $maxX = -1; $minY = 999; $maxY = -1
-for ($y = 0; $y -lt $wt.Height; $y++) {
-    for ($x = 0; $x -lt $wt.Width; $x++) {
-        if ($wt.GetPixel($x, $y).A -gt 10) {
-            if ($x -lt $minX) { $minX = $x }
-            if ($x -gt $maxX) { $maxX = $x }
-            if ($y -lt $minY) { $minY = $y }
-            if ($y -gt $maxY) { $maxY = $y }
-        }
-    }
-}
-Write-Output "wood_table non-transparent: X from $minX to $maxX, Y from $minY to $maxY"
-$wt.Dispose()
+$img = [System.Drawing.Image]::FromFile((Resolve-Path "..\IMAGENS\ASSETs\Tiny Swords (Free Pack)\Tiny Swords (Free Pack)\UI Elements\UI Elements\Wood Table\WoodTable.png").Path)
+Write-Host "Width: $($img.Width), Height: $($img.Height)"
+# Let's check some pixel colors around borders and center
+$bmp = New-Object System.Drawing.Bitmap $img
+Write-Host "Pixel (0,0): $($bmp.GetPixel(0,0))"
+Write-Host "Pixel (32,32): $($bmp.GetPixel(32,32))"
+Write-Host "Pixel (64,64): $($bmp.GetPixel(64,64))"
+Write-Host "Pixel (224,224): $($bmp.GetPixel(224,224))"
+$img.Dispose()
+$bmp.Dispose()

@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // TELAS E MENUS DO JOGO (16:9 WIDESCREEN — 960x540)
 // DESIGN: CENÁRIOS IMERSIVOS, BALCÕES DOS MESTRES, PERGAMINHO, FERRO & OURO NOBRE
 // INSPIRAÇÃO: UI KIT MEDIEVAL (IMG 1), BALCÃO DOS VENDEDORES (IMG 2 & 4) & FLOREIOS VITORIANOS (IMG 3)
@@ -1193,7 +1193,11 @@ function showBlacksmithMenu(scene) {
     drawCard(false);
 
     const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
-    if (!isUnlocked) icon.setTint(0x555555);
+    let lockIcon = null;
+    if (!isUnlocked) {
+      icon.setTint(0x555555);
+      lockIcon = scene.add.image(cx + 18, startY + 64, 'ui_padlock').setDisplaySize(16, 22).setDepth(cardGfx.depth + 2);
+    }
 
                 const nameTxt = scene.add.text(cx, startY + 90, cfg.name, {
       ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 12, 'bold'),
@@ -1282,7 +1286,7 @@ function showBlacksmithMenu(scene) {
         floatText(scene, btnX, btnY - 24, cfg.name + ' FORJADA!', '#ffd740');
       });
 
-      menuContainer.add([cardGfx, cardHit, icon, nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
+      menuContainer.add([cardGfx, cardHit, icon, ...(lockIcon ? [lockIcon] : []), nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
     } else {
       const actionBtn = scene.add.rectangle(btnX, btnY, btnW, btnH, isStarter ? 0x1f4724 : 0x543217)
         .setStrokeStyle(2, isStarter ? 0xffca28 : 0xc5a059)
@@ -1313,7 +1317,7 @@ function showBlacksmithMenu(scene) {
         });
       }
 
-      menuContainer.add([cardGfx, cardHit, icon, nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
+      menuContainer.add([cardGfx, cardHit, icon, ...(lockIcon ? [lockIcon] : []), nameTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
     }
   });
 
@@ -2030,6 +2034,8 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
   const icon = scene.add.image(cx, startY + 54, 'ui_wood_slots').setDisplaySize(42, 42);
   const lockStr = unlocked ? 'OK' : (defeatedBoss ? 'MOCHILA' : 'BLOQ.');
   const lockIcon = scene.add.text(cx, startY + 54, lockStr, textStyle(unlocked ? '#ffd740' : (defeatedBoss ? '#ba68c8' : '#8d5524'), 9.5)).setOrigin(0.5);
+  const padlockIcon = scene.add.image(cx, startY + 54, 'ui_padlock').setDisplaySize(18, 25).setVisible(!unlocked);
+  if (!unlocked) lockIcon.setVisible(false);
 
   const titleTxt = scene.add.text(cx, startY + 92, 'MOCHILA DE ARMAS', {
     ...parchmentTitleStyle(unlocked ? '#8c4e03' : (defeatedBoss ? '#221226' : '#ce93d8'), 11.5, 'bold'),
@@ -2119,5 +2125,14 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
     });
   }
 
-  menuContainer.add([cardGfx, cardHit, icon, lockIcon, titleTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
+  menuContainer.add([cardGfx, cardHit, icon, lockIcon, padlockIcon, titleTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
+}
+
+
+function showShopMenu(scene, shopTab = 'mage') {
+  if (shopTab === 'blacksmith') {
+    showBlacksmithMenu(scene);
+  } else {
+    showMageShopMenu(scene);
+  }
 }

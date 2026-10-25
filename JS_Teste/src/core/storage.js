@@ -1,4 +1,4 @@
-﻿// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
+// GERENCIADOR DE PERSISTÊNCIA & UPGRADES (StorageManager / Facade Pattern)
 // Encapsula acesso ao localStorage, validações e dados salvos de forma centralizada.
 // =============================================================================
 const StorageManager = {
