@@ -3,6 +3,67 @@
 // =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
 // -----------------------------------------------------------------------------
+function buildWeaponLevelUpRows(key, currLvl, nextLvl) {
+  const baseDur = (typeof BUFF_TIME !== 'undefined' && BUFF_TIME[key]) ? BUFF_TIME[key] : 10.0;
+  const currDur = Math.min(28.0, baseDur * (1 + (currLvl - 1) * 0.12)).toFixed(1) + 's';
+  const nextDur = Math.min(28.0, baseDur * (1 + (nextLvl - 1) * 0.12)).toFixed(1) + 's';
+
+  const baseDmgMap = { sword: 20, bow: 15, axe: 22, firestaff: 18, shield: 12 };
+  const baseDmg = baseDmgMap[key] || 15;
+  const cDmg = Math.round(baseDmg * (1 + (currLvl - 1) * 0.22));
+  const nDmg = Math.round(baseDmg * (1 + (nextLvl - 1) * 0.22));
+
+  if (key === 'sword') {
+    const cArea = Math.round((1 + (currLvl - 1) * 0.26) * 100) + '%';
+    const nArea = Math.round((1 + (nextLvl - 1) * 0.26) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Tamanho', from: cArea, to: nArea },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'bow') {
+    const cSpd = Math.round(Math.pow(1 / 0.86, currLvl - 1) * 100) + '%';
+    const nSpd = Math.round(Math.pow(1 / 0.86, nextLvl - 1) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Vel. Ataque', from: cSpd, to: nSpd },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'axe') {
+    const cKb = (3.0 * (1 + (currLvl - 1) * 0.35)).toFixed(1);
+    const nKb = (3.0 * (1 + (nextLvl - 1) * 0.35)).toFixed(1);
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Repulsão', from: cKb, to: nKb },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'firestaff') {
+    const cArea = Math.round((1 + (currLvl - 1) * 0.22) * 100) + '%';
+    const nArea = Math.round((1 + (nextLvl - 1) * 0.22) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Tamanho', from: cArea, to: nArea },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'shield') {
+    const cArea = Math.round((1 + (currLvl - 1) * 0.15) * 100) + '%';
+    const nArea = Math.round((1 + (nextLvl - 1) * 0.15) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Tamanho', from: cArea, to: nArea },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  return [
+    { label: 'Dano', from: cDmg, to: nDmg },
+    { label: 'Duração', from: currDur, to: nextDur }
+  ];
+}
+
 function rollLevelUpCards() {
   const unlockedKeys = getUnlockedWeaponPool();
   const weaponCards = [];
@@ -13,18 +74,19 @@ function rollLevelUpCards() {
     if (cfg) {
       const nextLvl = currLvl + 1;
       const isHeld = buff && buff.type === key;
-      const mult = (1 + (nextLvl - 1) * 0.22).toFixed(2);
-      const pct = Math.round((nextLvl - 1) * 22);
+      const rows = buildWeaponLevelUpRows(key, currLvl, nextLvl);
 
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
         category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: `Nv. ${currLvl} -> Nv. ${nextLvl}`,
+        badge: `NV. ${nextLvl}`,
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n Equipa esta arma imediatamente!`,
+        statRows: rows,
+        subNote: 'Equipa esta arma imediatamente!',
+        desc: rows.map(r => `${r.label}: ${r.from} -> ${r.to}`).join('\n'),
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
@@ -52,19 +114,28 @@ function rollLevelUpCards() {
     const nextLvl = currLvl + 1;
     const sCfg = SCROLL_CATALOG[sKey];
     if (!sCfg) return;
-    const lvlData = (sCfg.levels && sCfg.levels[nextLvl - 1]) ? sCfg.levels[nextLvl - 1] : null;
-    const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ';
-    const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
+    const badge = `NV. ${nextLvl}`;
+
+    let sRows = [];
+    if (sKey === 'multishot') {
+      sRows = [{ label: 'Projéteis', from: `+${currLvl}`, to: `+${nextLvl}` }];
+    } else if (sKey === 'growth') {
+      sRows = [{ label: 'Tamanho', from: `+${currLvl * 20}%`, to: `+${nextLvl * 20}%` }];
+    } else if (sKey === 'attackspeed') {
+      sRows = [{ label: 'Vel. Ataque', from: `+${currLvl * 18}%`, to: `+${nextLvl * 18}%` }];
+    } else {
+      sRows = [{ label: 'Duração', from: `+${(currLvl * 1.5).toFixed(1)}s`, to: `+${(nextLvl * 1.5).toFixed(1)}s` }];
+    }
 
     const slotLabel = isAlreadyChosen
-      ? 'PERGAMINHO EXCLUSIVO'
-      : (currentChosenCount === 0 ? 'PERGAMINHO ARCANO (1/2)' : 'PERGAMINHO ARCANO (2/2)');
+      ? 'PERGAMINHO ATIVO'
+      : (currentChosenCount === 0 ? 'PERGAMINHO (1/2)' : 'PERGAMINHO (2/2)');
 
     const promptExtra = isAlreadyChosen
-      ? ' Refina este pergaminho exclusivo nesta partida!'
+      ? 'Afeta todas as suas armas!'
       : (currentChosenCount === 0
-          ? ' ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
-          : ' ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
+          ? '1º de 2 pergaminhos da partida'
+          : '2º de 2 pergaminhos da partida');
 
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
@@ -74,7 +145,9 @@ function rollLevelUpCards() {
       badgeColor: nextLvl >= 5 ? '#ffd740' : '#b388ff',
       borderColor: nextLvl >= 5 ? 0xffca28 : 0xb388ff,
       icon: sCfg.icon,
-      desc: `${desc}\n\n${promptExtra}`,
+      statRows: sRows,
+      subNote: promptExtra,
+      desc: sRows.map(r => `${r.label}: ${r.from} -> ${r.to}`).join('\n'),
       weight: isAlreadyChosen ? 3 : 2,
       apply: (scene) => {
         if (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) {
@@ -99,11 +172,16 @@ function rollLevelUpCards() {
       id: 'item_duration_boost',
       category: 'RELÍQUIA TEMPORAL',
       title: 'AMPULHETA REAL',
-      badge: 'EXTENSÃO TEMPORAL',
+      badge: 'BÔNUS PERMANENTE',
       badgeColor: '#ffca28',
       borderColor: 0xc5a059,
       icon: 'hud_hourglass',
-      desc: 'Amplia substancialmente o tempo de atividade das relíquias em combate e recarrega sua arma ativa!',
+      statRows: [
+        { label: 'Duração', from: `+${runBonusDuration.toFixed(1)}s`, to: `+${(runBonusDuration + 1.2).toFixed(1)}s` },
+        { label: 'Recarga', from: null, to: '100%' }
+      ],
+      subNote: 'Aumenta o tempo de todas as armas!',
+      desc: 'Duração: +1.2s\nRecarga: 100%',
       apply: (scene) => {
         runBonusDuration += 1.2;
         if (buff.type) {
@@ -119,11 +197,16 @@ function rollLevelUpCards() {
       id: 'item_random_relic',
       category: 'BAÚ DE ARMAS',
       title: 'ARSENAL DO REI',
-      badge: 'ARSENAL REAL',
+      badge: 'BAÚ DE COMBATE',
       badgeColor: '#e0f7fa',
       borderColor: 0x80deea,
       icon: 'silver_coin',
-      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate sobrecarregada com moedas de prata!',
+      statRows: [
+        { label: 'Duração Arma', from: null, to: '+3.0s' },
+        { label: 'Prata', from: `${runSilver}`, to: `${runSilver + 4}` }
+      ],
+      subNote: 'Equipa 1 arma sobrecarregada!',
+      desc: 'Duração: +3.0s\nPrata: +4',
       apply: (scene) => {
         const chosen = Phaser.Utils.Array.GetRandom(unlockedKeys);
         equipWeaponBuff(scene, chosen, false);
@@ -138,11 +221,18 @@ function rollLevelUpCards() {
       id: 'item_holy_chalice',
       category: 'ITEM SAGRADO',
       title: 'BÊNÇÃO DO ESCUDO',
-      badge: playerHp < playerMaxHp ? 'RESTAURAÇÃO VITAL' : 'BÊNÇÃO DE PRATA',
+      badge: playerHp < playerMaxHp ? 'CURA & EXPLOSÃO' : 'PRATA & EXPLOSÃO',
       badgeColor: '#ff8a80',
       borderColor: 0xff5252,
       icon: 'stat_health',
-      desc: 'Restaura a força vital do Cavaleiro e conjura uma expansão sagrada de repulsão!',
+      statRows: [
+        playerHp < playerMaxHp
+          ? { label: 'Vida', from: `${playerHp}`, to: `${Math.min(playerMaxHp, playerHp + 1)}` }
+          : { label: 'Prata', from: `${runSilver}`, to: `${runSilver + 5}` },
+        { label: 'Dano Explosão', from: null, to: '30' }
+      ],
+      subNote: 'Detona onda sagrada imediata!',
+      desc: 'Cura +1 Vida e causa 30 de Dano em área!',
       apply: (scene) => {
         if (playerHp < playerMaxHp) {
           playerHp = Math.min(playerMaxHp, playerHp + 1);
@@ -166,11 +256,16 @@ function rollLevelUpCards() {
         id: `mastery_${key}`,
         category: 'MESTRIA LENDÁRIA',
         title: `${cfg.name} SUPREMO`,
-        badge: 'TRANSCENDÊNCIA ',
+        badge: 'TRANSCENDÊNCIA',
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `Equipa imediatamente ${cfg.name} em seu grau máximo de mestria com bônus de duração estendida!`,
+        statRows: [
+          { label: 'Duração Bônus', from: null, to: '+4.0s' },
+          { label: 'Poder', from: null, to: 'MÁXIMO' }
+        ],
+        subNote: `Equipa ${cfg.name} sobrecarregado!`,
+        desc: `Equipa imediatamente ${cfg.name} com +4.0s de duração!`,
         apply: (scene) => {
           equipWeaponBuff(scene, key, false);
           buff.timeLeft += 4.0;
@@ -341,24 +436,47 @@ function openLevelUpDraft(scene) {
       if (hover) cardHighlight.lineStyle(3, 0xffeb3b, 0.95).strokeRoundedRect(left - 2, top - 2, cardW + 4, cardH + 4, 10);
     };
     drawHighlight(false);
-    const slotImg = scene.add.image(cx, top + 74, 'ui_wood_slots').setDisplaySize(68, 68);
-    const iconImg = scene.add.image(cx, top + 74, card.icon).setScale(1.55);
-    const catTxt = scene.add.text(cx, top + 24, String(card.category || '').toUpperCase(), parchmentTitleStyle("#4a2c11", 10, "bold")).setOrigin(0.5);
+    const slotImg = scene.add.image(cx, top + 68, 'ui_wood_slots').setDisplaySize(64, 64);
+    const iconImg = scene.add.image(cx, top + 68, card.icon).setScale(1.5);
+    const catTxt = scene.add.text(cx, top + 24, String(card.category || '').toUpperCase(), parchmentTitleStyle("#4a2c11", 10.5, "bold")).setOrigin(0.5);
     fitTextToBox(catTxt, cardW - 20, 16, 8.5);
-    const nameTxt = scene.add.text(cx, top + 132, String(card.title || '').toUpperCase(), { ...parchmentTitleStyle('#22140a', 13, 'bold'), align: 'center', wordWrap: { width: cardW - 24, useAdvancedWrap: true } }).setOrigin(0.5);
+    const nameTxt = scene.add.text(cx, top + 122, String(card.title || '').toUpperCase(), { ...parchmentTitleStyle('#1a0e05', 13.5, 'bold'), align: 'center', wordWrap: { width: cardW - 24, useAdvancedWrap: true } }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 24, 26, 9.5);
-    const badgeBg = scene.add.rectangle(cx, top + 164, cardW - 40, 22, 0x22150a, 0.85);
-    const badgeTxt = scene.add.text(cx, top + 164, String(card.badge || '').toUpperCase(), textStyle(card.badgeColor, 10)).setOrigin(0.5);
-    fitTextToBox(badgeTxt, cardW - 46, 18, 8.5);
-    const descTxt = scene.add.text(cx, top + 242, card.desc, { ...parchmentBodyStyle('#1f1208', 10.5, 'normal'), align: 'center', lineSpacing: 2.5, wordWrap: { width: cardW - 32, useAdvancedWrap: true } }).setOrigin(0.5);
-    fitTextToBox(descTxt, cardW - 30, 116, 8.5);
-    const pickBtn = scene.add.image(cx, top + cardH - 34, 'ui_btn_blue_reg').setDisplaySize(cardW - 32, 42);
-    const pickTxt = scene.add.text(cx, top + cardH - 34, 'ESCOLHER [' + (idx + 1) + ']', buttonTextStyle('#ffffff', 12)).setOrigin(0.5);
+    const badgeBg = scene.add.rectangle(cx, top + 150, cardW - 36, 22, 0x22150a, 0.92).setStrokeStyle(1, 0xc5a059);
+    const badgeTxt = scene.add.text(cx, top + 150, String(card.badge || '').toUpperCase(), textStyle(card.badgeColor, 10.5)).setOrigin(0.5);
+    fitTextToBox(badgeTxt, cardW - 44, 18, 8.5);
+
+    let descElements = [];
+    if (Array.isArray(card.statRows) && card.statRows.length > 0 && typeof renderStatUpgradeBlock === 'function') {
+      descElements = renderStatUpgradeBlock(
+        scene,
+        cx,
+        top + 168,
+        cardW - 26,
+        152,
+        card.statRows,
+        card.subNote || '',
+        card.borderColor || 0xc5a059,
+        12
+      );
+    } else {
+      const descTxt = scene.add.text(cx, top + 246, card.desc, {
+        ...parchmentBodyStyle('#1f1208', 11.5, 'bold'),
+        align: 'center',
+        lineSpacing: 3.5,
+        wordWrap: { width: cardW - 28, useAdvancedWrap: true }
+      }).setOrigin(0.5);
+      fitTextToBox(descTxt, cardW - 26, 152, 9);
+      descElements = [descTxt];
+    }
+
+    const pickBtn = scene.add.image(cx, top + cardH - 32, 'ui_btn_blue_reg').setDisplaySize(cardW - 32, 40);
+    const pickTxt = scene.add.text(cx, top + cardH - 32, 'ESCOLHER [' + (idx + 1) + ']', buttonTextStyle('#ffffff', 12.5)).setOrigin(0.5);
     const hitZone = scene.add.rectangle(cx, cardY, cardW, cardH, 0x000000, 0).setInteractive({ useHandCursor: true });
     hitZone.on('pointerover', () => { drawHighlight(true); pickBtn.setTexture('ui_btn_blue_press'); pickTxt.setColor('#ffeb3b'); });
     hitZone.on('pointerout', () => { drawHighlight(false); pickBtn.setTexture('ui_btn_blue_reg'); pickTxt.setColor('#ffffff'); });
     hitZone.on('pointerdown', () => selectCard(card));
-    draftModal.add([cardPaper, cardHighlight, slotImg, iconImg, catTxt, nameTxt, badgeBg, badgeTxt, descTxt, pickBtn, pickTxt, hitZone]);
+    draftModal.add([cardPaper, cardHighlight, slotImg, iconImg, catTxt, nameTxt, badgeBg, badgeTxt, ...descElements, pickBtn, pickTxt, hitZone]);
   });
 }
 

@@ -225,13 +225,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: Infinity,
-    forgeLore: 'Arco nobre de teixo. Dispara flechas precisas com cadência exponencial acelerada.',
+    forgeLore: 'Arco Élfico da Guarda Real.\nDispara flechas luminosas de alta precisão que atravessam a escuridão e abatem inimigos antes que se aproximem.',
     levels: [
-      { badge: 'DISPARO CERTEIRO', desc: 'Flechas velozes e perfurantes disparadas com ritmo cadenciado contra o avanço dos monstros.', toString() { return this.desc; } },
-      { badge: 'CORDA TENSIONADA', desc: 'Reduz notavelmente o intervalo entre disparos, lançando flechas em sucessão rápida.', toString() { return this.desc; } },
-      { badge: 'SARAIVADA VELOZ', desc: 'Disparos contínuos e ágeis que suprimem a vanguarda inimiga sem dar tempo de reação.', toString() { return this.desc; } },
-      { badge: 'FUSILAMENTO REAL', desc: 'Cadência quase instantânea: rajadas de flechas de alta frequência cravam o campo sem cessar.', toString() { return this.desc; } },
-      { badge: 'TEMPESTADE DE FLECHAS', desc: 'Cadência máxima supersônica! Uma torrente ininterrupta de flechas perfura as linhas inimigas!', toString() { return this.desc; } }
+      { badge: 'NV.1 DISPARO CERTEIRO', desc: 'Dano: 0 ➔ 15 | Vel. Ataque: 100% | Duração: 12.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 CORDA TENSIONADA', desc: 'Dano: 15 ➔ 18 | Vel. Ataque: 100% ➔ 116% | Duração: 12.0s ➔ 13.4s', toString() { return this.desc; } },
+      { badge: 'NV.3 SARAIVADA VELOZ', desc: 'Dano: 18 ➔ 22 | Vel. Ataque: 116% ➔ 135% | Duração: 13.4s ➔ 14.9s', toString() { return this.desc; } },
+      { badge: 'NV.4 FUSILAMENTO REAL', desc: 'Dano: 22 ➔ 25 | Vel. Ataque: 135% ➔ 156% | Duração: 14.9s ➔ 16.3s', toString() { return this.desc; } },
+      { badge: 'NV.5 TEMPESTADE REAL', desc: 'Dano: 25 ➔ 28 | Vel. Ataque: 156% ➔ 181% | Duração: 16.3s ➔ 17.8s', toString() { return this.desc; } }
     ]
   },
   sword: {
@@ -241,13 +241,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: Infinity,
-    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área cortante colossal.',
+    forgeLore: 'Lâmina Ancestral de Aço Puro.\nDesfere arcos cortantes reluzentes que varrem múltiplos monstros de uma só vez e abrem caminho na horda.',
     levels: [
-      { badge: 'CORTE NOBRE', desc: 'Desfere golpes precisos de aço temperado com área de impacto equilibrada e repulsão frontal ativa.', toString() { return this.desc; } },
-      { badge: 'FIO EXPANDIDO', desc: 'Amplia a lâmina com alcance acelerado, ceifando a primeira linha de monstros com facilidade.', toString() { return this.desc; } },
-      { badge: 'CORTE COLOSSAL', desc: 'Golpes de enorme envergadura frontal que varrem formações inimigas inteiras em arco cortante.', toString() { return this.desc; } },
-      { badge: 'FÚRIA VORPAL', desc: 'Lâmina descomunal que rasga o ar em semicírculo devastador, desestabilizando qualquer avanço.', toString() { return this.desc; } },
-      { badge: 'COLOSSO SUPREMO', desc: 'Varredura colossal lendária! Uma muralha de lâmina titânica que aniquila todo o campo frontal!', toString() { return this.desc; } }
+      { badge: 'NV.1 CORTE NOBRE', desc: 'Dano: 0 ➔ 20 | Tamanho: 100% | Duração: 10.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 FIO EXPANDIDO', desc: 'Dano: 20 ➔ 24 | Tamanho: 100% ➔ 126% | Duração: 10.0s ➔ 11.2s', toString() { return this.desc; } },
+      { badge: 'NV.3 CORTE COLOSSAL', desc: 'Dano: 24 ➔ 29 | Tamanho: 126% ➔ 152% | Duração: 11.2s ➔ 12.4s', toString() { return this.desc; } },
+      { badge: 'NV.4 FÚRIA VORPAL', desc: 'Dano: 29 ➔ 33 | Tamanho: 152% ➔ 178% | Duração: 12.4s ➔ 13.6s', toString() { return this.desc; } },
+      { badge: 'NV.5 COLOSSO SUPREMO', desc: 'Dano: 33 ➔ 38 | Tamanho: 178% ➔ 204% | Duração: 13.6s ➔ 14.8s', toString() { return this.desc; } }
     ]
   },
   shield: {
@@ -257,13 +257,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 30,
     maxLevel: Infinity,
-    forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
+    forgeLore: 'Relíquia Dourada dos Paladinos.\nErgue uma barreira divina impenetrável que esmaga inimigos próximos e reflete projéteis de volta aos atacantes.',
     levels: [
-      { badge: 'ÉGIDE BÁSICA', desc: 'Envolve o herói em aura celestial por tempo equilibrado, refletindo flechas e detonando em choque se atingido.', toString() { return this.desc; } },
-      { badge: 'ÉGIDE REFORÇADA', desc: 'Aumenta substancialmente o tempo de proteção ativa, mantendo a imunidade reativa por muito mais tempo.', toString() { return this.desc; } },
-      { badge: 'ESPELHO DIVINO', desc: 'Duração prolongada vigorosa: reflete flechas em ângulos duplos e garante proteção duradoura na batalha.', toString() { return this.desc; } },
-      { badge: 'BALUARTE REAL', desc: 'Fortaleza celestial duradoura, suportando a pressão do combate e detonando em choque sagrado ampliado.', toString() { return this.desc; } },
-      { badge: 'ÉGIDE ETERNA', desc: 'Proteção celestial de duração colossal! O herói combate imperturbável envolto em graça divina suprema!', toString() { return this.desc; } }
+      { badge: 'NV.1 ÉGIDE BÁSICA', desc: 'Dano: 0 ➔ 12 | Tamanho: 100% | Duração: 8.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 ÉGIDE REFORÇADA', desc: 'Dano: 12 ➔ 15 | Tamanho: 100% ➔ 115% | Duração: 8.0s ➔ 9.0s', toString() { return this.desc; } },
+      { badge: 'NV.3 ESPELHO DIVINO', desc: 'Dano: 15 ➔ 17 | Tamanho: 115% ➔ 130% | Duração: 9.0s ➔ 9.9s', toString() { return this.desc; } },
+      { badge: 'NV.4 BALUARTE REAL', desc: 'Dano: 17 ➔ 20 | Tamanho: 130% ➔ 145% | Duração: 9.9s ➔ 10.9s', toString() { return this.desc; } },
+      { badge: 'NV.5 ÉGIDE ETERNA', desc: 'Dano: 20 ➔ 23 | Tamanho: 145% ➔ 160% | Duração: 10.9s ➔ 11.8s', toString() { return this.desc; } }
     ]
   },
   axe: {
@@ -273,13 +273,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 40,
     maxLevel: Infinity,
-    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
+    forgeLore: 'Machado de Guerra dos Berserkers.\nGira em um turbilhão brutal de 360 graus ao redor do herói, arremessando hordas inteiras para longe.',
     levels: [
-      { badge: 'GOLPE RÚNICO', desc: 'Lança machado duplo em arco circular de retorno, desferindo golpes de impacto na ida e na volta.', toString() { return this.desc; } },
-      { badge: 'IMPACTO PESADO', desc: 'Aumenta consideravelmente a força de choque, arremessando monstros para trás na rota do bumerangue.', toString() { return this.desc; } },
-      { badge: 'REPULSÃO SÍSMICA', desc: 'Ondas sísmicas violentas que estilhaçam o avanço inimigo e lançam tropas para a retaguarda.', toString() { return this.desc; } },
-      { badge: 'CHOQUE ESMAGADOR', desc: 'Impacto rúnico massivo capaz de arremessar pelotões inteiros de volta para a floresta.', toString() { return this.desc; } },
-      { badge: 'FÚRIA DOS TITÃS', desc: 'Força de repulsão titânica colossal! Monstros atingidos voam pelos ares com violência descomunal!', toString() { return this.desc; } }
+      { badge: 'NV.1 GOLPE RÚNICO', desc: 'Dano: 0 ➔ 22 | Empurrão: 100% | Duração: 10.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 IMPACTO PESADO', desc: 'Dano: 22 ➔ 27 | Empurrão: 100% ➔ 135% | Duração: 10.0s ➔ 11.2s', toString() { return this.desc; } },
+      { badge: 'NV.3 REPULSÃO SÍSMICA', desc: 'Dano: 27 ➔ 32 | Empurrão: 135% ➔ 170% | Duração: 11.2s ➔ 12.4s', toString() { return this.desc; } },
+      { badge: 'NV.4 CHOQUE ESMAGADOR', desc: 'Dano: 32 ➔ 37 | Empurrão: 170% ➔ 205% | Duração: 12.4s ➔ 13.6s', toString() { return this.desc; } },
+      { badge: 'NV.5 FÚRIA DOS TITÃS', desc: 'Dano: 37 ➔ 41 | Empurrão: 205% ➔ 240% | Duração: 13.6s ➔ 14.8s', toString() { return this.desc; } }
     ]
   },
   firestaff: {
@@ -289,13 +289,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 20,
     maxLevel: Infinity,
-    forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
+    forgeLore: 'Cetro Forjado em Rocha Vulcânica.\nConjura esferas ardentes que explodem ao contato, consumindo grupos inteiros de criaturas em chamas.',
     levels: [
-      { badge: 'ORBE SOLAR', desc: 'Dispara esfera ígnea concentrada que explode no impacto e cria uma poça de chamas ardentes no chão.', toString() { return this.desc; } },
-      { badge: 'BRASA VIVA', desc: 'Amplia a área da explosão e o raio das chamas no solo, consumindo monstros com fogo contínuo.', toString() { return this.desc; } },
-      { badge: 'LABAREDA INTENSA', desc: 'Detonação de fogo de grande alcance que queima ondas inteiras em uma barreira incandescente.', toString() { return this.desc; } },
-      { badge: 'INFERNO VORAZ', desc: 'Explosão expansiva massiva que incendeia metade da estrada com chamas impiedosas.', toString() { return this.desc; } },
-      { badge: 'CATACLISMO SOLAR', desc: 'Erupção solar titânica! O campo explode em um mar colossal de fogo e cinzas ardentes!', toString() { return this.desc; } }
+      { badge: 'NV.1 ORBE SOLAR', desc: 'Dano: 0 ➔ 18 | Explosão: 100% | Duração: 10.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 BRASA VIVA', desc: 'Dano: 18 ➔ 22 | Explosão: 100% ➔ 122% | Duração: 10.0s ➔ 11.2s', toString() { return this.desc; } },
+      { badge: 'NV.3 LABAREDA INTENSA', desc: 'Dano: 22 ➔ 26 | Explosão: 122% ➔ 144% | Duração: 11.2s ➔ 12.4s', toString() { return this.desc; } },
+      { badge: 'NV.4 INFERNO VORAZ', desc: 'Dano: 26 ➔ 30 | Explosão: 144% ➔ 166% | Duração: 12.4s ➔ 13.6s', toString() { return this.desc; } },
+      { badge: 'NV.5 CATACLISMO SOLAR', desc: 'Dano: 30 ➔ 34 | Explosão: 166% ➔ 188% | Duração: 13.6s ➔ 14.8s', toString() { return this.desc; } }
     ]
   }
 };
@@ -309,11 +309,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_multishot',
     maxLevel: 5,
     levels: [
-      { badge: 'DISPARO DUPLO', desc: 'Adiciona uma lâmina de corte frontal e um projétil adicional a todas as armas empunhadas.', toString() { return this.desc; } },
-      { badge: 'LEQUE DE DISPAROS', desc: 'Expande ainda mais o leque frontal, liberando ondas e projéteis extras em arco.', toString() { return this.desc; } },
-      { badge: 'SARAIVADA ARCANA', desc: 'Dispara uma salva volumosa em leque que satura o corredor de combate com múltiplos golpes.', toString() { return this.desc; } },
-      { badge: 'CHUVA DE ATAQUES', desc: 'Múltiplos disparos simultâneos que cobrem toda a área frontal com dano implacável.', toString() { return this.desc; } },
-      { badge: 'ONIPRESENÇA MÁXIMA', desc: 'O poder supremo do Disparo Múltiplo! Uma avalanche de lâminas e disparos varre tudo à frente!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+1 PROJÉTIL)', desc: 'LV-1: +1 Projétil/Lâmina Extra (Total: +1 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+2 PROJÉTEIS)', desc: 'LV-2: +1 Projétil/Lâmina Extra (Total: +2 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+3 PROJÉTEIS)', desc: 'LV-3: +1 Projétil/Lâmina Extra (Total: +3 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+4 PROJÉTEIS)', desc: 'LV-4: +1 Projétil/Lâmina Extra (Total: +4 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+5 PROJÉTEIS)', desc: 'LV-5: +1 Projétil/Lâmina Extra (Total: +5 em todas as armas)!', toString() { return this.desc; } }
     ]
   },
   growth: {
@@ -323,11 +323,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_growth',
     maxLevel: 5,
     levels: [
-      { badge: 'EXPANSÃO MÍSTICA', desc: 'Amplia a área de impacto de todos os cortes, projéteis e poças de fogo ardentes no solo.', toString() { return this.desc; } },
-      { badge: 'ALCANCE AMPLIADO', desc: 'Aumenta expressivamente o tamanho dos ataques, atingindo inimigos mais distantes com segurança.', toString() { return this.desc; } },
-      { badge: 'ÁURA GIGANTE', desc: 'Golpes e chamas ganham dimensões formidáveis, devorando o espaço dos monstros na estrada.', toString() { return this.desc; } },
-      { badge: 'MAGNITUDE TITÂNICA', desc: 'Tamanho monumental em cada arma, tornando impossível qualquer inimigo avançar ileso.', toString() { return this.desc; } },
-      { badge: 'DIMENSÃO SUPREMA', desc: 'Crescimento absoluto! Todas as armas e chamas operam em escala colossal titânica!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+22% ÁREA)', desc: 'LV-1: +22% Área de Ataque (Total: +22% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+44% ÁREA)', desc: 'LV-2: +22% Área de Ataque (Total: +44% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+66% ÁREA)', desc: 'LV-3: +22% Área de Ataque (Total: +66% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+88% ÁREA)', desc: 'LV-4: +22% Área de Ataque (Total: +88% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+110% ÁREA)', desc: 'LV-5: +22% Área de Ataque (Total: +110% em todas as armas)!', toString() { return this.desc; } }
     ]
   },
   attackspeed: {
@@ -337,11 +337,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_speed',
     maxLevel: 5,
     levels: [
-      { badge: 'FÔLEGO ÁGIL', desc: 'Acelera a cadência de manuseio e ataque de todas as armas ativas na jornada.', toString() { return this.desc; } },
-      { badge: 'CADÊNCIA FULMINANTE', desc: 'Golpes e disparos se sucedem com rapidez impressionante, pressionando as defesas inimigas.', toString() { return this.desc; } },
-      { badge: 'REFLEXOS AURAIS', desc: 'Ritmo frenético de ataque que suprime hordas velozes sem dar espaço para aproximação.', toString() { return this.desc; } },
-      { badge: 'VELOCIDADE FRENÉTICA', desc: 'Ataques desferidos em sucessão avassaladora com intervalo mínimo entre ativações.', toString() { return this.desc; } },
-      { badge: 'TEMPESTADE TEMPORAL', desc: 'Velocidade de ataque suprema! O herói maneja suas relíquias em uma velocidade sobrenatural!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+18% CADÊNCIA)', desc: 'LV-1: +18% Velocidade de Ataque (Total: +18% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+36% CADÊNCIA)', desc: 'LV-2: +18% Velocidade de Ataque (Total: +36% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+54% CADÊNCIA)', desc: 'LV-3: +18% Velocidade de Ataque (Total: +54% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+72% CADÊNCIA)', desc: 'LV-4: +18% Velocidade de Ataque (Total: +72% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+90% CADÊNCIA)', desc: 'LV-5: +18% Velocidade de Ataque (Total: +90% Cadência)!', toString() { return this.desc; } }
     ]
   },
   duration: {
@@ -351,7 +351,11 @@ const SCROLL_CATALOG = {
     icon: 'hud_hourglass',
     maxLevel: 10,
     levels: [
-      { badge: 'PERSISTÊNCIA ETERNA', desc: '+15.0s na duração máxima! Suas armas duram uma eternidade em campo!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+1.5S DURAÇÃO)', desc: 'LV-1: +1.5s Duração das Armas (Total: +1.5s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+3.0S DURAÇÃO)', desc: 'LV-2: +1.5s Duração das Armas (Total: +3.0s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+4.5S DURAÇÃO)', desc: 'LV-3: +1.5s Duração das Armas (Total: +4.5s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+6.0S DURAÇÃO)', desc: 'LV-4: +1.5s Duração das Armas (Total: +6.0s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+7.5S DURAÇÃO)', desc: 'LV-5: +1.5s Duração das Armas (Total: +7.5s em campo)!', toString() { return this.desc; } }
     ]
   }
 };
@@ -367,12 +371,12 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [1, 2, 3, 4, 5, 6],
     levels: [
-      '1 Coração de Vida (Aspecto hardcore inicial de sobrevivência).',
-      '2 Corações de Vida (+1 Coração - 2 golpes suportados).',
-      '3 Corações de Vida (Vigor honrado do Cavaleiro - 3 golpes).',
-      '4 Corações de Vida (Baluarte de Aço - 4 golpes suportados).',
-      '5 Corações de Vida (Sangue de Dragão - 5 golpes suportados).',
-      '6 Corações de Vida (Imortalidade Rubra - 6 Corações supremos)!'
+      'LV-1: 1 Coração (Suporta 1 golpe)',
+      'LV-2: 2 Corações (+1 Vida | 2 golpes)',
+      'LV-3: 3 Corações (+1 Vida | 3 golpes)',
+      'LV-4: 4 Corações (+1 Vida | 4 golpes)',
+      'LV-5: 5 Corações (+1 Vida | 5 golpes)',
+      'LV-6: 6 Corações (+1 Vida | 6 golpes)!'
     ]
   },
   moveSpeed: {
@@ -384,11 +388,11 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [280, 304, 328, 352, 380],
     levels: [
-      'Passos ágeis base (280 px/s).',
-      'Essência da Brisa (304 px/s, +9% velocidade).',
-      'Fôlego do Falcão (328 px/s, +17% velocidade).',
-      'Passos de Mercúrio (352 px/s, +26% velocidade).',
-      'Velocidade Astral (380 px/s, +36% esquiva suprema)!'
+      'LV-1: 280 px/s (Velocidade Base)',
+      'LV-2: 304 px/s (+24 px/s | +9%)',
+      'LV-3: 328 px/s (+24 px/s | +17%)',
+      'LV-4: 352 px/s (+24 px/s | +26%)',
+      'LV-5: 380 px/s (+28 px/s | +36%)!'
     ]
   },
   magnet: {
@@ -400,11 +404,11 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [90, 135, 185, 240, 310],
     levels: [
-      'Aura curta (90 px) para atrair Orbes de XP e Moedas de Prata.',
-      'Atração Mística (135 px) + puxada mais rápida.',
-      'Vórtice Esmeralda (185 px) — atrai metade da estrada.',
-      'Pulso Gravitacional (240 px) — puxa orbes de longe.',
-      'Onipresença Astral (310 px) — domina toda a floresta!'
+      'LV-1: Raio 90 px (Alcance Base)',
+      'LV-2: Raio 135 px (+45 px | +50%)',
+      'LV-3: Raio 185 px (+50 px | +105%)',
+      'LV-4: Raio 240 px (+55 px | +166%)',
+      'LV-5: Raio 310 px (+70 px | +244%)!'
     ]
   },
   wisdom: {
@@ -416,11 +420,11 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [1.0, 1.15, 1.30, 1.45, 1.65],
     levels: [
-      'Ganho de XP padrão (100%) e duração base das relíquias.',
-      '+15% de XP ganho e +0.6s na duração de todas as armas.',
-      '+30% de XP ganho e +1.2s na duração de todas as armas.',
-      '+45% de XP ganho e +1.8s na duração de todas as armas.',
-      '+65% de XP ganho e +2.5s na duração de todas as armas!'
+      'LV-1: XP 100% (Base) | +0.0s Dur.',
+      'LV-2: XP 115% (+15%) | +0.6s Dur.',
+      'LV-3: XP 130% (+15%) | +1.2s Dur.',
+      'LV-4: XP 145% (+15%) | +1.8s Dur.',
+      'LV-5: XP 165% (+20%) | +2.5s Dur.!'
     ]
   }
 };
@@ -3595,6 +3599,16 @@ function drawFullscreenIcon(r, f) {
   }
 }
 
+function drawPauseIcon(r) {
+  // Duas barras verticais de ouro/amarelo com sombra escura para o botão de pausa
+  r(C.ironDark, 2, 2, 2, 7);
+  r(C.ironDark, 6, 2, 2, 7);
+  r(C.gold, 2, 1, 2, 7);
+  r(C.gold, 6, 1, 2, 7);
+  r(C.yellow, 2, 1, 1, 6);
+  r(C.yellow, 6, 1, 1, 6);
+}
+
 // Ícones dos 3 Novos Pergaminhos de Bônus Global (Multi-Shot, Crescimento e Velocidade)
 function drawScrollMultiShotIcon(r) {
   // Pergaminho aberto (pergaminho envelhecido com bordas de madeira)
@@ -4916,6 +4930,7 @@ initKibyraFonts();
 function getCharGlyph(rawCh) {
   if (!rawCh) return (typeof KIBYRA_FONT_CODES !== 'undefined' ? KIBYRA_FONT_CODES[32] : [0, 0, 0, 0, 0, 8, 7]);
   if (rawCh === '•') return [0, 0, 0, 0, 0, 9, 0];
+  if (rawCh === '|') return [0, 0, 0, 0, 0, 8, 0];
   if (rawCh === '>' || rawCh === '<') return [0, 0, 0, 0, 0, 9, 0];
   if (rawCh === '—' || rawCh === '–') return (typeof KIBYRA_FONT_CODES !== 'undefined' ? (KIBYRA_FONT_CODES[45] || KIBYRA_FONT_CODES[32]) : null);
   if (rawCh === '“' || rawCh === '”') return (typeof KIBYRA_FONT_CODES !== 'undefined' ? (KIBYRA_FONT_CODES[34] || KIBYRA_FONT_CODES[32]) : null);
@@ -5198,6 +5213,14 @@ class PixelText extends Phaser.GameObjects.Image {
           curX += Math.round(9 * scale);
           continue;
         }
+        if (rawCh === '|') {
+          ctx.fillStyle = (palInfo.sheet === 'yellow') ? '#ffd700' : (palInfo.sheet === 'brown' ? '#8d5524' : '#ffffff');
+          const bW = Math.max(2, Math.round(3 * scale));
+          const bH = Math.max(8, Math.round(16 * scale));
+          ctx.fillRect(curX + Math.round(2 * scale), curY + Math.round(4 * scale), bW, bH);
+          curX += Math.round(8 * scale);
+          continue;
+        }
         if (rawCh === '>') {
           ctx.fillStyle = (palInfo.sheet === 'yellow') ? '#ffd700' : (palInfo.sheet === 'brown' ? '#8d5524' : '#ffffff');
           const aSz = Math.max(2, Math.round(2.5 * scale));
@@ -5304,6 +5327,9 @@ class PixelText extends Phaser.GameObjects.Image {
     }
 
     this.canvasTexture.refresh();
+    if (this.frame) {
+      this.frame.setSize(totalW, totalH);
+    }
     this.setSize(totalW, totalH);
     this.updateDisplayOrigin();
   }
@@ -5324,10 +5350,35 @@ function createPixelText(scene, x, y, text, style = {}) {
   return new PixelText(scene, x, y, text, style);
 }
 
-// Hook Global transparente em Phaser.GameObjects.GameObjectFactory
+// Hook Global Hi-DPI para Textos Cristalinos em Phaser.GameObjects.GameObjectFactory
 if (typeof Phaser !== 'undefined' && Phaser.GameObjects && Phaser.GameObjects.GameObjectFactory) {
   Phaser.GameObjects.GameObjectFactory.prototype.text = function(x, y, text, style) {
-    return new PixelText(this.scene, x, y, text, style);
+    if (style && style.pixelFont === true) {
+      return new PixelText(this.scene, x, y, text, style);
+    }
+    const enhancedStyle = Object.assign({
+      resolution: 2
+    }, style || {});
+    if (!enhancedStyle.padding) {
+      enhancedStyle.padding = { left: 2, right: 2, top: 2, bottom: 2 };
+    }
+    const txtObj = new Phaser.GameObjects.Text(this.scene, x, y, text, enhancedStyle);
+    if (enhancedStyle.originX !== undefined && enhancedStyle.originY !== undefined) {
+      txtObj.setOrigin(enhancedStyle.originX, enhancedStyle.originY);
+    }
+    if (txtObj.texture && txtObj.texture.setFilter && typeof Phaser.Textures !== 'undefined') {
+      txtObj.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+    }
+    const _origUpdateText = txtObj.updateText.bind(txtObj);
+    txtObj.updateText = function() {
+      const res = _origUpdateText();
+      if (this.texture && this.texture.setFilter && typeof Phaser.Textures !== 'undefined') {
+        this.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      }
+      return res;
+    };
+    this.displayList.add(txtObj);
+    return txtObj;
   };
   Phaser.GameObjects.GameObjectFactory.prototype.pixelText = function(x, y, text, style) {
     return new PixelText(this.scene, x, y, text, style);
@@ -7705,11 +7756,11 @@ function defeatBoss(scene, boss) {
 const ROUNDED_FONT = '"Nunito", "Quicksand", "Segoe UI", "Trebuchet MS", "Arial Rounded MT Bold", sans-serif';
 const SERIF_TITLE_FONT = '"Cinzel", "Georgia", "Palatino Linotype", serif';
 
-const textStyle = (color, size = 17, weight = 'bold', strokeThickness = 0, strokeColor = '#000000') => ({
+const textStyle = (color, size = 17, weight = 'bold', strokeThickness = 2, strokeColor = '#140c06') => ({
   fontSize: size + 'px',
   fontStyle: weight,
   color,
-  fontFamily: SERIF_TITLE_FONT,
+  fontFamily: size >= 16 ? SERIF_TITLE_FONT : ROUNDED_FONT,
   stroke: strokeThickness > 0 ? strokeColor : 'transparent',
   strokeThickness: strokeThickness,
   shadow: {
@@ -7726,9 +7777,9 @@ const buttonTextStyle = (color = '#ffffff', size = 13, weight = 'bold') => ({
   fontSize: size + 'px',
   fontStyle: weight,
   color,
-  fontFamily: SERIF_TITLE_FONT,
-  stroke: 'transparent',
-  strokeThickness: 0,
+  fontFamily: ROUNDED_FONT,
+  stroke: '#140c06',
+  strokeThickness: 2,
   shadow: {
     offsetX: 1,
     offsetY: 1,
@@ -7744,8 +7795,8 @@ const titleTextStyle = (color = '#ffca28', size = 22) => ({
   fontStyle: 'bold',
   color,
   fontFamily: SERIF_TITLE_FONT,
-  stroke: 'transparent',
-  strokeThickness: 0,
+  stroke: '#140c06',
+  strokeThickness: 2.5,
   shadow: {
     offsetX: 1,
     offsetY: 2,
@@ -7758,11 +7809,11 @@ const titleTextStyle = (color = '#ffca28', size = 22) => ({
 
 const subtitleTextStyle = (color = '#d6c8aa', size = 11.5) => ({
   fontSize: size + 'px',
-  fontStyle: 'normal',
+  fontStyle: 'bold',
   color,
-  fontFamily: SERIF_TITLE_FONT,
-  stroke: 'transparent',
-  strokeThickness: 0,
+  fontFamily: ROUNDED_FONT,
+  stroke: '#140c06',
+  strokeThickness: 2,
   shadow: {
     offsetX: 1,
     offsetY: 1,
@@ -7777,7 +7828,7 @@ const parchmentTitleStyle = (color = '#2c1b10', size = 12.5, weight = 'bold') =>
   fontSize: size + 'px',
   fontStyle: weight,
   color,
-  fontFamily: SERIF_TITLE_FONT,
+  fontFamily: size >= 15 ? SERIF_TITLE_FONT : ROUNDED_FONT,
   stroke: 'transparent',
   strokeThickness: 0,
   shadow: null
@@ -7810,6 +7861,92 @@ function fitTextToBox(textObj, maxWidth, maxHeight = 999, minFontSize = 10) {
     textObj.setFontSize(currentSize);
   }
   return textObj;
+}
+
+/**
+ * Renderiza as linhas de evolução de atributos diretamente no pergaminho da carta:
+ * Ex: "Dano: 20 ➔ 24" onde o rótulo é marrom escuro nobre, o valor antigo é sépia e o novo é verde esmeralda vibrante.
+ */
+function renderStatUpgradeBlock(scene, cx, topY, boxW, boxH, statRows, subNote = '', borderColor = 0xc5a059, baseFontSize = 11.5) {
+  const elements = [];
+
+  const rows = Array.isArray(statRows) ? statRows : [];
+  const hasNote = Boolean(subNote && String(subNote).trim().length > 0);
+  const usableH = hasNote ? (boxH - 18) : boxH;
+  const rowCount = Math.max(1, rows.length);
+  const rowStep = Math.min(24, Math.floor((usableH - 8) / rowCount));
+  const totalRowsH = (rowCount - 1) * rowStep;
+  const startRowY = topY + Math.floor(usableH / 2 - totalRowsH / 2);
+
+  rows.forEach((row, idx) => {
+    const ry = startRowY + idx * rowStep;
+    let fSize = baseFontSize;
+    const hasFrom = row.from !== null && row.from !== undefined && String(row.from) !== '';
+
+    const lblTxt = scene.add.text(0, ry, `${row.label}: `, {
+      fontFamily: ROUNDED_FONT,
+      fontSize: fSize + 'px',
+      fontStyle: 'bold',
+      color: '#2a1708',
+      stroke: 'transparent',
+      strokeThickness: 0
+    }).setOrigin(0, 0.5);
+
+    const fromTxt = scene.add.text(0, ry, hasFrom ? `${row.from} ➔ ` : '', {
+      fontFamily: ROUNDED_FONT,
+      fontSize: fSize + 'px',
+      fontStyle: 'bold',
+      color: '#5c4333',
+      stroke: 'transparent',
+      strokeThickness: 0
+    }).setOrigin(0, 0.5);
+
+    const toTxt = scene.add.text(0, ry, String(row.to), {
+      fontFamily: ROUNDED_FONT,
+      fontSize: fSize + 'px',
+      fontStyle: 'bold',
+      color: '#15803d',
+      stroke: 'transparent',
+      strokeThickness: 0
+    }).setOrigin(0, 0.5);
+
+    const maxRowW = boxW - 12;
+    while (fSize > 8 && (lblTxt.width + fromTxt.width + toTxt.width - 4) > maxRowW) {
+      fSize -= 0.5;
+      lblTxt.setFontSize(fSize);
+      fromTxt.setFontSize(fSize);
+      toTxt.setFontSize(fSize);
+    }
+
+    const totalW = lblTxt.width + (hasFrom ? (fromTxt.width - 2) : 0) + toTxt.width - 2;
+    const startX = Math.round(cx - totalW / 2);
+    lblTxt.setX(startX);
+    if (hasFrom) {
+      fromTxt.setX(Math.round(startX + lblTxt.width - 2));
+      toTxt.setX(Math.round(startX + lblTxt.width + fromTxt.width - 4));
+    } else {
+      fromTxt.setVisible(false);
+      toTxt.setX(Math.round(startX + lblTxt.width - 2));
+    }
+
+    elements.push(lblTxt, fromTxt, toTxt);
+  });
+
+  if (hasNote) {
+    const noteTxt = scene.add.text(cx, topY + boxH - 10, subNote, {
+      fontFamily: ROUNDED_FONT,
+      fontSize: '9.5px',
+      fontStyle: 'bold',
+      color: '#6b4f38',
+      stroke: 'transparent',
+      strokeThickness: 0,
+      align: 'center'
+    }).setOrigin(0.5);
+    fitTextToBox(noteTxt, boxW - 10, 14, 7.5);
+    elements.push(noteTxt);
+  }
+
+  return elements;
 }
 
 function floatText(scene, x, y, msg, color) {
@@ -7917,13 +8054,13 @@ function createHUD(scene) {
   // 1. PAINEL DE GLÓRIA & VIDA (Tempo + Corações) — Esquerda (x: 14..202)
   const gloryBg = scene.add.image(14, 10, 'ui_hud_panel_time').setOrigin(0, 0).setDisplaySize(188, 48);
   const hourglass = scene.add.image(28, 34, 'hud_hourglass');
-  const gloryLabel = scene.add.text(42, 22, "GL\u00d3RIA & VIDA", textStyle("#a89260", 9)).setOrigin(0, 0.5);
-  hudGloryText = scene.add.text(42, 36, "0s", textStyle("#f5e6c8", 13)).setOrigin(0, 0.5);
+  const gloryLabel = scene.add.text(42, 21, "GL\u00d3RIA & VIDA", textStyle("#ffe082", 9.5)).setOrigin(0, 0.5);
+  hudGloryText = scene.add.text(42, 37, "0s", textStyle("#ffffff", 13.5)).setOrigin(0, 0.5);
   hudContainer.add([gloryBg, hourglass, gloryLabel, hudGloryText]);
 
   hudHearts = [];
   for (let i = 0; i < 6; i++) {
-    const heart = scene.add.image(94 + i * 14, 34, "hud_heart", 0).setScale(1.0);
+    const heart = scene.add.image(94 + i * 15, 36, "hud_heart", 0).setScale(1.0);
     hudHearts.push(heart);
     hudContainer.add(heart);
   }
@@ -7932,39 +8069,39 @@ function createHUD(scene) {
   // 2. PAINEL DE PRATA DA PARTIDA — Centro-Esquerda (x: 210..298)
   const silverBg = scene.add.image(210, 10, 'ui_hud_panel_silver').setOrigin(0, 0).setDisplaySize(88, 48);
   const silverIcon = scene.add.image(226, 34, "silver_coin", 0).setScale(1.2);
-  const silverLabel = scene.add.text(242, 22, "PRATA", textStyle("#b0bec5", 9)).setOrigin(0, 0.5);
-  hudSilverText = scene.add.text(242, 36, "0", textStyle("#e0f7fa", 15)).setOrigin(0, 0.5);
+  const silverLabel = scene.add.text(242, 21, "PRATA", textStyle("#e0f7fa", 9.5)).setOrigin(0, 0.5);
+  hudSilverText = scene.add.text(242, 37, "0", textStyle("#ffffff", 14.5)).setOrigin(0, 0.5);
   hudContainer.add([silverBg, silverIcon, silverLabel, hudSilverText]);
 
-  // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 306..532)
+  // 3. PAINEL DE RELÍQUIA / EQUIPAMENTO ATIVO — Centro (x: 306..566)
   const itemBg = scene.add.image(306, 10, "ui_hud_panel_weapon").setOrigin(0, 0).setDisplaySize(260, 48);
 
   // Alvéolo circular / medalhão medieval de relíquia (UI Kit)
   const slotFrame = scene.add.image(326, 34, "ui_wood_slots").setDisplaySize(34, 34);
-  hudBackpackSlot = scene.add.image(364, 34, "ui_wood_slots").setDisplaySize(34, 34);
-  hudBackpackIcon = scene.add.image(364, 34, "item_bow").setDisplaySize(22, 22).setVisible(false);
-  hudBackpackPadlock = scene.add.image(364, 34, "ui_padlock").setDisplaySize(14, 20).setVisible(true);
+  hudBackpackSlot = scene.add.image(362, 34, "ui_wood_slots").setDisplaySize(34, 34);
+  hudBackpackIcon = scene.add.image(362, 34, "item_bow").setDisplaySize(22, 22).setVisible(false);
+  hudBackpackPadlock = scene.add.image(362, 34, "ui_padlock").setDisplaySize(14, 20).setVisible(true);
 
   hudItemIcon = scene.add.image(326, 34, "item_bow").setDisplaySize(22, 22).setVisible(false);
-  hudItemName = scene.add.text(388, 22, "SEM ARMA", textStyle("#7a7265", 10)).setOrigin(0, 0.5);
-  hudItemBarBase = scene.add.image(388, 36, "ui_bar_timer_base").setOrigin(0, 0.5).setDisplaySize(54, 12);
+  hudItemName = scene.add.text(386, 21, "SEM ARMA", textStyle("#d7ccc8", 10)).setOrigin(0, 0.5);
+  hudItemBarBase = scene.add.image(386, 37, "ui_bar_timer_base").setOrigin(0, 0.5).setDisplaySize(54, 12);
   hudItemBar = scene.add.graphics();
-  hudItemTime = scene.add.text(446, 36, "", textStyle("#ffca28", 9.5)).setOrigin(0, 0.5);
-  const badge1 = scene.add.image(486, 25, "scroll_multishot").setScale(0.70).setVisible(false);
-  const txt1 = scene.add.text(486, 39, "", textStyle("#b388ff", 8)).setOrigin(0.5, 0.5).setVisible(false);
-  const badge2 = scene.add.image(512, 25, "scroll_growth").setScale(0.70).setVisible(false);
-  const txt2 = scene.add.text(512, 39, "", textStyle("#b388ff", 8)).setOrigin(0.5, 0.5).setVisible(false);
+  hudItemTime = scene.add.text(444, 37, "", textStyle("#ffd740", 10)).setOrigin(0, 0.5);
+  const badge1 = scene.add.image(498, 26, "scroll_multishot").setScale(0.72).setVisible(false);
+  const txt1 = scene.add.text(498, 42, "", textStyle("#e1bee7", 8.5)).setOrigin(0.5, 0.5).setVisible(false);
+  const badge2 = scene.add.image(536, 26, "scroll_growth").setScale(0.72).setVisible(false);
+  const txt2 = scene.add.text(536, 42, "", textStyle("#e1bee7", 8.5)).setOrigin(0.5, 0.5).setVisible(false);
   hudScrollBadges = [badge1, badge2];
   hudScrollTexts = [txt1, txt2];
   hudScrollBadge = badge1;
   hudScrollText = txt1;
   hudContainer.add([itemBg, slotFrame, hudItemIcon, hudBackpackSlot, hudBackpackIcon, hudBackpackPadlock, hudItemName, hudItemBarBase, hudItemBar, hudItemTime, badge1, txt1, badge2, txt2]);
 
-  // 4. PAINEL DE RECORDE DO REINO (x: 540..648)
+  // 4. PAINEL DE RECORDE DO REINO (x: 574..682)
   const bestBg = scene.add.image(574, 10, "ui_hud_panel_record").setOrigin(0, 0).setDisplaySize(108, 48);
   const crown = scene.add.image(590, 34, "hud_crown");
-  const bestLabel = scene.add.text(572, 22, "RECORDE", textStyle("#a89260", 9)).setOrigin(0, 0.5);
-  hudBestText = scene.add.text(606, 36, `${getBestScore()}s`, textStyle("#ffca28", 15)).setOrigin(0, 0.5);
+  const bestLabel = scene.add.text(606, 21, "RECORDE", textStyle("#ffe082", 9.5)).setOrigin(0, 0.5);
+  hudBestText = scene.add.text(606, 37, `${getBestScore()}s`, textStyle("#ffd740", 14.5)).setOrigin(0, 0.5);
   hudContainer.add([bestBg, crown, bestLabel, hudBestText]);
   // 5. BOTÃO DE SOM RÁPIDO [M] — Superior Direito (x: 844..892 em 16:9)
   const soundBtnBg = scene.add.image(868, 34, 'ui_btn_blue_sq').setDisplaySize(44, 44);
@@ -8012,7 +8149,7 @@ function createHUD(scene) {
 
   // 7. BOTAO DE PAUSA RAPIDO [ESC] - (Tiny Swords Blue Button)
   const pauseBtnBg = scene.add.image(810, 34, 'ui_btn_blue_sq').setDisplaySize(44, 44);
-  const pauseIcon = scene.add.text(810, 32, '||', { fontSize: '16px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
+  const pauseIcon = scene.add.image(810, 34, 'hud_pause');
   const pauseHitArea = scene.add.rectangle(810, 34, 44, 44, 0x000000, 0).setInteractive({ useHandCursor: true });
   pauseHitArea.on('pointerdown', () => {
     pauseBtnBg.setTexture('ui_btn_blue_sq_press');
@@ -8024,28 +8161,28 @@ function createHUD(scene) {
 
   hudContainer.add([pauseBtnBg, pauseIcon, pauseHitArea, soundBtnBg, hudHornIcon, soundHitArea, fsBtnBg, hudFullscreenIcon, fsHitArea]);
 
-  // 8. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre 16:9 (x: 14..946, y: 61..77)
-  const xpFrame = scene.add.image(14, 61, 'ui_bar_xp_base').setOrigin(0, 0).setDisplaySize(932, 16);
+  // 8. BARRA DE EXPERIÊNCIA (XP) DA PARTIDA — Faixa Horizontal Nobre 16:9 (x: 14..946, y: 63..81)
+  const xpFrame = scene.add.image(14, 63, 'ui_bar_xp_base').setOrigin(0, 0).setDisplaySize(932, 18);
   hudXpBar = scene.add.graphics();
-  const xpGemIcon = scene.add.image(28, 69, 'xp_orb', 0).setScale(1.05);
-  hudLevelText = scene.add.text(42, 69, 'NÍVEL 1', textStyle('#ffca28', 10.5)).setOrigin(0, 0.5);
-  hudXpText = scene.add.text(932, 69, 'XP: 0 / 6', textStyle('#7fe7ff', 10.5)).setOrigin(1, 0.5);
+  const xpGemIcon = scene.add.image(28, 72, 'xp_orb', 0).setScale(1.05);
+  hudLevelText = scene.add.text(42, 72, 'NÍVEL 1', textStyle('#ffd740', 11)).setOrigin(0, 0.5);
+  hudXpText = scene.add.text(934, 72, 'XP: 0 / 6', textStyle('#7fe7ff', 11)).setOrigin(1, 0.5);
   hudContainer.add([xpFrame, hudXpBar, xpGemIcon, hudLevelText, hudXpText]);
   updateXpHUD();
 
   // 9. BARRA DE VIDA DO CHEFÃO (Gothic Iron Crest com Rubis Sangrentos)
   bossHudContainer = scene.add.container(0, 0).setVisible(false);
   const bossBg = scene.add.graphics();
-  bossBg.fillStyle(0x160d0b, 0.96).fillRoundedRect(290, 80, 380, 32, 6);
-  bossBg.lineStyle(2.5, 0xd83a3a).strokeRoundedRect(290, 80, 380, 32, 6);
-  bossBg.lineStyle(1, 0xff8a80, 0.7).strokeRoundedRect(293, 83, 374, 26, 4);
+  bossBg.fillStyle(0x160d0b, 0.96).fillRoundedRect(290, 84, 380, 32, 6);
+  bossBg.lineStyle(2.5, 0xd83a3a).strokeRoundedRect(290, 84, 380, 32, 6);
+  bossBg.lineStyle(1, 0xff8a80, 0.7).strokeRoundedRect(293, 87, 374, 26, 4);
 
   // Spikes ornamentais góticos nas bordas da barra do Boss
-  bossBg.fillStyle(0xd83a3a, 1).fillTriangle(290, 96, 282, 96, 290, 88);
-  bossBg.fillStyle(0xd83a3a, 1).fillTriangle(670, 96, 678, 96, 670, 88);
+  bossBg.fillStyle(0xd83a3a, 1).fillTriangle(290, 100, 282, 100, 290, 92);
+  bossBg.fillStyle(0xd83a3a, 1).fillTriangle(670, 100, 678, 100, 670, 92);
 
-  const bossTitle = scene.add.text(310, 84, 'GOLEM ANCESTRAL DE PEDRA', textStyle('#ff8a80', 10.5));
-  bossHpText = scene.add.text(654, 84, `${BOSS_MAX_HP}/${BOSS_MAX_HP}`, textStyle('#ffca28', 10.5)).setOrigin(1, 0);
+  const bossTitle = scene.add.text(310, 88, 'GOLEM ANCESTRAL DE PEDRA', textStyle('#ff8a80', 10.5));
+  bossHpText = scene.add.text(654, 88, `${BOSS_MAX_HP}/${BOSS_MAX_HP}`, textStyle('#ffca28', 10.5)).setOrigin(1, 0);
   bossHpBar = scene.add.graphics();
   bossHudContainer.add([bossBg, bossTitle, bossHpBar, bossHpText]);
   hudContainer.add(bossHudContainer);
@@ -8055,7 +8192,7 @@ function updateXpHUD() {
   if (!hudXpBar || !hudLevelText || !hudXpText) return;
   hudXpBar.clear();
   const barX = 114;
-  const barY = 64;
+  const barY = 67;
   const barW = 724;
   const barH = 10;
 
@@ -8100,7 +8237,7 @@ function updateHeartsHUD() {
 function updateItemHUD() {
   if (!buff.type) {
     hudItemIcon.setVisible(false);
-    hudItemName.setText('SEM ARMA').setColor('#7a7265');
+    hudItemName.setFontSize(10).setText('SEM ARMA').setColor('#d7ccc8');
   
     hudItemTime.setText('');
     hudItemBar.clear();
@@ -8113,8 +8250,12 @@ function updateItemHUD() {
 
   const lvl = getWeaponLevel(buff.type);
   const label = BUFF_NAMES[buff.type] || 'RELÍQUIA';
-  hudItemName.setText(`${label} NV.${lvl}`).setColor('#7fe7ff');
-  fitTextToBox(hudItemName, 174, 18, 9);
+  const activeScrollsCount = (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls))
+    ? chosenScrolls.length
+    : (chosenScroll ? 1 : 0);
+  const maxNameW = activeScrollsCount >= 2 ? 98 : (activeScrollsCount === 1 ? 122 : 164);
+  hudItemName.setFontSize(10).setText(`${label} NV.${lvl}`).setColor('#7fe7ff');
+  fitTextToBox(hudItemName, maxNameW, 18, 8);
 
   const remaining = Math.max(0, buff.timeLeft);
   hudItemTime.setText(`${remaining.toFixed(1)}s`);
@@ -8123,8 +8264,8 @@ function updateItemHUD() {
   const pct = Phaser.Math.Clamp(remaining / maxTime, 0, 1);
   const barW = 50;
   const barH = 6;
-  const barX = 389;
-  const barY = 33;
+  const barX = 388;
+  const barY = 34;
 
   hudItemBar.clear();
   hudItemBar.fillStyle(0x100e0b, 1).fillRect(barX, barY, barW, barH);
@@ -8182,18 +8323,18 @@ function updateScrollHUD() {
     }
   }
 
-  // Se possuir exatamente 1 pergaminho, centraliza o badge (x: 506)
+  // Posicionamento sem sobreposição dentro do painel da arma (x: 306..566)
   if (activeScrolls.length === 1 && hudScrollBadges[0] && hudScrollTexts[0]) {
-    hudScrollBadges[0].setX(518);
-    hudScrollTexts[0].setX(518);
+    hudScrollBadges[0].setX(526);
+    hudScrollTexts[0].setX(526);
   } else if (activeScrolls.length >= 2) {
     if (hudScrollBadges[0] && hudScrollTexts[0]) {
-    hudScrollBadges[0].setX(518);
-    hudScrollTexts[0].setX(518);
+      hudScrollBadges[0].setX(500);
+      hudScrollTexts[0].setX(500);
     }
     if (hudScrollBadges[1] && hudScrollTexts[1]) {
-      hudScrollBadges[1].setX(512);
-      hudScrollTexts[1].setX(512);
+      hudScrollBadges[1].setX(538);
+      hudScrollTexts[1].setX(538);
     }
   }
 }
@@ -8223,6 +8364,67 @@ function updateBackpackHUD() {
 // =============================================================================
 // SISTEMA DE LEVEL UP & INTERFACE DE SELEÇÃO DE 3 CARTAS (RNG DRAFT SCREEN)
 // -----------------------------------------------------------------------------
+function buildWeaponLevelUpRows(key, currLvl, nextLvl) {
+  const baseDur = (typeof BUFF_TIME !== 'undefined' && BUFF_TIME[key]) ? BUFF_TIME[key] : 10.0;
+  const currDur = Math.min(28.0, baseDur * (1 + (currLvl - 1) * 0.12)).toFixed(1) + 's';
+  const nextDur = Math.min(28.0, baseDur * (1 + (nextLvl - 1) * 0.12)).toFixed(1) + 's';
+
+  const baseDmgMap = { sword: 20, bow: 15, axe: 22, firestaff: 18, shield: 12 };
+  const baseDmg = baseDmgMap[key] || 15;
+  const cDmg = Math.round(baseDmg * (1 + (currLvl - 1) * 0.22));
+  const nDmg = Math.round(baseDmg * (1 + (nextLvl - 1) * 0.22));
+
+  if (key === 'sword') {
+    const cArea = Math.round((1 + (currLvl - 1) * 0.26) * 100) + '%';
+    const nArea = Math.round((1 + (nextLvl - 1) * 0.26) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Tamanho', from: cArea, to: nArea },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'bow') {
+    const cSpd = Math.round(Math.pow(1 / 0.86, currLvl - 1) * 100) + '%';
+    const nSpd = Math.round(Math.pow(1 / 0.86, nextLvl - 1) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Vel. Ataque', from: cSpd, to: nSpd },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'axe') {
+    const cKb = (3.0 * (1 + (currLvl - 1) * 0.35)).toFixed(1);
+    const nKb = (3.0 * (1 + (nextLvl - 1) * 0.35)).toFixed(1);
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Repulsão', from: cKb, to: nKb },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'firestaff') {
+    const cArea = Math.round((1 + (currLvl - 1) * 0.22) * 100) + '%';
+    const nArea = Math.round((1 + (nextLvl - 1) * 0.22) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Tamanho', from: cArea, to: nArea },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  if (key === 'shield') {
+    const cArea = Math.round((1 + (currLvl - 1) * 0.15) * 100) + '%';
+    const nArea = Math.round((1 + (nextLvl - 1) * 0.15) * 100) + '%';
+    return [
+      { label: 'Dano', from: cDmg, to: nDmg },
+      { label: 'Tamanho', from: cArea, to: nArea },
+      { label: 'Duração', from: currDur, to: nextDur }
+    ];
+  }
+  return [
+    { label: 'Dano', from: cDmg, to: nDmg },
+    { label: 'Duração', from: currDur, to: nextDur }
+  ];
+}
+
 function rollLevelUpCards() {
   const unlockedKeys = getUnlockedWeaponPool();
   const weaponCards = [];
@@ -8233,18 +8435,19 @@ function rollLevelUpCards() {
     if (cfg) {
       const nextLvl = currLvl + 1;
       const isHeld = buff && buff.type === key;
-      const mult = (1 + (nextLvl - 1) * 0.22).toFixed(2);
-      const pct = Math.round((nextLvl - 1) * 22);
+      const rows = buildWeaponLevelUpRows(key, currLvl, nextLvl);
 
       weaponCards.push({
         id: `upg_${key}_${nextLvl}`,
         category: cfg.category || (isHeld ? 'ARMA EQUIPADA' : 'EVOLUÇÃO DE ARMA'),
         title: cfg.name,
-        badge: `Nv. ${currLvl} -> Nv. ${nextLvl}`,
+        badge: `NV. ${nextLvl}`,
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `NÍVEL ATUAL: Nv. ${currLvl}\nNÍVEL FUTURO: Nv. ${nextLvl}\n\n MULTIPLICADOR DE STATUS:\nx${mult} (+${pct}% Geral)\n\n Equipa esta arma imediatamente!`,
+        statRows: rows,
+        subNote: 'Equipa esta arma imediatamente!',
+        desc: rows.map(r => `${r.label}: ${r.from} -> ${r.to}`).join('\n'),
         weight: isHeld ? 3 : 2,
         apply: (scene) => {
           runWeaponLevels[key] = nextLvl;
@@ -8272,19 +8475,28 @@ function rollLevelUpCards() {
     const nextLvl = currLvl + 1;
     const sCfg = SCROLL_CATALOG[sKey];
     if (!sCfg) return;
-    const lvlData = (sCfg.levels && sCfg.levels[nextLvl - 1]) ? sCfg.levels[nextLvl - 1] : null;
-    const badge = lvlData ? (typeof lvlData === 'object' ? lvlData.badge : 'PODER ARCANO') : 'TRANSCENDÊNCIA ';
-    const desc = lvlData ? (typeof lvlData === 'object' ? lvlData.desc : lvlData) : 'Aumenta o poder arcano do pergaminho nesta partida.';
+    const badge = `NV. ${nextLvl}`;
+
+    let sRows = [];
+    if (sKey === 'multishot') {
+      sRows = [{ label: 'Projéteis', from: `+${currLvl}`, to: `+${nextLvl}` }];
+    } else if (sKey === 'growth') {
+      sRows = [{ label: 'Tamanho', from: `+${currLvl * 20}%`, to: `+${nextLvl * 20}%` }];
+    } else if (sKey === 'attackspeed') {
+      sRows = [{ label: 'Vel. Ataque', from: `+${currLvl * 18}%`, to: `+${nextLvl * 18}%` }];
+    } else {
+      sRows = [{ label: 'Duração', from: `+${(currLvl * 1.5).toFixed(1)}s`, to: `+${(nextLvl * 1.5).toFixed(1)}s` }];
+    }
 
     const slotLabel = isAlreadyChosen
-      ? 'PERGAMINHO EXCLUSIVO'
-      : (currentChosenCount === 0 ? 'PERGAMINHO ARCANO (1/2)' : 'PERGAMINHO ARCANO (2/2)');
+      ? 'PERGAMINHO ATIVO'
+      : (currentChosenCount === 0 ? 'PERGAMINHO (1/2)' : 'PERGAMINHO (2/2)');
 
     const promptExtra = isAlreadyChosen
-      ? ' Refina este pergaminho exclusivo nesta partida!'
+      ? 'Afeta todas as suas armas!'
       : (currentChosenCount === 0
-          ? ' ESCOLHA ARCANO (1/2): Trava como o 1º de 2 pergaminhos desta run!'
-          : ' ESCOLHA ARCANO (2/2): Trava como o 2º e último pergaminho desta run!');
+          ? '1º de 2 pergaminhos da partida'
+          : '2º de 2 pergaminhos da partida');
 
     scrollCards.push({
       id: `scroll_${sKey}_${nextLvl}`,
@@ -8294,7 +8506,9 @@ function rollLevelUpCards() {
       badgeColor: nextLvl >= 5 ? '#ffd740' : '#b388ff',
       borderColor: nextLvl >= 5 ? 0xffca28 : 0xb388ff,
       icon: sCfg.icon,
-      desc: `${desc}\n\n${promptExtra}`,
+      statRows: sRows,
+      subNote: promptExtra,
+      desc: sRows.map(r => `${r.label}: ${r.from} -> ${r.to}`).join('\n'),
       weight: isAlreadyChosen ? 3 : 2,
       apply: (scene) => {
         if (typeof chosenScrolls !== 'undefined' && Array.isArray(chosenScrolls)) {
@@ -8319,11 +8533,16 @@ function rollLevelUpCards() {
       id: 'item_duration_boost',
       category: 'RELÍQUIA TEMPORAL',
       title: 'AMPULHETA REAL',
-      badge: 'EXTENSÃO TEMPORAL',
+      badge: 'BÔNUS PERMANENTE',
       badgeColor: '#ffca28',
       borderColor: 0xc5a059,
       icon: 'hud_hourglass',
-      desc: 'Amplia substancialmente o tempo de atividade das relíquias em combate e recarrega sua arma ativa!',
+      statRows: [
+        { label: 'Duração', from: `+${runBonusDuration.toFixed(1)}s`, to: `+${(runBonusDuration + 1.2).toFixed(1)}s` },
+        { label: 'Recarga', from: null, to: '100%' }
+      ],
+      subNote: 'Aumenta o tempo de todas as armas!',
+      desc: 'Duração: +1.2s\nRecarga: 100%',
       apply: (scene) => {
         runBonusDuration += 1.2;
         if (buff.type) {
@@ -8339,11 +8558,16 @@ function rollLevelUpCards() {
       id: 'item_random_relic',
       category: 'BAÚ DE ARMAS',
       title: 'ARSENAL DO REI',
-      badge: 'ARSENAL REAL',
+      badge: 'BAÚ DE COMBATE',
       badgeColor: '#e0f7fa',
       borderColor: 0x80deea,
       icon: 'silver_coin',
-      desc: 'Invoca e equipa imediatamente uma Relíquia de Combate sobrecarregada com moedas de prata!',
+      statRows: [
+        { label: 'Duração Arma', from: null, to: '+3.0s' },
+        { label: 'Prata', from: `${runSilver}`, to: `${runSilver + 4}` }
+      ],
+      subNote: 'Equipa 1 arma sobrecarregada!',
+      desc: 'Duração: +3.0s\nPrata: +4',
       apply: (scene) => {
         const chosen = Phaser.Utils.Array.GetRandom(unlockedKeys);
         equipWeaponBuff(scene, chosen, false);
@@ -8358,11 +8582,18 @@ function rollLevelUpCards() {
       id: 'item_holy_chalice',
       category: 'ITEM SAGRADO',
       title: 'BÊNÇÃO DO ESCUDO',
-      badge: playerHp < playerMaxHp ? 'RESTAURAÇÃO VITAL' : 'BÊNÇÃO DE PRATA',
+      badge: playerHp < playerMaxHp ? 'CURA & EXPLOSÃO' : 'PRATA & EXPLOSÃO',
       badgeColor: '#ff8a80',
       borderColor: 0xff5252,
       icon: 'stat_health',
-      desc: 'Restaura a força vital do Cavaleiro e conjura uma expansão sagrada de repulsão!',
+      statRows: [
+        playerHp < playerMaxHp
+          ? { label: 'Vida', from: `${playerHp}`, to: `${Math.min(playerMaxHp, playerHp + 1)}` }
+          : { label: 'Prata', from: `${runSilver}`, to: `${runSilver + 5}` },
+        { label: 'Dano Explosão', from: null, to: '30' }
+      ],
+      subNote: 'Detona onda sagrada imediata!',
+      desc: 'Cura +1 Vida e causa 30 de Dano em área!',
       apply: (scene) => {
         if (playerHp < playerMaxHp) {
           playerHp = Math.min(playerMaxHp, playerHp + 1);
@@ -8386,11 +8617,16 @@ function rollLevelUpCards() {
         id: `mastery_${key}`,
         category: 'MESTRIA LENDÁRIA',
         title: `${cfg.name} SUPREMO`,
-        badge: 'TRANSCENDÊNCIA ',
+        badge: 'TRANSCENDÊNCIA',
         badgeColor: '#ffd740',
         borderColor: 0xffca28,
         icon: cfg.icon,
-        desc: `Equipa imediatamente ${cfg.name} em seu grau máximo de mestria com bônus de duração estendida!`,
+        statRows: [
+          { label: 'Duração Bônus', from: null, to: '+4.0s' },
+          { label: 'Poder', from: null, to: 'MÁXIMO' }
+        ],
+        subNote: `Equipa ${cfg.name} sobrecarregado!`,
+        desc: `Equipa imediatamente ${cfg.name} com +4.0s de duração!`,
         apply: (scene) => {
           equipWeaponBuff(scene, key, false);
           buff.timeLeft += 4.0;
@@ -8561,24 +8797,47 @@ function openLevelUpDraft(scene) {
       if (hover) cardHighlight.lineStyle(3, 0xffeb3b, 0.95).strokeRoundedRect(left - 2, top - 2, cardW + 4, cardH + 4, 10);
     };
     drawHighlight(false);
-    const slotImg = scene.add.image(cx, top + 74, 'ui_wood_slots').setDisplaySize(68, 68);
-    const iconImg = scene.add.image(cx, top + 74, card.icon).setScale(1.55);
-    const catTxt = scene.add.text(cx, top + 24, String(card.category || '').toUpperCase(), parchmentTitleStyle("#4a2c11", 10, "bold")).setOrigin(0.5);
+    const slotImg = scene.add.image(cx, top + 68, 'ui_wood_slots').setDisplaySize(64, 64);
+    const iconImg = scene.add.image(cx, top + 68, card.icon).setScale(1.5);
+    const catTxt = scene.add.text(cx, top + 24, String(card.category || '').toUpperCase(), parchmentTitleStyle("#4a2c11", 10.5, "bold")).setOrigin(0.5);
     fitTextToBox(catTxt, cardW - 20, 16, 8.5);
-    const nameTxt = scene.add.text(cx, top + 132, String(card.title || '').toUpperCase(), { ...parchmentTitleStyle('#22140a', 13, 'bold'), align: 'center', wordWrap: { width: cardW - 24, useAdvancedWrap: true } }).setOrigin(0.5);
+    const nameTxt = scene.add.text(cx, top + 122, String(card.title || '').toUpperCase(), { ...parchmentTitleStyle('#1a0e05', 13.5, 'bold'), align: 'center', wordWrap: { width: cardW - 24, useAdvancedWrap: true } }).setOrigin(0.5);
     fitTextToBox(nameTxt, cardW - 24, 26, 9.5);
-    const badgeBg = scene.add.rectangle(cx, top + 164, cardW - 40, 22, 0x22150a, 0.85);
-    const badgeTxt = scene.add.text(cx, top + 164, String(card.badge || '').toUpperCase(), textStyle(card.badgeColor, 10)).setOrigin(0.5);
-    fitTextToBox(badgeTxt, cardW - 46, 18, 8.5);
-    const descTxt = scene.add.text(cx, top + 242, card.desc, { ...parchmentBodyStyle('#1f1208', 10.5, 'normal'), align: 'center', lineSpacing: 2.5, wordWrap: { width: cardW - 32, useAdvancedWrap: true } }).setOrigin(0.5);
-    fitTextToBox(descTxt, cardW - 30, 116, 8.5);
-    const pickBtn = scene.add.image(cx, top + cardH - 34, 'ui_btn_blue_reg').setDisplaySize(cardW - 32, 42);
-    const pickTxt = scene.add.text(cx, top + cardH - 34, 'ESCOLHER [' + (idx + 1) + ']', buttonTextStyle('#ffffff', 12)).setOrigin(0.5);
+    const badgeBg = scene.add.rectangle(cx, top + 150, cardW - 36, 22, 0x22150a, 0.92).setStrokeStyle(1, 0xc5a059);
+    const badgeTxt = scene.add.text(cx, top + 150, String(card.badge || '').toUpperCase(), textStyle(card.badgeColor, 10.5)).setOrigin(0.5);
+    fitTextToBox(badgeTxt, cardW - 44, 18, 8.5);
+
+    let descElements = [];
+    if (Array.isArray(card.statRows) && card.statRows.length > 0 && typeof renderStatUpgradeBlock === 'function') {
+      descElements = renderStatUpgradeBlock(
+        scene,
+        cx,
+        top + 168,
+        cardW - 26,
+        152,
+        card.statRows,
+        card.subNote || '',
+        card.borderColor || 0xc5a059,
+        12
+      );
+    } else {
+      const descTxt = scene.add.text(cx, top + 246, card.desc, {
+        ...parchmentBodyStyle('#1f1208', 11.5, 'bold'),
+        align: 'center',
+        lineSpacing: 3.5,
+        wordWrap: { width: cardW - 28, useAdvancedWrap: true }
+      }).setOrigin(0.5);
+      fitTextToBox(descTxt, cardW - 26, 152, 9);
+      descElements = [descTxt];
+    }
+
+    const pickBtn = scene.add.image(cx, top + cardH - 32, 'ui_btn_blue_reg').setDisplaySize(cardW - 32, 40);
+    const pickTxt = scene.add.text(cx, top + cardH - 32, 'ESCOLHER [' + (idx + 1) + ']', buttonTextStyle('#ffffff', 12.5)).setOrigin(0.5);
     const hitZone = scene.add.rectangle(cx, cardY, cardW, cardH, 0x000000, 0).setInteractive({ useHandCursor: true });
     hitZone.on('pointerover', () => { drawHighlight(true); pickBtn.setTexture('ui_btn_blue_press'); pickTxt.setColor('#ffeb3b'); });
     hitZone.on('pointerout', () => { drawHighlight(false); pickBtn.setTexture('ui_btn_blue_reg'); pickTxt.setColor('#ffffff'); });
     hitZone.on('pointerdown', () => selectCard(card));
-    draftModal.add([cardPaper, cardHighlight, slotImg, iconImg, catTxt, nameTxt, badgeBg, badgeTxt, descTxt, pickBtn, pickTxt, hitZone]);
+    draftModal.add([cardPaper, cardHighlight, slotImg, iconImg, catTxt, nameTxt, badgeBg, badgeTxt, ...descElements, pickBtn, pickTxt, hitZone]);
   });
 }
 
@@ -10211,11 +10470,11 @@ function showBlacksmithMenu(scene) {
     firestaff: 'IMPACTO EM ÁREA'
   };
   const weaponStyles = {
-    bow: 'Disparos rápidos à distância (ideal para arqueiros e caçadores).',
-    sword: 'Corte frontal potente em arco com alto knockback e rastro reluzente.',
-    shield: 'Aura defensiva sagrada que bloqueia e reflete projéteis inimigos.',
-    axe: 'Corte giratório duplo devastador que atinge múltiplos inimigos em 360 graus.',
-    firestaff: 'Projéteis vulcânicos explosivos com dano em área e alta potência de impacto.'
+    bow: 'Arco élfico da Guarda Real.\nDispara flechas luminosas de alta precisão que abatem inimigos à distância.',
+    sword: 'Lâmina ancestral de aço puro.\nDesfere cortes reluzentes que varrem múltiplos monstros de uma só vez.',
+    shield: 'Relíquia dourada dos Paladinos.\nErgue uma barreira divina que esmaga inimigos e reflete projéteis.',
+    axe: 'Machado pesado dos Berserkers.\nGira em um turbilhão brutal de 360 graus, arremessando hordas para longe.',
+    firestaff: 'Cetro forjado em rocha vulcânica.\nConjura esferas ardentes que explodem ao contato em chamas.'
   };
   const weaponDialogues = {
     bow: '“O Arco Real dos patrulheiros! Disparos rápidos e certeiros para abater alvos à distância.”',
@@ -10263,50 +10522,50 @@ function showBlacksmithMenu(scene) {
         cardGfx.fillStyle(0xc5a059, 0.85).fillCircle(rx, ry, 1.8);
       });
 
-      const socketY = startY + 54;
-      cardGfx.fillStyle(0x18120c, 1).fillCircle(cx, socketY, 26);
+      const socketY = startY + 46;
+      cardGfx.fillStyle(0x18120c, 1).fillCircle(cx, socketY, 23);
       cardGfx.lineStyle(2, hover ? 0xffeb3b : (isStarter ? 0xffd740 : (isUnlocked ? 0xc5a059 : 0x6e5233)))
-        .strokeCircle(cx, socketY, 26);
-      cardGfx.lineStyle(1, 0x8d5524, 0.6).strokeCircle(cx, socketY, 23);
+        .strokeCircle(cx, socketY, 23);
+      cardGfx.lineStyle(1, 0x8d5524, 0.6).strokeCircle(cx, socketY, 20);
 
       cardGfx.fillStyle(0xc5a059, 1);
-      cardGfx.fillRect(cx - 1.5, socketY - 29, 3, 4);
-      cardGfx.fillRect(cx - 1.5, socketY + 25, 3, 4);
-      cardGfx.fillRect(cx - 29, socketY - 1.5, 4, 3);
-      cardGfx.fillRect(cx + 25, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx - 1.5, socketY - 26, 3, 4);
+      cardGfx.fillRect(cx - 1.5, socketY + 22, 3, 4);
+      cardGfx.fillRect(cx - 26, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx + 22, socketY - 1.5, 4, 3);
     };
     drawCard(false);
 
-    const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
+    const icon = scene.add.image(cx, startY + 46, cfg.icon).setScale(1.3);
     let lockIcon = null;
     if (!isUnlocked) {
       icon.setTint(0x555555);
-      lockIcon = scene.add.image(cx + 18, startY + 64, 'ui_padlock').setDisplaySize(16, 22).setDepth(cardGfx.depth + 2);
+      lockIcon = scene.add.image(cx + 16, startY + 56, 'ui_padlock').setDisplaySize(15, 20).setDepth(cardGfx.depth + 2);
     }
 
-                const nameTxt = scene.add.text(cx, startY + 90, cfg.name, {
-      ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 12, 'bold'),
+    const nameTxt = scene.add.text(cx, startY + 82, cfg.name, {
+      ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 11.5, 'bold'),
       align: 'center',
       wordWrap: { width: cardW - 14, useAdvancedWrap: true }
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 14, 28, 9.5);
+    fitTextToBox(nameTxt, cardW - 14, 22, 9);
 
-    const badgeBg = scene.add.rectangle(cx, startY + 114, cardW - 24, 18, isStarter ? 0x2e5c26 : (isUnlocked ? 0x3d2919 : 0x221a14))
+    const badgeBg = scene.add.rectangle(cx, startY + 104, cardW - 24, 17, isStarter ? 0x2e5c26 : (isUnlocked ? 0x3d2919 : 0x221a14))
       .setStrokeStyle(1, isStarter ? 0x76ff03 : (isUnlocked ? 0xc5a059 : 0x6e5233));
-    const badgeTxt = scene.add.text(cx, startY + 114, weaponArchetypes[key] || 'ARMA REAL', {
+    const badgeTxt = scene.add.text(cx, startY + 104, weaponArchetypes[key] || 'ARMA REAL', {
       ...roundedTextStyle(isStarter ? '#b9f6ca' : (isUnlocked ? '#ffe082' : '#a8987b'), 8.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
-    fitTextToBox(badgeTxt, cardW - 28, 16, 8.5);
+    fitTextToBox(badgeTxt, cardW - 28, 16, 8);
 
     const descStr = weaponStyles[key] || cfg.forgeLore || '';
-    const descTxt = scene.add.text(cx, startY + 130, descStr, {
-      ...roundedTextStyle('#3d2817', 9.5, 'normal'),
+    const descTxt = scene.add.text(cx, startY + 166, descStr, {
+      ...parchmentBodyStyle('#2b1709', 9.5, 'bold'),
       align: 'center',
-      lineSpacing: 2,
-      wordWrap: { width: cardW - 16, useAdvancedWrap: true }
-    }).setOrigin(0.5, 0);
-    fitTextToBox(descTxt, cardW - 16, 76, 8.5);
+      lineSpacing: 3,
+      wordWrap: { width: cardW - 24, useAdvancedWrap: true }
+    }).setOrigin(0.5);
+    fitTextToBox(descTxt, cardW - 24, 80, 8.2);
 
     const hitZoneH = cardH - 52;
     const cardHit = scene.add.rectangle(cx, startY + 8 + hitZoneH / 2, cardW, hitZoneH, 0x000000, 0)
@@ -10321,7 +10580,7 @@ function showBlacksmithMenu(scene) {
       smithSpeechTxt.setText('“O FOGO FORJA O AÇO! DESBLOQUEIE NOVAS ARMAS PARA SUAS JORNADAS.”');
     });
 
-    const btnX = cx, btnY = startY + cardH - 24, btnW = cardW - 24, btnH = 34;
+    const btnX = cx, btnY = startY + cardH - 22, btnW = cardW - 24, btnH = 30;
 
     if (!isUnlocked) {
       const cost = cfg.unlockCost || 25;
@@ -10927,64 +11186,109 @@ function showMageShopMenu(scene) {
       });
 
       // Alvéolo circular da Poção Mística
-      const socketY = startY + 54;
-      cardGfx.fillStyle(0x160f26, 1).fillCircle(cx, socketY, 26);
+      const socketY = startY + 42;
+      cardGfx.fillStyle(0x160f26, 1).fillCircle(cx, socketY, 22);
       cardGfx.lineStyle(2, hover ? 0xffeb3b : (isMax ? 0xffd740 : (cfg.potionColor || 0xba68c8)))
-        .strokeCircle(cx, socketY, 26);
-      cardGfx.lineStyle(1, 0x7c4dff, 0.6).strokeCircle(cx, socketY, 23);
+        .strokeCircle(cx, socketY, 22);
+      cardGfx.lineStyle(1, 0x7c4dff, 0.6).strokeCircle(cx, socketY, 19);
 
       // 4 Entalhes arcanos nas bordas do círculo
       cardGfx.fillStyle(0xba68c8, 1);
-      cardGfx.fillRect(cx - 1.5, socketY - 29, 3, 4);
-      cardGfx.fillRect(cx - 1.5, socketY + 25, 3, 4);
-      cardGfx.fillRect(cx - 29, socketY - 1.5, 4, 3);
-      cardGfx.fillRect(cx + 25, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx - 1.5, socketY - 25, 3, 4);
+      cardGfx.fillRect(cx - 1.5, socketY + 21, 3, 4);
+      cardGfx.fillRect(cx - 25, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx + 21, socketY - 1.5, 4, 3);
 
-      // Gemas / Pips de Nível (1 a 5) — CENTRALIZADOS COM PRECISÃO
+      // Gemas / Pips de Nível (1 a 6) — CENTRALIZADOS COM PRECISÃO
       const pipW = 11;
-      const pipGap = 5;
+      const pipGap = 4;
       const totalPipsW = maxLvl * pipW + (maxLvl - 1) * pipGap;
       const pipsStartX = cx - totalPipsW / 2;
       for (let p = 0; p < maxLvl; p++) {
         const px = pipsStartX + p * (pipW + pipGap);
         const activePip = p < lvl;
-        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 104, pipW, 6);
-        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 104, pipW, 6);
+        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 93, pipW, 6);
+        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 93, pipW, 6);
       }
     };
     drawCard(false);
 
     // Ícone da Poção
-    const icon = scene.add.image(cx, startY + 48, cfg.icon).setScale(1.3);
+    const icon = scene.add.image(cx, startY + 42, cfg.icon).setScale(1.25);
 
     // Nome do Item — APENAS O NOME DO ITEM (100% CENTRALIZADO E NÍTIDO)
     const itemTitle = mageItemNames[key] || cfg.shortName || cfg.name;
-    const nameTxt = scene.add.text(cx, startY + 80, String(itemTitle).toUpperCase(), {
+    const nameTxt = scene.add.text(cx, startY + 76, String(itemTitle).toUpperCase(), {
       ...parchmentTitleStyle(isMax ? '#8c4e03' : '#221226', 11.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 16, 18, 9);
+    fitTextToBox(nameTxt, cardW - 14, 18, 8.5);
 
     // Badge / Nível Textual — 100% CENTRALIZADO COM FUNDO ARREDONDADO
-    const lvlBadgeBg = scene.add.rectangle(cx, startY + 122, cardW - 38, 16, isMax ? 0xfff3e0 : 0xf3e5f5)
+    const lvlBadgeBg = scene.add.rectangle(cx, startY + 111, cardW - 32, 16, isMax ? 0xfff3e0 : 0xf3e5f5)
       .setStrokeStyle(1, isMax ? 0xffb74d : 0xce93d8);
-    const lvlBadgeTxt = scene.add.text(cx, startY + 122, isMax ? 'PODER MÁXIMO' : `NÍVEL ${lvl} / ${maxLvl}`, {
-      ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9, 'bold'),
+    const lvlBadgeTxt = scene.add.text(cx, startY + 111, isMax ? 'PODER MÁXIMO' : `NÍVEL ${lvl} / ${maxLvl}`, {
+      ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
 
-    // Descrições de Nível — FONTE ARREDONDADA & 100% CENTRALIZADA
-    const levelDescs = cfg.levels || [];
-    const descStr = isMax
-      ? `Efeito Completo:\n${levelDescs[lvl - 1] || ''}`
-      : `Atual: ${levelDescs[lvl - 1] || ''}\nPróximo: ${levelDescs[lvl] || ''}`;
-    const descTxt = scene.add.text(cx, startY + 138, descStr, {
-      ...roundedTextStyle('#2e1a10', 9, 'normal'),
-      align: 'center',
-      lineSpacing: 2.5,
-      wordWrap: { width: cardW - 16, useAdvancedWrap: true }
-    }).setOrigin(0.5, 0);
-    fitTextToBox(descTxt, cardW - 16, 72, 8);
+    // Bloco de Atributos estilo RPG (Valor Antigo ➔ Valor Novo em verde vibrante)
+    const vals = cfg.values || [];
+    const curVal = vals[Math.max(0, lvl - 1)];
+    const nxtVal = vals[Math.min(vals.length - 1, lvl)];
+    let mageStatRows = [];
+    let mageSubNote = '';
+
+    if (key === 'maxHp') {
+      mageStatRows = isMax
+        ? [{ label: 'Vida Máx', from: String(curVal), to: `${curVal} (MÁX)` }]
+        : [{ label: 'Vida Máx', from: String(curVal), to: String(nxtVal) }];
+      mageSubNote = isMax ? 'Vitalidade máxima!' : '+1 Coração de vida';
+    } else if (key === 'moveSpeed') {
+      const curPct = Math.round((curVal / 280) * 100);
+      const nxtPct = Math.round((nxtVal / 280) * 100);
+      mageStatRows = isMax
+        ? [{ label: 'Velocidade', from: `${curPct}%`, to: `${curPct}% (MÁX)` }]
+        : [{ label: 'Velocidade', from: `${curPct}%`, to: `${nxtPct}%` }];
+      mageSubNote = isMax ? 'Passos relâmpago!' : `+${nxtPct - curPct}% Velocidade`;
+    } else if (key === 'magnet') {
+      const curPct = Math.round((curVal / 90) * 100);
+      const nxtPct = Math.round((nxtVal / 90) * 100);
+      mageStatRows = isMax
+        ? [{ label: 'Alcance', from: `${curPct}%`, to: `${curPct}% (MÁX)` }]
+        : [{ label: 'Alcance', from: `${curPct}%`, to: `${nxtPct}%` }];
+      mageSubNote = isMax ? 'Atração astral máxima!' : `+${nxtPct - curPct}% Raio de Coleta`;
+    } else if (key === 'wisdom') {
+      const curXp = Math.round(curVal * 100);
+      const nxtXp = Math.round(nxtVal * 100);
+      const durSteps = ['+0.0s', '+0.6s', '+1.2s', '+1.8s', '+2.5s'];
+      const curDur = durSteps[Math.max(0, lvl - 1)] || '+0.0s';
+      const nxtDur = durSteps[Math.min(durSteps.length - 1, lvl)] || '+2.5s';
+      mageStatRows = isMax
+        ? [
+            { label: 'Ganho XP', from: `${curXp}%`, to: 'MÁX' },
+            { label: 'Duração', from: curDur, to: 'MÁX' }
+          ]
+        : [
+            { label: 'Ganho XP', from: `${curXp}%`, to: `${nxtXp}%` },
+            { label: 'Duração', from: curDur, to: nxtDur }
+          ];
+      mageSubNote = isMax ? 'Sabedoria suprema!' : 'Mais XP e tempo de arma';
+    }
+
+    const descElements = typeof renderStatUpgradeBlock === 'function'
+      ? renderStatUpgradeBlock(
+          scene,
+          cx,
+          startY + 123,
+          cardW - 16,
+          86,
+          mageStatRows,
+          mageSubNote,
+          isMax ? 0xffca28 : 0xab47bc,
+          10
+        )
+      : [];
 
     // ZONA INTERATIVA DA CARTA (Hover para diálogo do mago — delimitada acima do botão!)
     const hitZoneH = cardH - 52;
@@ -11002,9 +11306,9 @@ function showMageShopMenu(scene) {
 
     // BOTÃO DE COMPRA / AÇÃO NO RODAPÉ — 100% CENTRALIZADO E INTERATIVO
     const btnX = cx;
-    const btnY = startY + cardH - 24;
+    const btnY = startY + cardH - 22;
     const btnW = cardW - 24;
-    const btnH = 34;
+    const btnH = 30;
     let actionBtn, actionTxt;
 
     if (isMax) {
@@ -11071,7 +11375,7 @@ function showMageShopMenu(scene) {
     }
 
     // Adiciona elementos da carta: actionBtn e actionTxt POR ÚLTIMO para garantir clique prioritário!
-    menuContainer.add([cardGfx, cardHit, icon, nameTxt, lvlBadgeBg, lvlBadgeTxt, descTxt, actionBtn, actionTxt]);
+    menuContainer.add([cardGfx, cardHit, icon, nameTxt, lvlBadgeBg, lvlBadgeTxt, ...descElements, actionBtn, actionTxt]);
   });
 
   // ---------------------------------------------------------------------------
@@ -11110,43 +11414,59 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
     cardGfx.lineStyle(1, hover ? 0xffd54f : (unlocked ? 0xffca28 : 0xba68c8), 0.65)
       .strokeRoundedRect(left + 3, startY + 11, cardW - 6, cardH - 14, 6);
 
-    cardGfx.fillStyle(0x130a1c, 1).fillCircle(cx, startY + 54, 25);
-    cardGfx.lineStyle(1.5, unlocked ? 0xffca28 : (defeatedBoss ? 0xba68c8 : 0x4a2e5c)).strokeCircle(cx, startY + 54, 25);
+    cardGfx.fillStyle(0x130a1c, 1).fillCircle(cx, startY + 42, 22);
+    cardGfx.lineStyle(1.5, unlocked ? 0xffca28 : (defeatedBoss ? 0xba68c8 : 0x4a2e5c)).strokeCircle(cx, startY + 42, 22);
   };
   drawCard(false);
 
-  const icon = scene.add.image(cx, startY + 54, 'ui_wood_slots').setDisplaySize(42, 42);
+  const icon = scene.add.image(cx, startY + 42, 'ui_wood_slots').setDisplaySize(38, 38);
   const lockStr = unlocked ? 'OK' : (defeatedBoss ? 'MOCHILA' : 'BLOQ.');
-  const lockIcon = scene.add.text(cx, startY + 54, lockStr, textStyle(unlocked ? '#ffd740' : (defeatedBoss ? '#ba68c8' : '#8d5524'), 9.5)).setOrigin(0.5);
-  const padlockIcon = scene.add.image(cx, startY + 54, 'ui_padlock').setDisplaySize(18, 25).setVisible(!unlocked);
+  const lockIcon = scene.add.text(cx, startY + 42, lockStr, textStyle(unlocked ? '#ffd740' : (defeatedBoss ? '#ba68c8' : '#8d5524'), 9.5)).setOrigin(0.5);
+  const padlockIcon = scene.add.image(cx, startY + 42, 'ui_padlock').setDisplaySize(16, 22).setVisible(!unlocked);
   if (!unlocked) lockIcon.setVisible(false);
 
-  const titleTxt = scene.add.text(cx, startY + 92, 'MOCHILA DE ARMAS', {
-    ...parchmentTitleStyle(unlocked ? '#8c4e03' : (defeatedBoss ? '#221226' : '#ce93d8'), 11.5, 'bold'),
+  const titleTxt = scene.add.text(cx, startY + 76, 'MOCHILA DE ARMAS', {
+    ...parchmentTitleStyle(unlocked ? '#8c4e03' : (defeatedBoss ? '#221226' : '#e1bee7'), 11.5, 'bold'),
     align: 'center'
   }).setOrigin(0.5);
-  fitTextToBox(titleTxt, cardW - 16, 18, 9);
+  fitTextToBox(titleTxt, cardW - 14, 18, 8.5);
 
-  const badgeBg = scene.add.rectangle(cx, startY + 122, cardW - 38, 16, unlocked ? 0xfff3e0 : (defeatedBoss ? 0xf3e5f5 : 0x2e1c3b))
+  const badgeBg = scene.add.rectangle(cx, startY + 111, cardW - 32, 16, unlocked ? 0xfff3e0 : (defeatedBoss ? 0xf3e5f5 : 0x2e1c3b))
     .setStrokeStyle(1, unlocked ? 0xffb74d : (defeatedBoss ? 0xce93d8 : 0x7c4dff));
-  const badgeTxt = scene.add.text(cx, startY + 122, unlocked ? 'DESBLOQUEADO' : (defeatedBoss ? 'ITEM ESPECIAL' : 'BLOQUEADO'), {
-    ...roundedTextStyle(unlocked ? '#e65100' : (defeatedBoss ? '#6a1b9a' : '#b388ff'), 9, 'bold'),
+  const badgeTxt = scene.add.text(cx, startY + 111, unlocked ? 'DESBLOQUEADO' : (defeatedBoss ? 'ITEM ESPECIAL' : 'BLOQUEADO'), {
+    ...roundedTextStyle(unlocked ? '#e65100' : (defeatedBoss ? '#6a1b9a' : '#e1bee7'), 9.5, 'bold'),
     align: 'center'
   }).setOrigin(0.5);
 
-  const descString = unlocked
-    ? 'Slot de reserva ativo em todas as suas expedições! Armas extras ficam congeladas.'
-    : (defeatedBoss
-        ? 'Adiciona 1 slot de reserva! A 2ª arma fica congelada até a arma da mão quebrar.'
-        : 'Derrote o Golem Ancestral de Pedra para revelar esta relíquia especial!');
-
-  const descTxt = scene.add.text(cx, startY + 138, descString, {
-    ...parchmentBodyStyle(defeatedBoss ? '#321b38' : '#b388ff', 9, 'normal'),
-    align: 'center',
-    lineSpacing: 2,
-    wordWrap: { width: cardW - 16, useAdvancedWrap: true }
-  }).setOrigin(0.5, 0);
-  fitTextToBox(descTxt, cardW - 16, 72, 8);
+  let bpElements = [];
+  if (typeof renderStatUpgradeBlock === 'function' && (unlocked || defeatedBoss)) {
+    const bpRows = unlocked
+      ? [{ label: 'Slot Reserva', from: '1', to: '1 (ATIVO)' }]
+      : [{ label: 'Slot Reserva', from: '0', to: '+1 Arma' }];
+    const bpNote = unlocked
+      ? 'Guarda 2ª arma na reserva!'
+      : 'Pausa o tempo da 2ª arma!';
+    bpElements = renderStatUpgradeBlock(
+      scene,
+      cx,
+      startY + 123,
+      cardW - 16,
+      86,
+      bpRows,
+      bpNote,
+      unlocked ? 0xffca28 : 0xab47bc,
+      10
+    );
+  } else {
+    const descTxt = scene.add.text(cx, startY + 166, 'REQUISITO:\nDerrote o Golem Ancestral de Pedra para liberar!', {
+      ...roundedTextStyle('#e1bee7', 9.5, 'bold'),
+      align: 'center',
+      lineSpacing: 3,
+      wordWrap: { width: cardW - 24, useAdvancedWrap: true }
+    }).setOrigin(0.5);
+    fitTextToBox(descTxt, cardW - 24, 78, 8);
+    bpElements = [descTxt];
+  }
 
   const cardHit = scene.add.rectangle(cx, startY + 8 + (cardH - 52) / 2, cardW, cardH - 52, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
@@ -11164,9 +11484,9 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
   });
 
   const btnX = cx;
-  const btnY = startY + cardH - 24;
+  const btnY = startY + cardH - 22;
   const btnW = cardW - 24;
-  const btnH = 34;
+  const btnH = 30;
 
   let actionBtn, actionTxt;
   if (unlocked) {
@@ -11209,7 +11529,7 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
     });
   }
 
-  menuContainer.add([cardGfx, cardHit, icon, lockIcon, padlockIcon, titleTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
+  menuContainer.add([cardGfx, cardHit, icon, lockIcon, padlockIcon, titleTxt, badgeBg, badgeTxt, ...bpElements, actionBtn, actionTxt]);
 }
 
 
@@ -11594,6 +11914,7 @@ function preload() {
   makeSheet(this, 'hud_crown', 24, 22, 1, drawCrown);
   makeSheet(this, 'hud_horn', 30, 20, 2, drawHorn);
   makeSheet(this, 'hud_fullscreen', 20, 20, 2, drawFullscreenIcon);
+  makeSheet(this, 'hud_pause', 20, 20, 1, drawPauseIcon);
   makeSheet(this, 'hud_heart', 14, 14, 2, drawHeartHUD);
   makeSheet(this, 'knight_banner', 48, 56, 1, drawKnightBanner);
   makeItem(this, 'item_bow', 0xffe082, drawBowIcon);

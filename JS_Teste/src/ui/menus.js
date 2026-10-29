@@ -1131,11 +1131,11 @@ function showBlacksmithMenu(scene) {
     firestaff: 'IMPACTO EM ÁREA'
   };
   const weaponStyles = {
-    bow: 'Disparos rápidos à distância (ideal para arqueiros e caçadores).',
-    sword: 'Corte frontal potente em arco com alto knockback e rastro reluzente.',
-    shield: 'Aura defensiva sagrada que bloqueia e reflete projéteis inimigos.',
-    axe: 'Corte giratório duplo devastador que atinge múltiplos inimigos em 360 graus.',
-    firestaff: 'Projéteis vulcânicos explosivos com dano em área e alta potência de impacto.'
+    bow: 'Arco élfico da Guarda Real.\nDispara flechas luminosas de alta precisão que abatem inimigos à distância.',
+    sword: 'Lâmina ancestral de aço puro.\nDesfere cortes reluzentes que varrem múltiplos monstros de uma só vez.',
+    shield: 'Relíquia dourada dos Paladinos.\nErgue uma barreira divina que esmaga inimigos e reflete projéteis.',
+    axe: 'Machado pesado dos Berserkers.\nGira em um turbilhão brutal de 360 graus, arremessando hordas para longe.',
+    firestaff: 'Cetro forjado em rocha vulcânica.\nConjura esferas ardentes que explodem ao contato em chamas.'
   };
   const weaponDialogues = {
     bow: '“O Arco Real dos patrulheiros! Disparos rápidos e certeiros para abater alvos à distância.”',
@@ -1183,50 +1183,50 @@ function showBlacksmithMenu(scene) {
         cardGfx.fillStyle(0xc5a059, 0.85).fillCircle(rx, ry, 1.8);
       });
 
-      const socketY = startY + 54;
-      cardGfx.fillStyle(0x18120c, 1).fillCircle(cx, socketY, 26);
+      const socketY = startY + 46;
+      cardGfx.fillStyle(0x18120c, 1).fillCircle(cx, socketY, 23);
       cardGfx.lineStyle(2, hover ? 0xffeb3b : (isStarter ? 0xffd740 : (isUnlocked ? 0xc5a059 : 0x6e5233)))
-        .strokeCircle(cx, socketY, 26);
-      cardGfx.lineStyle(1, 0x8d5524, 0.6).strokeCircle(cx, socketY, 23);
+        .strokeCircle(cx, socketY, 23);
+      cardGfx.lineStyle(1, 0x8d5524, 0.6).strokeCircle(cx, socketY, 20);
 
       cardGfx.fillStyle(0xc5a059, 1);
-      cardGfx.fillRect(cx - 1.5, socketY - 29, 3, 4);
-      cardGfx.fillRect(cx - 1.5, socketY + 25, 3, 4);
-      cardGfx.fillRect(cx - 29, socketY - 1.5, 4, 3);
-      cardGfx.fillRect(cx + 25, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx - 1.5, socketY - 26, 3, 4);
+      cardGfx.fillRect(cx - 1.5, socketY + 22, 3, 4);
+      cardGfx.fillRect(cx - 26, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx + 22, socketY - 1.5, 4, 3);
     };
     drawCard(false);
 
-    const icon = scene.add.image(cx, startY + 54, cfg.icon).setScale(1.4);
+    const icon = scene.add.image(cx, startY + 46, cfg.icon).setScale(1.3);
     let lockIcon = null;
     if (!isUnlocked) {
       icon.setTint(0x555555);
-      lockIcon = scene.add.image(cx + 18, startY + 64, 'ui_padlock').setDisplaySize(16, 22).setDepth(cardGfx.depth + 2);
+      lockIcon = scene.add.image(cx + 16, startY + 56, 'ui_padlock').setDisplaySize(15, 20).setDepth(cardGfx.depth + 2);
     }
 
-                const nameTxt = scene.add.text(cx, startY + 90, cfg.name, {
-      ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 12, 'bold'),
+    const nameTxt = scene.add.text(cx, startY + 82, cfg.name, {
+      ...parchmentTitleStyle(isStarter ? '#8c4e03' : (isUnlocked ? '#2c1b10' : '#5c4938'), 11.5, 'bold'),
       align: 'center',
       wordWrap: { width: cardW - 14, useAdvancedWrap: true }
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 14, 28, 9.5);
+    fitTextToBox(nameTxt, cardW - 14, 22, 9);
 
-    const badgeBg = scene.add.rectangle(cx, startY + 114, cardW - 24, 18, isStarter ? 0x2e5c26 : (isUnlocked ? 0x3d2919 : 0x221a14))
+    const badgeBg = scene.add.rectangle(cx, startY + 104, cardW - 24, 17, isStarter ? 0x2e5c26 : (isUnlocked ? 0x3d2919 : 0x221a14))
       .setStrokeStyle(1, isStarter ? 0x76ff03 : (isUnlocked ? 0xc5a059 : 0x6e5233));
-    const badgeTxt = scene.add.text(cx, startY + 114, weaponArchetypes[key] || 'ARMA REAL', {
+    const badgeTxt = scene.add.text(cx, startY + 104, weaponArchetypes[key] || 'ARMA REAL', {
       ...roundedTextStyle(isStarter ? '#b9f6ca' : (isUnlocked ? '#ffe082' : '#a8987b'), 8.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
-    fitTextToBox(badgeTxt, cardW - 28, 16, 8.5);
+    fitTextToBox(badgeTxt, cardW - 28, 16, 8);
 
     const descStr = weaponStyles[key] || cfg.forgeLore || '';
-    const descTxt = scene.add.text(cx, startY + 130, descStr, {
-      ...roundedTextStyle('#3d2817', 9.5, 'normal'),
+    const descTxt = scene.add.text(cx, startY + 166, descStr, {
+      ...parchmentBodyStyle('#2b1709', 9.5, 'bold'),
       align: 'center',
-      lineSpacing: 2,
-      wordWrap: { width: cardW - 16, useAdvancedWrap: true }
-    }).setOrigin(0.5, 0);
-    fitTextToBox(descTxt, cardW - 16, 76, 8.5);
+      lineSpacing: 3,
+      wordWrap: { width: cardW - 24, useAdvancedWrap: true }
+    }).setOrigin(0.5);
+    fitTextToBox(descTxt, cardW - 24, 80, 8.2);
 
     const hitZoneH = cardH - 52;
     const cardHit = scene.add.rectangle(cx, startY + 8 + hitZoneH / 2, cardW, hitZoneH, 0x000000, 0)
@@ -1241,7 +1241,7 @@ function showBlacksmithMenu(scene) {
       smithSpeechTxt.setText('“O FOGO FORJA O AÇO! DESBLOQUEIE NOVAS ARMAS PARA SUAS JORNADAS.”');
     });
 
-    const btnX = cx, btnY = startY + cardH - 24, btnW = cardW - 24, btnH = 34;
+    const btnX = cx, btnY = startY + cardH - 22, btnW = cardW - 24, btnH = 30;
 
     if (!isUnlocked) {
       const cost = cfg.unlockCost || 25;
@@ -1847,64 +1847,109 @@ function showMageShopMenu(scene) {
       });
 
       // Alvéolo circular da Poção Mística
-      const socketY = startY + 54;
-      cardGfx.fillStyle(0x160f26, 1).fillCircle(cx, socketY, 26);
+      const socketY = startY + 42;
+      cardGfx.fillStyle(0x160f26, 1).fillCircle(cx, socketY, 22);
       cardGfx.lineStyle(2, hover ? 0xffeb3b : (isMax ? 0xffd740 : (cfg.potionColor || 0xba68c8)))
-        .strokeCircle(cx, socketY, 26);
-      cardGfx.lineStyle(1, 0x7c4dff, 0.6).strokeCircle(cx, socketY, 23);
+        .strokeCircle(cx, socketY, 22);
+      cardGfx.lineStyle(1, 0x7c4dff, 0.6).strokeCircle(cx, socketY, 19);
 
       // 4 Entalhes arcanos nas bordas do círculo
       cardGfx.fillStyle(0xba68c8, 1);
-      cardGfx.fillRect(cx - 1.5, socketY - 29, 3, 4);
-      cardGfx.fillRect(cx - 1.5, socketY + 25, 3, 4);
-      cardGfx.fillRect(cx - 29, socketY - 1.5, 4, 3);
-      cardGfx.fillRect(cx + 25, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx - 1.5, socketY - 25, 3, 4);
+      cardGfx.fillRect(cx - 1.5, socketY + 21, 3, 4);
+      cardGfx.fillRect(cx - 25, socketY - 1.5, 4, 3);
+      cardGfx.fillRect(cx + 21, socketY - 1.5, 4, 3);
 
-      // Gemas / Pips de Nível (1 a 5) — CENTRALIZADOS COM PRECISÃO
+      // Gemas / Pips de Nível (1 a 6) — CENTRALIZADOS COM PRECISÃO
       const pipW = 11;
-      const pipGap = 5;
+      const pipGap = 4;
       const totalPipsW = maxLvl * pipW + (maxLvl - 1) * pipGap;
       const pipsStartX = cx - totalPipsW / 2;
       for (let p = 0; p < maxLvl; p++) {
         const px = pipsStartX + p * (pipW + pipGap);
         const activePip = p < lvl;
-        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 104, pipW, 6);
-        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 104, pipW, 6);
+        cardGfx.fillStyle(activePip ? 0x00e5ff : 0x2e1c3b, 1).fillRect(px, startY + 93, pipW, 6);
+        cardGfx.lineStyle(1, activePip ? 0xffffff : 0x5c3b70).strokeRect(px, startY + 93, pipW, 6);
       }
     };
     drawCard(false);
 
     // Ícone da Poção
-    const icon = scene.add.image(cx, startY + 48, cfg.icon).setScale(1.3);
+    const icon = scene.add.image(cx, startY + 42, cfg.icon).setScale(1.25);
 
     // Nome do Item — APENAS O NOME DO ITEM (100% CENTRALIZADO E NÍTIDO)
     const itemTitle = mageItemNames[key] || cfg.shortName || cfg.name;
-    const nameTxt = scene.add.text(cx, startY + 80, String(itemTitle).toUpperCase(), {
+    const nameTxt = scene.add.text(cx, startY + 76, String(itemTitle).toUpperCase(), {
       ...parchmentTitleStyle(isMax ? '#8c4e03' : '#221226', 11.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
-    fitTextToBox(nameTxt, cardW - 16, 18, 9);
+    fitTextToBox(nameTxt, cardW - 14, 18, 8.5);
 
     // Badge / Nível Textual — 100% CENTRALIZADO COM FUNDO ARREDONDADO
-    const lvlBadgeBg = scene.add.rectangle(cx, startY + 122, cardW - 38, 16, isMax ? 0xfff3e0 : 0xf3e5f5)
+    const lvlBadgeBg = scene.add.rectangle(cx, startY + 111, cardW - 32, 16, isMax ? 0xfff3e0 : 0xf3e5f5)
       .setStrokeStyle(1, isMax ? 0xffb74d : 0xce93d8);
-    const lvlBadgeTxt = scene.add.text(cx, startY + 122, isMax ? 'PODER MÁXIMO' : `NÍVEL ${lvl} / ${maxLvl}`, {
-      ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9, 'bold'),
+    const lvlBadgeTxt = scene.add.text(cx, startY + 111, isMax ? 'PODER MÁXIMO' : `NÍVEL ${lvl} / ${maxLvl}`, {
+      ...roundedTextStyle(isMax ? '#e65100' : '#4a148c', 9.5, 'bold'),
       align: 'center'
     }).setOrigin(0.5);
 
-    // Descrições de Nível — FONTE ARREDONDADA & 100% CENTRALIZADA
-    const levelDescs = cfg.levels || [];
-    const descStr = isMax
-      ? `Efeito Completo:\n${levelDescs[lvl - 1] || ''}`
-      : `Atual: ${levelDescs[lvl - 1] || ''}\nPróximo: ${levelDescs[lvl] || ''}`;
-    const descTxt = scene.add.text(cx, startY + 138, descStr, {
-      ...roundedTextStyle('#2e1a10', 9, 'normal'),
-      align: 'center',
-      lineSpacing: 2.5,
-      wordWrap: { width: cardW - 16, useAdvancedWrap: true }
-    }).setOrigin(0.5, 0);
-    fitTextToBox(descTxt, cardW - 16, 72, 8);
+    // Bloco de Atributos estilo RPG (Valor Antigo ➔ Valor Novo em verde vibrante)
+    const vals = cfg.values || [];
+    const curVal = vals[Math.max(0, lvl - 1)];
+    const nxtVal = vals[Math.min(vals.length - 1, lvl)];
+    let mageStatRows = [];
+    let mageSubNote = '';
+
+    if (key === 'maxHp') {
+      mageStatRows = isMax
+        ? [{ label: 'Vida Máx', from: String(curVal), to: `${curVal} (MÁX)` }]
+        : [{ label: 'Vida Máx', from: String(curVal), to: String(nxtVal) }];
+      mageSubNote = isMax ? 'Vitalidade máxima!' : '+1 Coração de vida';
+    } else if (key === 'moveSpeed') {
+      const curPct = Math.round((curVal / 280) * 100);
+      const nxtPct = Math.round((nxtVal / 280) * 100);
+      mageStatRows = isMax
+        ? [{ label: 'Velocidade', from: `${curPct}%`, to: `${curPct}% (MÁX)` }]
+        : [{ label: 'Velocidade', from: `${curPct}%`, to: `${nxtPct}%` }];
+      mageSubNote = isMax ? 'Passos relâmpago!' : `+${nxtPct - curPct}% Velocidade`;
+    } else if (key === 'magnet') {
+      const curPct = Math.round((curVal / 90) * 100);
+      const nxtPct = Math.round((nxtVal / 90) * 100);
+      mageStatRows = isMax
+        ? [{ label: 'Alcance', from: `${curPct}%`, to: `${curPct}% (MÁX)` }]
+        : [{ label: 'Alcance', from: `${curPct}%`, to: `${nxtPct}%` }];
+      mageSubNote = isMax ? 'Atração astral máxima!' : `+${nxtPct - curPct}% Raio de Coleta`;
+    } else if (key === 'wisdom') {
+      const curXp = Math.round(curVal * 100);
+      const nxtXp = Math.round(nxtVal * 100);
+      const durSteps = ['+0.0s', '+0.6s', '+1.2s', '+1.8s', '+2.5s'];
+      const curDur = durSteps[Math.max(0, lvl - 1)] || '+0.0s';
+      const nxtDur = durSteps[Math.min(durSteps.length - 1, lvl)] || '+2.5s';
+      mageStatRows = isMax
+        ? [
+            { label: 'Ganho XP', from: `${curXp}%`, to: 'MÁX' },
+            { label: 'Duração', from: curDur, to: 'MÁX' }
+          ]
+        : [
+            { label: 'Ganho XP', from: `${curXp}%`, to: `${nxtXp}%` },
+            { label: 'Duração', from: curDur, to: nxtDur }
+          ];
+      mageSubNote = isMax ? 'Sabedoria suprema!' : 'Mais XP e tempo de arma';
+    }
+
+    const descElements = typeof renderStatUpgradeBlock === 'function'
+      ? renderStatUpgradeBlock(
+          scene,
+          cx,
+          startY + 123,
+          cardW - 16,
+          86,
+          mageStatRows,
+          mageSubNote,
+          isMax ? 0xffca28 : 0xab47bc,
+          10
+        )
+      : [];
 
     // ZONA INTERATIVA DA CARTA (Hover para diálogo do mago — delimitada acima do botão!)
     const hitZoneH = cardH - 52;
@@ -1922,9 +1967,9 @@ function showMageShopMenu(scene) {
 
     // BOTÃO DE COMPRA / AÇÃO NO RODAPÉ — 100% CENTRALIZADO E INTERATIVO
     const btnX = cx;
-    const btnY = startY + cardH - 24;
+    const btnY = startY + cardH - 22;
     const btnW = cardW - 24;
-    const btnH = 34;
+    const btnH = 30;
     let actionBtn, actionTxt;
 
     if (isMax) {
@@ -1991,7 +2036,7 @@ function showMageShopMenu(scene) {
     }
 
     // Adiciona elementos da carta: actionBtn e actionTxt POR ÚLTIMO para garantir clique prioritário!
-    menuContainer.add([cardGfx, cardHit, icon, nameTxt, lvlBadgeBg, lvlBadgeTxt, descTxt, actionBtn, actionTxt]);
+    menuContainer.add([cardGfx, cardHit, icon, nameTxt, lvlBadgeBg, lvlBadgeTxt, ...descElements, actionBtn, actionTxt]);
   });
 
   // ---------------------------------------------------------------------------
@@ -2030,43 +2075,59 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
     cardGfx.lineStyle(1, hover ? 0xffd54f : (unlocked ? 0xffca28 : 0xba68c8), 0.65)
       .strokeRoundedRect(left + 3, startY + 11, cardW - 6, cardH - 14, 6);
 
-    cardGfx.fillStyle(0x130a1c, 1).fillCircle(cx, startY + 54, 25);
-    cardGfx.lineStyle(1.5, unlocked ? 0xffca28 : (defeatedBoss ? 0xba68c8 : 0x4a2e5c)).strokeCircle(cx, startY + 54, 25);
+    cardGfx.fillStyle(0x130a1c, 1).fillCircle(cx, startY + 42, 22);
+    cardGfx.lineStyle(1.5, unlocked ? 0xffca28 : (defeatedBoss ? 0xba68c8 : 0x4a2e5c)).strokeCircle(cx, startY + 42, 22);
   };
   drawCard(false);
 
-  const icon = scene.add.image(cx, startY + 54, 'ui_wood_slots').setDisplaySize(42, 42);
+  const icon = scene.add.image(cx, startY + 42, 'ui_wood_slots').setDisplaySize(38, 38);
   const lockStr = unlocked ? 'OK' : (defeatedBoss ? 'MOCHILA' : 'BLOQ.');
-  const lockIcon = scene.add.text(cx, startY + 54, lockStr, textStyle(unlocked ? '#ffd740' : (defeatedBoss ? '#ba68c8' : '#8d5524'), 9.5)).setOrigin(0.5);
-  const padlockIcon = scene.add.image(cx, startY + 54, 'ui_padlock').setDisplaySize(18, 25).setVisible(!unlocked);
+  const lockIcon = scene.add.text(cx, startY + 42, lockStr, textStyle(unlocked ? '#ffd740' : (defeatedBoss ? '#ba68c8' : '#8d5524'), 9.5)).setOrigin(0.5);
+  const padlockIcon = scene.add.image(cx, startY + 42, 'ui_padlock').setDisplaySize(16, 22).setVisible(!unlocked);
   if (!unlocked) lockIcon.setVisible(false);
 
-  const titleTxt = scene.add.text(cx, startY + 92, 'MOCHILA DE ARMAS', {
-    ...parchmentTitleStyle(unlocked ? '#8c4e03' : (defeatedBoss ? '#221226' : '#ce93d8'), 11.5, 'bold'),
+  const titleTxt = scene.add.text(cx, startY + 76, 'MOCHILA DE ARMAS', {
+    ...parchmentTitleStyle(unlocked ? '#8c4e03' : (defeatedBoss ? '#221226' : '#e1bee7'), 11.5, 'bold'),
     align: 'center'
   }).setOrigin(0.5);
-  fitTextToBox(titleTxt, cardW - 16, 18, 9);
+  fitTextToBox(titleTxt, cardW - 14, 18, 8.5);
 
-  const badgeBg = scene.add.rectangle(cx, startY + 122, cardW - 38, 16, unlocked ? 0xfff3e0 : (defeatedBoss ? 0xf3e5f5 : 0x2e1c3b))
+  const badgeBg = scene.add.rectangle(cx, startY + 111, cardW - 32, 16, unlocked ? 0xfff3e0 : (defeatedBoss ? 0xf3e5f5 : 0x2e1c3b))
     .setStrokeStyle(1, unlocked ? 0xffb74d : (defeatedBoss ? 0xce93d8 : 0x7c4dff));
-  const badgeTxt = scene.add.text(cx, startY + 122, unlocked ? 'DESBLOQUEADO' : (defeatedBoss ? 'ITEM ESPECIAL' : 'BLOQUEADO'), {
-    ...roundedTextStyle(unlocked ? '#e65100' : (defeatedBoss ? '#6a1b9a' : '#b388ff'), 9, 'bold'),
+  const badgeTxt = scene.add.text(cx, startY + 111, unlocked ? 'DESBLOQUEADO' : (defeatedBoss ? 'ITEM ESPECIAL' : 'BLOQUEADO'), {
+    ...roundedTextStyle(unlocked ? '#e65100' : (defeatedBoss ? '#6a1b9a' : '#e1bee7'), 9.5, 'bold'),
     align: 'center'
   }).setOrigin(0.5);
 
-  const descString = unlocked
-    ? 'Slot de reserva ativo em todas as suas expedições! Armas extras ficam congeladas.'
-    : (defeatedBoss
-        ? 'Adiciona 1 slot de reserva! A 2ª arma fica congelada até a arma da mão quebrar.'
-        : 'Derrote o Golem Ancestral de Pedra para revelar esta relíquia especial!');
-
-  const descTxt = scene.add.text(cx, startY + 138, descString, {
-    ...parchmentBodyStyle(defeatedBoss ? '#321b38' : '#b388ff', 9, 'normal'),
-    align: 'center',
-    lineSpacing: 2,
-    wordWrap: { width: cardW - 16, useAdvancedWrap: true }
-  }).setOrigin(0.5, 0);
-  fitTextToBox(descTxt, cardW - 16, 72, 8);
+  let bpElements = [];
+  if (typeof renderStatUpgradeBlock === 'function' && (unlocked || defeatedBoss)) {
+    const bpRows = unlocked
+      ? [{ label: 'Slot Reserva', from: '1', to: '1 (ATIVO)' }]
+      : [{ label: 'Slot Reserva', from: '0', to: '+1 Arma' }];
+    const bpNote = unlocked
+      ? 'Guarda 2ª arma na reserva!'
+      : 'Pausa o tempo da 2ª arma!';
+    bpElements = renderStatUpgradeBlock(
+      scene,
+      cx,
+      startY + 123,
+      cardW - 16,
+      86,
+      bpRows,
+      bpNote,
+      unlocked ? 0xffca28 : 0xab47bc,
+      10
+    );
+  } else {
+    const descTxt = scene.add.text(cx, startY + 166, 'REQUISITO:\nDerrote o Golem Ancestral de Pedra para liberar!', {
+      ...roundedTextStyle('#e1bee7', 9.5, 'bold'),
+      align: 'center',
+      lineSpacing: 3,
+      wordWrap: { width: cardW - 24, useAdvancedWrap: true }
+    }).setOrigin(0.5);
+    fitTextToBox(descTxt, cardW - 24, 78, 8);
+    bpElements = [descTxt];
+  }
 
   const cardHit = scene.add.rectangle(cx, startY + 8 + (cardH - 52) / 2, cardW, cardH - 52, 0x000000, 0)
     .setInteractive({ useHandCursor: true });
@@ -2084,9 +2145,9 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
   });
 
   const btnX = cx;
-  const btnY = startY + cardH - 24;
+  const btnY = startY + cardH - 22;
   const btnW = cardW - 24;
-  const btnH = 34;
+  const btnH = 30;
 
   let actionBtn, actionTxt;
   if (unlocked) {
@@ -2129,7 +2190,7 @@ function renderMageBackpackCard(scene, idx, left, cardW, cardH, startY, speechTx
     });
   }
 
-  menuContainer.add([cardGfx, cardHit, icon, lockIcon, padlockIcon, titleTxt, badgeBg, badgeTxt, descTxt, actionBtn, actionTxt]);
+  menuContainer.add([cardGfx, cardHit, icon, lockIcon, padlockIcon, titleTxt, badgeBg, badgeTxt, ...bpElements, actionBtn, actionTxt]);
 }
 
 

@@ -412,6 +412,16 @@ function drawFullscreenIcon(r, f) {
   }
 }
 
+function drawPauseIcon(r) {
+  // Duas barras verticais de ouro/amarelo com sombra escura para o botão de pausa
+  r(C.ironDark, 2, 2, 2, 7);
+  r(C.ironDark, 6, 2, 2, 7);
+  r(C.gold, 2, 1, 2, 7);
+  r(C.gold, 6, 1, 2, 7);
+  r(C.yellow, 2, 1, 1, 6);
+  r(C.yellow, 6, 1, 1, 6);
+}
+
 // Ícones dos 3 Novos Pergaminhos de Bônus Global (Multi-Shot, Crescimento e Velocidade)
 function drawScrollMultiShotIcon(r) {
   // Pergaminho aberto (pergaminho envelhecido com bordas de madeira)

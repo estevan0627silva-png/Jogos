@@ -43,6 +43,7 @@ function preload() {
   makeSheet(this, 'hud_crown', 24, 22, 1, drawCrown);
   makeSheet(this, 'hud_horn', 30, 20, 2, drawHorn);
   makeSheet(this, 'hud_fullscreen', 20, 20, 2, drawFullscreenIcon);
+  makeSheet(this, 'hud_pause', 20, 20, 1, drawPauseIcon);
   makeSheet(this, 'hud_heart', 14, 14, 2, drawHeartHUD);
   makeSheet(this, 'knight_banner', 48, 56, 1, drawKnightBanner);
   makeItem(this, 'item_bow', 0xffe082, drawBowIcon);

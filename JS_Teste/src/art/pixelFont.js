@@ -32,6 +32,7 @@ initKibyraFonts();
 function getCharGlyph(rawCh) {
   if (!rawCh) return (typeof KIBYRA_FONT_CODES !== 'undefined' ? KIBYRA_FONT_CODES[32] : [0, 0, 0, 0, 0, 8, 7]);
   if (rawCh === '•') return [0, 0, 0, 0, 0, 9, 0];
+  if (rawCh === '|') return [0, 0, 0, 0, 0, 8, 0];
   if (rawCh === '>' || rawCh === '<') return [0, 0, 0, 0, 0, 9, 0];
   if (rawCh === '—' || rawCh === '–') return (typeof KIBYRA_FONT_CODES !== 'undefined' ? (KIBYRA_FONT_CODES[45] || KIBYRA_FONT_CODES[32]) : null);
   if (rawCh === '“' || rawCh === '”') return (typeof KIBYRA_FONT_CODES !== 'undefined' ? (KIBYRA_FONT_CODES[34] || KIBYRA_FONT_CODES[32]) : null);
@@ -314,6 +315,14 @@ class PixelText extends Phaser.GameObjects.Image {
           curX += Math.round(9 * scale);
           continue;
         }
+        if (rawCh === '|') {
+          ctx.fillStyle = (palInfo.sheet === 'yellow') ? '#ffd700' : (palInfo.sheet === 'brown' ? '#8d5524' : '#ffffff');
+          const bW = Math.max(2, Math.round(3 * scale));
+          const bH = Math.max(8, Math.round(16 * scale));
+          ctx.fillRect(curX + Math.round(2 * scale), curY + Math.round(4 * scale), bW, bH);
+          curX += Math.round(8 * scale);
+          continue;
+        }
         if (rawCh === '>') {
           ctx.fillStyle = (palInfo.sheet === 'yellow') ? '#ffd700' : (palInfo.sheet === 'brown' ? '#8d5524' : '#ffffff');
           const aSz = Math.max(2, Math.round(2.5 * scale));
@@ -420,6 +429,9 @@ class PixelText extends Phaser.GameObjects.Image {
     }
 
     this.canvasTexture.refresh();
+    if (this.frame) {
+      this.frame.setSize(totalW, totalH);
+    }
     this.setSize(totalW, totalH);
     this.updateDisplayOrigin();
   }
@@ -440,10 +452,35 @@ function createPixelText(scene, x, y, text, style = {}) {
   return new PixelText(scene, x, y, text, style);
 }
 
-// Hook Global transparente em Phaser.GameObjects.GameObjectFactory
+// Hook Global Hi-DPI para Textos Cristalinos em Phaser.GameObjects.GameObjectFactory
 if (typeof Phaser !== 'undefined' && Phaser.GameObjects && Phaser.GameObjects.GameObjectFactory) {
   Phaser.GameObjects.GameObjectFactory.prototype.text = function(x, y, text, style) {
-    return new PixelText(this.scene, x, y, text, style);
+    if (style && style.pixelFont === true) {
+      return new PixelText(this.scene, x, y, text, style);
+    }
+    const enhancedStyle = Object.assign({
+      resolution: 2
+    }, style || {});
+    if (!enhancedStyle.padding) {
+      enhancedStyle.padding = { left: 2, right: 2, top: 2, bottom: 2 };
+    }
+    const txtObj = new Phaser.GameObjects.Text(this.scene, x, y, text, enhancedStyle);
+    if (enhancedStyle.originX !== undefined && enhancedStyle.originY !== undefined) {
+      txtObj.setOrigin(enhancedStyle.originX, enhancedStyle.originY);
+    }
+    if (txtObj.texture && txtObj.texture.setFilter && typeof Phaser.Textures !== 'undefined') {
+      txtObj.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+    }
+    const _origUpdateText = txtObj.updateText.bind(txtObj);
+    txtObj.updateText = function() {
+      const res = _origUpdateText();
+      if (this.texture && this.texture.setFilter && typeof Phaser.Textures !== 'undefined') {
+        this.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      }
+      return res;
+    };
+    this.displayList.add(txtObj);
+    return txtObj;
   };
   Phaser.GameObjects.GameObjectFactory.prototype.pixelText = function(x, y, text, style) {
     return new PixelText(this.scene, x, y, text, style);

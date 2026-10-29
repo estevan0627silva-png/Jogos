@@ -9,13 +9,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: Infinity,
-    forgeLore: 'Arco nobre de teixo. Dispara flechas precisas com cadência exponencial acelerada.',
+    forgeLore: 'Arco Élfico da Guarda Real.\nDispara flechas luminosas de alta precisão que atravessam a escuridão e abatem inimigos antes que se aproximem.',
     levels: [
-      { badge: 'DISPARO CERTEIRO', desc: 'Flechas velozes e perfurantes disparadas com ritmo cadenciado contra o avanço dos monstros.', toString() { return this.desc; } },
-      { badge: 'CORDA TENSIONADA', desc: 'Reduz notavelmente o intervalo entre disparos, lançando flechas em sucessão rápida.', toString() { return this.desc; } },
-      { badge: 'SARAIVADA VELOZ', desc: 'Disparos contínuos e ágeis que suprimem a vanguarda inimiga sem dar tempo de reação.', toString() { return this.desc; } },
-      { badge: 'FUSILAMENTO REAL', desc: 'Cadência quase instantânea: rajadas de flechas de alta frequência cravam o campo sem cessar.', toString() { return this.desc; } },
-      { badge: 'TEMPESTADE DE FLECHAS', desc: 'Cadência máxima supersônica! Uma torrente ininterrupta de flechas perfura as linhas inimigas!', toString() { return this.desc; } }
+      { badge: 'NV.1 DISPARO CERTEIRO', desc: 'Dano: 0 ➔ 15 | Vel. Ataque: 100% | Duração: 12.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 CORDA TENSIONADA', desc: 'Dano: 15 ➔ 18 | Vel. Ataque: 100% ➔ 116% | Duração: 12.0s ➔ 13.4s', toString() { return this.desc; } },
+      { badge: 'NV.3 SARAIVADA VELOZ', desc: 'Dano: 18 ➔ 22 | Vel. Ataque: 116% ➔ 135% | Duração: 13.4s ➔ 14.9s', toString() { return this.desc; } },
+      { badge: 'NV.4 FUSILAMENTO REAL', desc: 'Dano: 22 ➔ 25 | Vel. Ataque: 135% ➔ 156% | Duração: 14.9s ➔ 16.3s', toString() { return this.desc; } },
+      { badge: 'NV.5 TEMPESTADE REAL', desc: 'Dano: 25 ➔ 28 | Vel. Ataque: 156% ➔ 181% | Duração: 16.3s ➔ 17.8s', toString() { return this.desc; } }
     ]
   },
   sword: {
@@ -25,13 +25,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: true,
     unlockCost: 0,
     maxLevel: Infinity,
-    forgeLore: 'Lâmina nobre de aço temperado. Possui knockback ativo e área cortante colossal.',
+    forgeLore: 'Lâmina Ancestral de Aço Puro.\nDesfere arcos cortantes reluzentes que varrem múltiplos monstros de uma só vez e abrem caminho na horda.',
     levels: [
-      { badge: 'CORTE NOBRE', desc: 'Desfere golpes precisos de aço temperado com área de impacto equilibrada e repulsão frontal ativa.', toString() { return this.desc; } },
-      { badge: 'FIO EXPANDIDO', desc: 'Amplia a lâmina com alcance acelerado, ceifando a primeira linha de monstros com facilidade.', toString() { return this.desc; } },
-      { badge: 'CORTE COLOSSAL', desc: 'Golpes de enorme envergadura frontal que varrem formações inimigas inteiras em arco cortante.', toString() { return this.desc; } },
-      { badge: 'FÚRIA VORPAL', desc: 'Lâmina descomunal que rasga o ar em semicírculo devastador, desestabilizando qualquer avanço.', toString() { return this.desc; } },
-      { badge: 'COLOSSO SUPREMO', desc: 'Varredura colossal lendária! Uma muralha de lâmina titânica que aniquila todo o campo frontal!', toString() { return this.desc; } }
+      { badge: 'NV.1 CORTE NOBRE', desc: 'Dano: 0 ➔ 20 | Tamanho: 100% | Duração: 10.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 FIO EXPANDIDO', desc: 'Dano: 20 ➔ 24 | Tamanho: 100% ➔ 126% | Duração: 10.0s ➔ 11.2s', toString() { return this.desc; } },
+      { badge: 'NV.3 CORTE COLOSSAL', desc: 'Dano: 24 ➔ 29 | Tamanho: 126% ➔ 152% | Duração: 11.2s ➔ 12.4s', toString() { return this.desc; } },
+      { badge: 'NV.4 FÚRIA VORPAL', desc: 'Dano: 29 ➔ 33 | Tamanho: 152% ➔ 178% | Duração: 12.4s ➔ 13.6s', toString() { return this.desc; } },
+      { badge: 'NV.5 COLOSSO SUPREMO', desc: 'Dano: 33 ➔ 38 | Tamanho: 178% ➔ 204% | Duração: 13.6s ➔ 14.8s', toString() { return this.desc; } }
     ]
   },
   shield: {
@@ -41,13 +41,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 30,
     maxLevel: Infinity,
-    forgeLore: 'Égide abençoada. Reflete flechas em múltiplos ângulos e garante proteção prolongada.',
+    forgeLore: 'Relíquia Dourada dos Paladinos.\nErgue uma barreira divina impenetrável que esmaga inimigos próximos e reflete projéteis de volta aos atacantes.',
     levels: [
-      { badge: 'ÉGIDE BÁSICA', desc: 'Envolve o herói em aura celestial por tempo equilibrado, refletindo flechas e detonando em choque se atingido.', toString() { return this.desc; } },
-      { badge: 'ÉGIDE REFORÇADA', desc: 'Aumenta substancialmente o tempo de proteção ativa, mantendo a imunidade reativa por muito mais tempo.', toString() { return this.desc; } },
-      { badge: 'ESPELHO DIVINO', desc: 'Duração prolongada vigorosa: reflete flechas em ângulos duplos e garante proteção duradoura na batalha.', toString() { return this.desc; } },
-      { badge: 'BALUARTE REAL', desc: 'Fortaleza celestial duradoura, suportando a pressão do combate e detonando em choque sagrado ampliado.', toString() { return this.desc; } },
-      { badge: 'ÉGIDE ETERNA', desc: 'Proteção celestial de duração colossal! O herói combate imperturbável envolto em graça divina suprema!', toString() { return this.desc; } }
+      { badge: 'NV.1 ÉGIDE BÁSICA', desc: 'Dano: 0 ➔ 12 | Tamanho: 100% | Duração: 8.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 ÉGIDE REFORÇADA', desc: 'Dano: 12 ➔ 15 | Tamanho: 100% ➔ 115% | Duração: 8.0s ➔ 9.0s', toString() { return this.desc; } },
+      { badge: 'NV.3 ESPELHO DIVINO', desc: 'Dano: 15 ➔ 17 | Tamanho: 115% ➔ 130% | Duração: 9.0s ➔ 9.9s', toString() { return this.desc; } },
+      { badge: 'NV.4 BALUARTE REAL', desc: 'Dano: 17 ➔ 20 | Tamanho: 130% ➔ 145% | Duração: 9.9s ➔ 10.9s', toString() { return this.desc; } },
+      { badge: 'NV.5 ÉGIDE ETERNA', desc: 'Dano: 20 ➔ 23 | Tamanho: 145% ➔ 160% | Duração: 10.9s ➔ 11.8s', toString() { return this.desc; } }
     ]
   },
   axe: {
@@ -57,13 +57,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 40,
     maxLevel: Infinity,
-    forgeLore: 'Machado duplo pesado. Corta em arco de retorno com força de repulsão titânica.',
+    forgeLore: 'Machado de Guerra dos Berserkers.\nGira em um turbilhão brutal de 360 graus ao redor do herói, arremessando hordas inteiras para longe.',
     levels: [
-      { badge: 'GOLPE RÚNICO', desc: 'Lança machado duplo em arco circular de retorno, desferindo golpes de impacto na ida e na volta.', toString() { return this.desc; } },
-      { badge: 'IMPACTO PESADO', desc: 'Aumenta consideravelmente a força de choque, arremessando monstros para trás na rota do bumerangue.', toString() { return this.desc; } },
-      { badge: 'REPULSÃO SÍSMICA', desc: 'Ondas sísmicas violentas que estilhaçam o avanço inimigo e lançam tropas para a retaguarda.', toString() { return this.desc; } },
-      { badge: 'CHOQUE ESMAGADOR', desc: 'Impacto rúnico massivo capaz de arremessar pelotões inteiros de volta para a floresta.', toString() { return this.desc; } },
-      { badge: 'FÚRIA DOS TITÃS', desc: 'Força de repulsão titânica colossal! Monstros atingidos voam pelos ares com violência descomunal!', toString() { return this.desc; } }
+      { badge: 'NV.1 GOLPE RÚNICO', desc: 'Dano: 0 ➔ 22 | Empurrão: 100% | Duração: 10.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 IMPACTO PESADO', desc: 'Dano: 22 ➔ 27 | Empurrão: 100% ➔ 135% | Duração: 10.0s ➔ 11.2s', toString() { return this.desc; } },
+      { badge: 'NV.3 REPULSÃO SÍSMICA', desc: 'Dano: 27 ➔ 32 | Empurrão: 135% ➔ 170% | Duração: 11.2s ➔ 12.4s', toString() { return this.desc; } },
+      { badge: 'NV.4 CHOQUE ESMAGADOR', desc: 'Dano: 32 ➔ 37 | Empurrão: 170% ➔ 205% | Duração: 12.4s ➔ 13.6s', toString() { return this.desc; } },
+      { badge: 'NV.5 FÚRIA DOS TITÃS', desc: 'Dano: 37 ➔ 41 | Empurrão: 205% ➔ 240% | Duração: 13.6s ➔ 14.8s', toString() { return this.desc; } }
     ]
   },
   firestaff: {
@@ -73,13 +73,13 @@ const WEAPON_CATALOG = {
     unlockedDefault: false,
     unlockCost: 20,
     maxLevel: Infinity,
-    forgeLore: 'Cetro ardente. Lança orbes solares que explodem em ampla área e deixam poças de fogo contínuo.',
+    forgeLore: 'Cetro Forjado em Rocha Vulcânica.\nConjura esferas ardentes que explodem ao contato, consumindo grupos inteiros de criaturas em chamas.',
     levels: [
-      { badge: 'ORBE SOLAR', desc: 'Dispara esfera ígnea concentrada que explode no impacto e cria uma poça de chamas ardentes no chão.', toString() { return this.desc; } },
-      { badge: 'BRASA VIVA', desc: 'Amplia a área da explosão e o raio das chamas no solo, consumindo monstros com fogo contínuo.', toString() { return this.desc; } },
-      { badge: 'LABAREDA INTENSA', desc: 'Detonação de fogo de grande alcance que queima ondas inteiras em uma barreira incandescente.', toString() { return this.desc; } },
-      { badge: 'INFERNO VORAZ', desc: 'Explosão expansiva massiva que incendeia metade da estrada com chamas impiedosas.', toString() { return this.desc; } },
-      { badge: 'CATACLISMO SOLAR', desc: 'Erupção solar titânica! O campo explode em um mar colossal de fogo e cinzas ardentes!', toString() { return this.desc; } }
+      { badge: 'NV.1 ORBE SOLAR', desc: 'Dano: 0 ➔ 18 | Explosão: 100% | Duração: 10.0s', toString() { return this.desc; } },
+      { badge: 'NV.2 BRASA VIVA', desc: 'Dano: 18 ➔ 22 | Explosão: 100% ➔ 122% | Duração: 10.0s ➔ 11.2s', toString() { return this.desc; } },
+      { badge: 'NV.3 LABAREDA INTENSA', desc: 'Dano: 22 ➔ 26 | Explosão: 122% ➔ 144% | Duração: 11.2s ➔ 12.4s', toString() { return this.desc; } },
+      { badge: 'NV.4 INFERNO VORAZ', desc: 'Dano: 26 ➔ 30 | Explosão: 144% ➔ 166% | Duração: 12.4s ➔ 13.6s', toString() { return this.desc; } },
+      { badge: 'NV.5 CATACLISMO SOLAR', desc: 'Dano: 30 ➔ 34 | Explosão: 166% ➔ 188% | Duração: 13.6s ➔ 14.8s', toString() { return this.desc; } }
     ]
   }
 };
@@ -93,11 +93,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_multishot',
     maxLevel: 5,
     levels: [
-      { badge: 'DISPARO DUPLO', desc: 'Adiciona uma lâmina de corte frontal e um projétil adicional a todas as armas empunhadas.', toString() { return this.desc; } },
-      { badge: 'LEQUE DE DISPAROS', desc: 'Expande ainda mais o leque frontal, liberando ondas e projéteis extras em arco.', toString() { return this.desc; } },
-      { badge: 'SARAIVADA ARCANA', desc: 'Dispara uma salva volumosa em leque que satura o corredor de combate com múltiplos golpes.', toString() { return this.desc; } },
-      { badge: 'CHUVA DE ATAQUES', desc: 'Múltiplos disparos simultâneos que cobrem toda a área frontal com dano implacável.', toString() { return this.desc; } },
-      { badge: 'ONIPRESENÇA MÁXIMA', desc: 'O poder supremo do Disparo Múltiplo! Uma avalanche de lâminas e disparos varre tudo à frente!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+1 PROJÉTIL)', desc: 'LV-1: +1 Projétil/Lâmina Extra (Total: +1 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+2 PROJÉTEIS)', desc: 'LV-2: +1 Projétil/Lâmina Extra (Total: +2 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+3 PROJÉTEIS)', desc: 'LV-3: +1 Projétil/Lâmina Extra (Total: +3 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+4 PROJÉTEIS)', desc: 'LV-4: +1 Projétil/Lâmina Extra (Total: +4 em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+5 PROJÉTEIS)', desc: 'LV-5: +1 Projétil/Lâmina Extra (Total: +5 em todas as armas)!', toString() { return this.desc; } }
     ]
   },
   growth: {
@@ -107,11 +107,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_growth',
     maxLevel: 5,
     levels: [
-      { badge: 'EXPANSÃO MÍSTICA', desc: 'Amplia a área de impacto de todos os cortes, projéteis e poças de fogo ardentes no solo.', toString() { return this.desc; } },
-      { badge: 'ALCANCE AMPLIADO', desc: 'Aumenta expressivamente o tamanho dos ataques, atingindo inimigos mais distantes com segurança.', toString() { return this.desc; } },
-      { badge: 'ÁURA GIGANTE', desc: 'Golpes e chamas ganham dimensões formidáveis, devorando o espaço dos monstros na estrada.', toString() { return this.desc; } },
-      { badge: 'MAGNITUDE TITÂNICA', desc: 'Tamanho monumental em cada arma, tornando impossível qualquer inimigo avançar ileso.', toString() { return this.desc; } },
-      { badge: 'DIMENSÃO SUPREMA', desc: 'Crescimento absoluto! Todas as armas e chamas operam em escala colossal titânica!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+22% ÁREA)', desc: 'LV-1: +22% Área de Ataque (Total: +22% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+44% ÁREA)', desc: 'LV-2: +22% Área de Ataque (Total: +44% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+66% ÁREA)', desc: 'LV-3: +22% Área de Ataque (Total: +66% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+88% ÁREA)', desc: 'LV-4: +22% Área de Ataque (Total: +88% em todas as armas).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+110% ÁREA)', desc: 'LV-5: +22% Área de Ataque (Total: +110% em todas as armas)!', toString() { return this.desc; } }
     ]
   },
   attackspeed: {
@@ -121,11 +121,11 @@ const SCROLL_CATALOG = {
     icon: 'scroll_speed',
     maxLevel: 5,
     levels: [
-      { badge: 'FÔLEGO ÁGIL', desc: 'Acelera a cadência de manuseio e ataque de todas as armas ativas na jornada.', toString() { return this.desc; } },
-      { badge: 'CADÊNCIA FULMINANTE', desc: 'Golpes e disparos se sucedem com rapidez impressionante, pressionando as defesas inimigas.', toString() { return this.desc; } },
-      { badge: 'REFLEXOS AURAIS', desc: 'Ritmo frenético de ataque que suprime hordas velozes sem dar espaço para aproximação.', toString() { return this.desc; } },
-      { badge: 'VELOCIDADE FRENÉTICA', desc: 'Ataques desferidos em sucessão avassaladora com intervalo mínimo entre ativações.', toString() { return this.desc; } },
-      { badge: 'TEMPESTADE TEMPORAL', desc: 'Velocidade de ataque suprema! O herói maneja suas relíquias em uma velocidade sobrenatural!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+18% CADÊNCIA)', desc: 'LV-1: +18% Velocidade de Ataque (Total: +18% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+36% CADÊNCIA)', desc: 'LV-2: +18% Velocidade de Ataque (Total: +36% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+54% CADÊNCIA)', desc: 'LV-3: +18% Velocidade de Ataque (Total: +54% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+72% CADÊNCIA)', desc: 'LV-4: +18% Velocidade de Ataque (Total: +72% Cadência).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+90% CADÊNCIA)', desc: 'LV-5: +18% Velocidade de Ataque (Total: +90% Cadência)!', toString() { return this.desc; } }
     ]
   },
   duration: {
@@ -135,7 +135,11 @@ const SCROLL_CATALOG = {
     icon: 'hud_hourglass',
     maxLevel: 10,
     levels: [
-      { badge: 'PERSISTÊNCIA ETERNA', desc: '+15.0s na duração máxima! Suas armas duram uma eternidade em campo!', toString() { return this.desc; } }
+      { badge: 'NV.1 (+1.5S DURAÇÃO)', desc: 'LV-1: +1.5s Duração das Armas (Total: +1.5s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.2 (+3.0S DURAÇÃO)', desc: 'LV-2: +1.5s Duração das Armas (Total: +3.0s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.3 (+4.5S DURAÇÃO)', desc: 'LV-3: +1.5s Duração das Armas (Total: +4.5s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.4 (+6.0S DURAÇÃO)', desc: 'LV-4: +1.5s Duração das Armas (Total: +6.0s em campo).', toString() { return this.desc; } },
+      { badge: 'NV.5 (+7.5S DURAÇÃO)', desc: 'LV-5: +1.5s Duração das Armas (Total: +7.5s em campo)!', toString() { return this.desc; } }
     ]
   }
 };
@@ -151,12 +155,12 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [1, 2, 3, 4, 5, 6],
     levels: [
-      '1 Coração de Vida (Aspecto hardcore inicial de sobrevivência).',
-      '2 Corações de Vida (+1 Coração - 2 golpes suportados).',
-      '3 Corações de Vida (Vigor honrado do Cavaleiro - 3 golpes).',
-      '4 Corações de Vida (Baluarte de Aço - 4 golpes suportados).',
-      '5 Corações de Vida (Sangue de Dragão - 5 golpes suportados).',
-      '6 Corações de Vida (Imortalidade Rubra - 6 Corações supremos)!'
+      'LV-1: 1 Coração (Suporta 1 golpe)',
+      'LV-2: 2 Corações (+1 Vida | 2 golpes)',
+      'LV-3: 3 Corações (+1 Vida | 3 golpes)',
+      'LV-4: 4 Corações (+1 Vida | 4 golpes)',
+      'LV-5: 5 Corações (+1 Vida | 5 golpes)',
+      'LV-6: 6 Corações (+1 Vida | 6 golpes)!'
     ]
   },
   moveSpeed: {
@@ -168,11 +172,11 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [280, 304, 328, 352, 380],
     levels: [
-      'Passos ágeis base (280 px/s).',
-      'Essência da Brisa (304 px/s, +9% velocidade).',
-      'Fôlego do Falcão (328 px/s, +17% velocidade).',
-      'Passos de Mercúrio (352 px/s, +26% velocidade).',
-      'Velocidade Astral (380 px/s, +36% esquiva suprema)!'
+      'LV-1: 280 px/s (Velocidade Base)',
+      'LV-2: 304 px/s (+24 px/s | +9%)',
+      'LV-3: 328 px/s (+24 px/s | +17%)',
+      'LV-4: 352 px/s (+24 px/s | +26%)',
+      'LV-5: 380 px/s (+28 px/s | +36%)!'
     ]
   },
   magnet: {
@@ -184,11 +188,11 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [90, 135, 185, 240, 310],
     levels: [
-      'Aura curta (90 px) para atrair Orbes de XP e Moedas de Prata.',
-      'Atração Mística (135 px) + puxada mais rápida.',
-      'Vórtice Esmeralda (185 px) — atrai metade da estrada.',
-      'Pulso Gravitacional (240 px) — puxa orbes de longe.',
-      'Onipresença Astral (310 px) — domina toda a floresta!'
+      'LV-1: Raio 90 px (Alcance Base)',
+      'LV-2: Raio 135 px (+45 px | +50%)',
+      'LV-3: Raio 185 px (+50 px | +105%)',
+      'LV-4: Raio 240 px (+55 px | +166%)',
+      'LV-5: Raio 310 px (+70 px | +244%)!'
     ]
   },
   wisdom: {
@@ -200,11 +204,11 @@ const STATUS_CATALOG = {
     costs: [10, 20, 40, 80, 160, 0],
     values: [1.0, 1.15, 1.30, 1.45, 1.65],
     levels: [
-      'Ganho de XP padrão (100%) e duração base das relíquias.',
-      '+15% de XP ganho e +0.6s na duração de todas as armas.',
-      '+30% de XP ganho e +1.2s na duração de todas as armas.',
-      '+45% de XP ganho e +1.8s na duração de todas as armas.',
-      '+65% de XP ganho e +2.5s na duração de todas as armas!'
+      'LV-1: XP 100% (Base) | +0.0s Dur.',
+      'LV-2: XP 115% (+15%) | +0.6s Dur.',
+      'LV-3: XP 130% (+15%) | +1.2s Dur.',
+      'LV-4: XP 145% (+15%) | +1.8s Dur.',
+      'LV-5: XP 165% (+20%) | +2.5s Dur.!'
     ]
   }
 };
